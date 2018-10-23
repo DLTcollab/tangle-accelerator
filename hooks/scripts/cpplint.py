@@ -5914,7 +5914,7 @@ def ProcessFileData(filename, file_extension, lines, error,
 
   ResetNolintSuppressions()
 
-  CheckForCopyright(filename, lines, error)
+  #CheckForCopyright(filename, lines, error)
   ProcessGlobalSuppresions(lines)
   RemoveMultiLineComments(filename, lines, error)
   clean_lines = CleansedLines(lines)
