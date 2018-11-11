@@ -2,8 +2,8 @@
 #define TANGLE_ACCELERATOR_CORE_API_H_
 
 #include "./common_core.h"
-#include "entangled/cclient/types/types.h"
 #include "serializer/json_serialization.h"
+#include "types/types.h"
 
 int handle_request(const iota_client_service_t* const service,
                    const char* const obj);
