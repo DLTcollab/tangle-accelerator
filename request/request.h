@@ -1,7 +1,7 @@
 #ifndef REQUEST_REQUEST_H_
 #define REQUEST_REQUEST_H_
 
-#include "request/get_tips.h"
-#include "request/send_transfer.h"
+#include "request/ta_get_tips.h"
+#include "request/ta_send_transfer.h"
 
 #endif  // REQUEST_REQUEST_H__
