@@ -8,6 +8,10 @@
 
 flex_hash_array_t* flex_hash_array_append_hash(flex_hash_array_t* head,
                                                trit_array_p hash);
+int cclient_get_txn_to_approve(const iota_client_service_t* const service,
+                               ta_get_tips_res_t* res);
+int cclient_get_tips(const iota_client_service_t* const service,
+                     ta_get_tips_res_t* res);
 int insert_to_trytes(const size_t start, const size_t end,
                      const trit_array_p* tryte, const trit_array_p* to_tryte);
 int ta_generate_address(const iota_client_service_t* const service,
