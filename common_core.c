@@ -74,14 +74,12 @@ int ta_get_tips(const iota_client_service_t* const service,
     case 0:
       /* get_transactions_to_approve */
       if (cclient_get_txn_to_approve(service, res)) return -1;
-      break;
     case 1:
       res = NULL;
       break;
     case 2:
       /* get_tips */
       if (cclient_get_tips(service, res)) return -1;
-      break;
     default:
       /* invalid option */
       return -1;
