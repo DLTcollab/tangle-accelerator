@@ -61,8 +61,19 @@ int insert_to_trytes(const size_t start, const size_t end,
 
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res) {
-  /* wait for extended apis */
-  return 0;
+  retcode_t ret = RC_OK;
+  hash243_queue_t out_address = NULL;
+  flex_trit_t seed_trits[243];
+  flex_trits_from_trytes(seed_trits, 243, (const tryte_t*)SEED, 81, 81);
+  address_opt_t opt = {.security = 3, .start = 0, .total = 0};
+
+  ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
+
+  if (ret == RC_OK) {
+    memcpy(res->hash->trits, out_address->hash, sizeof(flex_trit_t) * 243); 
+  }
+  hash243_queue_free(&out_address);
+  return ret;
 }
 
 int ta_get_tips(const iota_client_service_t* const service,

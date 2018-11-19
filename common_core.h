@@ -1,7 +1,9 @@
 #ifndef COMMON_CORE_H_
 #define COMMON_CORE_H_
 
+#include "./config.h"
 #include "cclient/iota_client_core_api.h"
+#include "cclient/iota_client_extended_api.h"
 #include "request/request.h"
 #include "response/response.h"
 #include "types/types.h"

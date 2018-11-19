@@ -25,10 +25,17 @@ cc_library(
     hdrs = ["common_core.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":ta_config",
         "//request",
         "//response",
         "@com_github_uthash//:uthash",
         "@entangled//cclient:api",
         "@entangled//cclient/types",
     ],
+)
+
+cc_library(
+    name = "ta_config",
+    hdrs = ["config.h"],
+    visibility = ["//visibility:public"],
 )
