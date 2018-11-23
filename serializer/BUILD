@@ -12,3 +12,15 @@ cc_library(
         "@entangled//cclient/types",
     ],
 )
+
+cc_test(
+    name = "test_serializer",
+    srcs = [
+        "test/test_serializer.c",
+        "test/test_serializer.h",
+    ],
+    deps = [
+        ":serializer",
+        "@unity",
+    ],
+)
