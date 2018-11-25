@@ -70,7 +70,7 @@ int ta_generate_address(const iota_client_service_t* const service,
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
 
   if (ret == RC_OK) {
-    memcpy(res->hash->trits, out_address->hash, sizeof(flex_trit_t) * 243); 
+    memcpy(res->hash->trits, out_address->hash, sizeof(flex_trit_t) * 243);
   }
   hash243_queue_free(&out_address);
   return ret;

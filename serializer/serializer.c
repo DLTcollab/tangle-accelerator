@@ -42,7 +42,17 @@ int flex_trit_array_to_json_array(const flex_trit_t* const head,
 }
 
 int ta_generate_address_res_serialize(
-    char* obj, const ta_generate_address_res_t* const res) {
+    char** obj, const ta_generate_address_res_t* const res) {
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    return -1;
+  }
+  flex_hash_array_to_json_array_p(res, json_root, "address");
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    return -1;
+  }
+  cJSON_Delete(json_root);
   return 0;
 }
 

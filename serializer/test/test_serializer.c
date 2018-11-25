@@ -22,11 +22,24 @@ void test_serialize_ta_get_tips(void) {
   ta_get_tips_res_free(res);
 }
 
+void test_serialize_ta_generate_address(void) {
+  const char* json = "{\"address\":[\"" TRYRES_81_1 "\",\"" TRYRES_81_2 "\"]}";
+  char* json_result;
+  ta_generate_address_res_t* res = ta_generate_address_res_new();
+  res = flex_hash_array_append(res, TRYRES_81_1);
+  res = flex_hash_array_append(res, TRYRES_81_2);
+
+  ta_generate_address_res_serialize(&json_result, res);
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  ta_generate_address_res_free(res);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
   RUN_TEST(test_deserialize_ta_get_tips);
   RUN_TEST(test_serialize_ta_get_tips);
+  RUN_TEST(test_serialize_ta_generate_address);
 
   return UNITY_END();
 }

@@ -3,9 +3,7 @@
 
 #include "types/types.h"
 
-typedef struct {
-  trit_array_p hash;
-} ta_generate_address_res_t;
+typedef flex_hash_array_t ta_generate_address_res_t;
 
 ta_generate_address_res_t* ta_generate_address_res_new();
 void ta_generate_address_res_free(ta_generate_address_res_t* res);
