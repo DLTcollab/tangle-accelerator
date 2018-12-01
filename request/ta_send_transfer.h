@@ -4,10 +4,10 @@
 #include "types/types.h"
 
 typedef struct {
-  int values;
-  flex_hash_array_t* tags;
-  flex_hash_array_t* address;
-  flex_hash_array_t* messages;
+  int value;
+  trit_array_p tag;
+  trit_array_p address;
+  trit_array_p message;
   trit_array_p trunk;
   trit_array_p branch;
 } ta_send_transfer_req_t;
