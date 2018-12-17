@@ -1,6 +1,8 @@
 # Tangle-accelerator
 
-Tangle-accelerator is an intermediate server aim to accelerate interactions with the Tangle. It behaves like swarm node which can provide same services as full node and more for most use cases.
+`Tangle-accelerator` is an intermediate server accelerateing interactions 
+with the Tangle. It behaves like swarm nodes which can provide expected
+services as full node for most use cases.
 
 ## Building
 
@@ -41,3 +43,7 @@ Buildifier can be installed with `bazel` or `go`
 clang-format can be installed by command:
 - Debian/Ubuntu based: `$ sudo apt-get install clang-format`
 - OSX: `$ brew install clang-format`
+
+## Licensing
+`Tangle-accelerator` is freely redistributable under the MIT License. Use of this source
+code is governed by a MIT-style license that can be found in the `LICENSE` file.
