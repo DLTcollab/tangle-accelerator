@@ -1,7 +1,7 @@
 #include "ta_find_transactions.h"
 
 ta_find_transactions_res_t* ta_find_transactions_res_new() {
-  /* for utlist macro, head must be initialize to NULL*/
+  /* for utlist macro, head must be initialized to NULL*/
   return NULL;
 }
 
