@@ -110,9 +110,23 @@ int ta_send_transfer(const iota_client_service_t* const service,
 
 int ta_attach_debug_message_to_tangle(const char* const msg) { return 0; }
 
-int ta_find_transaction_by_tag(const iota_client_service_t* const service,
-                               const flex_hash_array_t* const tag) {
-  return 0;
+int ta_find_transactions_by_tag(const iota_client_service_t* const service,
+                                const ta_find_transactions_req_t* const req,
+                                ta_find_transactions_res_t* res) {
+  retcode_t ret = RC_OK;
+  find_transactions_req_t* find_tx_req = find_transactions_req_new();
+  find_transactions_res_t* find_tx_res = find_transactions_res_new();
+
+  find_tx_req->tags = req->tags;
+  ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
+
+  if (ret == RC_OK) {
+    ret = hash243_queue_push(&find_tx_res->hashes, res);
+  }
+
+  find_transactions_req_free(&find_tx_req);
+  find_transactions_res_free(&find_tx_res);
+  return ret;
 }
 
 int ta_get_txn_msg(const flex_hash_array_t* const txn) { return 0; }
