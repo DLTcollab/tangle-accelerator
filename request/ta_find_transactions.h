@@ -2,6 +2,7 @@
 #define REQUEST_TA_FIND_TRANSACTIONS_H_
 
 #include <stdlib.h>
+#include "types/types.h"
 
 typedef struct {
   hash81_queue_t tags;
