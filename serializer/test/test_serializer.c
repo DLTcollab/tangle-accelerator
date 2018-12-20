@@ -11,27 +11,27 @@ void test_deserialize_ta_get_tips(void) {
 }
 
 void test_serialize_ta_get_tips(void) {
-  const char* json = "{\"tips\":[\"" TRYRES_81_1 "\",\"" TRYRES_81_2 "\"]}";
+  const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   ta_get_tips_res_t* res = ta_get_tips_res_new();
-  res = flex_hash_array_append(res, TRYRES_81_1);
-  res = flex_hash_array_append(res, TRYRES_81_2);
+  hash243_stack_push(&res->tips, TRITS_81_2);
+  hash243_stack_push(&res->tips, TRITS_81_1);
 
   ta_get_tips_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_get_tips_res_free(res);
+  ta_get_tips_res_free(&res);
 }
 
 void test_serialize_ta_generate_address(void) {
-  const char* json = "{\"address\":[\"" TRYRES_81_1 "\",\"" TRYRES_81_2 "\"]}";
+  const char* json = "{\"address\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
-  res = flex_hash_array_append(res, TRYRES_81_1);
-  res = flex_hash_array_append(res, TRYRES_81_2);
+  hash243_queue_push(&res->addresses, TRITS_81_1);
+  hash243_queue_push(&res->addresses, TRITS_81_2);
 
   ta_generate_address_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_generate_address_res_free(res);
+  ta_generate_address_res_free(&res);
 }
 
 void test_deserialize_ta_send_transfer(void) {
@@ -39,7 +39,7 @@ void test_deserialize_ta_send_transfer(void) {
       "{\"command\":\"send_transfer\",\"value\":100,"
       "\"message\":\"" TAG_MSG "\",\"tag\":\"" TAG_MSG
       "\","
-      "\"address\":\"" TRYRES_81_1 "\"}";
+      "\"address\":\"" TRYTES_81_1 "\"}";
 
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   flex_trit_t tag_msg_trits[TAG_MSG_LEN * 3];
@@ -50,24 +50,24 @@ void test_deserialize_ta_send_transfer(void) {
   TEST_ASSERT_EQUAL_INT(100, req->value);
   flex_trits_from_trytes(tag_msg_trits, TAG_MSG_LEN * 3,
                          (const tryte_t*)TAG_MSG, TAG_MSG_LEN, TAG_MSG_LEN);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->trits, TAG_MSG_LEN);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message->trits, TAG_MSG_LEN);
+  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, TAG_MSG_LEN);
+  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, TAG_MSG_LEN);
 
-  flex_trits_from_trytes(addr_trits, 243, (const tryte_t*)TRYRES_81_1, 81, 81);
-  TEST_ASSERT_EQUAL_MEMORY(addr_trits, req->address->trits, 81);
+  flex_trits_from_trytes(addr_trits, 243, (const tryte_t*)TRYTES_81_1, 81, 81);
+  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->address->hash, 81);
 
-  ta_send_transfer_req_free(req);
+  ta_send_transfer_req_free(&req);
 }
 
 void test_serialize_ta_send_transfer(void) {
-  const char* json = "{\"bundle\":\"" TRYRES_2673_1 "\"}";
+  const char* json = "{\"hash\":\"" TRYTES_81_1 "\"}";
   char* json_result;
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
-  res->bundle = trit_array_new_from_trytes((const tryte_t*)TRYRES_2673_1);
 
+  hash243_queue_push(&res->hash, TRITS_81_1);
   ta_send_transfer_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_send_transfer_res_free(res);
+  ta_send_transfer_res_free(&res);
 }
 
 int main(void) {
