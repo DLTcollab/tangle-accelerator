@@ -15,7 +15,6 @@ cc_library(
         ":common_core",
         "//serializer",
         "@entangled//cclient:api",
-        "@entangled//cclient/types",
     ],
 )
 
@@ -48,7 +47,6 @@ cc_test(
     ],
     deps = [
         ":common_core",
-        "@entangled//cclient/types",
         "@unity",
     ],
 )
