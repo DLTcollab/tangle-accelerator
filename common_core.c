@@ -34,7 +34,8 @@ int cclient_get_txn_to_approve(const iota_client_service_t* const service,
 
   hash243_stack_push(&res->tips, get_txn_res->branch);
   hash243_stack_push(&res->tips, get_txn_res->trunk);
-  get_txn_res = NULL;
+
+  get_transactions_to_approve_res_free(&get_txn_res);
   get_transactions_to_approve_req_free(&get_txn_req);
   return 0;
 }
@@ -46,7 +47,7 @@ int cclient_get_tips(const iota_client_service_t* const service,
   ret = iota_client_get_tips(service, get_tips_res);
   if (ret != RC_OK) {
     get_tips_res_free(&get_tips_res);
-    res = NULL;
+    res->tips = NULL;
     return -1;
   }
   res->tips = get_tips_res->hashes;
@@ -86,7 +87,7 @@ int ta_get_tips(const iota_client_service_t* const service,
       /* get_transactions_to_approve */
       if (cclient_get_txn_to_approve(service, res)) return -1;
     case 1:
-      res = NULL;
+      res->tips = NULL;
       break;
     case 2:
       /* get_tips */
