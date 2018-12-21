@@ -123,6 +123,7 @@ int ta_find_transactions_by_tag(const iota_client_service_t* const service,
 
   if (ret == RC_OK) {
     res->hashes = find_tx_res->hashes;
+    find_tx_res->hashes = NULL;
   }
 
   find_transactions_req_free(&find_tx_req);
