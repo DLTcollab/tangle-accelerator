@@ -46,5 +46,6 @@ int api_generate_address(const iota_client_service_t* const service,
   }
 
 done:
+  ta_generate_address_res_free(&res);
   return ret;
 }
