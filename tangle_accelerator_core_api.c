@@ -5,6 +5,9 @@ int api_get_tips(const iota_client_service_t* const service,
   int ret = 0;
   ta_get_tips_req_t* req = ta_get_tips_req_new();
   ta_get_tips_res_t* res = ta_get_tips_res_new();
+  if (req == NULL || res == NULL) {
+    goto done;
+  }
 
   ret = ta_get_tips_req_deserialize(obj, req);
   if (ret) {
