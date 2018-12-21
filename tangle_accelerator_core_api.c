@@ -41,9 +41,6 @@ int api_generate_address(const iota_client_service_t* const service,
   }
 
   ret = ta_generate_address_res_serialize(&json_result, res);
-  if (ret) {
-    goto done;
-  }
 
 done:
   ta_generate_address_res_free(&res);
