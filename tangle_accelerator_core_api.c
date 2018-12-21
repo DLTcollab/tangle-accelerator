@@ -20,9 +20,6 @@ int api_get_tips(const iota_client_service_t* const service,
   }
 
   ret = ta_get_tips_res_serialize(&json_result, res);
-  if (ret) {
-    goto done;
-  }
 
 done:
   ta_get_tips_req_free(req);
