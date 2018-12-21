@@ -8,7 +8,6 @@ cc_binary(
 
 cc_library(
     name = "tangle_accelerator_api",
-    srcs = ["tangle_accelerator_core_api.c"],
     hdrs = ["tangle_accelerator_core_api.h"],
     visibility = ["//visibility:public"],
     deps = [
