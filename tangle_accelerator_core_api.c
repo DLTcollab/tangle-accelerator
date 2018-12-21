@@ -26,3 +26,21 @@ done:
   ta_get_tips_res_free(&res);
   return ret;
 }
+
+int api_generate_address(const iota_client_service_t* const service,
+                         char* json_result) {
+  int ret = 0;
+  ta_generate_address_res_t res = ta_generate_address_res_new();
+
+  ret = ta_generate_address(service, res);
+  if (ret) {
+    return ret;
+  }
+
+  ret = ta_generate_address_res_serialize(&json_result, res);
+  if (ret) {
+    return ret;
+  }
+
+  return ret;
+}
