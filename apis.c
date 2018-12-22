@@ -1,4 +1,4 @@
-#include "tangle_accelerator_core_api.h"
+#include "apis.h"
 
 int api_get_tips(const iota_client_service_t* const service,
                  const char* const obj, char* json_result) {

@@ -8,7 +8,7 @@ cc_binary(
 
 cc_library(
     name = "tangle_accelerator_api",
-    hdrs = ["tangle_accelerator_core_api.h"],
+    hdrs = ["apis.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":common_core",
