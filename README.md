@@ -1,20 +1,33 @@
 # Tangle-accelerator
 
-`Tangle-accelerator` is an intermediate server accelerateing interactions 
-with the Tangle. It behaves like swarm nodes which can provide expected
-services as full node for most use cases.
+`Tangle-accelerator` is a caching proxy server for [IOTA](https://www.iota.org/), which
+can cache API requests and rewrite their responses as needed to be routed through full
+nodes. Thus, one instance of `Tangle-accelerator` can serve thousands of Tangle requests
+at once without accessing remote full nodes frequently.
 
-## Building
+As an intermediate server accelerateing interactions with the Tangle, it faciliates
+[dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
+on edge devices. In the meanwhile, `Tangle-accelerator` provides shortcuts for certain
+use scenarios such as MAM and [TangleID](https://github.com/TangleID).
 
-Tangle-accelerator is built and run through [bazel](https://www.bazel.build/):
+At the moment, it is not feasible to host fully-functioned full nodes on Raspberry Pi class
+Arm devices, but Raspberry Pi 3 is known to be capable to execute `Tangle-accelerator`
+without problems. Since it is written in C/C++ with [entangled](https://github.com/iotaledger/entangled),
+both footprint and startup time are behaved pretty well.
+
+
+## Building from Source
+
+`Tangle-accelerator` is built and launched through [bazel](https://www.bazel.build/):
 
 ```
 $ bazel run //tangle_accelerator
 ```
 
+
 ## Developing
 
-- Please run `./hooks/autohook.sh install` after initial checkout.
+- Please run `hooks/autohook.sh install` after initial checkout.
 - Pass `-c dbg` for building with debug symbols.
 
 ### Tools required for running git commit hook
@@ -41,8 +54,9 @@ Buildifier can be installed with `bazel` or `go`
 
 ### clang-format
 clang-format can be installed by command:
-- Debian/Ubuntu based: `$ sudo apt-get install clang-format`
-- OSX: `$ brew install clang-format`
+- Debian/Ubuntu based systems: `$ sudo apt-get install clang-format`
+- macOS: `$ brew install clang-format`
+
 
 ## Licensing
 `Tangle-accelerator` is freely redistributable under the MIT License. Use of this source
