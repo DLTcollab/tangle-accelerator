@@ -1,5 +1,5 @@
-#ifndef TANGLE_ACCELERATOR_CORE_API_H_
-#define TANGLE_ACCELERATOR_CORE_API_H_
+#ifndef APIS_H_
+#define APIS_H_
 
 #include "./common_core.h"
 #include "serializer/serializer.h"
@@ -14,4 +14,4 @@ int api_get_tips(const iota_client_service_t* const service,
 int api_send_transfer(const iota_client_service_t* const service,
                       const char* const obj, char* json_result);
 
-#endif  // TANGLE_ACCELERATOR_CORE_API_H_
+#endif  // APIS_H_
