@@ -21,12 +21,13 @@ both footprint and startup time are behaved pretty well.
 `Tangle-accelerator` is built and launched through [bazel](https://www.bazel.build/):
 
 ```
-$ bazel run //tangle_accelerator
+$ bazel run //:tangle_accelerator
 ```
 
 
 ## Developing
 
+The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html): 
 - Please run `hooks/autohook.sh install` after initial checkout.
 - Pass `-c dbg` for building with debug symbols.
 
