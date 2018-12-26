@@ -1,0 +1,9 @@
+build --verbose_failures
+
+# Print errors with colors
+common --color=yes
+
+# Print errors and timeout warnings
+test --verbose_failures
+test --test_output=errors
+test --test_verbose_timeout_warnings
