@@ -37,15 +37,3 @@ cc_library(
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
 )
-
-cc_test(
-    name = "test_common_core",
-    srcs = [
-        "test/test_common_core.c",
-        "test/test_common_core.h",
-    ],
-    deps = [
-        ":common_core",
-        "@unity",
-    ],
-)
