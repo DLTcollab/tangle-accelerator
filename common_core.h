@@ -22,6 +22,8 @@ int ta_send_transfer(const iota_client_service_t* const service,
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
                                 const ta_find_transactions_req_t* const tags,
                                 ta_find_transactions_res_t* const res);
-int ta_get_txn_msg(const flex_hash_array_t* const txn);
+int ta_get_transaction_msg(const iota_client_service_t* const service,
+                           const ta_get_transaction_msg_req_t* req,
+                           ta_get_transaction_msg_res_t* res);
 
 #endif  // COMMON_CORE_H_
