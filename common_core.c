@@ -1,20 +1,5 @@
 #include "common_core.h"
 
-flex_hash_array_t* flex_hash_array_append_hash(flex_hash_array_t* head,
-                                               trit_array_p hash) {
-  flex_hash_array_t* tmp =
-      (flex_hash_array_t*)malloc(sizeof(flex_hash_array_t));
-  if (hash != NULL) {
-    if (tmp != NULL) {
-      tmp->hash = hash;
-      LL_APPEND(head, tmp);
-    } else {
-      free(tmp);
-    }
-  }
-  return head;
-}
-
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
   retcode_t ret = RC_OK;
