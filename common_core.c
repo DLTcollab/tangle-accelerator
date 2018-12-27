@@ -1,20 +1,5 @@
 #include "common_core.h"
 
-flex_hash_array_t* flex_hash_array_append_hash(flex_hash_array_t* head,
-                                               trit_array_p hash) {
-  flex_hash_array_t* tmp =
-      (flex_hash_array_t*)malloc(sizeof(flex_hash_array_t));
-  if (hash != NULL) {
-    if (tmp != NULL) {
-      tmp->hash = hash;
-      LL_APPEND(head, tmp);
-    } else {
-      free(tmp);
-    }
-  }
-  return head;
-}
-
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
   retcode_t ret = RC_OK;
@@ -53,11 +38,6 @@ int cclient_get_tips(const iota_client_service_t* const service,
   res->tips = get_tips_res->hashes;
   get_tips_res = NULL;
   return 0;
-}
-
-trit_array_p insert_to_trytes(const size_t start, const trit_array_p tryte,
-                              const trit_array_p to_tryte) {
-  return trit_array_insert(tryte, to_tryte, start * 3, to_tryte->num_trits);
 }
 
 int ta_generate_address(const iota_client_service_t* const service,
@@ -108,8 +88,6 @@ int ta_send_transfer(const iota_client_service_t* const service,
    */
   return 0;
 }
-
-int ta_attach_debug_message_to_tangle(const char* const msg) { return 0; }
 
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
                                 const ta_find_transactions_req_t* const req,
