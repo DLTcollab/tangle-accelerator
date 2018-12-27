@@ -104,8 +104,6 @@ int ta_send_transfer(const iota_client_service_t* const service,
   return 0;
 }
 
-int ta_attach_debug_message_to_tangle(const char* const msg) { return 0; }
-
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
                                 const ta_find_transactions_req_t* const req,
                                 ta_find_transactions_res_t* res) {
