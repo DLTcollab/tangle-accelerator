@@ -14,8 +14,6 @@ int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res);
 int cclient_get_tips(const iota_client_service_t* const service,
                      ta_get_tips_res_t* res);
-trit_array_p insert_to_trytes(const size_t start, const trit_array_p tryte,
-                              const trit_array_p to_tryte);
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res);
 int ta_get_tips(const iota_client_service_t* const service,

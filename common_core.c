@@ -55,11 +55,6 @@ int cclient_get_tips(const iota_client_service_t* const service,
   return 0;
 }
 
-trit_array_p insert_to_trytes(const size_t start, const trit_array_p tryte,
-                              const trit_array_p to_tryte) {
-  return trit_array_insert(tryte, to_tryte, start * 3, to_tryte->num_trits);
-}
-
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res) {
   retcode_t ret = RC_OK;
