@@ -141,7 +141,6 @@ int ta_get_txn_msg(const iota_client_service_t* const service,
   retcode_t ret = RC_OK;
   iota_transaction_t* tx;
   flex_trit_t* tx_trits;
-  size_t num_hash = hash243_queue_count(req->hashes);
 
   // get raw transaction data of transaction hashes
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
@@ -157,21 +156,19 @@ int ta_get_txn_msg(const iota_client_service_t* const service,
   }
 
   // deserialize raw data to transaction object and get message
-  for (int i = 0; i < num_hash; ++i) {
-    tx_trits = hash8019_queue_at(&get_trytes_res->trytes, i);
-    if (tx_trits == NULL) {
-      goto done;
-    }
+  tx_trits = hash8019_queue_peek(get_trytes_res->trytes);
+  if (tx_trits == NULL) {
+    goto done;
+  }
 
-    tx = transaction_deserialize(tx_trits, 0);
-    if (tx == NULL) {
-      goto done;
-    }
+  tx = transaction_deserialize(tx_trits, 0);
+  if (tx == NULL) {
+    goto done;
+  }
 
-    ret = hash8019_queue_push(&res->msg, transaction_message(tx));
-    if (ret) {
-      goto done;
-    }
+  ret = hash8019_queue_push(&res->msg, transaction_message(tx));
+  if (ret) {
+    goto done;
   }
 
 done:
