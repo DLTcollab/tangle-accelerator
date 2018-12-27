@@ -111,16 +111,22 @@ int ta_generate_address_res_serialize(
 int ta_get_tips_req_deserialize(const char* const obj, ta_get_tips_req_t* req) {
   cJSON* json_obj = cJSON_Parse(obj);
   cJSON* json_result = NULL;
+  int ret = 0;
 
   if (json_obj == NULL) {
-    return -1;
+    ret = -1;
+    goto done;
   }
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "opt");
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->opt = json_result->valueint;
-    return 0;
+  } else {
+    ret = -1;
   }
-  return -1;
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
 }
 
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
@@ -150,7 +156,8 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   int msg_len = 0, ret;
 
   if (json_obj == NULL) {
-    return -1;
+    ret = -1;
+    goto done;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "value");
@@ -164,7 +171,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
                          NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   ret = hash81_queue_push(&req->tag, tag_trits);
   if (ret) {
-    return ret;
+    goto done;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
@@ -179,9 +186,11 @@ int ta_send_transfer_req_deserialize(const char* const obj,
                          NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   ret = hash243_queue_push(&req->address, address_trits);
   if (ret) {
-    return ret;
+    goto done;
   }
 
+done:
+  cJSON_Delete(json_obj);
   return ret;
 }
 

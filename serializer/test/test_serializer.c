@@ -20,6 +20,7 @@ void test_serialize_ta_get_tips(void) {
   ta_get_tips_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_get_tips_res_free(&res);
+  free(json_result);
 }
 
 void test_serialize_ta_generate_address(void) {
@@ -32,6 +33,7 @@ void test_serialize_ta_generate_address(void) {
   ta_generate_address_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_generate_address_res_free(&res);
+  free(json_result);
 }
 
 void test_deserialize_ta_send_transfer(void) {
@@ -68,6 +70,7 @@ void test_serialize_ta_send_transfer(void) {
   ta_send_transfer_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_send_transfer_res_free(&res);
+  free(json_result);
 }
 
 int main(void) {
