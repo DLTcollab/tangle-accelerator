@@ -131,9 +131,9 @@ int ta_find_transactions_by_tag(const iota_client_service_t* const service,
   return ret;
 }
 
-int ta_get_txn_msg(const iota_client_service_t* const service,
-                   const ta_get_transaction_msg_req_t* req,
-                   ta_get_transaction_msg_res_t* res) {
+int ta_get_transaction_msg(const iota_client_service_t* const service,
+                           const ta_get_transaction_msg_req_t* req,
+                           ta_get_transaction_msg_res_t* res) {
   if (req == NULL || res == NULL) {
     return -1;
   }
