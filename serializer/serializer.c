@@ -240,18 +240,18 @@ done:
 
 int ta_get_transaction_msg_res_serialize(
     char** obj, const ta_get_transaction_msg_res_t* const res) {
+  char msg_trytes[NUM_TRYTES_SIGNATURE + 1];
   cJSON* json_root = cJSON_CreateObject();
-  char trytes_out[NUM_TRYTES_SIGNATURE + 1];
   if (json_root == NULL) {
     return -1;
   }
 
-  flex_trits_to_trytes((tryte_t*)trytes_out, NUM_TRYTES_SIGNATURE,
+  flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE,
                        res->msg->hash, NUM_TRITS_SIGNATURE,
                        NUM_TRITS_SIGNATURE);
-  trytes_out[NUM_TRYTES_SIGNATURE] = '\0';
+  msg_trytes[NUM_TRYTES_SIGNATURE] = '\0';
 
-  cJSON_AddStringToObject(json_root, "message", trytes_out);
+  cJSON_AddStringToObject(json_root, "message", msg_trytes);
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     return -1;
