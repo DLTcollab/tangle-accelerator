@@ -240,10 +240,12 @@ done:
 
 int ta_get_transaction_msg_res_serialize(
     char** obj, const ta_get_transaction_msg_res_t* const res) {
+  int ret = 0;
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1];
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
-    return -1;
+    ret = -1;
+    goto done;
   }
 
   flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE,
@@ -254,8 +256,11 @@ int ta_get_transaction_msg_res_serialize(
   cJSON_AddStringToObject(json_root, "message", msg_trytes);
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    return -1;
+    ret = -1;
+    goto done;
   }
+
+done:
   cJSON_Delete(json_root);
-  return 0;
+  return ret;
 }
