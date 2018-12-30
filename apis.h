@@ -13,5 +13,7 @@ int api_get_tips(const iota_client_service_t* const service,
                  const char* const obj, char* json_result);
 int api_send_transfer(const iota_client_service_t* const service,
                       const char* const obj, char* json_result);
+int api_get_transaction_msg(const iota_client_service_t* const service,
+                            const char* const obj, char* json_result);
 
 #endif  // APIS_H_
