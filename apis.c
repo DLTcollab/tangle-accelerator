@@ -46,3 +46,30 @@ done:
   ta_generate_address_res_free(&res);
   return ret;
 }
+
+int api_get_transaction_msg(const iota_client_service_t* const service,
+                            const char* const obj, char* json_result) {
+  int ret = 0;
+  ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
+  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+  if (req == NULL || res == NULL) {
+    goto done;
+  }
+
+  ret = ta_get_transaction_msg_req_deserialize(obj, req);
+  if (ret) {
+    goto done;
+  }
+
+  ret = ta_get_transaction_msg(service, req, res);
+  if (ret) {
+    goto done;
+  }
+
+  ret = ta_get_transaction_msg_res_serialize(&json_result, res);
+
+done:
+  ta_get_transaction_req_free(&req);
+  ta_get_transaction_res_free(&res);
+  return ret;
+}

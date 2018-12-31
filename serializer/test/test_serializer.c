@@ -73,6 +73,37 @@ void test_serialize_ta_send_transfer(void) {
   free(json_result);
 }
 
+void test_deserialize_ta_get_transaction_msg(void) {
+  const char* json =
+      "{\"command\":\"get_transaction_msg\","
+      "\"hash\":\"" TRYTES_81_1 "\"}";
+
+  ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
+  ta_get_transaction_msg_req_deserialize(json, req);
+
+  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->hashes->hash, 81);
+
+  ta_get_transaction_msg_req_free(&req);
+}
+
+void test_serialize_ta_get_transaction_msg(void) {
+  const char* json = "{\"message\":\"" TRYTES_2187_1 "\"}";
+  char* json_result;
+  flex_trit_t msg_trits[NUM_TRITS_SIGNATURE + 1];
+  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+
+  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
+                         (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
+                         NUM_TRYTES_SIGNATURE);
+  hash8019_queue_push(&res->msg, msg_trits);
+
+  ta_get_transaction_msg_res_serialize(&json_result, res);
+
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  ta_get_transaction_msg_res_free(&res);
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -81,6 +112,8 @@ int main(void) {
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_send_transfer);
+  RUN_TEST(test_deserialize_ta_get_transaction_msg);
+  RUN_TEST(test_serialize_ta_get_transaction_msg);
 
   return UNITY_END();
 }
