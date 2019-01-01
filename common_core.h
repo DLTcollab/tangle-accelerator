@@ -8,6 +8,10 @@
 #include "response/response.h"
 #include "types/types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res);
 int cclient_get_tips(const iota_client_service_t* const service,
@@ -25,5 +29,9 @@ int ta_find_transactions_by_tag(const iota_client_service_t* const service,
 int ta_get_transaction_msg(const iota_client_service_t* const service,
                            const ta_get_transaction_msg_req_t* req,
                            ta_get_transaction_msg_res_t* res);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // COMMON_CORE_H_

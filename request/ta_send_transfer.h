@@ -3,6 +3,10 @@
 
 #include "types/types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
   int value;
   hash81_queue_t tag;
@@ -12,5 +16,9 @@ typedef struct {
 
 ta_send_transfer_req_t* ta_send_transfer_req_new();
 void ta_send_transfer_req_free(ta_send_transfer_req_t** req);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // REQUEST_TA_SEND_TRANSFER_H_
