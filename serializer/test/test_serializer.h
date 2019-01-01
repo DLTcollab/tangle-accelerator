@@ -4,6 +4,10 @@
 #include <unity/unity.h>
 #include "serializer/serializer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TRYTES_81_1                                                            \
   "LCIKYSBE9IHXLIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
   "OORVZTZ"
@@ -121,5 +125,9 @@ const flex_trit_t TRITS_81_2[] = {
     32,   -30, 49, -47, -2,  127, 0,  0,  60,   -5,  -15, 17, -75, 127, 0,  0,
     0,    0,   0,  0,   0,   0,   0,  0,  0,    0,   0,   0,  96,  0,   0,  0,
     -126, 27,  64};
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // SERIALIZER_TEST_TEST_SERIALIZER_H_
