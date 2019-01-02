@@ -10,3 +10,9 @@ retcode_t iota_client_get_transactions_to_approve(
   get_transactions_to_approve_res_set_branch(res, TRITS_81_2);
   return APIMockObj.iota_client_get_transactions_to_approve(service, req, res);
 }
+
+retcode_t iota_client_get_tips(const iota_client_service_t* const service,
+                               get_tips_res_t* res) {
+  hash243_stack_push(&res->hashes, TRITS_81_1);
+  return APIMockObj.iota_client_get_tips(service, res);
+}
