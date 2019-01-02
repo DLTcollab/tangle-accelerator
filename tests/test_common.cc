@@ -1,11 +1,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <unity/unity.h>
 #include "./common_core.h"
 #include "iota_api_mock.hh"
 
 using ::testing::_;
 using ::testing::AtLeast;
+using ::testing::ElementsAreArray;
 
 APIMock APIMockObj;
 iota_client_service_t service;
@@ -20,13 +20,11 @@ TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
   flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
   flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
                          NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(hash, hash243_stack_peek(res->tips),
-                           FLEX_TRIT_SIZE_243);
+  EXPECT_THAT(res->tips->hash, ElementsAreArray(hash));
   hash243_stack_pop(&res->tips);
   flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2,
                          NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(hash, hash243_stack_peek(res->tips),
-                           FLEX_TRIT_SIZE_243);
+  EXPECT_THAT(res->tips->hash, ElementsAreArray(hash));
   ta_get_tips_res_free(&res);
 }
 
@@ -41,7 +39,7 @@ TEST(GetTipsTest, TipsHashTest) {
     flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
     flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-    TEST_ASSERT_EQUAL_MEMORY(hash, s_iter->hash, FLEX_TRIT_SIZE_243);
+    EXPECT_THAT(s_iter->hash, ElementsAreArray(hash));
   }
   ta_get_tips_res_free(&res);
 }
@@ -62,7 +60,7 @@ TEST(FindTxnTest, TxnHashTest) {
     flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
     flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-    TEST_ASSERT_EQUAL_MEMORY(hash, q_iter->hash, FLEX_TRIT_SIZE_243);
+    EXPECT_THAT(q_iter->hash, ElementsAreArray(hash));
   }
   ta_find_transactions_req_free(&req);
   ta_find_transactions_res_free(&res);
@@ -80,7 +78,7 @@ TEST(GenAdressTest, GetNewAddressTest) {
     flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
     flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-    TEST_ASSERT_EQUAL_MEMORY(hash, q_iter->hash, FLEX_TRIT_SIZE_243);
+    EXPECT_THAT(q_iter->hash, ElementsAreArray(hash));
   }
   ta_generate_address_res_free(&res);
 }

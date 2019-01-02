@@ -8,7 +8,6 @@ cc_test(
     deps = [
         "iota_api_mock",
         "//:common_core",
-        "@unity",
     ],
 )
 
