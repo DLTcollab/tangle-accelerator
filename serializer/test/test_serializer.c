@@ -104,6 +104,34 @@ void test_serialize_ta_get_transaction_msg(void) {
   free(json_result);
 }
 
+void test_deserialize_ta_find_transactions_by_tag(void) {
+  const char* json =
+      "{\"command\":\"find_transaction_by_tag\","
+      "\"tag\":\"" TAG_MSG "\"}";
+
+  ta_find_transactions_req_t* req = ta_find_transactions_req_new();
+  ta_find_transactions_req_deserialize(json, req);
+
+  TEST_ASSERT_EQUAL_MEMORY(TAG_MSG, req->tags->hash, 27);
+
+  ta_find_transactions_req_free(&req);
+}
+
+void test_serialize_ta_find_transactions_by_tag(void) {
+  const char* json = "{\"hashes\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
+  char* json_result;
+  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
+
+  hash243_queue_push(&res->hashes, TRITS_81_1);
+  hash243_queue_push(&res->hashes, TRITS_81_2);
+
+  ta_find_transactions_res_serialize(&json_result, res);
+
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  ta_find_transactions_res_free(&res);
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -114,6 +142,8 @@ int main(void) {
   RUN_TEST(test_serialize_ta_send_transfer);
   RUN_TEST(test_deserialize_ta_get_transaction_msg);
   RUN_TEST(test_serialize_ta_get_transaction_msg);
+  RUN_TEST(test_deserialize_ta_find_transactions_by_tag);
+  RUN_TEST(test_serialize_ta_find_transactions_by_tag);
 
   return UNITY_END();
 }
