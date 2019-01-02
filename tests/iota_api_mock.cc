@@ -16,3 +16,10 @@ retcode_t iota_client_get_tips(const iota_client_service_t* const service,
   hash243_stack_push(&res->hashes, TRITS_81_1);
   return APIMockObj.iota_client_get_tips(service, res);
 }
+
+retcode_t iota_client_find_transactions(
+    const iota_client_service_t* const service,
+    const find_transactions_req_t* const req, find_transactions_res_t* res) {
+  hash243_queue_push(&res->hashes, TRITS_81_1);
+  return APIMockObj.iota_client_find_transactions(service, req, res);
+}

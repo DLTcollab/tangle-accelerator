@@ -60,6 +60,11 @@ class IotaAPI {
       const iota_client_service_t* const service, get_tips_res_t* res) {
     return RC_OK;
   }
+  virtual retcode_t iota_client_find_transactions(
+      const iota_client_service_t* const service,
+      const find_transactions_req_t* const req, find_transactions_res_t* res) {
+    return RC_OK;
+  }
 };
 
 class APIMock : public IotaAPI {
@@ -72,4 +77,8 @@ class APIMock : public IotaAPI {
   MOCK_METHOD2(iota_client_get_tips,
                retcode_t(const iota_client_service_t* const service,
                          get_tips_res_t* res));
+  MOCK_METHOD3(iota_client_find_transactions,
+               retcode_t(const iota_client_service_t* const service,
+                         const find_transactions_req_t* const req,
+                         find_transactions_res_t* res));
 };

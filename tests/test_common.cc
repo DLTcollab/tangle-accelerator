@@ -46,6 +46,28 @@ TEST(GetTipsTest, TipsHashTest) {
   ta_get_tips_res_free(&res);
 }
 
+TEST(FindTxnTest, TxnHashTest) {
+  ta_find_transactions_req_t* req = ta_find_transactions_req_new();
+  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
+  flex_trit_t hash[FLEX_TRIT_SIZE_81];
+  flex_trits_from_trytes(hash, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
+                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+
+  EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
+      .Times(AtLeast(1));
+
+  EXPECT_EQ(ta_find_transactions_by_tag(&service, req, res), 0);
+  hash243_queue_entry_t* q_iter = NULL;
+  CDL_FOREACH(res->hashes, q_iter) {
+    flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
+    flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
+                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(hash, q_iter->hash, FLEX_TRIT_SIZE_243);
+  }
+  ta_find_transactions_req_free(&req);
+  ta_find_transactions_res_free(&res);
+}
+
 int main(int argc, char** argv) {
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
