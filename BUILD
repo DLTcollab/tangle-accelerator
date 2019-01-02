@@ -8,6 +8,7 @@ cc_binary(
 
 cc_library(
     name = "apis",
+    srcs = ["apis.c"],
     hdrs = ["apis.h"],
     visibility = ["//visibility:public"],
     deps = [
