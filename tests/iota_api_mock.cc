@@ -23,3 +23,12 @@ retcode_t iota_client_find_transactions(
   hash243_queue_push(&res->hashes, TRITS_81_1);
   return APIMockObj.iota_client_find_transactions(service, req, res);
 }
+
+retcode_t iota_client_get_new_address(iota_client_service_t const* const serv,
+                                      flex_trit_t const* const seed,
+                                      address_opt_t const addr_opt,
+                                      hash243_queue_t* out_addresses) {
+  hash243_queue_push(out_addresses, TRITS_81_1);
+  return APIMockObj.iota_client_get_new_address(serv, seed, addr_opt,
+                                                out_addresses);
+}

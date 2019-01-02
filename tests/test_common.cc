@@ -68,6 +68,23 @@ TEST(FindTxnTest, TxnHashTest) {
   ta_find_transactions_res_free(&res);
 }
 
+TEST(GenAdressTest, GetNewAddressTest) {
+  ta_generate_address_res_t* res = ta_generate_address_res_new();
+
+  EXPECT_CALL(APIMockObj, iota_client_get_new_address(_, _, _, _))
+      .Times(AtLeast(1));
+
+  EXPECT_EQ(ta_generate_address(&service, res), 0);
+  hash243_queue_entry_t* q_iter = NULL;
+  CDL_FOREACH(res->addresses, q_iter) {
+    flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
+    flex_trits_from_trytes(hash, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
+                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(hash, q_iter->hash, FLEX_TRIT_SIZE_243);
+  }
+  ta_generate_address_res_free(&res);
+}
+
 int main(int argc, char** argv) {
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
