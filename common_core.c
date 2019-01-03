@@ -36,7 +36,8 @@ int cclient_get_tips(const iota_client_service_t* const service,
     return -1;
   }
   res->tips = get_tips_res->hashes;
-  get_tips_res = NULL;
+  get_tips_res->hashes = NULL;
+  get_tips_res_free(&get_tips_res);
   return 0;
 }
 
@@ -53,7 +54,6 @@ int ta_generate_address(const iota_client_service_t* const service,
   if (ret == RC_OK) {
     res->addresses = out_address;
   }
-  hash243_queue_free(&out_address);
   return ret;
 }
 

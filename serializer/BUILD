@@ -24,3 +24,12 @@ cc_test(
         "@unity",
     ],
 )
+
+cc_library(
+    name = "test_define",
+    hdrs = ["test/test_serializer.h"],
+    deps = [
+        ":serializer",
+        "@unity",
+    ],
+)
