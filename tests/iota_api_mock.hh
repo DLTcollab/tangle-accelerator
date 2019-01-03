@@ -3,6 +3,11 @@
 #include "gmock/gmock.h"
 #include "serializer/test/test_serializer.h"
 
+/**
+ * Interface class for iota APIs which all return RC_OK
+ * These are returned instead of calling API directly during testing
+ * Function parameters are same as cclient of entangled
+ */
 class IotaAPI {
  public:
   virtual ~IotaAPI() {}
@@ -28,6 +33,11 @@ class IotaAPI {
   }
 };
 
+/**
+ * Mock class for googletest test cases
+ * Take virtual functions from interface to create mock methods
+ * Number after `MOCK_METHOD` should matches function parameters
+ */
 class APIMock : public IotaAPI {
  public:
   virtual ~APIMock() {}
