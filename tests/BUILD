@@ -18,6 +18,7 @@ cc_library(
     ],
     hdrs = ["iota_api_mock.hh"],
     deps = [
+        "//serializer:test_define",
         "@com_google_googletest//:gtest_main",
         "@entangled//cclient:api",
     ],
