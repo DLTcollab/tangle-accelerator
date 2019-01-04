@@ -1,7 +1,7 @@
 #include "apis.h"
 
 int api_get_tips(const iota_client_service_t* const service,
-                 const char* const obj, char* json_result) {
+                 const char* const obj, char** json_result) {
   int ret = 0;
   ta_get_tips_req_t* req = ta_get_tips_req_new();
   ta_get_tips_res_t* res = ta_get_tips_res_new();
@@ -19,7 +19,7 @@ int api_get_tips(const iota_client_service_t* const service,
     goto done;
   }
 
-  ret = ta_get_tips_res_serialize(&json_result, res);
+  ret = ta_get_tips_res_serialize(json_result, res);
 
 done:
   ta_get_tips_req_free(req);
@@ -28,7 +28,7 @@ done:
 }
 
 int api_generate_address(const iota_client_service_t* const service,
-                         char* json_result) {
+                         char** json_result) {
   int ret = 0;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
   if (res == NULL) {
@@ -40,7 +40,7 @@ int api_generate_address(const iota_client_service_t* const service,
     goto done;
   }
 
-  ret = ta_generate_address_res_serialize(&json_result, res);
+  ret = ta_generate_address_res_serialize(json_result, res);
 
 done:
   ta_generate_address_res_free(&res);
@@ -48,7 +48,7 @@ done:
 }
 
 int api_get_transaction_msg(const iota_client_service_t* const service,
-                            const char* const obj, char* json_result) {
+                            const char* const obj, char** json_result) {
   int ret = 0;
   ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
   ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
@@ -66,7 +66,7 @@ int api_get_transaction_msg(const iota_client_service_t* const service,
     goto done;
   }
 
-  ret = ta_get_transaction_msg_res_serialize(&json_result, res);
+  ret = ta_get_transaction_msg_res_serialize(json_result, res);
 
 done:
   ta_get_transaction_msg_req_free(&req);
@@ -75,7 +75,7 @@ done:
 }
 
 int api_find_transactions_by_tag(const iota_client_service_t* const service,
-                                 const char* const obj, char* json_result) {
+                                 const char* const obj, char** json_result) {
   int ret = 0;
   ta_find_transactions_req_t* req = ta_find_transactions_req_new();
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
@@ -93,7 +93,7 @@ int api_find_transactions_by_tag(const iota_client_service_t* const service,
     goto done;
   }
 
-  ret = ta_find_transactions_res_serialize(&json_result, res);
+  ret = ta_find_transactions_res_serialize(json_result, res);
 
 done:
   ta_find_transactions_req_free(&req);
