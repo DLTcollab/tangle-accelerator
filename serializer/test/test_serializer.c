@@ -112,7 +112,7 @@ void test_deserialize_ta_find_transactions_by_tag(void) {
   ta_find_transactions_req_t* req = ta_find_transactions_req_new();
   ta_find_transactions_req_deserialize(json, req);
 
-  TEST_ASSERT_EQUAL_MEMORY(TAG_MSG, req->tags->hash, 27);
+  TEST_ASSERT_EQUAL_MEMORY(TAG_MSG, req->tags->hash, TAG_MSG_LEN);
 
   ta_find_transactions_req_free(&req);
 }
