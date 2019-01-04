@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 typedef struct ta_get_transaction_msg_res {
-  hash8019_queue_t msg;
+  flex_trit_t msg[FLEX_TRIT_SIZE_6561];
 } ta_get_transaction_msg_res_t;
 
 ta_get_transaction_msg_res_t* ta_get_transaction_msg_res_new();

@@ -89,13 +89,13 @@ void test_deserialize_ta_get_transaction_msg(void) {
 void test_serialize_ta_get_transaction_msg(void) {
   const char* json = "{\"message\":\"" TRYTES_2187_1 "\"}";
   char* json_result;
-  flex_trit_t msg_trits[NUM_TRITS_SIGNATURE + 1];
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561];
   ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
 
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
                          (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
-  hash8019_queue_push(&res->msg, msg_trits);
+  memcpy(res->msg, msg_trits, FLEX_TRIT_SIZE_6561);
 
   ta_get_transaction_msg_res_serialize(&json_result, res);
 

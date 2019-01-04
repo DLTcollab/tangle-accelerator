@@ -248,9 +248,8 @@ int ta_get_transaction_msg_res_serialize(
     goto done;
   }
 
-  flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE,
-                       res->msg->hash, NUM_TRITS_SIGNATURE,
-                       NUM_TRITS_SIGNATURE);
+  flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE, res->msg,
+                       NUM_TRITS_SIGNATURE, NUM_TRITS_SIGNATURE);
   msg_trytes[NUM_TRYTES_SIGNATURE] = '\0';
 
   cJSON_AddStringToObject(json_root, "message", msg_trytes);
