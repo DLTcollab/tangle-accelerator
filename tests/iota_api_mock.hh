@@ -31,6 +31,11 @@ class IotaAPI {
       address_opt_t const addr_opt, hash243_queue_t* out_addresses) {
     return RC_OK;
   }
+  virtual retcode_t iota_client_get_trytes(
+      const iota_client_service_t* const service, get_trytes_req_t* const req,
+      get_trytes_res_t* res) {
+    return RC_OK;
+  }
 };
 
 /**
@@ -57,4 +62,7 @@ class APIMock : public IotaAPI {
                          flex_trit_t const* const seed,
                          address_opt_t const addr_opt,
                          hash243_queue_t* out_addresses));
+  MOCK_METHOD3(iota_client_get_trytes,
+               retcode_t(const iota_client_service_t* const service,
+                         get_trytes_req_t* const req, get_trytes_res_t* res));
 };

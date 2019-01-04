@@ -144,10 +144,8 @@ int ta_get_transaction_msg(const iota_client_service_t* const service,
     goto done;
   }
 
-  ret = hash8019_queue_push(&res->msg, transaction_message(tx));
-  if (ret) {
-    goto done;
-  }
+  memcpy(res->msg, transaction_message(tx), FLEX_TRIT_SIZE_6561);
+  transaction_free(tx);
 
 done:
   get_trytes_req_free(&get_trytes_req);
