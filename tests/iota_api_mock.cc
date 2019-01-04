@@ -32,3 +32,14 @@ retcode_t iota_client_get_new_address(iota_client_service_t const* const serv,
   return APIMockObj.iota_client_get_new_address(serv, seed, addr_opt,
                                                 out_addresses);
 }
+
+retcode_t iota_client_get_trytes(const iota_client_service_t* const service,
+                                 get_trytes_req_t* const req,
+                                 get_trytes_res_t* res) {
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
+  flex_trits_from_trytes(
+      tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash8019_queue_push(&res->trytes, tx_trits);
+  return APIMockObj.iota_client_get_trytes(service, req, res);
+}

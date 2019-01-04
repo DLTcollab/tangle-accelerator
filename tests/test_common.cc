@@ -83,6 +83,23 @@ TEST(GenAdressTest, GetNewAddressTest) {
   ta_generate_address_res_free(&res);
 }
 
+TEST(GetTxnMsgTest, GetTrytesTest) {
+  ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
+  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+
+  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
+
+  EXPECT_EQ(ta_get_transaction_msg(&service, req, res), 0);
+  flex_trit_t hash[FLEX_TRIT_SIZE_6561];
+  flex_trits_from_trytes(hash, NUM_TRITS_SIGNATURE,
+                         (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
+                         NUM_TRYTES_SIGNATURE);
+
+  EXPECT_THAT(res->msg, ElementsAreArray(hash));
+  ta_get_transaction_msg_req_free(&req);
+  ta_get_transaction_msg_res_free(&res);
+}
+
 int main(int argc, char** argv) {
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
