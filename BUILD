@@ -4,8 +4,8 @@ cc_binary(
     name = "tangle_accelerator",
     srcs = ["server.cc"],
     deps = [
-        "apis",
-        "ta_config",
+        ":apis",
+        ":ta_config",
         "@served",
     ],
 )
