@@ -12,6 +12,12 @@ git_repository(
     remote = "https://github.com/iotaledger/entangled.git",
 )
 
+git_repository(
+    name = "served",
+    commit = "757172e1d8aa7e273e800ce8ec91974c90a2a8b1",
+    remote = "https://github.com/meltwater/served.git",
+)
+
 load("@rules_iota//:defs.bzl", "iota_deps")
 
 iota_deps()

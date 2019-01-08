@@ -3,7 +3,11 @@ package(default_visibility = ["//visibility:public"])
 cc_binary(
     name = "tangle_accelerator",
     srcs = ["server.cc"],
-    deps = ["@boost//:beast"],
+    deps = [
+        "apis",
+        "ta_config",
+        "@served",
+    ],
 )
 
 cc_library(
