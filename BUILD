@@ -3,7 +3,12 @@ package(default_visibility = ["//visibility:public"])
 cc_binary(
     name = "tangle_accelerator",
     srcs = ["server.cc"],
-    deps = ["@boost//:beast"],
+    deps = [
+        ":apis",
+        ":ta_config",
+        ":ta_errors",
+        "@served",
+    ],
 )
 
 cc_library(
@@ -36,5 +41,11 @@ cc_library(
 cc_library(
     name = "ta_config",
     hdrs = ["config.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "ta_errors",
+    hdrs = ["errors.h"],
     visibility = ["//visibility:public"],
 )
