@@ -84,7 +84,7 @@ int main(int, char const**) {
 
   std::cout << "Starting..." << std::endl;
   served::net::server server(TA_HOST, TA_PORT, mux);
-  server.run(10);
+  server.run(TA_THREAD_COUNT);
 
   iota_client_core_destroy(&service);
   return 0;

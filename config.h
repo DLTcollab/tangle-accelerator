@@ -8,6 +8,7 @@ extern "C" {
 // Address binding and port for tangle-accelerator
 #define TA_HOST "localhost"
 #define TA_PORT "8000"
+#define TA_THREAD_COUNT 10
 
 // IRI connection setting
 #define IRI_HOST "localhost"
