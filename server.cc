@@ -2,6 +2,7 @@
 #include <served/served.hpp>
 #include "./apis.h"
 #include "./config.h"
+#include "./errors.h"
 #include "cJSON.h"
 
 int main(int, char const**) {
@@ -75,7 +76,7 @@ int main(int, char const**) {
     cJSON_AddStringToObject(json_obj, "message", "Invalid path");
     const char* json = cJSON_PrintUnformatted(json_obj);
 
-    res.set_status(400);
+    res.set_status(SC_BAD_REQUEST);
     res.set_header("content-type", "application/json");
     res << json;
 
