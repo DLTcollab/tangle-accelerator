@@ -264,29 +264,6 @@ done:
   return ret;
 }
 
-int ta_find_transactions_req_deserialize(const char* const obj,
-                                         ta_find_transactions_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  flex_trit_t tag_trits[NUM_TRITS_TAG];
-  int ret;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  ret = hash81_queue_push(&req->tags, tag_trits);
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
 int ta_find_transactions_res_serialize(
     char** obj, const ta_find_transactions_res_t* const res) {
   int ret = 0;

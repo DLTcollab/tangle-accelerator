@@ -24,7 +24,7 @@ int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res);
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
-                                const ta_find_transactions_req_t* const tags,
+                                const char* const req,
                                 ta_find_transactions_res_t* const res);
 int ta_get_transaction_msg(const iota_client_service_t* const service,
                            const ta_get_transaction_msg_req_t* req,

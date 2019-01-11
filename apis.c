@@ -70,18 +70,12 @@ done:
 int api_find_transactions_by_tag(const iota_client_service_t* const service,
                                  const char* const obj, char** json_result) {
   int ret = 0;
-  ta_find_transactions_req_t* req = ta_find_transactions_req_new();
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
-  if (req == NULL || res == NULL) {
+  if (res == NULL) {
     goto done;
   }
 
-  ret = ta_find_transactions_req_deserialize(obj, req);
-  if (ret) {
-    goto done;
-  }
-
-  ret = ta_find_transactions_by_tag(service, req, res);
+  ret = ta_find_transactions_by_tag(service, obj, res);
   if (ret) {
     goto done;
   }
@@ -89,7 +83,6 @@ int api_find_transactions_by_tag(const iota_client_service_t* const service,
   ret = ta_find_transactions_res_serialize(json_result, res);
 
 done:
-  ta_find_transactions_req_free(&req);
   ta_find_transactions_res_free(&res);
   return ret;
 }

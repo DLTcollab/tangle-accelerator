@@ -26,16 +26,12 @@ int main(int, char const**) {
    */
   mux.handle("/tag/{tag:[A-Z9]{27}}")
       .get([&](served::response& res, const served::request& req) {
-        cJSON* json_obj = cJSON_CreateObject();
-        cJSON_AddStringToObject(json_obj, "tag", req.params["tag"].c_str());
-        const char* json = cJSON_PrintUnformatted(json_obj);
         char* json_result;
 
-        api_find_transactions_by_tag(&service, json, &json_result);
+        api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
+                                     &json_result);
         res.set_header("content-type", "application/json");
         res << json_result;
-
-        cJSON_Delete(json_obj);
       });
 
   /**

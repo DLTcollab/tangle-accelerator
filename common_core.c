@@ -90,13 +90,16 @@ int ta_send_transfer(const iota_client_service_t* const service,
 }
 
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
-                                const ta_find_transactions_req_t* const req,
+                                const char* const req,
                                 ta_find_transactions_res_t* res) {
   retcode_t ret = RC_OK;
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   find_transactions_res_t* find_tx_res = find_transactions_res_new();
 
-  find_tx_req->tags = req->tags;
+  flex_trit_t tag_trits[NUM_TRITS_TAG];
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)req,
+                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  hash81_queue_push(&find_tx_req->tags, tag_trits);
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
 
   if (ret == RC_OK) {

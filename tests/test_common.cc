@@ -45,7 +45,7 @@ TEST(GetTipsTest, TipsHashTest) {
 }
 
 TEST(FindTxnTest, TxnHashTest) {
-  ta_find_transactions_req_t* req = ta_find_transactions_req_new();
+  const char req[FLEX_TRIT_SIZE_81] = {};
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
   flex_trit_t hash[FLEX_TRIT_SIZE_81];
   flex_trits_from_trytes(hash, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
@@ -62,7 +62,6 @@ TEST(FindTxnTest, TxnHashTest) {
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
     EXPECT_THAT(q_iter->hash, ElementsAreArray(hash));
   }
-  ta_find_transactions_req_free(&req);
   ta_find_transactions_res_free(&res);
 }
 
