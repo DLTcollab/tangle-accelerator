@@ -18,8 +18,6 @@ int cclient_get_tips(const iota_client_service_t* const service,
                      ta_get_tips_res_t* res);
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res);
-int ta_get_tips(const iota_client_service_t* const service,
-                const ta_get_tips_req_t* const req, ta_get_tips_res_t* res);
 int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res);

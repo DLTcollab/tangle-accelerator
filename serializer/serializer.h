@@ -14,7 +14,6 @@ extern "C" {
 
 int ta_generate_address_res_serialize(
     char** obj, const ta_generate_address_res_t* const res);
-int ta_get_tips_req_deserialize(const char* const obj, ta_get_tips_req_t* req);
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);
 int ta_send_transfer_req_deserialize(const char* const obj,
                                      ta_send_transfer_req_t* req);

@@ -57,28 +57,6 @@ int ta_generate_address(const iota_client_service_t* const service,
   return ret;
 }
 
-int ta_get_tips(const iota_client_service_t* const service,
-                const ta_get_tips_req_t* const req, ta_get_tips_res_t* res) {
-  if (req == NULL || res == NULL) {
-    return -1;
-  }
-  switch (req->opt) {
-    case 0:
-      /* get_transactions_to_approve */
-      if (cclient_get_txn_to_approve(service, res)) return -1;
-    case 1:
-      res->tips = NULL;
-      break;
-    case 2:
-      /* get_tips */
-      if (cclient_get_tips(service, res)) return -1;
-    default:
-      /* invalid option */
-      return -1;
-  }
-  return 0;
-}
-
 int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res) {

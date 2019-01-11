@@ -108,27 +108,6 @@ int ta_generate_address_res_serialize(
   return ret;
 }
 
-int ta_get_tips_req_deserialize(const char* const obj, ta_get_tips_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  int ret = 0;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "opt");
-  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
-    req->opt = json_result->valueint;
-  } else {
-    ret = -1;
-  }
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
   cJSON* json_root = cJSON_CreateObject();
   int ret = 0;
