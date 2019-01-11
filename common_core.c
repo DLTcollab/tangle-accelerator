@@ -113,15 +113,16 @@ int ta_find_transactions_by_tag(const iota_client_service_t* const service,
 }
 
 int ta_get_transaction_msg(const iota_client_service_t* const service,
-                           const ta_get_transaction_msg_req_t* req,
+                           const char* const req,
                            ta_get_transaction_msg_res_t* res) {
-  if (req == NULL || res == NULL) {
+  if (res == NULL) {
     return -1;
   }
 
   retcode_t ret = RC_OK;
   iota_transaction_t* tx;
   flex_trit_t* tx_trits;
+  flex_trit_t addr_trits[NUM_TRITS_HASH];
 
   // get raw transaction data of transaction hashes
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
@@ -130,7 +131,9 @@ int ta_get_transaction_msg(const iota_client_service_t* const service,
     goto done;
   }
 
-  get_trytes_req->hashes = req->hashes;
+  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH, (const tryte_t*)req,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  hash243_queue_push(&get_trytes_req->hashes, addr_trits);
   ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
   if (ret) {
     goto done;

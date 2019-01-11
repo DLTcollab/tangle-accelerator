@@ -215,29 +215,6 @@ int ta_send_transfer_res_serialize(char** obj,
   return 0;
 }
 
-int ta_get_transaction_msg_req_deserialize(const char* const obj,
-                                           ta_get_transaction_msg_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  flex_trit_t addr_trits[NUM_TRITS_HASH];
-  int ret;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "hash");
-  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  ret = hash243_queue_push(&req->hashes, addr_trits);
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
 int ta_get_transaction_msg_res_serialize(
     char** obj, const ta_get_transaction_msg_res_t* const res) {
   int ret = 0;

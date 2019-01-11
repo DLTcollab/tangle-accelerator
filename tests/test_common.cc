@@ -83,7 +83,7 @@ TEST(GenAdressTest, GetNewAddressTest) {
 }
 
 TEST(GetTxnMsgTest, GetTrytesTest) {
-  ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
+  const char req[FLEX_TRIT_SIZE_243] = {};
   ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
 
   EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
@@ -95,7 +95,6 @@ TEST(GetTxnMsgTest, GetTrytesTest) {
                          NUM_TRYTES_SIGNATURE);
 
   EXPECT_THAT(res->msg, ElementsAreArray(hash));
-  ta_get_transaction_msg_req_free(&req);
   ta_get_transaction_msg_res_free(&res);
 }
 
