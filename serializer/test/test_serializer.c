@@ -1,15 +1,5 @@
 #include "test_serializer.h"
 
-void test_deserialize_ta_get_tips(void) {
-  const char* json = "{\"command\":\"get_tips\",\"opt\":1}";
-
-  ta_get_tips_req_t* req = ta_get_tips_req_new();
-  ta_get_tips_req_deserialize(json, req);
-
-  TEST_ASSERT_EQUAL_INT(1, req->opt);
-  ta_get_tips_req_free(req);
-}
-
 void test_serialize_ta_get_tips(void) {
   const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
@@ -73,19 +63,6 @@ void test_serialize_ta_send_transfer(void) {
   free(json_result);
 }
 
-void test_deserialize_ta_get_transaction_msg(void) {
-  const char* json =
-      "{\"command\":\"get_transaction_msg\","
-      "\"hash\":\"" TRYTES_81_1 "\"}";
-
-  ta_get_transaction_msg_req_t* req = ta_get_transaction_msg_req_new();
-  ta_get_transaction_msg_req_deserialize(json, req);
-
-  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->hashes->hash, 81);
-
-  ta_get_transaction_msg_req_free(&req);
-}
-
 void test_serialize_ta_get_transaction_msg(void) {
   const char* json = "{\"message\":\"" TRYTES_2187_1 "\"}";
   char* json_result;
@@ -102,19 +79,6 @@ void test_serialize_ta_get_transaction_msg(void) {
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_get_transaction_msg_res_free(&res);
   free(json_result);
-}
-
-void test_deserialize_ta_find_transactions_by_tag(void) {
-  const char* json =
-      "{\"command\":\"find_transaction_by_tag\","
-      "\"tag\":\"" TAG_MSG "\"}";
-
-  ta_find_transactions_req_t* req = ta_find_transactions_req_new();
-  ta_find_transactions_req_deserialize(json, req);
-
-  TEST_ASSERT_EQUAL_MEMORY(TAG_MSG, req->tags->hash, TAG_MSG_LEN);
-
-  ta_find_transactions_req_free(&req);
 }
 
 void test_serialize_ta_find_transactions_by_tag(void) {
@@ -135,14 +99,11 @@ void test_serialize_ta_find_transactions_by_tag(void) {
 int main(void) {
   UNITY_BEGIN();
 
-  RUN_TEST(test_deserialize_ta_get_tips);
   RUN_TEST(test_serialize_ta_get_tips);
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_send_transfer);
-  RUN_TEST(test_deserialize_ta_get_transaction_msg);
   RUN_TEST(test_serialize_ta_get_transaction_msg);
-  RUN_TEST(test_deserialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
 
   return UNITY_END();

@@ -108,27 +108,6 @@ int ta_generate_address_res_serialize(
   return ret;
 }
 
-int ta_get_tips_req_deserialize(const char* const obj, ta_get_tips_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  int ret = 0;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "opt");
-  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
-    req->opt = json_result->valueint;
-  } else {
-    ret = -1;
-  }
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
   cJSON* json_root = cJSON_CreateObject();
   int ret = 0;
@@ -215,29 +194,6 @@ int ta_send_transfer_res_serialize(char** obj,
   return 0;
 }
 
-int ta_get_transaction_msg_req_deserialize(const char* const obj,
-                                           ta_get_transaction_msg_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  flex_trit_t addr_trits[NUM_TRITS_HASH];
-  int ret;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "hash");
-  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  ret = hash243_queue_push(&req->hashes, addr_trits);
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
 int ta_get_transaction_msg_res_serialize(
     char** obj, const ta_get_transaction_msg_res_t* const res) {
   int ret = 0;
@@ -261,29 +217,6 @@ int ta_get_transaction_msg_res_serialize(
 
 done:
   cJSON_Delete(json_root);
-  return ret;
-}
-
-int ta_find_transactions_req_deserialize(const char* const obj,
-                                         ta_find_transactions_req_t* req) {
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  flex_trit_t tag_trits[NUM_TRITS_TAG];
-  int ret;
-
-  if (json_obj == NULL) {
-    ret = -1;
-    goto done;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  ret = hash81_queue_push(&req->tags, tag_trits);
-
-done:
-  cJSON_Delete(json_obj);
   return ret;
 }
 
