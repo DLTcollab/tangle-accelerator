@@ -1,5 +1,4 @@
 #include "test_serializer.h"
-#include <inttypes.h>
 
 void test_serialize_ta_get_tips(void) {
   const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
