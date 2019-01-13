@@ -60,23 +60,23 @@ done:
   return ret;
 }
 
-int api_get_transaction_msg(const iota_client_service_t* const service,
-                            const char* const obj, char** json_result) {
+int api_get_transaction_object(const iota_client_service_t* const service,
+                               const char* const obj, char** json_result) {
   int ret = 0;
-  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
   if (res == NULL) {
     goto done;
   }
 
-  ret = ta_get_transaction_msg(service, obj, res);
+  ret = ta_get_transaction_object(service, obj, res);
   if (ret) {
     goto done;
   }
 
-  ret = ta_get_transaction_msg_res_serialize(json_result, res);
+  ret = ta_get_transaction_object_res_serialize(json_result, res);
 
 done:
-  ta_get_transaction_msg_res_free(&res);
+  ta_get_transaction_object_res_free(&res);
   return ret;
 }
 

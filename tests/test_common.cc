@@ -82,20 +82,20 @@ TEST(GenAdressTest, GetNewAddressTest) {
   ta_generate_address_res_free(&res);
 }
 
-TEST(GetTxnMsgTest, GetTrytesTest) {
+TEST(GetTxnObjTest, GetTrytesTest) {
   const char req[FLEX_TRIT_SIZE_243] = {};
-  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
 
   EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
 
-  EXPECT_EQ(ta_get_transaction_msg(&service, req, res), 0);
+  EXPECT_EQ(ta_get_transaction_object(&service, req, res), 0);
   flex_trit_t hash[FLEX_TRIT_SIZE_6561];
   flex_trits_from_trytes(hash, NUM_TRITS_SIGNATURE,
                          (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
 
-  EXPECT_THAT(res->msg, ElementsAreArray(hash));
-  ta_get_transaction_msg_res_free(&res);
+  EXPECT_THAT(res->txn->data.signature_or_message, ElementsAreArray(hash));
+  ta_get_transaction_object_res_free(&res);
 }
 
 int main(int argc, char** argv) {
