@@ -35,6 +35,20 @@ int main(int, char const**) {
       });
 
   /**
+   * @method {get} /tips Fetch pair tips which base on GetTransactionToApprove
+   *
+   * @return {String[]} tips Pair of transaction hashes
+   */
+  mux.handle("/tips/pair")
+      .get([&](served::response& res, const served::request& req) {
+        char* json_result;
+
+        api_get_tips_pair(&service, &json_result);
+        res.set_header("content-type", "application/json");
+        res << json_result;
+      });
+
+  /**
    * @method {get} /tips Fetch all tips
    *
    * @return {String[]} tips List of transaction hashes

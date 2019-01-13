@@ -20,6 +20,26 @@ done:
   return ret;
 }
 
+int api_get_tips_pair(const iota_client_service_t* const service,
+                      char** json_result) {
+  int ret = 0;
+  ta_get_tips_res_t* res = ta_get_tips_res_new();
+  if (res == NULL) {
+    goto done;
+  }
+
+  ret = cclient_get_txn_to_approve(service, res);
+  if (ret) {
+    goto done;
+  }
+
+  ret = ta_get_tips_res_serialize(json_result, res);
+
+done:
+  ta_get_tips_res_free(&res);
+  return ret;
+}
+
 int api_generate_address(const iota_client_service_t* const service,
                          char** json_result) {
   int ret = 0;

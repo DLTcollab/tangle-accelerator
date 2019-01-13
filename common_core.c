@@ -7,7 +7,8 @@ int cclient_get_txn_to_approve(const iota_client_service_t* const service,
       get_transactions_to_approve_req_new();
   get_transactions_to_approve_res_t* get_txn_res =
       get_transactions_to_approve_res_new();
-  get_txn_req->depth = 15;
+  // The depth at which Random Walk starts. Mininal is 3, and max is 15.
+  get_transactions_to_approve_req_set_depth(get_txn_req, 3);
 
   ret = iota_client_get_transactions_to_approve(service, get_txn_req,
                                                 get_txn_res);
