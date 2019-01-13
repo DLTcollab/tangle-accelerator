@@ -9,8 +9,6 @@
 extern "C" {
 #endif
 
-int handle_request(const iota_client_service_t* const service,
-                   const char* const obj);
 int api_generate_address(const iota_client_service_t* const service,
                          char** json_result);
 int api_get_tips_pair(const iota_client_service_t* const service,
