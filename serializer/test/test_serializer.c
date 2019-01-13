@@ -64,7 +64,7 @@ void test_serialize_ta_send_transfer(void) {
   free(json_result);
 }
 
-void test_serialize_ta_get_transaction_msg(void) {
+void test_serialize_ta_get_transaction_object(void) {
   const char* json = 
       "{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
@@ -81,7 +81,7 @@ void test_serialize_ta_get_transaction_msg(void) {
       "\"nonce\":\"" NONCE "\"}";
   char* json_result;
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81];
-  ta_get_transaction_msg_res_t* res = ta_get_transaction_msg_res_new();
+  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
   res->txn = transaction_new();
 
   // mask must be set in order to use the helper function
@@ -132,10 +132,10 @@ void test_serialize_ta_get_transaction_msg(void) {
                          NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
   transaction_set_nonce(res->txn, tag_trits);
 
-  ta_get_transaction_msg_res_serialize(&json_result, res);
+  ta_get_transaction_object_res_serialize(&json_result, res);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_get_transaction_msg_res_free(&res);
+  ta_get_transaction_object_res_free(&res);
   free(json_result);
 }
 
@@ -161,7 +161,7 @@ int main(void) {
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_send_transfer);
-  RUN_TEST(test_serialize_ta_get_transaction_msg);
+  RUN_TEST(test_serialize_ta_get_transaction_object);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   return UNITY_END();
 }

@@ -194,8 +194,8 @@ int ta_send_transfer_res_serialize(char** obj,
   return 0;
 }
 
-int ta_get_transaction_msg_res_serialize(
-    char** obj, const ta_get_transaction_msg_res_t* const res) {
+int ta_get_transaction_object_res_serialize(
+    char** obj, const ta_get_transaction_object_res_t* const res) {
   int ret = 0;
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1],
       tag_trytes[NUM_TRYTES_TAG + 1], timestamp[NUM_TRYTES_TIMESTAMP + 1];
