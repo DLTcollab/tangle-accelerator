@@ -28,7 +28,7 @@ void test_serialize_ta_generate_address(void) {
 
 void test_deserialize_ta_send_transfer(void) {
   const char* json =
-      "{\"command\":\"send_transfer\",\"value\":100,"
+      "{\"value\":100,"
       "\"message\":\"" TAG_MSG "\",\"tag\":\"" TAG_MSG
       "\","
       "\"address\":\"" TRYTES_81_1 "\"}";
