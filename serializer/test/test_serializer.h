@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+#define STR_HELPER(num) #num
+#define STR(num) STR_HELPER(num)
+
 #define TRYTES_81_1                                                            \
   "LCIKYSBE9IHXLIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
   "OORVZTZ"
@@ -16,6 +19,11 @@ extern "C" {
   "VKWYGVA"
 #define TAG_MSG "TANGLEACCELERATOR9999999999"
 #define TAG_MSG_LEN 27
+#define VALUE 100
+#define TIMESTAMP 1546436542
+#define CURRENT_INDEX 1
+#define LAST_INDEX 2
+#define NONCE "THISTANGLEACCELERATORNONCES"
 
 #define TRYTES_2673_1                                                        \
   "BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXZHOFHWHL9MQPVJXXZLIXPX"   \

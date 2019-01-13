@@ -197,18 +197,101 @@ int ta_send_transfer_res_serialize(char** obj,
 int ta_get_transaction_msg_res_serialize(
     char** obj, const ta_get_transaction_msg_res_t* const res) {
   int ret = 0;
-  char msg_trytes[NUM_TRYTES_SIGNATURE + 1];
+  char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1],
+      tag_trytes[NUM_TRYTES_TAG + 1], timestamp[NUM_TRYTES_TIMESTAMP + 1];
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = -1;
     goto done;
   }
 
-  flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE, res->msg,
-                       NUM_TRITS_SIGNATURE, NUM_TRITS_SIGNATURE);
-  msg_trytes[NUM_TRYTES_SIGNATURE] = '\0';
+  // transaction hash
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
+                       transaction_hash(res->txn), NUM_TRITS_HASH,
+                       NUM_TRITS_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "hash", hash_trytes);
 
-  cJSON_AddStringToObject(json_root, "message", msg_trytes);
+  // message
+  flex_trits_to_trytes((tryte_t*)msg_trytes, NUM_TRYTES_SIGNATURE,
+                       transaction_message(res->txn), NUM_TRITS_SIGNATURE,
+                       NUM_TRITS_SIGNATURE);
+  msg_trytes[NUM_TRYTES_SIGNATURE] = '\0';
+  cJSON_AddStringToObject(json_root, "signature_and_message_fragment",
+                          msg_trytes);
+
+  // address
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
+                       transaction_address(res->txn), NUM_TRITS_HASH,
+                       NUM_TRITS_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "address", hash_trytes);
+  // value
+  cJSON_AddNumberToObject(json_root, "value", transaction_value(res->txn));
+  // obsolete tag
+  flex_trits_to_trytes((tryte_t*)tag_trytes, NUM_TRYTES_TAG,
+                       transaction_obsolete_tag(res->txn), NUM_TRITS_TAG,
+                       NUM_TRITS_TAG);
+  tag_trytes[NUM_TRYTES_TAG] = '\0';
+  cJSON_AddStringToObject(json_root, "obsolete_tag", tag_trytes);
+
+  // timestamp
+  cJSON_AddNumberToObject(json_root, "timestamp",
+                          transaction_timestamp(res->txn));
+
+  // current index
+  cJSON_AddNumberToObject(json_root, "current_index",
+                          transaction_current_index(res->txn));
+
+  // last index
+  cJSON_AddNumberToObject(json_root, "last_index",
+                          transaction_last_index(res->txn));
+
+  // bundle hash
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
+                       transaction_bundle(res->txn), NUM_TRITS_HASH,
+                       NUM_TRITS_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "bundle_hash", hash_trytes);
+
+  // trunk transaction hash
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
+                       transaction_trunk(res->txn), NUM_TRITS_HASH,
+                       NUM_TRITS_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "trunk_transaction_hash", hash_trytes);
+
+  // branch transaction hash
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
+                       transaction_branch(res->txn), NUM_TRITS_HASH,
+                       NUM_TRITS_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "branch_transaction_hash", hash_trytes);
+
+  // tag
+  flex_trits_to_trytes((tryte_t*)tag_trytes, NUM_TRYTES_TAG,
+                       transaction_tag(res->txn), NUM_TRITS_TAG, NUM_TRITS_TAG);
+  tag_trytes[NUM_TRYTES_TAG] = '\0';
+  cJSON_AddStringToObject(json_root, "tag", tag_trytes);
+
+  // attachment timestamp
+  cJSON_AddNumberToObject(json_root, "attachment_timestamp",
+                          transaction_attachment_timestamp(res->txn));
+
+  // attachment lower timestamp
+  cJSON_AddNumberToObject(json_root, "attachment_timestamp_lower_bound",
+                          transaction_attachment_timestamp_lower(res->txn));
+
+  // attachment upper timestamp
+  cJSON_AddNumberToObject(json_root, "attachment_timestamp_upper_bound",
+                          transaction_attachment_timestamp_upper(res->txn));
+
+  // nonce
+  flex_trits_to_trytes((tryte_t*)tag_trytes, NUM_TRYTES_NONCE,
+                       transaction_nonce(res->txn), NUM_TRITS_NONCE,
+                       NUM_TRITS_NONCE);
+  tag_trytes[NUM_TRYTES_TAG] = '\0';
+  cJSON_AddStringToObject(json_root, "nonce", tag_trytes);
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = -1;

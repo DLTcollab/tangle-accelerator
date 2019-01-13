@@ -94,7 +94,7 @@ TEST(GetTxnMsgTest, GetTrytesTest) {
                          (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
 
-  EXPECT_THAT(res->msg, ElementsAreArray(hash));
+  EXPECT_THAT(res->txn->data.signature_or_message, ElementsAreArray(hash));
   ta_get_transaction_msg_res_free(&res);
 }
 

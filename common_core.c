@@ -99,9 +99,8 @@ int ta_get_transaction_msg(const iota_client_service_t* const service,
   }
 
   retcode_t ret = RC_OK;
-  iota_transaction_t* tx;
   flex_trit_t* tx_trits;
-  flex_trit_t addr_trits[NUM_TRITS_HASH];
+  flex_trit_t hash_trits[NUM_TRITS_HASH];
 
   // get raw transaction data of transaction hashes
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
@@ -110,27 +109,22 @@ int ta_get_transaction_msg(const iota_client_service_t* const service,
     goto done;
   }
 
-  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH, (const tryte_t*)req,
+  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
                          NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  hash243_queue_push(&get_trytes_req->hashes, addr_trits);
+  hash243_queue_push(&get_trytes_req->hashes, hash_trits);
   ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
   if (ret) {
     goto done;
   }
 
-  // deserialize raw data to transaction object and get message
+  // deserialize raw data to transaction object
   tx_trits = hash8019_queue_peek(get_trytes_res->trytes);
   if (tx_trits == NULL) {
     goto done;
   }
 
-  tx = transaction_deserialize(tx_trits, 0);
-  if (tx == NULL) {
-    goto done;
-  }
-
-  memcpy(res->msg, transaction_message(tx), FLEX_TRIT_SIZE_6561);
-  transaction_free(tx);
+  res->txn = transaction_deserialize(tx_trits, 0);
+  transaction_set_hash(res->txn, hash_trits);
 
 done:
   get_trytes_req_free(&get_trytes_req);
