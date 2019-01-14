@@ -35,6 +35,23 @@ int main(int, char const**) {
       });
 
   /**
+   * @method {get} /transaction/:tx Get transaction object
+   *
+   * @param {String} tx Must be 81 trytes long transaction hash
+   *
+   * @return {String[]} object Info of enitre transaction object
+   */
+  mux.handle("/transaction/{tx:[A-Z9]{81}}")
+      .get([&](served::response& res, const served::request& req) {
+        char* json_result;
+
+        api_get_transaction_object(&service, req.params["tx"].c_str(),
+                                   &json_result);
+        res.set_header("content-type", "application/json");
+        res << json_result;
+      });
+
+  /**
    * @method {get} /tips Fetch pair tips which base on GetTransactionToApprove
    *
    * @return {String[]} tips Pair of transaction hashes
