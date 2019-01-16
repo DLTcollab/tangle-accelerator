@@ -6,7 +6,7 @@ cc_test(
         "test_common.cc",
     ],
     deps = [
-        "iota_api_mock",
+        ":iota_api_mock",
         "//:common_core",
     ],
 )
