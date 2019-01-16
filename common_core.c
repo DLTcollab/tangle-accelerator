@@ -131,3 +131,46 @@ done:
   get_trytes_res_free(&get_trytes_res);
   return ret;
 }
+
+int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
+                                    const char* const req,
+                                    ta_find_transactions_obj_res_t* res) {
+  if (res == NULL) {
+    return -1;
+  }
+  int ret = 0;
+  char hash_trytes[NUM_TRYTES_HASH + 1];
+  flex_trit_t* hash_trits;
+
+  ta_find_transactions_res_t* hash_res = ta_find_transactions_res_new();
+  ta_get_transaction_object_res_t* obj_res =
+      ta_get_transaction_object_res_new();
+  if (hash_res == NULL || obj_res == NULL) {
+    goto done;
+  }
+
+  // get transaction hash
+  ret = ta_find_transactions_by_tag(service, req, hash_res);
+  if (ret) {
+    goto done;
+  }
+
+  // get transaction obj
+  for (hash_trits = hash243_queue_peek(hash_res->hashes); hash_trits != NULL;
+       hash_trits = hash243_queue_peek(hash_res->hashes)) {
+    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash_trits,
+                         NUM_TRITS_HASH, NUM_TRITS_HASH);
+    hash243_queue_pop(&hash_res->hashes);
+    hash_trytes[NUM_TRYTES_HASH] = '\0';
+    ret = ta_get_transaction_object(service, hash_trytes, obj_res);
+    if (ret) {
+      break;
+    }
+    utarray_push_back(res->txn_obj, obj_res->txn);
+  }
+
+done:
+  ta_find_transactions_res_free(&hash_res);
+  ta_get_transaction_object_res_free(&obj_res);
+  return ret;
+}

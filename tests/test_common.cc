@@ -98,6 +98,32 @@ TEST(GetTxnObjTest, GetTrytesTest) {
   ta_get_transaction_object_res_free(&res);
 }
 
+TEST(FindTxnObjTest, TxnObjTest) {
+  const char req[NUM_TRYTES_TAG] = {};
+  const iota_transaction_t* txn = NULL;
+  ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
+  flex_trit_t msg[FLEX_TRIT_SIZE_6561];
+  flex_trits_from_trytes(msg, NUM_TRITS_SIGNATURE,
+                         (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
+                         NUM_TRYTES_SIGNATURE);
+
+  EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
+      .Times(AtLeast(1));
+  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
+
+  EXPECT_EQ(ta_find_transactions_obj_by_tag(&service, req, res), 0);
+  for (txn = (const iota_transaction_t*)utarray_front(res->txn_obj);
+       txn != NULL;
+       txn = (const iota_transaction_t*)utarray_next(res->txn_obj, txn)) {
+    flex_trit_t txn_msg[FLEX_TRIT_SIZE_6561];
+    flex_trits_from_trytes(txn_msg, NUM_TRITS_SIGNATURE,
+                           (const tryte_t*)transaction_message(txn),
+                           NUM_TRYTES_SIGNATURE, NUM_TRYTES_SIGNATURE);
+    EXPECT_THAT(txn_msg, ElementsAreArray(msg));
+  }
+  ta_find_transactions_obj_res_free(&res);
+}
+
 int main(int argc, char** argv) {
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
