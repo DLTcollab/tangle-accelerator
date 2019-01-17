@@ -15,6 +15,29 @@ Arm devices, but Raspberry Pi 3 is known to be capable to execute `Tangle-accele
 without problems. Since it is written in C/C++ with [entangled](https://github.com/iotaledger/entangled),
 both footprint and startup time are behaved pretty well.
 
+## Architecture
+
+```
+                +-------------------------------------------+
++----------+    |  +-----------------+       +-----------+  |       
+|          |    |  | Service         |       | Cache     |  |
+|  Client  <-----> |                 | <---> |           |  |
+|          |    |  | -Explorer       |       | -Trytes   |  |
++----------+    |  | -Transfer       |       | -LFU/LRU  |  |
+                |  | -PoW Accelerate |       |           |  |
+                |  | -Proxy          |       |           |  |
+                |  +-----------------+       +-----------+  |
+                |         ^                                 |
+                +---------|---------------------------------+     
+                          v
+                +-------------------------------------------+  
+                | Full Node                                 |
+                |          +----------------------+         |
+                |          | Consensus            |         |
+                |          +----------------------+         |
+                +-------------------------------------------+
+
+```
 
 ## Building from Source
 
