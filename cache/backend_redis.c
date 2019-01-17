@@ -11,7 +11,7 @@ typedef struct {
  * Private functions
  */
 
-int redis_del(redisContext* c, const char* const key) {
+static int redis_del(redisContext* c, const char* const key) {
   int ret = 1;
 
   if (key == NULL) {
@@ -27,7 +27,7 @@ int redis_del(redisContext* c, const char* const key) {
   return ret;
 }
 
-int redis_get(redisContext* c, const char* const key, char* res) {
+static int redis_get(redisContext* c, const char* const key, char* res) {
   int ret = 1;
 
   if (key == NULL || res[0] != '\0') {
@@ -44,7 +44,8 @@ int redis_get(redisContext* c, const char* const key, char* res) {
   return ret;
 }
 
-int redis_set(redisContext* c, const char* const key, const char* const value) {
+static int redis_set(redisContext* c, const char* const key,
+                     const char* const value) {
   int ret = 1;
 
   if (key == NULL || value == NULL) {
