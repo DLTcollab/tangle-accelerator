@@ -30,7 +30,7 @@ int redis_del(redisContext* c, const char* const key) {
 int redis_get(redisContext* c, const char* const key, char* res) {
   int ret = 1;
 
-  if (key == NULL) {
+  if (key == NULL || res[0] != '\0') {
     return ret;
   }
 
