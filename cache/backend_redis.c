@@ -1,5 +1,5 @@
-#include "cache.h"
 #include "./config.h"
+#include "cache.h"
 
 /* private data used by cache_t */
 typedef struct {

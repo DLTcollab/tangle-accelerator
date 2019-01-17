@@ -2,7 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "cache",
-    srcs = ["cache.c"],
+    srcs = ["backend_redis.c"],
     hdrs = ["cache.h"],
     deps = [
         "//:ta_config",
