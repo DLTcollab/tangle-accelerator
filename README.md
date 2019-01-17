@@ -17,6 +17,8 @@ both footprint and startup time are behaved pretty well.
 
 ## Architecture
 
+`Tangle-accelerator` as an intermediate server provides services like transaction explorer, issuing transfers and even PoW Accelerate to make attach to tangle faster. Certain API queries can store into memory cache for better searching and easier to reattach.
+
 ```
                 +-------------------------------------------+
 +----------+    |  +-----------------+       +-----------+  |       
