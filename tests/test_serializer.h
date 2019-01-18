@@ -1,5 +1,5 @@
-#ifndef SERIALIZER_TEST_TEST_SERIALIZER_H_
-#define SERIALIZER_TEST_TEST_SERIALIZER_H_
+#ifndef TESTS_TEST_SERIALIZER_H_
+#define TESTS_TEST_SERIALIZER_H_
 
 #include <unity/unity.h>
 #include "serializer/serializer.h"
@@ -138,4 +138,4 @@ const flex_trit_t TRITS_81_2[] = {
 }
 #endif
 
-#endif  // SERIALIZER_TEST_TEST_SERIALIZER_H_
+#endif  // TESTS_TEST_SERIALIZER_H_

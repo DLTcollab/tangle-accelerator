@@ -12,24 +12,3 @@ cc_library(
         "@entangled//cclient/types",
     ],
 )
-
-cc_test(
-    name = "test_serializer",
-    srcs = [
-        "test/test_serializer.c",
-        "test/test_serializer.h",
-    ],
-    deps = [
-        ":serializer",
-        "@unity",
-    ],
-)
-
-cc_library(
-    name = "test_define",
-    hdrs = ["test/test_serializer.h"],
-    deps = [
-        ":serializer",
-        "@unity",
-    ],
-)

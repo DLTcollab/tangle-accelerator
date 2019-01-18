@@ -1,5 +1,5 @@
-#ifndef CACHE_TESTS_TEST_CACHE_H_
-#define CACHE_TESTS_TEST_CACHE_H_
+#ifndef TESTS_TEST_CACHE_H_
+#define TESTS_TEST_CACHE_H_
 
 #include <unity/unity.h>
 #include "cache/cache.h"
@@ -59,4 +59,4 @@ extern "C" {
 }
 #endif
 
-#endif  // CACHE_TESTS_TEST_CACHE_H_
+#endif  // TESTS_TEST_CACHE_H_

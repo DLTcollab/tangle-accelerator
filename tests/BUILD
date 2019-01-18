@@ -18,8 +18,41 @@ cc_library(
     ],
     hdrs = ["iota_api_mock.hh"],
     deps = [
-        "//serializer:test_define",
+        ":test_define",
         "@com_google_googletest//:gtest_main",
         "@entangled//cclient:api",
+    ],
+)
+
+cc_binary(
+    name = "test_cache",
+    srcs = [
+        "test_cache.c",
+        "test_cache.h",
+    ],
+    deps = [
+        "//cache",
+        "@unity",
+    ],
+)
+
+cc_test(
+    name = "test_serializer",
+    srcs = [
+        "test_serializer.c",
+        "test_serializer.h",
+    ],
+    deps = [
+        "//serializer",
+        "@unity",
+    ],
+)
+
+cc_library(
+    name = "test_define",
+    hdrs = ["test_serializer.h"],
+    deps = [
+        "//serializer",
+        "@unity",
     ],
 )
