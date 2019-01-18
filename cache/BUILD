@@ -5,7 +5,7 @@ cc_library(
     srcs = ["backend_redis.c"],
     hdrs = ["cache.h"],
     deps = [
-        "//:ta_config",
+        "//accelerator:ta_config",
         "//third_party:hiredis",
     ],
 )

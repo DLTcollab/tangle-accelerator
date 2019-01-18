@@ -1,8 +1,8 @@
 #include <served/plugins.hpp>
 #include <served/served.hpp>
-#include "./apis.h"
-#include "./config.h"
-#include "./errors.h"
+#include "accelerator/apis.h"
+#include "accelerator/config.h"
+#include "accelerator/errors.h"
 #include "cJSON.h"
 
 int main(int, char const**) {

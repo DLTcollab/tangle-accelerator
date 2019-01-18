@@ -1,7 +1,7 @@
-#ifndef APIS_H_
-#define APIS_H_
+#ifndef ACCELERATOR_APIS_H_
+#define ACCELERATOR_APIS_H_
 
-#include "./common_core.h"
+#include "accelerator/common_core.h"
 #include "serializer/serializer.h"
 #include "types/types.h"
 
@@ -26,4 +26,4 @@ int api_find_transactions_by_tag(const iota_client_service_t* const service,
 }
 #endif
 
-#endif  // APIS_H_
+#endif  // ACCELERATOR_APIS_H_

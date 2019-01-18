@@ -1,4 +1,4 @@
-#include "./config.h"
+#include "accelerator/config.h"
 #include "cache.h"
 #include "third_party/hiredis/hiredis.h"
 

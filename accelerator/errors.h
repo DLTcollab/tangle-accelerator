@@ -1,5 +1,5 @@
-#ifndef ERRORS_H_
-#define ERRORS_H_
+#ifndef ACCELERATOR_ERRORS_H_
+#define ACCELERATOR_ERRORS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,4 +13,4 @@ extern "C" {
 }
 #endif
 
-#endif  // ERRORS_H_
+#endif  // ACCELERATOR_ERRORS_H_
