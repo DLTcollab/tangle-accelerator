@@ -52,7 +52,7 @@ int main(int, char const**) {
       });
 
   /**
-   * @method {get} /tag/:tag Find transactions obj by tag
+   * @method {get} /tag/:tag Find transaction objects by tag
    *
    * @param {String} tag Must be 27 trytes long
    *
