@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "third_party/hiredis/hiredis.h"
-
 typedef struct {
   void* conn;
 } cache_t;

@@ -1,5 +1,6 @@
 #include "./config.h"
 #include "cache.h"
+#include "third_party/hiredis/hiredis.h"
 
 /* private data used by cache_t */
 typedef struct {
