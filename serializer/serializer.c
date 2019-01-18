@@ -303,7 +303,6 @@ int ta_get_transaction_object_res_serialize(
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = -1;
-    goto done;
   }
 
 done:
