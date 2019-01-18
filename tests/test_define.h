@@ -1,8 +1,8 @@
-#ifndef TESTS_TEST_SERIALIZER_H_
-#define TESTS_TEST_SERIALIZER_H_
+#ifndef TESTS_TEST_DEFINE_H_
+#define TESTS_TEST_DEFINE_H_
 
 #include <unity/unity.h>
-#include "serializer/serializer.h"
+#include "types/types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +25,7 @@ extern "C" {
 #define LAST_INDEX 2
 #define NONCE "THISTANGLEACCELERATORNONCES"
 
+#define TRYTES_2673_LEN 2673
 #define TRYTES_2673_1                                                        \
   "BYSWEAUTWXHXZ9YBZISEK9LUHWGMHXCGEVNZHRLUWQFCUSDXZHOFHWHL9MQPVJXXZLIXPX"   \
   "PXF9KYEREFSKCPKYIIKPZVLHUTDFQKKVVBBN9ATTLPCNPJDWDEVIYYLGPZGCWXOBDXMLJC9V" \
@@ -138,4 +139,4 @@ const flex_trit_t TRITS_81_2[] = {
 }
 #endif
 
-#endif  // TESTS_TEST_SERIALIZER_H_
+#endif  // TESTS_TEST_DEFINE_H_

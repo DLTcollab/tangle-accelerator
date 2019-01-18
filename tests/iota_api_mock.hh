@@ -1,7 +1,7 @@
 #include "cclient/iota_client_core_api.h"
 #include "cclient/iota_client_extended_api.h"
 #include "gmock/gmock.h"
-#include "tests/test_serializer.h"
+#include "tests/test_define.h"
 
 /**
  * Interface class for iota APIs which all return RC_OK

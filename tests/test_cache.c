@@ -1,4 +1,6 @@
-#include "test_cache.h"
+#include "cache/cache.h"
+#include "test_define.h"
+#include "third_party/hiredis/hiredis.h"
 
 void test_cache_del(void) {
   cache_t* cache = cache_init();

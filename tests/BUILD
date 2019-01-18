@@ -28,9 +28,9 @@ cc_binary(
     name = "test_cache",
     srcs = [
         "test_cache.c",
-        "test_cache.h",
     ],
     deps = [
+        ":test_define",
         "//cache",
         "@unity",
     ],
@@ -40,19 +40,18 @@ cc_test(
     name = "test_serializer",
     srcs = [
         "test_serializer.c",
-        "test_serializer.h",
     ],
     deps = [
+        ":test_define",
         "//serializer",
-        "@unity",
     ],
 )
 
 cc_library(
     name = "test_define",
-    hdrs = ["test_serializer.h"],
+    hdrs = ["test_define.h"],
     deps = [
-        "//serializer",
+        "@entangled//cclient/types",
         "@unity",
     ],
 )

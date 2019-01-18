@@ -1,4 +1,5 @@
-#include "test_serializer.h"
+#include "serializer/serializer.h"
+#include "test_define.h"
 
 void test_serialize_ta_get_tips(void) {
   const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
@@ -64,7 +65,7 @@ void test_serialize_ta_send_transfer(void) {
 }
 
 void test_serialize_ta_get_transaction_object(void) {
-  const char* json = 
+  const char* json =
       "{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
