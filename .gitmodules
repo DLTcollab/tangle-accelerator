@@ -2,3 +2,6 @@
 	path = third_party/dcurl
 	url = https://github.com/DLTcollab/dcurl.git
 	branch = dev
+[submodule "third_party/hiredis"]
+	path = third_party/hiredis
+	url = https://github.com/redis/hiredis.git

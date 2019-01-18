@@ -14,6 +14,10 @@ extern "C" {
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
 
+// Redis connection setting
+#define REDIS_HOST "localhost"
+#define REDIS_PORT 6379
+
 #define SEED                                                                   \
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
