@@ -47,7 +47,7 @@ both footprint and startup time are behaved pretty well.
 
 ```
 $ make
-$ bazel run //:tangle_accelerator
+$ bazel run //accelerator
 ```
 
 
