@@ -23,6 +23,8 @@ int ta_get_transaction_object_res_serialize(
     char** obj, const ta_get_transaction_object_res_t* const res);
 int ta_find_transactions_res_serialize(
     char** obj, const ta_find_transactions_res_t* const res);
+int ta_find_transactions_obj_res_serialize(
+    char** obj, const ta_find_transactions_obj_res_t* const res);
 
 #ifdef __cplusplus
 }
