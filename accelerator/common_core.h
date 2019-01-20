@@ -1,7 +1,7 @@
-#ifndef COMMON_CORE_H_
-#define COMMON_CORE_H_
+#ifndef ACCELERATOR_COMMON_CORE_H_
+#define ACCELERATOR_COMMON_CORE_H_
 
-#include "./config.h"
+#include "accelerator/config.h"
 #include "cclient/iota_client_core_api.h"
 #include "cclient/iota_client_extended_api.h"
 #include "request/request.h"
@@ -35,4 +35,4 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
 }
 #endif
 
-#endif  // COMMON_CORE_H_
+#endif  // ACCELERATOR_COMMON_CORE_H_

@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
-    name = "tangle_accelerator",
+    name = "accelerator",
     srcs = ["server.cc"],
     deps = [
         ":apis",

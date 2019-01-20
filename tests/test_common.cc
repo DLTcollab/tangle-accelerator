@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "./common_core.h"
+#include "accelerator/common_core.h"
 #include "iota_api_mock.hh"
 
 using ::testing::_;

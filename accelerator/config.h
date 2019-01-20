@@ -1,5 +1,5 @@
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#ifndef ACCELERATOR_CONFIG_H_
+#define ACCELERATOR_CONFIG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,4 +26,4 @@ extern "C" {
 }
 #endif
 
-#endif  // CONFIG_H_
+#endif  // ACCELERATOR_CONFIG_H_
