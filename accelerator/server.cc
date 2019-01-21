@@ -24,7 +24,7 @@ int main(int, char const**) {
    *
    * @return {String[]} hashes List of transaction hashes
    */
-  mux.handle("/tag/{tag:[A-Z9]{27}}")
+  mux.handle("/tag/{tag:[A-Z9]{27}}/hashes")
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -47,6 +47,23 @@ int main(int, char const**) {
 
         api_get_transaction_object(&service, req.params["tx"].c_str(),
                                    &json_result);
+        res.set_header("content-type", "application/json");
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /tag/:tag Find transaction objects by tag
+   *
+   * @param {String} tag Must be 27 trytes long
+   *
+   * @return {String[]} transactions List of transaction objects
+   */
+  mux.handle("/tag/{tag:[A-Z9]{27}}")
+      .get([&](served::response& res, const served::request& req) {
+        char* json_result;
+
+        api_find_transactions_obj_by_tag(&service, req.params["tag"].c_str(),
+                                         &json_result);
         res.set_header("content-type", "application/json");
         res << json_result;
       });

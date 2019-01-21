@@ -99,3 +99,24 @@ done:
   ta_find_transactions_res_free(&res);
   return ret;
 }
+
+int api_find_transactions_obj_by_tag(const iota_client_service_t* const service,
+                                     const char* const obj,
+                                     char** json_result) {
+  int ret = 0;
+  ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
+  if (res == NULL) {
+    goto done;
+  }
+
+  ret = ta_find_transactions_obj_by_tag(service, obj, res);
+  if (ret) {
+    goto done;
+  }
+
+  ret = ta_find_transactions_obj_res_serialize(json_result, res);
+
+done:
+  ta_find_transactions_obj_res_free(&res);
+  return ret;
+}
