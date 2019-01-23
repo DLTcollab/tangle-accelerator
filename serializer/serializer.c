@@ -252,7 +252,8 @@ int ta_send_transfer_req_deserialize(const char* const obj,
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   msg_len = strlen(json_result->valuestring);
-  flex_trits_from_trytes(req->message, msg_len * 3,
+  req->msg_len = msg_len * 3;
+  flex_trits_from_trytes(req->message, req->msg_len,
                          (const tryte_t*)json_result->valuestring, msg_len,
                          msg_len);
 

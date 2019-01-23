@@ -1,5 +1,6 @@
 #include "common_core.h"
 #include "cache/cache.h"
+#include <time.h>
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
@@ -43,6 +44,45 @@ int cclient_get_tips(const iota_client_service_t* const service,
   return 0;
 }
 
+int cclient_prepare_transfer(const iota_client_service_t* const service,
+                             transfer_t** const transfers,
+                             uint32_t const num_transfer,
+                             bundle_transactions_t* out_bundle) {
+  retcode_t ret = RC_OK;
+  iota_transaction_t* TX = transaction_new();
+  iota_transaction_t* tx = NULL;
+  Kerl kerl = {};
+  transfer_iterator_t* transfer_iterator =
+      transfer_iterator_new(transfers, num_transfer, &kerl, TX);
+  if (transfer_iterator == NULL) {
+    ret = -1;
+    goto done;
+  }
+
+  for (tx = transfer_iterator_next(transfer_iterator); tx;
+       tx = transfer_iterator_next(transfer_iterator)) {
+    tx->loaded_columns_mask |= MASK_ALL_COLUMNS;
+    bundle_transactions_add(out_bundle, tx);
+  }
+
+  bundle_finalize(out_bundle, &kerl);
+
+done:
+  transfer_iterator_free(&transfer_iterator);
+  transaction_free(TX);
+  return ret;
+}
+
+int ta_send_trytes(const iota_client_service_t* const service,
+                   hash8019_array_p trytes,
+                   transaction_array_t out_transactions) {
+  retcode_t ret = RC_OK;
+  // mwm: 15, depth:3, reference: NULL
+  // Use cclient library temporarily
+  ret = iota_client_send_trytes(service, trytes, 15, 3, NULL, out_transactions);
+  return ret;
+}
+
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res) {
   retcode_t ret = RC_OK;
@@ -62,11 +102,51 @@ int ta_generate_address(const iota_client_service_t* const service,
 int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res) {
-  /* make bundle
-   * pow
-   * broadcast
-   */
-  return 0;
+  retcode_t ret = RC_OK;
+  flex_trit_t* serialized_txn;
+  find_transactions_req_t* find_tx_req = find_transactions_req_new();
+  find_transactions_res_t* find_tx_res = find_transactions_res_new();
+  hash8019_array_p raw_tx = hash8019_array_new();
+  iota_transaction_t* txn = NULL;
+  bundle_transactions_t* out_bundle = NULL;
+  bundle_transactions_new(&out_bundle);
+  transfer_t* transfers[1];
+  transfers[0] = transfer_data_new(hash243_queue_peek(req->address),
+                                   hash81_queue_peek(req->tag), req->message,
+                                   req->msg_len, (uint64_t)time(NULL));
+  ret = cclient_prepare_transfer(service, transfers, 1, out_bundle);
+  if (ret) {
+    goto done;
+  }
+
+  BUNDLE_FOREACH(out_bundle, txn) {
+    serialized_txn = transaction_serialize(txn);
+    utarray_insert(raw_tx, serialized_txn, 0);
+    free(serialized_txn);
+  }
+
+  ret = ta_send_trytes(service, raw_tx, (transaction_array_t)out_bundle);
+  if (ret) {
+    goto done;
+  }
+
+  txn = (iota_transaction_t*)utarray_front(out_bundle);
+  hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
+  ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
+  if (ret) {
+    goto done;
+  }
+
+  res->hash = find_tx_res->hashes;
+  find_tx_res->hashes = NULL;
+
+done:
+  hash_array_free(raw_tx);
+  transfer_free(transfers);
+  bundle_transactions_free(&out_bundle);
+  find_transactions_req_free(&find_tx_req);
+  find_transactions_res_free(&find_tx_res);
+  return ret;
 }
 
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
