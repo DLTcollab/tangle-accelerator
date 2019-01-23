@@ -133,7 +133,7 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
 
     // set into cache if get_trytes response is not null trytes
     if (!flex_trits_are_null(tx_trits, FLEX_TRIT_SIZE_8019)) {
-      flex_trits_from_trytes(
+      flex_trits_to_trytes(
           (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
       cache_set(cache, req, cache_value);
