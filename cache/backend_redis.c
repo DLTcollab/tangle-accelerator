@@ -37,7 +37,7 @@ static int redis_get(redisContext* c, const char* const key, char* res) {
 
   redisReply* reply = redisCommand(c, "GET %s", key);
   if (reply->type == REDIS_REPLY_STRING) {
-    strcpy(res, reply->str);
+    strncpy(res, reply->str, FLEX_TRIT_SIZE_8019);
     ret = 0;
   }
 
@@ -53,7 +53,8 @@ static int redis_set(redisContext* c, const char* const key,
     return ret;
   }
 
-  redisReply* reply = redisCommand(c, "SETNX %s %s", key, value);
+  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243,
+                                   value, FLEX_TRIT_SIZE_8019);
   if (reply->integer) {
     ret = 0;
   }

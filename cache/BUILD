@@ -7,5 +7,6 @@ cc_library(
     deps = [
         "//accelerator:ta_config",
         "//third_party:hiredis",
+        "@entangled//cclient/types",
     ],
 )

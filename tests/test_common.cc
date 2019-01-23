@@ -86,7 +86,7 @@ TEST(GetTxnObjTest, GetTrytesTest) {
   const char req[FLEX_TRIT_SIZE_243] = {};
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
 
-  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
 
   EXPECT_EQ(ta_get_transaction_object(&service, req, res), 0);
   flex_trit_t hash[FLEX_TRIT_SIZE_6561];
@@ -109,7 +109,7 @@ TEST(FindTxnObjTest, TxnObjTest) {
 
   EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
       .Times(AtLeast(1));
-  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
 
   EXPECT_EQ(ta_find_transactions_obj_by_tag(&service, req, res), 0);
   for (txn = (const iota_transaction_t*)utarray_front(res->txn_obj);

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "types/types.h"
+
 typedef struct {
   void* conn;
 } cache_t;

@@ -30,6 +30,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",
+        "//cache",
         "//request",
         "//response",
         "@com_github_uthash//:uthash",
