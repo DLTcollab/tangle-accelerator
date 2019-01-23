@@ -1,4 +1,5 @@
 #include "common_core.h"
+#include "cache/cache.h"
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
@@ -99,34 +100,51 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
   }
 
   retcode_t ret = RC_OK;
-  flex_trit_t* tx_trits;
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trit_t hash_trits[NUM_TRITS_HASH];
 
   // get raw transaction data of transaction hashes
+  cache_t* cache = cache_init();
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
   get_trytes_res_t* get_trytes_res = get_trytes_res_new();
-  if (get_trytes_req == NULL || get_trytes_res == NULL) {
+  if (cache == NULL || get_trytes_req == NULL || get_trytes_res == NULL) {
     goto done;
   }
 
-  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  hash243_queue_push(&get_trytes_req->hashes, hash_trits);
-  ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
-  if (ret) {
-    goto done;
-  }
+  // get in cache first, then get from full node if no result in cache
+  char cache_value[FLEX_TRIT_SIZE_8019] = {0};
+  ret = cache_get(cache, req, cache_value);
+  if (!ret) {
+    flex_trits_from_trytes(
+        tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
+        NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  } else {
+    flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
+                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+    hash243_queue_push(&get_trytes_req->hashes, hash_trits);
+    ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
+    if (ret) {
+      goto done;
+    }
 
-  // deserialize raw data to transaction object
-  tx_trits = hash8019_queue_peek(get_trytes_res->trytes);
-  if (tx_trits == NULL) {
-    goto done;
+    // deserialize raw data to transaction object
+    memcpy(tx_trits, hash8019_queue_peek(get_trytes_res->trytes),
+           FLEX_TRIT_SIZE_8019);
+
+    // set into cache if get_trytes response is not null trytes
+    if (!flex_trits_are_null(tx_trits, FLEX_TRIT_SIZE_8019)) {
+      flex_trits_from_trytes(
+          (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
+          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+      cache_set(cache, req, cache_value);
+    }
   }
 
   res->txn = transaction_deserialize(tx_trits, 0);
   transaction_set_hash(res->txn, hash_trits);
 
 done:
+  cache_stop(&cache);
   get_trytes_req_free(&get_trytes_req);
   get_trytes_res_free(&get_trytes_res);
   return ret;
