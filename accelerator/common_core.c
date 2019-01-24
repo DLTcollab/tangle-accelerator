@@ -77,9 +77,9 @@ int ta_send_trytes(const iota_client_service_t* const service,
                    hash8019_array_p trytes,
                    transaction_array_t out_transactions) {
   retcode_t ret = RC_OK;
-  // mwm: 15, depth:3, reference: NULL
+  // mwm: 14, depth:3, reference: NULL
   // Use cclient library temporarily
-  ret = iota_client_send_trytes(service, trytes, 15, 3, NULL, out_transactions);
+  ret = iota_client_send_trytes(service, trytes, 14, 3, NULL, out_transactions);
   return ret;
 }
 
