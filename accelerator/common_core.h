@@ -4,9 +4,12 @@
 #include "accelerator/config.h"
 #include "cclient/iota_client_core_api.h"
 #include "cclient/iota_client_extended_api.h"
+#include "common/model/bundle.h"
+#include "common/model/transfer.h"
 #include "request/request.h"
 #include "response/response.h"
 #include "types/types.h"
+#include "utils/time.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -36,6 +36,8 @@ cc_library(
         "@com_github_uthash//:uthash",
         "@entangled//cclient:api",
         "@entangled//cclient/types",
+        "@entangled//common/model:bundle",
+        "@entangled//utils:time",
     ],
 )
 

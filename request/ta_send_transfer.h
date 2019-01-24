@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 typedef struct {
-  int value;
+  int value, msg_len;
   hash81_queue_t tag;
   hash243_queue_t address;
   flex_trit_t message[FLEX_TRIT_SIZE_6561];
