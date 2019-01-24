@@ -1,6 +1,6 @@
 #include "common_core.h"
+#include <sys/time.h>
 #include "cache/cache.h"
-#include <time.h>
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
@@ -113,7 +113,7 @@ int ta_send_transfer(const iota_client_service_t* const service,
   transfer_t* transfers[1];
   transfers[0] = transfer_data_new(hash243_queue_peek(req->address),
                                    hash81_queue_peek(req->tag), req->message,
-                                   req->msg_len, (uint64_t)time(NULL));
+                                   req->msg_len, current_timestamp_ms());
   ret = cclient_prepare_transfer(service, transfers, 1, out_bundle);
   if (ret) {
     goto done;

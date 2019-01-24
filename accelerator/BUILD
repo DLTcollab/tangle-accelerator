@@ -37,6 +37,7 @@ cc_library(
         "@entangled//cclient:api",
         "@entangled//cclient/types",
         "@entangled//common/model:bundle",
+        "@entangled//utils:time",
     ],
 )
 

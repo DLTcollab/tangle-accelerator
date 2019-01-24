@@ -9,6 +9,7 @@
 #include "request/request.h"
 #include "response/response.h"
 #include "types/types.h"
+#include "utils/time.h"
 
 #ifdef __cplusplus
 extern "C" {
