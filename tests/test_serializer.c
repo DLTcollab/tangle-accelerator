@@ -35,19 +35,21 @@ void test_deserialize_ta_send_transfer(void) {
       "\"address\":\"" TRYTES_81_1 "\"}";
 
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
-  flex_trit_t tag_msg_trits[TAG_MSG_LEN * 3];
-  flex_trit_t addr_trits[243];
+  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81];
+  flex_trit_t addr_trits[FLEX_TRIT_SIZE_243];
 
   ta_send_transfer_req_deserialize(json, req);
 
   TEST_ASSERT_EQUAL_INT(100, req->value);
-  flex_trits_from_trytes(tag_msg_trits, TAG_MSG_LEN * 3,
-                         (const tryte_t*)TAG_MSG, TAG_MSG_LEN, TAG_MSG_LEN);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, TAG_MSG_LEN);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, TAG_MSG_LEN);
+  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
+                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
+  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
 
-  flex_trits_from_trytes(addr_trits, 243, (const tryte_t*)TRYTES_81_1, 81, 81);
-  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->address->hash, 81);
+  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->address->hash, FLEX_TRIT_SIZE_243);
 
   ta_send_transfer_req_free(&req);
 }
