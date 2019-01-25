@@ -4,50 +4,72 @@
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
+  if (res == NULL) {
+    return -1;
+  }
+
   retcode_t ret = RC_OK;
   get_transactions_to_approve_req_t* get_txn_req =
       get_transactions_to_approve_req_new();
   get_transactions_to_approve_res_t* get_txn_res =
       get_transactions_to_approve_res_new();
+  if (get_txn_req == NULL || get_txn_res == NULL) {
+    ret = -1;
+    goto done;
+  }
   // The depth at which Random Walk starts. Mininal is 3, and max is 15.
   get_transactions_to_approve_req_set_depth(get_txn_req, 3);
 
   ret = iota_client_get_transactions_to_approve(service, get_txn_req,
                                                 get_txn_res);
-  if (ret != RC_OK) {
-    get_transactions_to_approve_req_free(&get_txn_req);
-    get_transactions_to_approve_res_free(&get_txn_res);
-    return -1;
+  if (ret) {
+    goto done;
   }
 
-  hash243_stack_push(&res->tips, get_txn_res->branch);
-  hash243_stack_push(&res->tips, get_txn_res->trunk);
+  ret = hash243_stack_push(&res->tips, get_txn_res->branch);
+  if (ret) {
+    goto done;
+  }
+  ret = hash243_stack_push(&res->tips, get_txn_res->trunk);
 
+done:
   get_transactions_to_approve_res_free(&get_txn_res);
   get_transactions_to_approve_req_free(&get_txn_req);
-  return 0;
+  return ret;
 }
 
 int cclient_get_tips(const iota_client_service_t* const service,
                      ta_get_tips_res_t* res) {
+  if (res == NULL) {
+    return -1;
+  }
   retcode_t ret = RC_OK;
   get_tips_res_t* get_tips_res = get_tips_res_new();
+  if (get_tips_res == NULL) {
+    ret = -1;
+    goto done;
+  }
+
   ret = iota_client_get_tips(service, get_tips_res);
-  if (ret != RC_OK) {
-    get_tips_res_free(&get_tips_res);
-    res->tips = NULL;
-    return -1;
+  if (ret) {
+    goto done;
   }
   res->tips = get_tips_res->hashes;
   get_tips_res->hashes = NULL;
+
+done:
   get_tips_res_free(&get_tips_res);
-  return 0;
+  return ret;
 }
 
 int cclient_prepare_transfer(const iota_client_service_t* const service,
                              transfer_t** const transfers,
                              uint32_t const num_transfer,
                              bundle_transactions_t* out_bundle) {
+  if (transfers == NULL || out_bundle == NULL) {
+    return -1;
+  }
+
   retcode_t ret = RC_OK;
   iota_transaction_t* TX = transaction_new();
   iota_transaction_t* tx = NULL;
@@ -85,10 +107,15 @@ int ta_send_trytes(const iota_client_service_t* const service,
 
 int ta_generate_address(const iota_client_service_t* const service,
                         ta_generate_address_res_t* res) {
+  if (res == NULL) {
+    return -1;
+  }
+
   retcode_t ret = RC_OK;
   hash243_queue_t out_address = NULL;
-  flex_trit_t seed_trits[243];
-  flex_trits_from_trytes(seed_trits, 243, (const tryte_t*)SEED, 81, 81);
+  flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)SEED,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   address_opt_t opt = {.security = 3, .start = 0, .total = 0};
 
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
@@ -102,6 +129,10 @@ int ta_generate_address(const iota_client_service_t* const service,
 int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res) {
+  if (req == NULL || res == NULL) {
+    return -1;
+  }
+
   retcode_t ret = RC_OK;
   flex_trit_t* serialized_txn;
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
@@ -114,6 +145,11 @@ int ta_send_transfer(const iota_client_service_t* const service,
   transfers[0] = transfer_data_new(hash243_queue_peek(req->address),
                                    hash81_queue_peek(req->tag), req->message,
                                    req->msg_len, current_timestamp_ms());
+  if (find_tx_req == NULL || find_tx_res == NULL) {
+    ret = -1;
+    goto done;
+  }
+
   ret = cclient_prepare_transfer(service, transfers, 1, out_bundle);
   if (ret) {
     goto done;
@@ -121,6 +157,10 @@ int ta_send_transfer(const iota_client_service_t* const service,
 
   BUNDLE_FOREACH(out_bundle, txn) {
     serialized_txn = transaction_serialize(txn);
+    if (serialized_txn == NULL) {
+      ret = -1;
+      goto done;
+    }
     utarray_insert(raw_tx, serialized_txn, 0);
     free(serialized_txn);
   }
@@ -131,7 +171,11 @@ int ta_send_transfer(const iota_client_service_t* const service,
   }
 
   txn = (iota_transaction_t*)utarray_front(out_bundle);
-  hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
+  ret = hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
+  if (ret) {
+    goto done;
+  }
+
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
   if (ret) {
     goto done;
@@ -152,21 +196,34 @@ done:
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
                                 const char* const req,
                                 ta_find_transactions_res_t* res) {
+  if (req == NULL || res == NULL) {
+    return -1;
+  }
+
   retcode_t ret = RC_OK;
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   find_transactions_res_t* find_tx_res = find_transactions_res_new();
+  if (find_tx_req == NULL || find_tx_res == NULL) {
+    ret = -1;
+    goto done;
+  }
 
   flex_trit_t tag_trits[NUM_TRITS_TAG];
   flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)req,
                          NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  hash81_queue_push(&find_tx_req->tags, tag_trits);
+  ret = hash81_queue_push(&find_tx_req->tags, tag_trits);
+  if (ret) {
+    goto done;
+  }
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
-
-  if (ret == RC_OK) {
-    res->hashes = find_tx_res->hashes;
-    find_tx_res->hashes = NULL;
+  if (ret) {
+    goto done;
   }
 
+  res->hashes = find_tx_res->hashes;
+  find_tx_res->hashes = NULL;
+
+done:
   find_transactions_req_free(&find_tx_req);
   find_transactions_res_free(&find_tx_res);
   return ret;
@@ -182,6 +239,7 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
   retcode_t ret = RC_OK;
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trit_t hash_trits[NUM_TRITS_HASH];
+  char cache_value[FLEX_TRIT_SIZE_8019] = {0};
 
   // get raw transaction data of transaction hashes
   cache_t* cache = cache_init();
@@ -192,22 +250,24 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
   }
 
   // get in cache first, then get from full node if no result in cache
-  char cache_value[FLEX_TRIT_SIZE_8019] = {0};
   ret = cache_get(cache, req, cache_value);
-  if (!ret) {
+  if (ret == RC_OK) {
     flex_trits_from_trytes(
         tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
   } else {
     flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-    hash243_queue_push(&get_trytes_req->hashes, hash_trits);
+    ret = hash243_queue_push(&get_trytes_req->hashes, hash_trits);
+    if (ret) {
+      goto done;
+    }
+
     ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
     if (ret) {
       goto done;
     }
 
-    // deserialize raw data to transaction object
     memcpy(tx_trits, hash8019_queue_peek(get_trytes_res->trytes),
            FLEX_TRIT_SIZE_8019);
 
@@ -220,7 +280,12 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
     }
   }
 
+  // deserialize raw data to transaction object
   res->txn = transaction_deserialize(tx_trits, 0);
+  if (res->txn == NULL) {
+    ret = -1;
+    goto done;
+  }
   transaction_set_hash(res->txn, hash_trits);
 
 done:
@@ -233,17 +298,19 @@ done:
 int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
                                     const char* const req,
                                     ta_find_transactions_obj_res_t* res) {
-  if (res == NULL) {
+  if (req == NULL || res == NULL) {
     return -1;
   }
-  int ret = 0;
+
+  retcode_t ret = RC_OK;
   char hash_trytes[NUM_TRYTES_HASH + 1];
-  flex_trit_t* hash_trits;
+  flex_trit_t* hash_trits = NULL;
 
   ta_find_transactions_res_t* hash_res = ta_find_transactions_res_new();
   ta_get_transaction_object_res_t* obj_res =
       ta_get_transaction_object_res_new();
   if (hash_res == NULL || obj_res == NULL) {
+    ret = -1;
     goto done;
   }
 
