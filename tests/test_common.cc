@@ -12,28 +12,40 @@ iota_client_service_t service;
 
 TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
   ta_get_tips_res_t* res = ta_get_tips_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
+      hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
   EXPECT_CALL(APIMockObj, iota_client_get_transactions_to_approve(_, _, _))
       .Times(AtLeast(1));
 
   EXPECT_EQ(cclient_get_txn_to_approve(&service, res), 0);
-  EXPECT_FALSE(memcmp(res->tips->hash, TRITS_81_1,
+  EXPECT_FALSE(memcmp(res->tips->hash, hash_trits_1,
                       sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   hash243_stack_pop(&res->tips);
-  EXPECT_FALSE(memcmp(res->tips->hash, TRITS_81_2,
+  EXPECT_FALSE(memcmp(res->tips->hash, hash_trits_2,
                       sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   ta_get_tips_res_free(&res);
 }
 
 TEST(GetTipsTest, TipsHashTest) {
   ta_get_tips_res_t* res = ta_get_tips_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
   EXPECT_CALL(APIMockObj, iota_client_get_tips(_, _)).Times(AtLeast(1));
 
   EXPECT_EQ(cclient_get_tips(&service, res), 0);
   hash243_stack_entry_t* s_iter = NULL;
   LL_FOREACH(res->tips, s_iter) {
-    EXPECT_FALSE(memcmp(s_iter->hash, TRITS_81_1,
+    EXPECT_FALSE(memcmp(s_iter->hash, hash_trits_1,
                         sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   }
   ta_get_tips_res_free(&res);
@@ -42,6 +54,10 @@ TEST(GetTipsTest, TipsHashTest) {
 TEST(FindTxnTest, TxnHashTest) {
   const char req[NUM_TRYTES_TAG] = {};
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
   EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
       .Times(AtLeast(1));
@@ -49,7 +65,7 @@ TEST(FindTxnTest, TxnHashTest) {
   EXPECT_EQ(ta_find_transactions_by_tag(&service, req, res), 0);
   hash243_queue_entry_t* q_iter = NULL;
   CDL_FOREACH(res->hashes, q_iter) {
-    EXPECT_FALSE(memcmp(q_iter->hash, TRITS_81_1,
+    EXPECT_FALSE(memcmp(q_iter->hash, hash_trits_1,
                         sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   }
   ta_find_transactions_res_free(&res);
@@ -58,13 +74,17 @@ TEST(FindTxnTest, TxnHashTest) {
 TEST(GenAdressTest, GetNewAddressTest) {
   hash243_queue_entry_t* q_iter = NULL;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
   EXPECT_CALL(APIMockObj, iota_client_get_new_address(_, _, _, _))
       .Times(AtLeast(1));
 
   EXPECT_EQ(ta_generate_address(&service, res), 0);
   CDL_FOREACH(res->addresses, q_iter) {
-    EXPECT_FALSE(memcmp(q_iter->hash, TRITS_81_1,
+    EXPECT_FALSE(memcmp(q_iter->hash, hash_trits_1,
                         sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   }
   ta_generate_address_res_free(&res);
@@ -114,12 +134,16 @@ TEST(FindTxnObjTest, TxnObjTest) {
 
 TEST(SendTransferTest, SendTransferTest) {
   flex_trit_t* txn_hash;
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81];
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81],
+      hash_trits_1[FLEX_TRIT_SIZE_243];
 
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
   req->value = 0;
-  hash243_queue_push(&req->address, TRITS_81_1);
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  hash243_queue_push(&req->address, hash_trits_1);
   flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
                          NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   hash81_queue_push(&req->tag, tag_trits);
@@ -137,7 +161,8 @@ TEST(SendTransferTest, SendTransferTest) {
 
   EXPECT_EQ(ta_send_transfer(&service, req, res), 0);
   txn_hash = hash243_queue_peek(res->hash);
-  EXPECT_FALSE(memcmp(txn_hash, TRITS_81_1, FLEX_TRIT_SIZE_243));
+  EXPECT_FALSE(
+      memcmp(txn_hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
 
   ta_send_transfer_req_free(&req);
   ta_send_transfer_res_free(&res);

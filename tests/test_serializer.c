@@ -5,8 +5,17 @@ void test_serialize_ta_get_tips(void) {
   const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   ta_get_tips_res_t* res = ta_get_tips_res_new();
-  hash243_stack_push(&res->tips, TRITS_81_2);
-  hash243_stack_push(&res->tips, TRITS_81_1);
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
+      hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+
+  hash243_stack_push(&res->tips, hash_trits_2);
+  hash243_stack_push(&res->tips, hash_trits_1);
 
   ta_get_tips_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
@@ -18,8 +27,16 @@ void test_serialize_ta_generate_address(void) {
   const char* json = "{\"address\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
-  hash243_queue_push(&res->addresses, TRITS_81_1);
-  hash243_queue_push(&res->addresses, TRITS_81_2);
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
+      hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  hash243_queue_push(&res->addresses, hash_trits_1);
+  hash243_queue_push(&res->addresses, hash_trits_2);
 
   ta_generate_address_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
@@ -35,8 +52,8 @@ void test_deserialize_ta_send_transfer(void) {
       "\"address\":\"" TRYTES_81_1 "\"}";
 
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
-  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81];
-  flex_trit_t addr_trits[FLEX_TRIT_SIZE_243];
+  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81],
+      hash_trits_1[FLEX_TRIT_SIZE_243];
 
   ta_send_transfer_req_deserialize(json, req);
 
@@ -46,10 +63,11 @@ void test_deserialize_ta_send_transfer(void) {
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
 
-  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH,
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
                          (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
                          NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(TRITS_81_1, req->address->hash, FLEX_TRIT_SIZE_243);
+  TEST_ASSERT_EQUAL_MEMORY(hash_trits_1, req->address->hash,
+                           FLEX_TRIT_SIZE_243);
 
   ta_send_transfer_req_free(&req);
 }
@@ -57,9 +75,13 @@ void test_deserialize_ta_send_transfer(void) {
 void test_serialize_ta_send_transfer(void) {
   const char* json = "{\"hash\":\"" TRYTES_81_1 "\"}";
   char* json_result;
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
 
-  hash243_queue_push(&res->hash, TRITS_81_1);
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  hash243_queue_push(&res->hash, hash_trits_1);
   ta_send_transfer_res_serialize(&json_result, res);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_send_transfer_res_free(&res);
@@ -82,16 +104,24 @@ void test_serialize_ta_get_transaction_object(void) {
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
       "\"nonce\":\"" NONCE "\"}";
   char* json_result;
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81];
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81],
+      hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
   res->txn = transaction_new();
+
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
   // mask must be set in order to use the helper function
   res->txn->loaded_columns_mask |=
       (MASK_ESSENCE | MASK_ATTACHMENT | MASK_CONSENSUS | MASK_DATA);
 
   // set transaction hash
-  transaction_set_hash(res->txn, TRITS_81_1);
+  transaction_set_hash(res->txn, hash_trits_1);
 
   // set message
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
@@ -100,7 +130,7 @@ void test_serialize_ta_get_transaction_object(void) {
   transaction_set_signature(res->txn, msg_trits);
 
   // set address
-  transaction_set_address(res->txn, TRITS_81_1);
+  transaction_set_address(res->txn, hash_trits_1);
   // set value
   transaction_set_value(res->txn, VALUE);
 
@@ -116,11 +146,11 @@ void test_serialize_ta_get_transaction_object(void) {
   // set last_index
   transaction_set_last_index(res->txn, LAST_INDEX);
   // set bundle_hash
-  transaction_set_bundle(res->txn, TRITS_81_2);
+  transaction_set_bundle(res->txn, hash_trits_2);
   // set trunk
-  transaction_set_trunk(res->txn, TRITS_81_2);
+  transaction_set_trunk(res->txn, hash_trits_2);
   // set branch
-  transaction_set_branch(res->txn, TRITS_81_1);
+  transaction_set_branch(res->txn, hash_trits_1);
   // set tag
   transaction_set_tag(res->txn, tag_trits);
   // set attachment_timestamp
@@ -145,9 +175,17 @@ void test_serialize_ta_find_transactions_by_tag(void) {
   const char* json = "{\"hashes\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
+      hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
+                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
 
-  hash243_queue_push(&res->hashes, TRITS_81_1);
-  hash243_queue_push(&res->hashes, TRITS_81_2);
+  hash243_queue_push(&res->hashes, hash_trits_1);
+  hash243_queue_push(&res->hashes, hash_trits_2);
 
   ta_find_transactions_res_serialize(&json_result, res);
 
@@ -173,7 +211,12 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       "\"nonce\":\"" NONCE "\"}]}";
   char* json_result;
   iota_transaction_t* txn = transaction_new();
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81];
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81],
+      hash1[FLEX_TRIT_SIZE_243], hash2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
 
   // mask must be set in order to use the helper function
@@ -181,7 +224,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       (MASK_ESSENCE | MASK_ATTACHMENT | MASK_CONSENSUS | MASK_DATA);
 
   // set transaction hash
-  transaction_set_hash(txn, TRITS_81_1);
+  transaction_set_hash(txn, hash1);
 
   // set message
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
@@ -190,7 +233,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_set_signature(txn, msg_trits);
 
   // set address
-  transaction_set_address(txn, TRITS_81_1);
+  transaction_set_address(txn, hash1);
   // set value
   transaction_set_value(txn, VALUE);
 
@@ -206,11 +249,11 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   // set last_index
   transaction_set_last_index(txn, LAST_INDEX);
   // set bundle_hash
-  transaction_set_bundle(txn, TRITS_81_2);
+  transaction_set_bundle(txn, hash2);
   // set trunk
-  transaction_set_trunk(txn, TRITS_81_2);
+  transaction_set_trunk(txn, hash2);
   // set branch
-  transaction_set_branch(txn, TRITS_81_1);
+  transaction_set_branch(txn, hash1);
   // set tag
   transaction_set_tag(txn, tag_trits);
   // set attachment_timestamp
