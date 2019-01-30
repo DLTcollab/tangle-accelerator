@@ -19,7 +19,7 @@ int cclient_get_txn_to_approve(const iota_client_service_t* const service,
     goto done;
   }
   // The depth at which Random Walk starts. Mininal is 3, and max is 15.
-  get_transactions_to_approve_req_set_depth(get_txn_req, 3);
+  get_transactions_to_approve_req_set_depth(get_txn_req, DEPTH);
 
   ret = iota_client_get_transactions_to_approve(service, get_txn_req,
                                                 get_txn_res);
@@ -141,31 +141,31 @@ done:
 int ta_send_trytes(const iota_client_service_t* const service,
                    hash8019_array_p trytes) {
   retcode_t ret = RC_OK;
-  get_transactions_to_approve_req_t* get_txn_req =
-      get_transactions_to_approve_req_new();
-  get_transactions_to_approve_res_t* get_txn_res =
-      get_transactions_to_approve_res_new();
+  ta_get_tips_res_t* get_txn_res = ta_get_tips_res_new();
   attach_to_tangle_req_t* attach_req = attach_to_tangle_req_new();
   attach_to_tangle_res_t* attach_res = attach_to_tangle_res_new();
-  if (!get_txn_req || !get_txn_res || !attach_req || !attach_res) {
+  if (!get_txn_res || !attach_req || !attach_res) {
     ret = -1;
     goto done;
   }
 
   // get transaction to approve
-  get_transactions_to_approve_req_set_depth(get_txn_req, DEPTH);
-  ret = iota_client_get_transactions_to_approve(service, get_txn_req,
-                                                get_txn_res);
+  ret = cclient_get_txn_to_approve(service, get_txn_res);
   if (ret) {
     goto done;
   }
 
   // attach to tangle
-  memcpy(attach_req->trunk, get_txn_res->trunk, FLEX_TRIT_SIZE_243);
-  memcpy(attach_req->branch, get_txn_res->branch, FLEX_TRIT_SIZE_243);
+
+  memcpy(attach_req->trunk, hash243_stack_peek(get_txn_res->tips),
+         FLEX_TRIT_SIZE_243);
+  hash243_stack_pop(&get_txn_res->tips);
+  memcpy(attach_req->branch, hash243_stack_peek(get_txn_res->tips),
+         FLEX_TRIT_SIZE_243);
+  hash243_stack_pop(&get_txn_res->tips);
   attach_req->mwm = MWM;
   attach_req->trytes = trytes;
-  // ret = ta_attach_to_tangle(attach_req, attach_res);
+  ret = ta_attach_to_tangle(attach_req, attach_res);
   if (ret) {
     goto done;
   }
@@ -175,8 +175,7 @@ int ta_send_trytes(const iota_client_service_t* const service,
                                         (store_transactions_req_t*)attach_res);
 
 done:
-  get_transactions_to_approve_req_free(&get_txn_req);
-  get_transactions_to_approve_res_free(&get_txn_res);
+  ta_get_tips_res_free(&get_txn_res);
   attach_req->trytes = NULL;
   attach_to_tangle_req_free(&attach_req);
   attach_to_tangle_res_free(&attach_res);
