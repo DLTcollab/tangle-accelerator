@@ -75,6 +75,7 @@ int cclient_prepare_transfer(const iota_client_service_t* const service,
   iota_transaction_t* TX = transaction_new();
   iota_transaction_t* tx = NULL;
   Kerl kerl = {};
+  transfer_ctx_t transfer_ctx = {};
   transfer_iterator_t* transfer_iterator =
       transfer_iterator_new(transfers, num_transfer, &kerl, TX);
   if (transfer_iterator == NULL) {
@@ -82,13 +83,15 @@ int cclient_prepare_transfer(const iota_client_service_t* const service,
     goto done;
   }
 
+  // calculate bundle hash
+  transfer_ctx_init(&transfer_ctx, transfers, 1);
+  transfer_ctx_hash(&transfer_ctx, &kerl, transfers, 1);
+
   for (tx = transfer_iterator_next(transfer_iterator); tx;
        tx = transfer_iterator_next(transfer_iterator)) {
-    tx->loaded_columns_mask |= MASK_ALL_COLUMNS;
+    transaction_set_bundle(tx, transfer_ctx.bundle);
     bundle_transactions_add(out_bundle, tx);
   }
-
-  bundle_finalize(out_bundle, &kerl);
 
 done:
   transfer_iterator_free(&transfer_iterator);
