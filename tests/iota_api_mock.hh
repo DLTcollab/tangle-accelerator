@@ -1,3 +1,4 @@
+#include "accelerator/common_core.h"
 #include "cclient/iota_client_core_api.h"
 #include "cclient/iota_client_extended_api.h"
 #include "gmock/gmock.h"
@@ -37,12 +38,9 @@ class IotaAPI {
     return RC_OK;
   }
 
-  virtual retcode_t iota_client_send_trytes(
-      const iota_client_service_t* const service, hash8019_array_p const trytes,
-      uint32_t const depth, uint32_t const mwm,
-      flex_trit_t const* const reference,
-      transaction_array_t out_transactions) {
-    return RC_OK;
+  virtual int ta_send_trytes(const iota_client_service_t* const service,
+                             hash8019_array_p trytes) {
+    return 0;
   }
 };
 
@@ -73,9 +71,6 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_get_trytes,
                retcode_t(const iota_client_service_t* const service,
                          get_trytes_req_t* const req, get_trytes_res_t* res));
-  MOCK_METHOD6(iota_client_send_trytes,
-               retcode_t(const iota_client_service_t* const service,
-                         hash8019_array_p const trytes, uint32_t const depth,
-                         uint32_t const mwm, flex_trit_t const* const reference,
-                         transaction_array_t out_transactions));
+  MOCK_METHOD2(ta_send_trytes, int(const iota_client_service_t* const service,
+                                   hash8019_array_p trytes));
 };

@@ -64,11 +64,7 @@ retcode_t iota_client_get_trytes(const iota_client_service_t* const service,
   return APIMockObj.iota_client_get_trytes(service, req, res);
 }
 
-retcode_t iota_client_send_trytes(const iota_client_service_t* const service,
-                                  hash8019_array_p const trytes,
-                                  uint32_t const depth, uint32_t const mwm,
-                                  flex_trit_t const* const reference,
-                                  transaction_array_t out_transactions) {
-  return APIMockObj.iota_client_send_trytes(service, trytes, depth, mwm,
-                                            reference, out_transactions);
+int ta_send_trytes(const iota_client_service_t* const service,
+                   hash8019_array_p trytes) {
+  return APIMockObj.ta_send_trytes(service, trytes);
 }
