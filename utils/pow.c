@@ -7,15 +7,18 @@ void pow_init() { dcurl_init(); }
 
 void pow_destroy() { dcurl_destroy(); }
 
-flex_trit_t* ta_pow_dcurl(const flex_trit_t* const trits_in,
-                          const uint8_t mwm) {
+static int8_t* ta_pow_dcurl(int8_t* trytes, int mwm, int threads) {
+  return dcurl_entry(trytes, mwm, threads);
+}
+
+flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm) {
   tryte_t trytes_in[NUM_TRYTES_SERIALIZED_TRANSACTION];
   tryte_t nonce_trytes[NUM_TRYTES_NONCE];
 
   flex_trits_to_trytes(trytes_in, NUM_TRYTES_SERIALIZED_TRANSACTION, trits_in,
                        NUM_TRITS_SERIALIZED_TRANSACTION,
                        NUM_TRITS_SERIALIZED_TRANSACTION);
-  int8_t* ret_trytes = dcurl_entry(trytes_in, mwm, 0);
+  int8_t* ret_trytes = ta_pow_dcurl(trytes_in, mwm, 0);
   memcpy(nonce_trytes,
          ret_trytes + NUM_TRYTES_SERIALIZED_TRANSACTION - NUM_TRYTES_NONCE,
          NUM_TRYTES_NONCE);
@@ -43,7 +46,7 @@ retcode_t ta_pow(const bundle_transactions_t* bundle,
   size_t cur_idx = 0;
 
   tx = (iota_transaction_t*)utarray_front(bundle);
-  cur_idx = tx->essence.last_index + 1;
+  cur_idx = transaction_last_index(tx) + 1;
   memcpy(ctrunk, trunk, FLEX_TRIT_SIZE_243);
 
   do {
@@ -62,7 +65,7 @@ retcode_t ta_pow(const bundle_transactions_t* bundle,
     }
 
     // get nonce
-    nonce = ta_pow_dcurl(tx_trits, mwm);
+    nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
       return RC_OOM;
     }

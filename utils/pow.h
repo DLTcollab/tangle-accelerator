@@ -13,7 +13,7 @@ void pow_init();
 
 void pow_destroy();
 
-flex_trit_t* ta_pow_dcurl(const flex_trit_t* const trits_in, const uint8_t mwm);
+flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm);
 
 retcode_t ta_pow(const bundle_transactions_t* bundle,
                  const flex_trit_t* const trunk,

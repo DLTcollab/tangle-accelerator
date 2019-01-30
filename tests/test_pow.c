@@ -1,7 +1,7 @@
 #include "test_define.h"
 #include "utils/pow.h"
 
-void test_pow_dcurl(void) {
+void test_pow_flex(void) {
   int mwm = 9;
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trit_t* nonce_trits;
@@ -11,7 +11,7 @@ void test_pow_dcurl(void) {
       tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
       NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
 
-  nonce_trits = ta_pow_dcurl(tx_trits, mwm);
+  nonce_trits = ta_pow_flex(tx_trits, mwm);
 
   /* Validation */
   flex_trits_slice(null_trits, mwm, nonce_trits, NUM_TRITS_NONCE,
@@ -58,7 +58,7 @@ void test_pow_bundle(void) {
 int main(void) {
   UNITY_BEGIN();
   pow_init();
-  RUN_TEST(test_pow_dcurl);
+  RUN_TEST(test_pow_flex);
   RUN_TEST(test_pow_bundle);
   pow_destroy();
   return UNITY_END();
