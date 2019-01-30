@@ -1,6 +1,7 @@
 #include "common_core.h"
 #include <sys/time.h>
 #include "cache/cache.h"
+#include "utils/pow.h"
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                ta_get_tips_res_t* res) {
@@ -95,13 +96,87 @@ done:
   return ret;
 }
 
-int ta_send_trytes(const iota_client_service_t* const service,
-                   hash8019_array_p trytes,
-                   transaction_array_t out_transactions) {
+int ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
+                        attach_to_tangle_res_t* res) {
   retcode_t ret = RC_OK;
-  // mwm: 14, depth:3, reference: NULL
-  // Use cclient library temporarily
-  ret = iota_client_send_trytes(service, trytes, 14, 3, NULL, out_transactions);
+  bundle_transactions_t* bundle = NULL;
+  iota_transaction_t tx;
+  flex_trit_t* elt = NULL;
+
+  // create bundle
+  bundle_transactions_new(&bundle);
+  HASH_ARRAY_FOREACH(req->trytes, elt) {
+    transaction_deserialize_from_trits(&tx, elt, false);
+    bundle_transactions_add(bundle, &tx);
+  }
+
+  // PoW to bundle
+  ret = ta_pow(bundle, req->trunk, req->branch, req->mwm);
+  if (ret) {
+    goto done;
+  }
+
+  // bundle to trytes
+  iota_transaction_t* tx_iter = NULL;
+  BUNDLE_FOREACH(bundle, tx_iter) {
+    flex_trit_t* tx_trytes = transaction_serialize(tx_iter);
+    if (tx_trytes) {
+      hash_array_push(res->trytes, tx_trytes);
+      free(tx_trytes);
+      tx_trytes = NULL;
+    } else {
+      ret = RC_CCLIENT_TX_DESERIALIZE_FAILED;
+      goto done;
+    }
+  }
+
+done:
+  bundle_transactions_free(&bundle);
+  return ret;
+}
+
+int ta_send_trytes(const iota_client_service_t* const service,
+                   hash8019_array_p trytes) {
+  retcode_t ret = RC_OK;
+  get_transactions_to_approve_req_t* get_txn_req =
+      get_transactions_to_approve_req_new();
+  get_transactions_to_approve_res_t* get_txn_res =
+      get_transactions_to_approve_res_new();
+  attach_to_tangle_req_t* attach_req = attach_to_tangle_req_new();
+  attach_to_tangle_res_t* attach_res = attach_to_tangle_res_new();
+  if (!get_txn_req || !get_txn_res || !attach_req || !attach_res) {
+    ret = -1;
+    goto done;
+  }
+
+  // get transaction to approve
+  get_transactions_to_approve_req_set_depth(get_txn_req, DEPTH);
+  ret = iota_client_get_transactions_to_approve(service, get_txn_req,
+                                                get_txn_res);
+  if (ret) {
+    goto done;
+  }
+
+  // attach to tangle
+  memcpy(attach_req->trunk, get_txn_res->trunk, FLEX_TRIT_SIZE_243);
+  memcpy(attach_req->branch, get_txn_res->branch, FLEX_TRIT_SIZE_243);
+  attach_req->mwm = MWM;
+  attach_req->trytes = trytes;
+  // ret = ta_attach_to_tangle(attach_req, attach_res);
+  if (ret) {
+    goto done;
+  }
+
+  // store and broadcast
+  ret = iota_client_store_and_broadcast(service,
+                                        (store_transactions_req_t*)attach_res);
+
+done:
+  get_transactions_to_approve_req_free(&get_txn_req);
+  get_transactions_to_approve_res_free(&get_txn_res);
+  attach_req->trytes = NULL;
+  attach_to_tangle_req_free(&attach_req);
+  attach_to_tangle_res_free(&attach_res);
   return ret;
 }
 
@@ -165,7 +240,7 @@ int ta_send_transfer(const iota_client_service_t* const service,
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(service, raw_tx, (transaction_array_t)out_bundle);
+  ret = ta_send_trytes(service, raw_tx);
   if (ret) {
     goto done;
   }
