@@ -8,7 +8,7 @@ git_repository(
 
 git_repository(
     name = "entangled",
-    commit = "299553a4c747034f513e209ad64d6bee467941cb",
+    commit = "5d635690759abe9c76b8a17def1e02edb8bb4c8d",
     remote = "https://github.com/iotaledger/entangled.git",
 )
 

@@ -116,10 +116,6 @@ void test_serialize_ta_get_transaction_object(void) {
                          (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
                          NUM_TRYTES_HASH);
 
-  // mask must be set in order to use the helper function
-  res->txn->loaded_columns_mask |=
-      (MASK_ESSENCE | MASK_ATTACHMENT | MASK_CONSENSUS | MASK_DATA);
-
   // set transaction hash
   transaction_set_hash(res->txn, hash_trits_1);
 
@@ -195,7 +191,7 @@ void test_serialize_ta_find_transactions_by_tag(void) {
 }
 
 void test_serialize_ta_find_transactions_obj_by_tag(void) {
-  const char* json = 
+  const char* json =
       "{\"transactions\":[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
@@ -218,10 +214,6 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   flex_trits_from_trytes(hash2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2,
                          NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
-
-  // mask must be set in order to use the helper function
-  txn->loaded_columns_mask |=
-      (MASK_ESSENCE | MASK_ATTACHMENT | MASK_CONSENSUS | MASK_DATA);
 
   // set transaction hash
   transaction_set_hash(txn, hash1);

@@ -24,6 +24,8 @@ int ta_generate_address(const iota_client_service_t* const service,
 int ta_send_transfer(const iota_client_service_t* const service,
                      const ta_send_transfer_req_t* const req,
                      ta_send_transfer_res_t* res);
+int ta_send_trytes(const iota_client_service_t* const service,
+                   hash8019_array_p trytes);
 int ta_find_transactions_by_tag(const iota_client_service_t* const service,
                                 const char* const req,
                                 ta_find_transactions_res_t* const res);

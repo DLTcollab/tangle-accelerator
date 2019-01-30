@@ -33,6 +33,7 @@ cc_library(
         "//cache",
         "//request",
         "//response",
+        "//utils:pow",
         "@com_github_uthash//:uthash",
         "@entangled//cclient:api",
         "@entangled//cclient/types",

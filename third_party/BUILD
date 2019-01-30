@@ -1,8 +1,12 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+cc_import(
     name = "dcurl",
-    srcs = ["dcurl/build/libdcurl.so"],
+    hdrs = [
+        "dcurl/src/dcurl.h",
+        "dcurl/src/trinary.h",
+    ],
+    shared_library = "dcurl/build/libdcurl.so",
 )
 
 cc_import(
