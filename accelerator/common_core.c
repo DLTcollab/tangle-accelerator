@@ -1,6 +1,6 @@
 #include "common_core.h"
 #include <sys/time.h>
-#include "cache/cache.h"
+#include "utils/cache.h"
 #include "utils/pow.h"
 
 int cclient_get_txn_to_approve(const iota_client_service_t* const service,

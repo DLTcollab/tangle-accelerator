@@ -30,9 +30,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",
-        "//cache",
         "//request",
         "//response",
+        "//utils:cache",
         "//utils:pow",
         "@com_github_uthash//:uthash",
         "@entangled//cclient:api",
