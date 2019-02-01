@@ -32,7 +32,7 @@ cc_binary(
     ],
     deps = [
         ":test_define",
-        "//cache",
+        "//utils:cache",
         "@unity",
     ],
 )

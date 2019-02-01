@@ -1,5 +1,5 @@
-#ifndef CACHE_CACHE_H_
-#define CACHE_CACHE_H_
+#ifndef UTILS_CACHE_H_
+#define UTILS_CACHE_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,4 +54,4 @@ int cache_set(const cache_t* const cache, const char* const key,
 }
 #endif
 
-#endif  // CACHE_CACHE_H_
+#endif  // UTILS_CACHE_H_
