@@ -111,6 +111,20 @@ int main(int, char const**) {
       });
 
   /**
+   * @method {post} /transaction send transfer
+   *
+   * @return {String} transaction object
+   */
+  mux.handle("/transaction")
+      .post([&](served::response& res, const served::request& req) {
+        char* json_result;
+
+        api_send_transfer(&service, req.body().c_str(), &json_result);
+        res.set_header("content-type", "application/json");
+        res << json_result;
+      });
+
+  /**
    * @method {get} / Client bad request
    *
    * @return {String} message Error message
