@@ -119,7 +119,18 @@ int main(int, char const**) {
       .post([&](served::response& res, const served::request& req) {
         char* json_result;
 
-        api_send_transfer(&service, req.body().c_str(), &json_result);
+        if (req.header("content-type") != "application/json") {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message",
+                                  "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          api_send_transfer(&service, req.body().c_str(), &json_result);
+        }
+
         res.set_header("content-type", "application/json");
         res << json_result;
       });
