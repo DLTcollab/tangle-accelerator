@@ -72,22 +72,6 @@ void test_deserialize_ta_send_transfer(void) {
   ta_send_transfer_req_free(&req);
 }
 
-void test_serialize_ta_send_transfer(void) {
-  const char* json = "{\"hash\":\"" TRYTES_81_1 "\"}";
-  char* json_result;
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
-  ta_send_transfer_res_t* res = ta_send_transfer_res_new();
-
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  hash243_queue_push(&res->hash, hash_trits_1);
-  ta_send_transfer_res_serialize(&json_result, res);
-  TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_send_transfer_res_free(&res);
-  free(json_result);
-}
-
 void test_serialize_ta_get_transaction_object(void) {
   const char* json =
       "{\"hash\":\"" TRYTES_81_1 "\","
@@ -273,7 +257,6 @@ int main(void) {
   RUN_TEST(test_serialize_ta_get_tips);
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
-  RUN_TEST(test_serialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_get_transaction_object);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);

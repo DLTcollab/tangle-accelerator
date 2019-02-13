@@ -105,6 +105,7 @@ int ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   bundle_transactions_t* bundle = NULL;
   iota_transaction_t tx;
   flex_trit_t* elt = NULL;
+  pow_init();
 
   // create bundle
   bundle_transactions_new(&bundle);
@@ -134,6 +135,7 @@ int ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   }
 
 done:
+  pow_destroy();
   bundle_transactions_free(&bundle);
   return ret;
 }

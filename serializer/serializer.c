@@ -271,27 +271,6 @@ done:
   return ret;
 }
 
-int ta_send_transfer_res_serialize(char** obj,
-                                   const ta_send_transfer_res_t* const res) {
-  cJSON* json_root = cJSON_CreateObject();
-  if (json_root == NULL) {
-    return -1;
-  }
-
-  char trytes_out[NUM_TRYTES_HASH + 1];
-  flex_trits_to_trytes((tryte_t*)trytes_out, NUM_TRYTES_HASH, res->hash->hash,
-                       NUM_TRITS_HASH, NUM_TRITS_HASH);
-  trytes_out[NUM_TRYTES_HASH] = '\0';
-
-  cJSON_AddStringToObject(json_root, "hash", trytes_out);
-  *obj = cJSON_PrintUnformatted(json_root);
-  if (*obj == NULL) {
-    return -1;
-  }
-  cJSON_Delete(json_root);
-  return 0;
-}
-
 int ta_get_transaction_object_res_serialize(
     char** obj, const ta_get_transaction_object_res_t* const res) {
   int ret = 0;
