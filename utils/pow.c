@@ -40,7 +40,6 @@ retcode_t ta_pow(const bundle_transactions_t* bundle,
                  const flex_trit_t* const trunk,
                  const flex_trit_t* const branch, const uint8_t mwm) {
   iota_transaction_t* tx;
-  flex_trit_t *nonce, *tx_trits;
   flex_trit_t* ctrunk =
       (flex_trit_t*)calloc(FLEX_TRIT_SIZE_243, sizeof(flex_trit_t));
   size_t cur_idx = 0;
@@ -59,13 +58,13 @@ retcode_t ta_pow(const bundle_transactions_t* bundle,
     transaction_set_attachment_timestamp_upper(tx, 3812798742493LL);
     transaction_set_attachment_timestamp_lower(tx, 0);
 
-    tx_trits = transaction_serialize(tx);
+    flex_trit_t* tx_trits = transaction_serialize(tx);
     if (tx_trits == NULL) {
       return RC_OOM;
     }
 
     // get nonce
-    nonce = ta_pow_flex(tx_trits, mwm);
+    flex_trit_t* once = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
       return RC_OOM;
     }
