@@ -12,6 +12,12 @@
 extern "C" {
 #endif
 
+#define DEFAULT_TAG "AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+#define DEFAULT_ADDRESS              \
+  "JFTON9DYPETJJ9BGBJMJQPCIXEPPGIGH" \
+  "IEVHPFHZQ9PMZFYOEPCO9TPPJZZTJBHNRFVDAOJZSY9GQEJIZ"
+#define DEFAULT_MSG "EMPTYMESSAGE"
+
 int ta_generate_address_res_serialize(
     char** obj, const ta_generate_address_res_t* const res);
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);

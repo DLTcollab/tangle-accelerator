@@ -242,25 +242,44 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  if (json_result != NULL && (strlen(json_result->valuestring) == 27)) {
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
+                           (const tryte_t*)json_result->valuestring,
+                           NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  } else {
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
+                           (const tryte_t*)DEFAULT_TAG, NUM_TRYTES_TAG,
+                           NUM_TRYTES_TAG);
+  }
   ret = hash81_queue_push(&req->tag, tag_trits);
   if (ret) {
     goto done;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  msg_len = strlen(json_result->valuestring);
-  req->msg_len = msg_len * 3;
-  flex_trits_from_trytes(req->message, req->msg_len,
-                         (const tryte_t*)json_result->valuestring, msg_len,
-                         msg_len);
+  if (json_result != NULL) {
+    msg_len = strlen(json_result->valuestring);
+    req->msg_len = msg_len * 3;
+    flex_trits_from_trytes(req->message, req->msg_len,
+                           (const tryte_t*)json_result->valuestring, msg_len,
+                           msg_len);
+  } else {
+    msg_len = strlen(DEFAULT_MSG);
+    req->msg_len = msg_len * 3;
+    flex_trits_from_trytes(req->message, req->msg_len,
+                           (const tryte_t*)DEFAULT_MSG, msg_len, msg_len);
+  }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  if (json_result != NULL && (strlen(json_result->valuestring) == 81)) {
+    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
+                           (const tryte_t*)json_result->valuestring,
+                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  } else {
+    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
+                           (const tryte_t*)DEFAULT_ADDRESS, NUM_TRYTES_HASH,
+                           NUM_TRYTES_HASH);
+  }
   ret = hash243_queue_push(&req->address, address_trits);
   if (ret) {
     goto done;
