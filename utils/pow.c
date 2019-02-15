@@ -64,7 +64,7 @@ retcode_t ta_pow(const bundle_transactions_t* bundle,
     }
 
     // get nonce
-    flex_trit_t* once = ta_pow_flex(tx_trits, mwm);
+    flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
       return RC_OOM;
     }
