@@ -239,6 +239,8 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "value");
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->value = json_result->valueint;
+  } else {
+    req->value = 0;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
