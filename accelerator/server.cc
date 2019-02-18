@@ -24,7 +24,7 @@ int main(int, char const**) {
    *
    * @return {String[]} hashes List of transaction hashes
    */
-  mux.handle("/tag/{tag:[A-Z9]{27}}/hashes")
+  mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -58,7 +58,7 @@ int main(int, char const**) {
    *
    * @return {String[]} transactions List of transaction objects
    */
-  mux.handle("/tag/{tag:[A-Z9]{27}}")
+  mux.handle("/tag/{tag:[A-Z9]{1,27}}")
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
