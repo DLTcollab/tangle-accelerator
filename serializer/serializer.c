@@ -1,5 +1,11 @@
 #include "serializer.h"
 
+void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
+  // fill in '9'
+  memset(new_tag, 57, NUM_TRYTES_TAG);
+  memcpy(new_tag, old_tag, tag_len);
+}
+
 int hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
                                 char const* const obj_name) {
   size_t array_count = 0;
@@ -229,7 +235,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   cJSON* json_obj = cJSON_Parse(obj);
   cJSON* json_result = NULL;
   flex_trit_t tag_trits[NUM_TRITS_TAG], address_trits[NUM_TRITS_HASH];
-  int msg_len = 0, ret;
+  int msg_len = 0, tag_len = 0, ret = 0;
 
   if (json_obj == NULL) {
     ret = -1;
@@ -244,10 +250,19 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  if (json_result != NULL && (strlen(json_result->valuestring) == 27)) {
-    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
-                           (const tryte_t*)json_result->valuestring,
-                           NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  if (json_result != NULL) {
+    tag_len = strnlen(json_result->valuestring, 27);
+    if (tag_len < 27) {
+      char new_tag[NUM_TRYTES_TAG + 1];
+      fill_tag(new_tag, json_result->valuestring, tag_len);
+      new_tag[NUM_TRYTES_TAG] = '\0';
+      flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag,
+                             NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+    } else {
+      flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
+                             (const tryte_t*)json_result->valuestring,
+                             NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+    }
   } else {
     flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
                            (const tryte_t*)DEFAULT_TAG, NUM_TRYTES_TAG,
@@ -266,14 +281,14 @@ int ta_send_transfer_req_deserialize(const char* const obj,
                            (const tryte_t*)json_result->valuestring, msg_len,
                            msg_len);
   } else {
-    msg_len = strlen(DEFAULT_MSG);
-    req->msg_len = msg_len * 3;
+    req->msg_len = DEFAULT_MSG_LEN * 3;
     flex_trits_from_trytes(req->message, req->msg_len,
-                           (const tryte_t*)DEFAULT_MSG, msg_len, msg_len);
+                           (const tryte_t*)DEFAULT_MSG, DEFAULT_MSG_LEN,
+                           DEFAULT_MSG_LEN);
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  if (json_result != NULL && (strlen(json_result->valuestring) == 81)) {
+  if (json_result != NULL && (strnlen(json_result->valuestring, 81) == 81)) {
     flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
                            (const tryte_t*)json_result->valuestring,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
