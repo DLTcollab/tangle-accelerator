@@ -1,0 +1,18 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "tangle-accelerator"
+PROJECT_NUMBER         = 0.1.0
+OUTPUT_DIRECTORY       = docs/
+OPTIMIZE_OUTPUT_FOR_C  = YES
+INPUT                  = . \
+                        accelerator \
+                        request \
+                        response \
+                        serializer \
+                        utils
+FILE_PATTERNS          = *.h \
+                        *.md
+EXAMPLE_PATH           = tests
+EXAMPLE_PATTERNS       = test_*
+USE_MDFILE_AS_MAINPAGE = README.md
+GENERATE_LATEX         = NO
+QUIET                  = YES
