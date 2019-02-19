@@ -246,24 +246,30 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->value = json_result->valueint;
   } else {
+    // 'value' does not exist or invalid, set to 0
     req->value = 0;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
   if (json_result != NULL) {
-    tag_len = strnlen(json_result->valuestring, 27);
-    if (tag_len < 27) {
+    tag_len = strnlen(json_result->valuestring, NUM_TRYTES_TAG);
+
+    // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
+    if (tag_len < NUM_TRYTES_TAG) {
       char new_tag[NUM_TRYTES_TAG + 1];
+      // Fill in '9' to get valid tag (27 trytes)
       fill_tag(new_tag, json_result->valuestring, tag_len);
       new_tag[NUM_TRYTES_TAG] = '\0';
       flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag,
                              NUM_TRYTES_TAG, NUM_TRYTES_TAG);
     } else {
+      // Valid tag from request, use it directly
       flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
                              (const tryte_t*)json_result->valuestring,
                              NUM_TRYTES_TAG, NUM_TRYTES_TAG);
     }
   } else {
+    // 'tag' does not exists, set to DEFAULT_TAG
     flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
                            (const tryte_t*)DEFAULT_TAG, NUM_TRYTES_TAG,
                            NUM_TRYTES_TAG);
@@ -281,6 +287,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
                            (const tryte_t*)json_result->valuestring, msg_len,
                            msg_len);
   } else {
+    // 'message' does not exists, set to DEFAULT_MSG
     req->msg_len = DEFAULT_MSG_LEN * 3;
     flex_trits_from_trytes(req->message, req->msg_len,
                            (const tryte_t*)DEFAULT_MSG, DEFAULT_MSG_LEN,
@@ -293,6 +300,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
                            (const tryte_t*)json_result->valuestring,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   } else {
+    // 'address' does not exists, set to DEFAULT_ADDRESS
     flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
                            (const tryte_t*)DEFAULT_ADDRESS, NUM_TRYTES_HASH,
                            NUM_TRYTES_HASH);

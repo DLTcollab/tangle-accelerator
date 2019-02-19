@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+// mnemonic presentation of 'Powered by Tangle-Accelerator'
 #define DEFAULT_TAG "POWEREDBYTANGLEACCELERATOR9"
 #define DEFAULT_ADDRESS                      \
   "POWEREDBYTANGLEACCELERATOR99999999999999" \
