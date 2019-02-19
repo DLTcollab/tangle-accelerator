@@ -1,9 +1,9 @@
 #include "serializer.h"
 
 void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
-  // fill in '9'
-  memset(new_tag, 57, NUM_TRYTES_TAG);
-  memcpy(new_tag, old_tag, tag_len);
+  char nines[NUM_TRYTES_TAG] = "999999999999999999999999999";
+  int pad_len = NUM_TRYTES_TAG - (int)tag_len;
+  sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
 }
 
 int hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
