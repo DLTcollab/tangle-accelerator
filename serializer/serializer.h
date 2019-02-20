@@ -12,6 +12,15 @@
 extern "C" {
 #endif
 
+// mnemonic presentation of 'Powered by Tangle-Accelerator'
+#define DEFAULT_TAG "POWEREDBYTANGLEACCELERATOR9"
+#define DEFAULT_ADDRESS                      \
+  "POWEREDBYTANGLEACCELERATOR99999999999999" \
+  "99999999999999999999999999999999999999999"
+// "Powered by tangle-accelerator" in ASCII
+#define DEFAULT_MSG "ZBCDKDTCFDTCSCEAQCMDEAHDPCBDVC9DTCRAPCRCRCTC9DTCFDPCHDCDFD"
+#define DEFAULT_MSG_LEN 58
+
 int ta_generate_address_res_serialize(
     char** obj, const ta_generate_address_res_t* const res);
 int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);

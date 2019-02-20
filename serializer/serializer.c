@@ -1,5 +1,11 @@
 #include "serializer.h"
 
+void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
+  char nines[NUM_TRYTES_TAG] = "999999999999999999999999999";
+  int pad_len = NUM_TRYTES_TAG - (int)tag_len;
+  sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
+}
+
 int hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
                                 char const* const obj_name) {
   size_t array_count = 0;
@@ -229,7 +235,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   cJSON* json_obj = cJSON_Parse(obj);
   cJSON* json_result = NULL;
   flex_trit_t tag_trits[NUM_TRITS_TAG], address_trits[NUM_TRITS_HASH];
-  int msg_len = 0, ret;
+  int msg_len = 0, tag_len = 0, ret = 0;
 
   if (json_obj == NULL) {
     ret = -1;
@@ -239,28 +245,66 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "value");
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->value = json_result->valueint;
+  } else {
+    // 'value' does not exist or invalid, set to 0
+    req->value = 0;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  if (json_result != NULL) {
+    tag_len = strnlen(json_result->valuestring, NUM_TRYTES_TAG);
+
+    // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
+    if (tag_len < NUM_TRYTES_TAG) {
+      char new_tag[NUM_TRYTES_TAG + 1];
+      // Fill in '9' to get valid tag (27 trytes)
+      fill_tag(new_tag, json_result->valuestring, tag_len);
+      new_tag[NUM_TRYTES_TAG] = '\0';
+      flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag,
+                             NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+    } else {
+      // Valid tag from request, use it directly
+      flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
+                             (const tryte_t*)json_result->valuestring,
+                             NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+    }
+  } else {
+    // 'tag' does not exists, set to DEFAULT_TAG
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG,
+                           (const tryte_t*)DEFAULT_TAG, NUM_TRYTES_TAG,
+                           NUM_TRYTES_TAG);
+  }
   ret = hash81_queue_push(&req->tag, tag_trits);
   if (ret) {
     goto done;
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  msg_len = strlen(json_result->valuestring);
-  req->msg_len = msg_len * 3;
-  flex_trits_from_trytes(req->message, req->msg_len,
-                         (const tryte_t*)json_result->valuestring, msg_len,
-                         msg_len);
+  if (json_result != NULL) {
+    msg_len = strlen(json_result->valuestring);
+    req->msg_len = msg_len * 3;
+    flex_trits_from_trytes(req->message, req->msg_len,
+                           (const tryte_t*)json_result->valuestring, msg_len,
+                           msg_len);
+  } else {
+    // 'message' does not exists, set to DEFAULT_MSG
+    req->msg_len = DEFAULT_MSG_LEN * 3;
+    flex_trits_from_trytes(req->message, req->msg_len,
+                           (const tryte_t*)DEFAULT_MSG, DEFAULT_MSG_LEN,
+                           DEFAULT_MSG_LEN);
+  }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)json_result->valuestring,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  if (json_result != NULL && (strnlen(json_result->valuestring, 81) == 81)) {
+    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
+                           (const tryte_t*)json_result->valuestring,
+                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  } else {
+    // 'address' does not exists, set to DEFAULT_ADDRESS
+    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
+                           (const tryte_t*)DEFAULT_ADDRESS, NUM_TRYTES_HASH,
+                           NUM_TRYTES_HASH);
+  }
   ret = hash243_queue_push(&req->address, address_trits);
   if (ret) {
     goto done;
