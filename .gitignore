@@ -84,3 +84,6 @@ ciri/ciri.db*
 
 # Visual Studio Code conf
 .vscode/
+
+# Documentation
+docs/

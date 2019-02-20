@@ -5,24 +5,35 @@
 extern "C" {
 #endif
 
-// Address binding and port for tangle-accelerator
-#define TA_HOST "localhost"
-#define TA_PORT "8000"
-#define TA_THREAD_COUNT 10
+/**
+ * @file config.h
+ * @brief Configuration of tangle-acclerator
+ */
 
-// IRI connection setting
-#define IRI_HOST "localhost"
-#define IRI_PORT 14265
+/** @name tangle-accelerator config */
+/** @{ */
+#define TA_HOST "localhost" /**< Binding address of tangle-acclerator */
+#define TA_PORT "8000"      /**< Binding port of tangle-acclerator */
+#define TA_THREAD_COUNT 10  /**< Thread count of tangle-acclerator instance */
+/** @} */
 
-// Redis connection setting
-#define REDIS_HOST "localhost"
-#define REDIS_PORT 6379
-
-#define DEPTH 3
-#define MWM 14
+/** @name IRI connection config */
+/** @{ */
+#define IRI_HOST "localhost" /**< Address of IRI */
+#define IRI_PORT 14265       /**< Port of IRI */
+#define DEPTH 3              /**< Depth of API argument */
+#define MWM 14               /**< Maximum weight magnitude of API argument */
+/** Seed to generate address. This does not do any signature yet. */
 #define SEED                                                                   \
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
+/** @} */
+
+/** @name Redis connection config */
+/** @{ */
+#define REDIS_HOST "localhost" /**< Address of Redis server */
+#define REDIS_PORT 6379        /**< poer of Redis server */
+/** @} */
 
 #ifdef __cplusplus
 }
