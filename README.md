@@ -41,15 +41,33 @@ both footprint and startup time are behaved pretty well.
 
 ```
 
-## Building from Source
+## Documentation
 
-`Tangle-accelerator` is built and launched through [bazel](https://www.bazel.build/):
+This page contains basic instructions for setting up tangle-accelerator, You can generate full documentation and API reference via Doxygen. The documentation is under `docs/` after generated:
 
 ```
-$ make
-$ bazel run //accelerator
+$ doxygen Doxyfile
 ```
 
+## Requirement
+
+Tangle-accelerator is built and launched through Bazel, it also requires Redis to cache in-memory data. Please make sure you have following tools installed:
+
+* [Bazel](https://docs.bazel.build/versions/master/install.html)
+* [Redis-server](https://redis.io/topics/quickstart)
+
+## Build from Source
+
+Before running tangle-accelerator, please edit binding address/port of accelerator instance, IRI, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [entangled](https://github.com/iotaledger/entangled), IRI address doesn't support https at the moment. Here are some configurations you might need to change:
+
+* `TA_HOST`: binding address of accelerator instance
+* `TA_PORT`: port of accelerator instance
+* `IRI_HOST`: binding address of IRI
+* `IRI_PORT`: port of IRI
+
+```
+$ make && bazel run //accelerator
+```
 
 ## Developing
 
