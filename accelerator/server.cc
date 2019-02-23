@@ -1,9 +1,18 @@
+#include <served/methods.hpp>
 #include <served/plugins.hpp>
 #include <served/served.hpp>
 #include "accelerator/apis.h"
 #include "accelerator/config.h"
 #include "accelerator/errors.h"
 #include "cJSON.h"
+
+void set_options_method_header(served::response& res) {
+  res.set_header("Access-Control-Allow-Origin", "*");
+  res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set_header("Access-Control-Allow-Headers",
+                 "Origin, Content-Type, Accept");
+  res.set_header("Access-Control-Max-Age", "86400");
+}
 
 int main(int, char const**) {
   served::multiplexer mux;
@@ -25,6 +34,10 @@ int main(int, char const**) {
    * @return {String[]} hashes List of transaction hashes
    */
   mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -42,6 +55,10 @@ int main(int, char const**) {
    * @return {String[]} object Info of enitre transaction object
    */
   mux.handle("/transaction/{tx:[A-Z9]{81}}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -59,6 +76,10 @@ int main(int, char const**) {
    * @return {String[]} transactions List of transaction objects
    */
   mux.handle("/tag/{tag:[A-Z9]{1,27}}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -74,6 +95,10 @@ int main(int, char const**) {
    * @return {String[]} tips Pair of transaction hashes
    */
   mux.handle("/tips/pair")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -87,8 +112,12 @@ int main(int, char const**) {
    *
    * @return {String[]} tips List of transaction hashes
    */
-  mux.handle("/tips").get(
-      [&](served::response& res, const served::request& req) {
+  mux.handle("/tips")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
+      .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
         api_get_tips(&service, &json_result);
@@ -102,6 +131,10 @@ int main(int, char const**) {
    * @return {String} hash of address hashes
    */
   mux.handle("/address")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .get([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -116,6 +149,10 @@ int main(int, char const**) {
    * @return {String} transaction object
    */
   mux.handle("/transaction")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
       .post([&](served::response& res, const served::request& req) {
         char* json_result;
 
@@ -136,21 +173,27 @@ int main(int, char const**) {
       });
 
   /**
-   * @method {get} / Client bad request
+   * @method {get} {*} Client bad request
+   * @method {options} {*} Get server information
    *
    * @return {String} message Error message
    */
-  mux.handle("/").get([](served::response& res, const served::request&) {
-    cJSON* json_obj = cJSON_CreateObject();
-    cJSON_AddStringToObject(json_obj, "message", "Invalid path");
-    const char* json = cJSON_PrintUnformatted(json_obj);
+  mux.handle("{*}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
+      .get([](served::response& res, const served::request&) {
+        cJSON* json_obj = cJSON_CreateObject();
+        cJSON_AddStringToObject(json_obj, "message", "Invalid path");
+        const char* json = cJSON_PrintUnformatted(json_obj);
 
-    res.set_status(SC_BAD_REQUEST);
-    res.set_header("content-type", "application/json");
-    res << json;
+        res.set_status(SC_BAD_REQUEST);
+        res.set_header("content-type", "application/json");
+        res << json;
 
-    cJSON_Delete(json_obj);
-  });
+        cJSON_Delete(json_obj);
+      });
 
   std::cout << "Starting..." << std::endl;
   served::net::server server(TA_HOST, TA_PORT, mux);
