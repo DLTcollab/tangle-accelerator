@@ -156,7 +156,8 @@ int main(int, char const**) {
       .post([&](served::response& res, const served::request& req) {
         char* json_result;
 
-        if (req.header("content-type") != "application/json") {
+        if (req.header("content-type").find("application/json") ==
+            std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
           cJSON_AddStringToObject(json_obj, "message",
                                   "Invalid request header");
