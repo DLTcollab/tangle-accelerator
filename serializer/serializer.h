@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 #include "cJSON.h"
+#include "cclient/types/types.h"
 #include "request/request.h"
 #include "response/response.h"
-#include "types/types.h"
 
 #ifdef __cplusplus
 extern "C" {

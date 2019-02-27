@@ -2,8 +2,8 @@
 #define UTILS_POW_H_
 
 #include <stdint.h>
+#include "cclient/types/types.h"
 #include "common/model/bundle.h"
-#include "types/types.h"
 
 #ifdef __cplusplus
 extern "C" {
