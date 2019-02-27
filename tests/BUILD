@@ -25,6 +25,29 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "driver",
+    srcs = [
+        "driver.c",
+    ],
+    deps = [
+        ":test_define",
+        "//accelerator:apis",
+    ],
+)
+
+cc_binary(
+    name = "driver_stat",
+    srcs = [
+        "driver.c",
+    ],
+    copts = ["-DENABLE_STAT"],
+    deps = [
+        ":test_define",
+        "//accelerator:apis",
+    ],
+)
+
 cc_binary(
     name = "test_cache",
     srcs = [
