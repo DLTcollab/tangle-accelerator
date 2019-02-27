@@ -386,9 +386,7 @@ int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
   flex_trit_t* hash_trits = NULL;
 
   ta_find_transactions_res_t* hash_res = ta_find_transactions_res_new();
-  ta_get_transaction_object_res_t* obj_res =
-      ta_get_transaction_object_res_new();
-  if (hash_res == NULL || obj_res == NULL) {
+  if (hash_res == NULL) {
     ret = -1;
     goto done;
   }
@@ -402,6 +400,12 @@ int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
   // get transaction obj
   for (hash_trits = hash243_queue_peek(hash_res->hashes); hash_trits != NULL;
        hash_trits = hash243_queue_peek(hash_res->hashes)) {
+    ta_get_transaction_object_res_t* obj_res =
+        ta_get_transaction_object_res_new();
+    if (obj_res == NULL) {
+      ret = -1;
+      goto done;
+    }
     flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash_trits,
                          NUM_TRITS_HASH, NUM_TRITS_HASH);
     hash243_queue_pop(&hash_res->hashes);
@@ -411,10 +415,10 @@ int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
       break;
     }
     utarray_push_back(res->txn_obj, obj_res->txn);
+    ta_get_transaction_object_res_free(&obj_res);
   }
 
 done:
   ta_find_transactions_res_free(&hash_res);
-  ta_get_transaction_object_res_free(&obj_res);
   return ret;
 }
