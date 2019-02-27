@@ -1,7 +1,7 @@
 #ifndef REQUEST_TA_SEND_TRANSFER_H_
 #define REQUEST_TA_SEND_TRANSFER_H_
 
-#include "types/types.h"
+#include "cclient/types/types.h"
 
 #ifdef __cplusplus
 extern "C" {

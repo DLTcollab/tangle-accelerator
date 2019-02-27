@@ -6,8 +6,9 @@ void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
   sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
 }
 
-int hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
-                                char const* const obj_name) {
+int ta_hash243_stack_to_json_array(hash243_stack_t stack,
+                                   cJSON* const json_root,
+                                   char const* const obj_name) {
   size_t array_count = 0;
   cJSON* array_obj = NULL;
   hash243_stack_entry_t* s_iter = NULL;
@@ -38,8 +39,9 @@ int hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
   return 0;
 }
 
-int hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json_root,
-                                char const* const obj_name) {
+int ta_hash243_queue_to_json_array(hash243_queue_t queue,
+                                   cJSON* const json_root,
+                                   char const* const obj_name) {
   size_t array_count;
   cJSON* array_obj = NULL;
   hash243_queue_entry_t* q_iter = NULL;
@@ -69,9 +71,9 @@ int hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json_root,
   return 0;
 }
 
-int json_array_to_hash243_queue(cJSON const* const obj,
-                                char const* const obj_name,
-                                hash243_queue_t* queue) {
+int ta_json_array_to_hash243_queue(cJSON const* const obj,
+                                   char const* const obj_name,
+                                   hash243_queue_t* queue) {
   retcode_t ret_code = RC_OK;
   flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
   cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
@@ -198,7 +200,7 @@ int ta_generate_address_res_serialize(
   if (json_root == NULL) {
     return -1;
   }
-  ret = hash243_queue_to_json_array(res->addresses, json_root, "address");
+  ret = ta_hash243_queue_to_json_array(res->addresses, json_root, "address");
   if (ret) {
     return ret;
   }
@@ -217,7 +219,7 @@ int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
   if (json_root == NULL) {
     return -1;
   }
-  ret = hash243_stack_to_json_array(res->tips, json_root, "tips");
+  ret = ta_hash243_stack_to_json_array(res->tips, json_root, "tips");
   if (ret) {
     return ret;
   }
@@ -343,7 +345,7 @@ int ta_find_transactions_res_serialize(
     goto done;
   }
 
-  hash243_queue_to_json_array(res->hashes, json_root, "hashes");
+  ta_hash243_queue_to_json_array(res->hashes, json_root, "hashes");
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = -1;

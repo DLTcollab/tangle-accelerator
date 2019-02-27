@@ -2,8 +2,8 @@
 #define ACCELERATOR_APIS_H_
 
 #include "accelerator/common_core.h"
+#include "cclient/types/types.h"
 #include "serializer/serializer.h"
-#include "types/types.h"
 
 #ifdef __cplusplus
 extern "C" {

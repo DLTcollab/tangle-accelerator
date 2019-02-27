@@ -1,7 +1,7 @@
 #ifndef RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 #define RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 
-#include "types/types.h"
+#include "cclient/types/types.h"
 
 #ifdef __cplusplus
 extern "C" {
