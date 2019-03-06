@@ -43,7 +43,8 @@ int main(int, char const**) {
 
         api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
                                      &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -64,7 +65,8 @@ int main(int, char const**) {
 
         api_get_transaction_object(&service, req.params["tx"].c_str(),
                                    &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -85,7 +87,8 @@ int main(int, char const**) {
 
         api_find_transactions_obj_by_tag(&service, req.params["tag"].c_str(),
                                          &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -103,7 +106,8 @@ int main(int, char const**) {
         char* json_result;
 
         api_get_tips_pair(&service, &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -121,7 +125,8 @@ int main(int, char const**) {
         char* json_result;
 
         api_get_tips(&service, &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -139,7 +144,8 @@ int main(int, char const**) {
         char* json_result;
 
         api_generate_address(&service, &json_result);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -169,7 +175,8 @@ int main(int, char const**) {
           api_send_transfer(&service, req.body().c_str(), &json_result);
         }
 
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json_result;
       });
 
@@ -190,7 +197,8 @@ int main(int, char const**) {
         const char* json = cJSON_PrintUnformatted(json_obj);
 
         res.set_status(SC_BAD_REQUEST);
-        res.set_header("content-type", "application/json");
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
         res << json;
 
         cJSON_Delete(json_obj);
