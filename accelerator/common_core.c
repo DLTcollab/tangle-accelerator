@@ -318,6 +318,8 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
   retcode_t ret = RC_OK;
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trit_t hash_trits[NUM_TRITS_HASH];
+  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   char cache_value[FLEX_TRIT_SIZE_8019] = {0};
 
   // get raw transaction data of transaction hashes
@@ -335,8 +337,6 @@ int ta_get_transaction_object(const iota_client_service_t* const service,
         tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
   } else {
-    flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
-                           NUM_TRYTES_HASH, NUM_TRYTES_HASH);
     ret = hash243_queue_push(&get_trytes_req->hashes, hash_trits);
     if (ret) {
       goto done;
