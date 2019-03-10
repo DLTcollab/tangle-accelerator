@@ -64,7 +64,7 @@ retcode_t iota_client_get_trytes(const iota_client_service_t* const service,
   return APIMockObj.iota_client_get_trytes(service, req, res);
 }
 
-int ta_send_trytes(const iota_client_service_t* const service,
-                   hash8019_array_p trytes) {
+status_t ta_send_trytes(const iota_client_service_t* const service,
+                        hash8019_array_p trytes) {
   return APIMockObj.ta_send_trytes(service, trytes);
 }

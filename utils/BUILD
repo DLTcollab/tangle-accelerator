@@ -6,6 +6,7 @@ cc_library(
     hdrs = ["cache.h"],
     deps = [
         "//accelerator:ta_config",
+        "//accelerator:ta_errors",
         "//third_party:hiredis",
         "@entangled//cclient/types",
     ],
@@ -17,6 +18,7 @@ cc_library(
     hdrs = ["pow.h"],
     deps = [
         "//accelerator:ta_config",
+        "//accelerator:ta_errors",
         "//third_party:dcurl",
         "@entangled//cclient/types",
         "@entangled//common/helpers:digest",

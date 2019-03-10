@@ -18,6 +18,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":common_core",
+        ":ta_errors",
         "//serializer",
         "@entangled//cclient:api",
     ],
@@ -30,6 +31,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",
+        ":ta_errors",
         "//request",
         "//response",
         "//utils:cache",
