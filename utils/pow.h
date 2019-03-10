@@ -2,6 +2,7 @@
 #define UTILS_POW_H_
 
 #include <stdint.h>
+#include "accelerator/errors.h"
 #include "cclient/types/types.h"
 #include "common/model/bundle.h"
 
@@ -48,12 +49,12 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm);
  * @param[in] mwm Maximum weight magnitude
  *
  * @return
- * - zero on success
+ * - SC_OK on success
  * - non-zero on error
  */
-retcode_t ta_pow(const bundle_transactions_t* bundle,
-                 const flex_trit_t* const trunk,
-                 const flex_trit_t* const branch, const uint8_t mwm);
+status_t ta_pow(const bundle_transactions_t* bundle,
+                const flex_trit_t* const trunk, const flex_trit_t* const branch,
+                const uint8_t mwm);
 
 #ifdef __cplusplus
 }

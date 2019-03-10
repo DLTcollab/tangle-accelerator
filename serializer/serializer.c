@@ -19,7 +19,7 @@ int ta_hash243_stack_to_json_array(hash243_stack_t stack,
   if (array_count > 0) {
     array_obj = cJSON_CreateArray();
     if (array_obj == NULL) {
-      return -1;
+      return SC_SERIALIZER_JSON_CREATE;
     }
     cJSON_AddItemToObject(json_root, obj_name, array_obj);
 
@@ -32,11 +32,11 @@ int ta_hash243_stack_to_json_array(hash243_stack_t stack,
         cJSON_AddItemToArray(array_obj,
                              cJSON_CreateString((const char*)trytes_out));
       } else {
-        return -1;
+        return SC_CCLIENT_INVALID_FLEX_TRITS;
       }
     }
   }
-  return 0;
+  return SC_OK;
 }
 
 int ta_hash243_queue_to_json_array(hash243_queue_t queue,
@@ -50,7 +50,7 @@ int ta_hash243_queue_to_json_array(hash243_queue_t queue,
   if (array_count > 0) {
     array_obj = cJSON_CreateArray();
     if (array_obj == NULL) {
-      return -1;
+      return SC_SERIALIZER_JSON_CREATE;
     }
     cJSON_AddItemToObject(json_root, obj_name, array_obj);
 
@@ -64,23 +64,23 @@ int ta_hash243_queue_to_json_array(hash243_queue_t queue,
         cJSON_AddItemToArray(array_obj,
                              cJSON_CreateString((const char*)trytes_out));
       } else {
-        return -1;
+        return SC_CCLIENT_INVALID_FLEX_TRITS;
       }
     }
   }
-  return 0;
+  return SC_OK;
 }
 
-int iota_transaction_to_json_object(iota_transaction_t const* const txn,
-                                    cJSON** txn_json) {
+status_t iota_transaction_to_json_object(iota_transaction_t const* const txn,
+                                         cJSON** txn_json) {
   if (txn == NULL) {
-    return -1;
+    return SC_SERIALIZER_NULL;
   }
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1],
       tag_trytes[NUM_TRYTES_TAG + 1];
   *txn_json = cJSON_CreateObject();
   if (txn_json == NULL) {
-    return -1;
+    return SC_SERIALIZER_JSON_CREATE;
   }
 
   // transaction hash
@@ -165,15 +165,15 @@ int iota_transaction_to_json_object(iota_transaction_t const* const txn,
   tag_trytes[NUM_TRYTES_TAG] = '\0';
   cJSON_AddStringToObject(*txn_json, "nonce", tag_trytes);
 
-  return 0;
+  return SC_OK;
 }
 
-int ta_generate_address_res_serialize(
+status_t ta_generate_address_res_serialize(
     char** obj, const ta_generate_address_res_t* const res) {
   cJSON* json_root = cJSON_CreateObject();
-  int ret = 0;
+  status_t ret = SC_OK;
   if (json_root == NULL) {
-    return -1;
+    return SC_SERIALIZER_JSON_CREATE;
   }
   ret = ta_hash243_queue_to_json_array(res->addresses, json_root, "address");
   if (ret) {
@@ -182,17 +182,18 @@ int ta_generate_address_res_serialize(
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    return -1;
+    return SC_SERIALIZER_JSON_PARSE;
   }
   cJSON_Delete(json_root);
   return ret;
 }
 
-int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
+status_t ta_get_tips_res_serialize(char** obj,
+                                   const ta_get_tips_res_t* const res) {
   cJSON* json_root = cJSON_CreateObject();
-  int ret = 0;
+  status_t ret = SC_OK;
   if (json_root == NULL) {
-    return -1;
+    return SC_SERIALIZER_JSON_CREATE;
   }
   ret = ta_hash243_stack_to_json_array(res->tips, json_root, "tips");
   if (ret) {
@@ -201,21 +202,22 @@ int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    return ret;
+    return SC_SERIALIZER_JSON_PARSE;
   }
   cJSON_Delete(json_root);
   return ret;
 }
 
-int ta_send_transfer_req_deserialize(const char* const obj,
-                                     ta_send_transfer_req_t* req) {
+status_t ta_send_transfer_req_deserialize(const char* const obj,
+                                          ta_send_transfer_req_t* req) {
   cJSON* json_obj = cJSON_Parse(obj);
   cJSON* json_result = NULL;
   flex_trit_t tag_trits[NUM_TRITS_TAG], address_trits[NUM_TRITS_HASH];
-  int msg_len = 0, tag_len = 0, ret = 0;
+  int msg_len = 0, tag_len = 0;
+  status_t ret = SC_OK;
 
   if (json_obj == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_CREATE;
     goto done;
   }
 
@@ -253,6 +255,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   }
   ret = hash81_queue_push(&req->tag, tag_trits);
   if (ret) {
+    ret = SC_CCLIENT_HASH;
     goto done;
   }
 
@@ -284,6 +287,7 @@ int ta_send_transfer_req_deserialize(const char* const obj,
   }
   ret = hash243_queue_push(&req->address, address_trits);
   if (ret) {
+    ret = SC_CCLIENT_HASH;
     goto done;
   }
 
@@ -292,9 +296,9 @@ done:
   return ret;
 }
 
-int ta_get_transaction_object_res_serialize(
+status_t ta_get_transaction_object_res_serialize(
     char** obj, const ta_get_transaction_object_res_t* const res) {
-  int ret = 0;
+  status_t ret = SC_OK;
   cJSON* json_root = NULL;
 
   ret = iota_transaction_to_json_object(res->txn, &json_root);
@@ -303,7 +307,7 @@ int ta_get_transaction_object_res_serialize(
   }
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_PARSE;
   }
 
 done:
@@ -311,19 +315,19 @@ done:
   return ret;
 }
 
-int ta_find_transactions_res_serialize(
+status_t ta_find_transactions_res_serialize(
     char** obj, const ta_find_transactions_res_t* const res) {
-  int ret = 0;
+  status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_CREATE;
     goto done;
   }
 
   ta_hash243_queue_to_json_array(res->hashes, json_root, "hashes");
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_PARSE;
     goto done;
   }
 
@@ -332,22 +336,22 @@ done:
   return ret;
 }
 
-int ta_find_transactions_obj_res_serialize(
+status_t ta_find_transactions_obj_res_serialize(
     char** obj, const ta_find_transactions_obj_res_t* const res) {
-  int ret = 0;
+  status_t ret = SC_OK;
   iota_transaction_t* txn = NULL;
   cJSON* array_obj = NULL;
   cJSON* txn_obj = NULL;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_CREATE;
     goto done;
   }
 
   // Create json array
   array_obj = cJSON_CreateArray();
   if (array_obj == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_CREATE;
     goto done;
   }
   cJSON_AddItemToObject(json_root, "transactions", array_obj);
@@ -364,7 +368,7 @@ int ta_find_transactions_obj_res_serialize(
   }
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
-    ret = -1;
+    ret = SC_SERIALIZER_JSON_PARSE;
     goto done;
   }
 

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "accelerator/errors.h"
 #include "cclient/types/types.h"
 
 /**
@@ -45,10 +46,10 @@ void cache_stop(cache_t** cache);
  * @param[in] key Key string to search
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - 1 on error
  */
-int cache_del(const cache_t* const cache, const char* const key);
+status_t cache_del(const cache_t* const cache, const char* const key);
 
 /**
  * Get key-value store from in-memory cache
@@ -58,10 +59,11 @@ int cache_del(const cache_t* const cache, const char* const key);
  * @param[out] res Result of GET key
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - 1 on error
  */
-int cache_get(const cache_t* const cache, const char* const key, char* res);
+status_t cache_get(const cache_t* const cache, const char* const key,
+                   char* res);
 
 /**
  * Set key-value store into in-memory cache
@@ -71,11 +73,11 @@ int cache_get(const cache_t* const cache, const char* const key, char* res);
  * @param[in] value Value string to store
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - 1 on error
  */
-int cache_set(const cache_t* const cache, const char* const key,
-              const char* const value);
+status_t cache_set(const cache_t* const cache, const char* const key,
+                   const char* const value);
 
 #ifdef __cplusplus
 }

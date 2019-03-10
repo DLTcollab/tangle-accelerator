@@ -2,6 +2,7 @@
 #define ACCELERATOR_APIS_H_
 
 #include "accelerator/common_core.h"
+#include "accelerator/errors.h"
 #include "cclient/types/types.h"
 #include "serializer/serializer.h"
 
@@ -28,11 +29,11 @@ extern "C" {
  * @param[out] json_result Result containing an unused address in json format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_generate_address(const iota_client_service_t* const service,
-                         char** json_result);
+status_t api_generate_address(const iota_client_service_t* const service,
+                              char** json_result);
 
 /**
  * @brief Get trunk and branch transactions
@@ -44,11 +45,11 @@ int api_generate_address(const iota_client_service_t* const service,
  * @param[out] json_result Result containing a tips pair in json format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_get_tips_pair(const iota_client_service_t* const service,
-                      char** json_result);
+status_t api_get_tips_pair(const iota_client_service_t* const service,
+                           char** json_result);
 
 /**
  * @brief Get list of all tips from IRI node.
@@ -60,11 +61,11 @@ int api_get_tips_pair(const iota_client_service_t* const service,
  * @param[out] json_result Result containing list of all tips in json format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_get_tips(const iota_client_service_t* const service,
-                 char** json_result);
+status_t api_get_tips(const iota_client_service_t* const service,
+                      char** json_result);
 
 /**
  * @brief Send transfer to tangle.
@@ -78,11 +79,11 @@ int api_get_tips(const iota_client_service_t* const service,
  * @param[out] json_result Result containing transaction objects in json format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_send_transfer(const iota_client_service_t* const service,
-                      const char* const obj, char** json_result);
+status_t api_send_transfer(const iota_client_service_t* const service,
+                           const char* const obj, char** json_result);
 
 /**
  * @brief Return transaction object with given transaction hash.
@@ -95,11 +96,11 @@ int api_send_transfer(const iota_client_service_t* const service,
  * @param[out] json_result Result containing transaction objects in json format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_get_transaction_object(const iota_client_service_t* const service,
-                               const char* const obj, char** json_result);
+status_t api_get_transaction_object(const iota_client_service_t* const service,
+                                    const char* const obj, char** json_result);
 
 /**
  * @brief Return list of transaction hash with given tag hash.
@@ -113,11 +114,12 @@ int api_get_transaction_object(const iota_client_service_t* const service,
  *             format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_find_transactions_by_tag(const iota_client_service_t* const service,
-                                 const char* const obj, char** json_result);
+status_t api_find_transactions_by_tag(
+    const iota_client_service_t* const service, const char* const obj,
+    char** json_result);
 
 /**
  * @brief Return list of transaction object with given tag hash.
@@ -131,11 +133,12 @@ int api_find_transactions_by_tag(const iota_client_service_t* const service,
  * format
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int api_find_transactions_obj_by_tag(const iota_client_service_t* const service,
-                                     const char* const obj, char** json_result);
+status_t api_find_transactions_obj_by_tag(
+    const iota_client_service_t* const service, const char* const obj,
+    char** json_result);
 
 #ifdef __cplusplus
 }

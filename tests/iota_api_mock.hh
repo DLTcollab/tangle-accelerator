@@ -38,9 +38,9 @@ class IotaAPI {
     return RC_OK;
   }
 
-  virtual int ta_send_trytes(const iota_client_service_t* const service,
-                             hash8019_array_p trytes) {
-    return 0;
+  virtual status_t ta_send_trytes(const iota_client_service_t* const service,
+                                  hash8019_array_p trytes) {
+    return SC_OK;
   }
 };
 
@@ -71,6 +71,7 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_get_trytes,
                retcode_t(const iota_client_service_t* const service,
                          get_trytes_req_t* const req, get_trytes_res_t* res));
-  MOCK_METHOD2(ta_send_trytes, int(const iota_client_service_t* const service,
-                                   hash8019_array_p trytes));
+  MOCK_METHOD2(ta_send_trytes,
+               status_t(const iota_client_service_t* const service,
+                        hash8019_array_p trytes));
 };

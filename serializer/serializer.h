@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+#include "accelerator/errors.h"
 #include "cJSON.h"
 #include "cclient/types/types.h"
 #include "request/request.h"
@@ -39,10 +40,10 @@ extern "C" {
  * @param[in] res Response data in type of ta_generate_address_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_generate_address_res_serialize(
+status_t ta_generate_address_res_serialize(
     char** obj, const ta_generate_address_res_t* const res);
 
 /**
@@ -52,10 +53,11 @@ int ta_generate_address_res_serialize(
  * @param[in] res Response data in type of ta_get_tips_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);
+status_t ta_get_tips_res_serialize(char** obj,
+                                   const ta_get_tips_res_t* const res);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
@@ -64,11 +66,11 @@ int ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);
  * @param[out] req Request data in type of ta_send_transfer_req_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_send_transfer_req_deserialize(const char* const obj,
-                                     ta_send_transfer_req_t* req);
+status_t ta_send_transfer_req_deserialize(const char* const obj,
+                                          ta_send_transfer_req_t* req);
 
 /**
  * @brief Serialze type of ta_get_transaction_object_res_t to JSON string
@@ -77,10 +79,10 @@ int ta_send_transfer_req_deserialize(const char* const obj,
  * @param[in] res Response data in type of ta_get_transaction_object_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_get_transaction_object_res_serialize(
+status_t ta_get_transaction_object_res_serialize(
     char** obj, const ta_get_transaction_object_res_t* const res);
 
 /**
@@ -90,10 +92,10 @@ int ta_get_transaction_object_res_serialize(
  * @param[in] res Response data in type of ta_find_transactions_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_find_transactions_res_serialize(
+status_t ta_find_transactions_res_serialize(
     char** obj, const ta_find_transactions_res_t* const res);
 
 /**
@@ -103,10 +105,10 @@ int ta_find_transactions_res_serialize(
  * @param[in] res Response data in type of ta_find_transactions_obj_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_find_transactions_obj_res_serialize(
+status_t ta_find_transactions_obj_res_serialize(
     char** obj, const ta_find_transactions_obj_res_t* const res);
 
 #ifdef __cplusplus
