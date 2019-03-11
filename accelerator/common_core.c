@@ -111,13 +111,27 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   bundle_transactions_t* bundle = NULL;
   iota_transaction_t tx;
   flex_trit_t* elt = NULL;
+  char cache_key[NUM_TRYTES_HASH] = {0};
+  char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
+  cache_t* cache = cache_init();
   pow_init();
 
   // create bundle
   bundle_transactions_new(&bundle);
   HASH_ARRAY_FOREACH(req->trytes, elt) {
-    transaction_deserialize_from_trits(&tx, elt, false);
+    transaction_deserialize_from_trits(&tx, elt, true);
     bundle_transactions_add(bundle, &tx);
+
+    // store transaction to cache
+    flex_trits_to_trytes((tryte_t*)cache_key, NUM_TRYTES_HASH,
+                         transaction_hash(&tx), NUM_TRITS_HASH, NUM_TRITS_HASH);
+    flex_trits_to_trytes(
+        (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
+        NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+    ret = cache_set(cache, cache_key, cache_value);
+    if (ret) {
+      goto done;
+    }
   }
 
   // PoW to bundle
@@ -141,6 +155,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   }
 
 done:
+  cache_stop(&cache);
   pow_destroy();
   bundle_transactions_free(&bundle);
   return ret;
