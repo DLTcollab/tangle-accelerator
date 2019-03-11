@@ -57,7 +57,7 @@ static status_t redis_set(redisContext* c, const char* const key,
   redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243,
                                    value, FLEX_TRIT_SIZE_8019);
   if (!reply->integer) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
+    ret = SC_CACHE_FAILED_RESPONSE;
   }
 
   freeReplyObject(reply);

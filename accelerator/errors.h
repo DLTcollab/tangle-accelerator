@@ -64,8 +64,8 @@ typedef enum {
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Fail to create cclient object */
-  SC_CCLIENT_JSON_PARSE = 0x02 | SC_MODULE_CCLIENT | SC_SEVERITY_MODERATE,
-  /**< Fail to parse cclient response */
+  SC_CCLIENT_NOT_FOUND = 0x02 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
+  /**< Empty result from cclient */
   SC_CCLIENT_FAILED_RESPONSE = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Error in cclient response */
   SC_CCLIENT_INVALID_FLEX_TRITS = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
