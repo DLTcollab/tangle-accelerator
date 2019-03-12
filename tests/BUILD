@@ -21,7 +21,7 @@ cc_library(
         ":test_define",
         "//accelerator:common_core",
         "@com_google_googletest//:gtest_main",
-        "@entangled//cclient:api",
+        "@entangled//cclient/api",
     ],
 )
 

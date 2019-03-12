@@ -1,5 +1,4 @@
 #include "iota_api_mock.hh"
-#include "cclient/iota_client_core_api.h"
 extern APIMock APIMockObj;
 
 retcode_t iota_client_get_transactions_to_approve(
