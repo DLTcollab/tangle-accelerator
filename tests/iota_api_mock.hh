@@ -1,6 +1,6 @@
 #include "accelerator/common_core.h"
-#include "cclient/iota_client_core_api.h"
-#include "cclient/iota_client_extended_api.h"
+#include "cclient/api/core/core_api.h"
+#include "cclient/api/extended/extended_api.h"
 #include "gmock/gmock.h"
 #include "tests/test_define.h"
 

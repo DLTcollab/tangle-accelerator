@@ -20,7 +20,6 @@ cc_library(
         ":common_core",
         ":ta_errors",
         "//serializer",
-        "@entangled//cclient:api",
     ],
 )
 
@@ -37,7 +36,7 @@ cc_library(
         "//utils:cache",
         "//utils:pow",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient:api",
+        "@entangled//cclient/api",
         "@entangled//cclient/types",
         "@entangled//common/model:bundle",
         "@entangled//utils:time",
