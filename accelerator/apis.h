@@ -70,6 +70,19 @@ status_t api_get_tips_pair(const iota_client_service_t* const service,
 status_t api_get_tips(const iota_client_service_t* const service,
                       char** json_result);
 
+/**
+ * @brief Receive a MAM message.
+ *
+ * Receive a MAM message from given bundle hash.
+ *
+ * @param[in] service IRI node end point service
+ * @param[out] obj bundle hash in trytes
+ * @param[out] json_result Result containing an unused address in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
 status_t api_receive_mam_message(const iota_client_service_t* const service,
                                  const char* const obj, char** json_result);
 
