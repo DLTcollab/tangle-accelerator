@@ -39,6 +39,7 @@ extern "C" {
 #define SC_MODULE_CCLIENT (0x02 << SC_MODULE_SHIFT)
 #define SC_MODULE_SERIALIZER (0x03 << SC_MODULE_SHIFT)
 #define SC_MODULE_CACHE (0x04 << SC_MODULE_SHIFT)
+#define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -86,6 +87,14 @@ typedef enum {
   /**< NULL parameters in cache */
   SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
   /**< Fail in cache operations */
+
+  // MAM module
+  SC_MAM_OOM = 0x01 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Fail to create mam object */
+  SC_MAM_NULL = 0x02 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< NULL object in mam */
+  SC_MAM_FAILED_RESPONSE = 0x03 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Error in mam response */
 } status_t;
 
 #ifdef __cplusplus
