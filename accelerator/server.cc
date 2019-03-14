@@ -20,11 +20,34 @@ int main(int, char const**) {
 
   iota_client_service_t service;
   service.http.path = "/";
+  service.http.content_type = "application/json";
+  service.http.accept = "application/json";
   service.http.host = IRI_HOST;
   service.http.port = IRI_PORT;
   service.http.api_version = 1;
   service.serializer_type = SR_JSON;
   iota_client_core_init(&service);
+  iota_client_extended_init();
+
+  mux.handle("/mam/{bundle:[A-Z9]{81}}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_options_method_header(res);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        char* json_result = NULL;
+
+        api_receive_mam_message(&service, req.params["bundle"].c_str(),
+                                &json_result);
+
+        res.set_header("Content-Type", "application/json");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        if (!json_result) {
+          res.set_status(SC_NOT_FOUND);
+        } else {
+          res << json_result;
+        }
+      });
 
   /**
    * @method {get} /tag/:tag Find transactions by tag
@@ -208,6 +231,7 @@ int main(int, char const**) {
   served::net::server server(TA_HOST, TA_PORT, mux);
   server.run(TA_THREAD_COUNT);
 
+  iota_client_extended_destroy();
   iota_client_core_destroy(&service);
   return 0;
 }

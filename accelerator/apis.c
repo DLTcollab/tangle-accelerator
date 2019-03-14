@@ -1,5 +1,28 @@
 #include "apis.h"
 
+// TODO: Generate actual pre shared keys
+static mam_psk_t const psk = {
+    .id = {1,  0,  -1, -1, 0,  -1, -1, 0,  0,  1,  -1, 0,  1,  0,  0,  1,  1,
+           1,  -1, 1,  1,  0,  1,  1,  0,  0,  -1, 1,  -1, -1, -1, -1, -1, -1,
+           -1, 1,  -1, -1, 0,  -1, -1, 1,  0,  -1, -1, -1, 1,  1,  1,  0,  0,
+           -1, 1,  -1, -1, -1, 0,  -1, 1,  -1, -1, -1, 1,  1,  -1, 1,  0,  0,
+           1,  1,  1,  -1, -1, 0,  0,  -1, -1, 1,  0,  -1, 1},
+    .key = {-1, 1,  -1, -1, 1,  -1, -1, 0,  0,  0,  -1, -1, 1,  1,  1,  -1, -1,
+            -1, 0,  0,  0,  0,  -1, -1, 1,  1,  1,  0,  -1, -1, -1, 0,  0,  0,
+            -1, -1, 1,  -1, 0,  0,  1,  0,  0,  -1, 1,  1,  0,  -1, 0,  0,  1,
+            -1, 1,  0,  1,  0,  0,  -1, 1,  1,  -1, 1,  0,  -1, 0,  -1, 1,  -1,
+            -1, -1, 0,  -1, -1, 0,  -1, -1, 0,  0,  -1, -1, 1,  -1, 0,  0,  -1,
+            -1, -1, -1, 0,  -1, -1, -1, 1,  -1, -1, 1,  1,  1,  1,  1,  0,  1,
+            0,  1,  -1, 0,  0,  1,  0,  1,  0,  0,  1,  0,  -1, 0,  1,  1,  0,
+            0,  -1, -1, 1,  1,  0,  0,  1,  -1, 1,  1,  1,  0,  1,  1,  1,  0,
+            0,  -1, -1, -1, -1, 1,  1,  1,  0,  0,  -1, 0,  1,  -1, 1,  1,  1,
+            0,  0,  1,  -1, -1, 0,  -1, 1,  -1, 1,  0,  0,  1,  -1, 0,  1,  -1,
+            0,  0,  1,  1,  1,  1,  1,  0,  0,  1,  -1, 1,  -1, 1,  0,  1,  1,
+            1,  -1, 0,  0,  -1, 1,  1,  0,  -1, -1, 0,  0,  -1, 1,  0,  1,  -1,
+            0,  0,  -1, 1,  -1, 1,  1,  1,  -1, 0,  1,  1,  0,  0,  -1, -1, -1,
+            0,  0,  1,  0,  1,  0,  -1, 1,  -1, 0,  1,  0,  -1, 1,  1,  -1, -1,
+            0,  0,  -1, 0,  -1}};
+
 status_t api_get_tips(const iota_client_service_t* const service,
                       char** json_result) {
   status_t ret = SC_OK;
@@ -125,6 +148,54 @@ status_t api_find_transactions_obj_by_tag(
 
 done:
   ta_find_transactions_obj_res_free(&res);
+  return ret;
+}
+
+status_t api_receive_mam_message(const iota_client_service_t* const service,
+                                 const char* const obj, char** json_result) {
+  status_t ret = SC_OK;
+  mam_api_t mam;
+
+  tryte_t* payload_trytes = NULL;
+  size_t payload_size = 0;
+  bundle_transactions_t* bundle = NULL;
+  bundle_transactions_new(&bundle);
+  bool is_last_packet;
+
+  // Creating MAM API
+  if (mam_api_init(&mam, (tryte_t*)SEED)) {
+    ret = SC_MAM_OOM;
+    goto done;
+  }
+
+  // Get bundle which is find_transactions_by_bundle
+  ret = ta_get_bundle(service, (tryte_t*)obj, bundle);
+  if (ret) {
+    goto done;
+  }
+
+  // Read MAM message from bundle
+  mam_psk_t_set_add(&mam.psks, &psk);
+  if (mam_api_bundle_read(&mam, bundle, &payload_trytes, &payload_size,
+                          &is_last_packet) == RC_OK) {
+    if (payload_trytes == NULL || payload_size == 0) {
+      ret = SC_MAM_NULL;
+    } else {
+      char* payload = calloc(payload_size * 2 + 1, sizeof(char));
+
+      trytes_to_ascii(payload_trytes, payload_size, payload);
+      *json_result = payload;
+
+      payload = NULL;
+      free(payload_trytes);
+    }
+  } else {
+    ret = SC_MAM_FAILED_RESPONSE;
+  }
+
+done:
+  mam_api_destroy(&mam);
+  bundle_transactions_free(&bundle);
   return ret;
 }
 

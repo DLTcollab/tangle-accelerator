@@ -172,6 +172,25 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
                                    const char* const req,
                                    ta_get_transaction_object_res_t* res);
 
+/**
+ * @brief Return bundle object with given bundle hash.
+ *
+ * Explore transaction hash information with given bundle hash. This would
+ * return only one bundle objects in bundle_transactions_t instead of all
+ * transactions like reattached ones.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] bundle_hash bundle hash in trytes
+ * @param[out] bundle Result containing bundle object in bundle_transactions_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_bundle(const iota_client_service_t* const service,
+                       tryte_t const* const bundle_hash,
+                       bundle_transactions_t* const bundle);
+
 #ifdef __cplusplus
 }
 #endif

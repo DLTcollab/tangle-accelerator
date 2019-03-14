@@ -167,6 +167,30 @@ TEST(SendTransferTest, SendTransferTest) {
   ta_send_transfer_res_free(&res);
 }
 
+TEST(GetBundleTest, RetreiveBundleTest) {
+  bundle_transactions_t* bundle = NULL;
+  bundle_transactions_new(&bundle);
+  iota_transaction_t* tx_iter = NULL;
+  flex_trit_t* tx = NULL;
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
+  flex_trits_from_trytes(
+      tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+
+  EXPECT_CALL(APIMockObj, iota_client_find_transaction_objects(_, _, _))
+      .Times(AtLeast(1));
+  EXPECT_EQ(ta_get_bundle(&service, (const tryte_t*)TRYTES_81_1, bundle), 0);
+
+  BUNDLE_FOREACH(bundle, tx_iter) {
+    tx = transaction_serialize(tx_iter);
+    EXPECT_FALSE(
+        memcmp(tx, tx_trits, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_8019));
+  }
+
+  free(tx);
+  bundle_transactions_free(&bundle);
+}
+
 int main(int argc, char** argv) {
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);

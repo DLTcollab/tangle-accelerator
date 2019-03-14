@@ -20,6 +20,9 @@ cc_library(
         ":common_core",
         ":ta_errors",
         "//serializer",
+        "@entangled//common/trinary:trit_tryte",
+        "@entangled//common/trinary:tryte_ascii",
+        "@entangled//mam/api",
     ],
 )
 
