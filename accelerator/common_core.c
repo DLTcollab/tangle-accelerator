@@ -455,3 +455,68 @@ done:
   ta_find_transactions_res_free(&hash_res);
   return ret;
 }
+
+static int idx_sort(void const* lhs, void const* rhs) {
+  iota_transaction_t* _lhs = (iota_transaction_t*)lhs;
+  iota_transaction_t* _rhs = (iota_transaction_t*)rhs;
+
+  return (transaction_current_index(_lhs) < transaction_current_index(_rhs))
+             ? -1
+             : (transaction_current_index(_lhs) >
+                transaction_current_index(_rhs));
+}
+
+static void get_first_bundle_from_transactions(
+    transaction_array_t const transactions,
+    bundle_transactions_t* const bundle) {
+  iota_transaction_t* tail = NULL;
+  iota_transaction_t* curr_tx = NULL;
+  iota_transaction_t* prev = NULL;
+
+  utarray_sort(transactions, idx_sort);
+  tail = (iota_transaction_t*)utarray_eltptr(transactions, 0);
+  bundle_transactions_add(bundle, tail);
+
+  prev = tail;
+  TX_OBJS_FOREACH(transactions, curr_tx) {
+    if (transaction_current_index(curr_tx) ==
+            (transaction_current_index(prev) + 1) &&
+        (memcmp(transaction_hash(curr_tx), transaction_trunk(prev),
+                FLEX_TRIT_SIZE_243) == 0)) {
+      bundle_transactions_add(bundle, curr_tx);
+      prev = curr_tx;
+    }
+  }
+}
+
+status_t ta_get_bundle(const iota_client_service_t* const service,
+                       tryte_t const* const bundle_hash,
+                       bundle_transactions_t* const bundle) {
+  status_t ret = SC_OK;
+  iota_transaction_t* curr_tx = NULL;
+  flex_trit_t bundle_hash_flex[FLEX_TRIT_SIZE_243];
+  transaction_array_t tx_objs = transaction_array_new();
+  find_transactions_req_t* find_tx_req = find_transactions_req_new();
+  if (find_tx_req == NULL) {
+    ret = SC_CCLIENT_OOM;
+    goto done;
+  }
+
+  // find transactions by bundle hash
+  flex_trits_from_trytes(bundle_hash_flex, NUM_TRITS_BUNDLE, bundle_hash,
+                         NUM_TRITS_HASH, NUM_TRYTES_BUNDLE);
+  hash243_queue_push(&find_tx_req->bundles, bundle_hash_flex);
+  ret = iota_client_find_transaction_objects(service, find_tx_req, tx_objs);
+  if (ret) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+
+  // retreive only first bundle
+  get_first_bundle_from_transactions(tx_objs, bundle);
+
+done:
+  transaction_array_free(tx_objs);
+  find_transactions_req_free(&find_tx_req);
+  return ret;
+}

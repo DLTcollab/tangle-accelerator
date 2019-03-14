@@ -172,6 +172,10 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
                                    const char* const req,
                                    ta_get_transaction_object_res_t* res);
 
+status_t ta_get_bundle(const iota_client_service_t* const service,
+                       tryte_t const* const bundle_hash,
+                       bundle_transactions_t* const bundle);
+
 #ifdef __cplusplus
 }
 #endif
