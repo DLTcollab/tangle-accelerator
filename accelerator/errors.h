@@ -47,15 +47,14 @@ extern "C" {
 #define SC_ERROR_MASK 0x07
 /** @} */
 
-/** @name http error code */
-/** @{ */
-#define SC_BAD_REQUEST 400
-#define SC_NOT_FOUND 404
-/** @} */
-
 /* status code */
 typedef enum {
   SC_OK = 0, /**< No error */
+
+  SC_HTTP_OK = 200,     /**< HTTP response OK */
+  SC_BAD_REQUEST = 400, /**< HTTP response, error when parsing request */
+  SC_NOT_FOUND = 404,   /**< HTTP request not found */
+  SC_INTERNAL_SERVICE_ERROR = 500, /**< HTTP response, other errors in TA */
 
   SC_TA_OOM = 0x01 | SC_MODULE_TA | SC_SEVERITY_FATAL,
   /**< Fail to create TA object */
