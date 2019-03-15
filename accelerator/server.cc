@@ -21,10 +21,10 @@ status_t set_response_content(status_t ret, char** json_result) {
   }
 
   cJSON* json_obj = cJSON_CreateObject();
-  if (ret == SC_CCLIENT_NOT_FOUND) {
+  if ((ret & SC_ERROR_MASK) == 0x03) {
     http_ret = SC_NOT_FOUND;
     cJSON_AddStringToObject(json_obj, "message", "Request not found");
-  } else if (ret == SC_SERIALIZER_JSON_PARSE) {
+  } else if ((ret & SC_ERROR_MASK) == 0x07) {
     http_ret = SC_BAD_REQUEST;
     cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
   } else {
@@ -56,18 +56,17 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result = NULL;
 
-        api_receive_mam_message(&service, req.params["bundle"].c_str(),
-                                &json_result);
+        ret = api_receive_mam_message(&service, req.params["bundle"].c_str(),
+                                      &json_result);
+        ret = set_response_content(ret, &json_result);
 
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
-        if (!json_result) {
-          res.set_status(SC_NOT_FOUND);
-        } else {
-          res << json_result;
-        }
+        res.set_status(ret);
+        res << json_result;
       });
 
   /**
