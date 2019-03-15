@@ -18,8 +18,11 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":common_core",
+        ":ta_errors",
         "//serializer",
-        "@entangled//cclient:api",
+        "@entangled//common/trinary:trit_tryte",
+        "@entangled//common/trinary:tryte_ascii",
+        "@entangled//mam/api",
     ],
 )
 
@@ -30,12 +33,13 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",
+        ":ta_errors",
         "//request",
         "//response",
         "//utils:cache",
         "//utils:pow",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient:api",
+        "@entangled//cclient/api",
         "@entangled//cclient/types",
         "@entangled//common/model:bundle",
         "@entangled//utils:time",

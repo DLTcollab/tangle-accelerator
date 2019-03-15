@@ -2,8 +2,9 @@
 #define ACCELERATOR_COMMON_CORE_H_
 
 #include "accelerator/config.h"
-#include "cclient/iota_client_core_api.h"
-#include "cclient/iota_client_extended_api.h"
+#include "accelerator/errors.h"
+#include "cclient/api/core/core_api.h"
+#include "cclient/api/extended/extended_api.h"
 #include "cclient/types/types.h"
 #include "common/model/bundle.h"
 #include "common/model/transfer.h"
@@ -37,11 +38,11 @@ extern "C" {
  * @param[out] res Result containing a tips pair in ta_get_tips_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int cclient_get_txn_to_approve(const iota_client_service_t* const service,
-                               ta_get_tips_res_t* res);
+status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
+                                    ta_get_tips_res_t* res);
 
 /**
  * @brief Get list of all tips from IRI node.
@@ -53,11 +54,11 @@ int cclient_get_txn_to_approve(const iota_client_service_t* const service,
  * @param[out] res Result containing list of all tips in ta_get_tips_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int cclient_get_tips(const iota_client_service_t* const service,
-                     ta_get_tips_res_t* res);
+status_t cclient_get_tips(const iota_client_service_t* const service,
+                          ta_get_tips_res_t* res);
 
 /**
  * @brief Generate an unused address.
@@ -70,11 +71,11 @@ int cclient_get_tips(const iota_client_service_t* const service,
  * ta_generate_address_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_generate_address(const iota_client_service_t* const service,
-                        ta_generate_address_res_t* res);
+status_t ta_generate_address(const iota_client_service_t* const service,
+                             ta_generate_address_res_t* res);
 
 /**
  * @brief Send transfer to tangle.
@@ -89,12 +90,12 @@ int ta_generate_address(const iota_client_service_t* const service,
  * @param[out] res Result containing transaction hash in ta_send_transfer_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_send_transfer(const iota_client_service_t* const service,
-                     const ta_send_transfer_req_t* const req,
-                     ta_send_transfer_res_t* res);
+status_t ta_send_transfer(const iota_client_service_t* const service,
+                          const ta_send_transfer_req_t* const req,
+                          ta_send_transfer_res_t* res);
 
 /**
  * @brief Send trytes to tangle.
@@ -107,11 +108,11 @@ int ta_send_transfer(const iota_client_service_t* const service,
  * @param[in] trytes Trytes that will be attached to tangle
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_send_trytes(const iota_client_service_t* const service,
-                   hash8019_array_p trytes);
+status_t ta_send_trytes(const iota_client_service_t* const service,
+                        hash8019_array_p trytes);
 
 /**
  * @brief Return list of transaction hash with given tag.
@@ -125,12 +126,12 @@ int ta_send_trytes(const iota_client_service_t* const service,
  *             ta_find_transactions_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_find_transactions_by_tag(const iota_client_service_t* const service,
-                                const char* const req,
-                                ta_find_transactions_res_t* const res);
+status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
+                                     const char* const req,
+                                     ta_find_transactions_res_t* const res);
 
 /**
  * @brief Return list of transaction object with given tag.
@@ -144,12 +145,12 @@ int ta_find_transactions_by_tag(const iota_client_service_t* const service,
  *                 ta_find_transactions_obj_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
-                                    const char* const req,
-                                    ta_find_transactions_obj_res_t* res);
+status_t ta_find_transactions_obj_by_tag(
+    const iota_client_service_t* const service, const char* const req,
+    ta_find_transactions_obj_res_t* res);
 
 /**
  * @brief Return transaction object with given transaction hash.
@@ -164,12 +165,31 @@ int ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
  *                 ta_get_transaction_object_res_t
  *
  * @return
- * - 0 on success
+ * - SC_OK on success
  * - non-zero on error
  */
-int ta_get_transaction_object(const iota_client_service_t* const service,
-                              const char* const req,
-                              ta_get_transaction_object_res_t* res);
+status_t ta_get_transaction_object(const iota_client_service_t* const service,
+                                   const char* const req,
+                                   ta_get_transaction_object_res_t* res);
+
+/**
+ * @brief Return bundle object with given bundle hash.
+ *
+ * Explore transaction hash information with given bundle hash. This would
+ * return only one bundle objects in bundle_transactions_t instead of all
+ * transactions like reattached ones.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] bundle_hash bundle hash in trytes
+ * @param[out] bundle Result containing bundle object in bundle_transactions_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_bundle(const iota_client_service_t* const service,
+                       tryte_t const* const bundle_hash,
+                       bundle_transactions_t* const bundle);
 
 #ifdef __cplusplus
 }

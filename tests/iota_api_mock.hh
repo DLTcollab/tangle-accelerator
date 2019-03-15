@@ -1,6 +1,6 @@
 #include "accelerator/common_core.h"
-#include "cclient/iota_client_core_api.h"
-#include "cclient/iota_client_extended_api.h"
+#include "cclient/api/core/core_api.h"
+#include "cclient/api/extended/extended_api.h"
 #include "gmock/gmock.h"
 #include "tests/test_define.h"
 
@@ -27,6 +27,11 @@ class IotaAPI {
       const find_transactions_req_t* const req, find_transactions_res_t* res) {
     return RC_OK;
   }
+  virtual retcode_t iota_client_find_transaction_objects(
+      const iota_client_service_t* const service,
+      const find_transactions_req_t* const req, transaction_array_t tx_objs) {
+    return RC_OK;
+  }
   virtual retcode_t iota_client_get_new_address(
       iota_client_service_t const* const serv, flex_trit_t const* const seed,
       address_opt_t const addr_opt, hash243_queue_t* out_addresses) {
@@ -37,10 +42,9 @@ class IotaAPI {
       get_trytes_res_t* res) {
     return RC_OK;
   }
-
-  virtual int ta_send_trytes(const iota_client_service_t* const service,
-                             hash8019_array_p trytes) {
-    return 0;
+  virtual status_t ta_send_trytes(const iota_client_service_t* const service,
+                                  hash8019_array_p trytes) {
+    return SC_OK;
   }
 };
 
@@ -63,6 +67,10 @@ class APIMock : public IotaAPI {
                retcode_t(const iota_client_service_t* const service,
                          const find_transactions_req_t* const req,
                          find_transactions_res_t* res));
+  MOCK_METHOD3(iota_client_find_transaction_objects,
+               retcode_t(const iota_client_service_t* const service,
+                         const find_transactions_req_t* const req,
+                         transaction_array_t tx_objs));
   MOCK_METHOD4(iota_client_get_new_address,
                retcode_t(iota_client_service_t const* const serv,
                          flex_trit_t const* const seed,
@@ -71,6 +79,7 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_get_trytes,
                retcode_t(const iota_client_service_t* const service,
                          get_trytes_req_t* const req, get_trytes_res_t* res));
-  MOCK_METHOD2(ta_send_trytes, int(const iota_client_service_t* const service,
-                                   hash8019_array_p trytes));
+  MOCK_METHOD2(ta_send_trytes,
+               status_t(const iota_client_service_t* const service,
+                        hash8019_array_p trytes));
 };

@@ -6,6 +6,7 @@ cc_library(
     hdrs = ["serializer.h"],
     visibility = ["//visibility:public"],
     deps = [
+        "//accelerator:ta_errors",
         "//request",
         "//response",
         "@cJSON",

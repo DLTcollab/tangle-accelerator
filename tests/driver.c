@@ -151,6 +151,24 @@ void test_find_transactions_obj_by_tag(void) {
   free(json_result);
 }
 
+void test_receive_mam_message(void) {
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    clock_gettime(CLOCK_REALTIME, &start_time);
+    TEST_ASSERT_FALSE(
+        api_receive_mam_message(&service, BUNDLE_HASH, &json_result));
+    clock_gettime(CLOCK_REALTIME, &end_time);
+#if defined(ENABLE_STAT)
+    printf("%lf\n", diff_time(start_time, end_time));
+#endif
+    sum += diff_time(start_time, end_time);
+  }
+  printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
   service.http.path = "/";
@@ -168,6 +186,7 @@ int main(void) {
   RUN_TEST(test_get_transaction_object);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
+  RUN_TEST(test_receive_mam_message);
   iota_client_core_destroy(&service);
   return UNITY_END();
 }

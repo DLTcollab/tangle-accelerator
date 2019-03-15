@@ -12,51 +12,52 @@ typedef struct {
  * Private functions
  */
 
-static int redis_del(redisContext* c, const char* const key) {
-  int ret = 1;
+static status_t redis_del(redisContext* c, const char* const key) {
+  status_t ret = SC_OK;
 
   if (key == NULL) {
-    return ret;
+    return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "DEL %s", key);
-  if (reply->integer) {
-    ret = 0;
+  if (!reply->integer) {
+    ret = SC_CACHE_FAILED_RESPONSE;
   }
 
   freeReplyObject(reply);
   return ret;
 }
 
-static int redis_get(redisContext* c, const char* const key, char* res) {
-  int ret = 1;
+static status_t redis_get(redisContext* c, const char* const key, char* res) {
+  status_t ret = SC_OK;
 
   if (key == NULL || res[0] != '\0') {
-    return ret;
+    return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "GET %s", key);
   if (reply->type == REDIS_REPLY_STRING) {
     strncpy(res, reply->str, FLEX_TRIT_SIZE_8019);
-    ret = 0;
+  } else {
+    ret = SC_CACHE_FAILED_RESPONSE;
   }
 
   freeReplyObject(reply);
   return ret;
 }
 
-static int redis_set(redisContext* c, const char* const key,
-                     const char* const value) {
-  int ret = 1;
+static status_t redis_set(redisContext* c, const char* const key,
+                          const char* const value) {
+  status_t ret = SC_OK;
 
   if (key == NULL || value == NULL) {
-    return ret;
+    return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243,
                                    value, FLEX_TRIT_SIZE_8019);
-  if (reply->integer) {
-    ret = 0;
+  if (!reply->integer) {
+    ret = SC_CACHE_FAILED_RESPONSE;
   }
 
   freeReplyObject(reply);
@@ -90,15 +91,16 @@ void cache_stop(cache_t** cache) {
   }
 }
 
-int cache_del(const cache_t* const cache, const char* const key) {
+status_t cache_del(const cache_t* const cache, const char* const key) {
   return redis_del(CONN(cache)->rc, key);
 }
 
-int cache_get(const cache_t* const cache, const char* const key, char* res) {
+status_t cache_get(const cache_t* const cache, const char* const key,
+                   char* res) {
   return redis_get(CONN(cache)->rc, key, res);
 }
 
-int cache_set(const cache_t* const cache, const char* const key,
-              const char* const value) {
+status_t cache_set(const cache_t* const cache, const char* const key,
+                   const char* const value) {
   return redis_set(CONN(cache)->rc, key, value);
 }
