@@ -22,13 +22,13 @@ status_t set_response_content(status_t ret, char** json_result) {
 
   cJSON* json_obj = cJSON_CreateObject();
   if ((ret & SC_ERROR_MASK) == 0x03) {
-    http_ret = SC_NOT_FOUND;
+    http_ret = SC_HTTP_NOT_FOUND;
     cJSON_AddStringToObject(json_obj, "message", "Request not found");
   } else if ((ret & SC_ERROR_MASK) == 0x07) {
-    http_ret = SC_BAD_REQUEST;
+    http_ret = SC_HTTP_BAD_REQUEST;
     cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
   } else {
-    http_ret = SC_INTERNAL_SERVICE_ERROR;
+    http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
     cJSON_AddStringToObject(json_obj, "message", "Internal service error");
   }
   *json_result = cJSON_PrintUnformatted(json_obj);
@@ -231,7 +231,7 @@ int main(int, char const**) {
                                   "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
-          res.set_status(SC_BAD_REQUEST);
+          res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
           ret = api_send_transfer(&service, req.body().c_str(), &json_result);
@@ -260,7 +260,7 @@ int main(int, char const**) {
         cJSON_AddStringToObject(json_obj, "message", "Invalid path");
         const char* json = cJSON_PrintUnformatted(json_obj);
 
-        res.set_status(SC_BAD_REQUEST);
+        res.set_status(SC_HTTP_BAD_REQUEST);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
         res << json;
