@@ -14,6 +14,27 @@ void set_options_method_header(served::response& res) {
   res.set_header("Access-Control-Max-Age", "86400");
 }
 
+status_t set_response_content(status_t ret, char** json_result) {
+  status_t http_ret;
+  if (ret == SC_OK) {
+    return SC_HTTP_OK;
+  }
+
+  cJSON* json_obj = cJSON_CreateObject();
+  if ((ret & SC_ERROR_MASK) == 0x03) {
+    http_ret = SC_HTTP_NOT_FOUND;
+    cJSON_AddStringToObject(json_obj, "message", "Request not found");
+  } else if ((ret & SC_ERROR_MASK) == 0x07) {
+    http_ret = SC_HTTP_BAD_REQUEST;
+    cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+  } else {
+    http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
+    cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+  }
+  *json_result = cJSON_PrintUnformatted(json_obj);
+  return http_ret;
+}
+
 int main(int, char const**) {
   served::multiplexer mux;
   mux.use_after(served::plugin::access_log);
@@ -35,18 +56,17 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result = NULL;
 
-        api_receive_mam_message(&service, req.params["bundle"].c_str(),
-                                &json_result);
+        ret = api_receive_mam_message(&service, req.params["bundle"].c_str(),
+                                      &json_result);
+        ret = set_response_content(ret, &json_result);
 
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
-        if (!json_result) {
-          res.set_status(SC_NOT_FOUND);
-        } else {
-          res << json_result;
-        }
+        res.set_status(ret);
+        res << json_result;
       });
 
   /**
@@ -62,12 +82,15 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
-                                     &json_result);
+        ret = api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
+                                           &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -84,12 +107,15 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_get_transaction_object(&service, req.params["tx"].c_str(),
-                                   &json_result);
+        ret = api_get_transaction_object(&service, req.params["tx"].c_str(),
+                                         &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -106,12 +132,15 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_find_transactions_obj_by_tag(&service, req.params["tag"].c_str(),
-                                         &json_result);
+        ret = api_find_transactions_obj_by_tag(
+            &service, req.params["tag"].c_str(), &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -126,11 +155,14 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_get_tips_pair(&service, &json_result);
+        ret = api_get_tips_pair(&service, &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -145,11 +177,14 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_get_tips(&service, &json_result);
+        ret = api_get_tips(&service, &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -164,11 +199,14 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        api_generate_address(&service, &json_result);
+        ret = api_generate_address(&service, &json_result);
+        ret = set_response_content(ret, &json_result);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -183,6 +221,7 @@ int main(int, char const**) {
                 set_options_method_header(res);
               })
       .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
         if (req.header("content-type").find("application/json") ==
@@ -192,10 +231,12 @@ int main(int, char const**) {
                                   "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
-          res.set_status(SC_BAD_REQUEST);
+          res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          api_send_transfer(&service, req.body().c_str(), &json_result);
+          ret = api_send_transfer(&service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
         }
 
         res.set_header("Content-Type", "application/json");
@@ -219,7 +260,7 @@ int main(int, char const**) {
         cJSON_AddStringToObject(json_obj, "message", "Invalid path");
         const char* json = cJSON_PrintUnformatted(json_obj);
 
-        res.set_status(SC_BAD_REQUEST);
+        res.set_status(SC_HTTP_BAD_REQUEST);
         res.set_header("Content-Type", "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
         res << json;

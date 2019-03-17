@@ -184,6 +184,10 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
       char* payload = calloc(payload_size * 2 + 1, sizeof(char));
 
       trytes_to_ascii(payload_trytes, payload_size, payload);
+      if (payload == NULL) {
+        ret = SC_MAM_NOT_FOUND;
+        goto done;
+      }
       *json_result = payload;
 
       payload = NULL;
