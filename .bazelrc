@@ -1,4 +1,9 @@
 test --copt='-ggdb3'
+coverage -s
+coverage --experimental_cc_coverage
+coverage --combined_report=lcov
+coverage --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
+coverage --instrumentation_filter="-/tests[/:]"
 
 # Address Sanitizer:--config asan
 build:asan --strip=never
