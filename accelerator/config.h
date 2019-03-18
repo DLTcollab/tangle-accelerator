@@ -12,6 +12,7 @@ extern "C" {
 
 /** @name tangle-accelerator config */
 /** @{ */
+#define TA_VERSION "tangle-accelerator/0.3.0"
 #define TA_HOST "localhost" /**< Binding address of tangle-acclerator */
 #define TA_PORT "8000"      /**< Binding port of tangle-acclerator */
 #define TA_THREAD_COUNT 10  /**< Thread count of tangle-acclerator instance */

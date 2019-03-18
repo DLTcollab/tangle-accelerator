@@ -99,6 +99,12 @@ typedef enum {
   /**< Error in mam response */
 } status_t;
 
+typedef enum {
+  HTTP_METHOD_GET = 0,     /**< HTTP GET method */
+  HTTP_METHOD_POST = 1,    /**< HTTP POST method */
+  HTTP_METHOD_OPTIONS = 2, /**< HTTP OPTIONS method */
+} http_method_t;
+
 #ifdef __cplusplus
 }
 #endif
