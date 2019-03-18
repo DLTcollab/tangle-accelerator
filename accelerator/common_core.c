@@ -389,6 +389,9 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
           (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
       cache_set(cache, req, cache_value);
+    } else {
+      ret = SC_CCLIENT_NOT_FOUND;
+      goto done;
     }
   }
 
