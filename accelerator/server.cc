@@ -6,12 +6,21 @@
 #include "accelerator/errors.h"
 #include "cJSON.h"
 
-void set_options_method_header(served::response& res) {
+void set_method_header(served::response& res, http_method_t method) {
+  res.set_header("Server", TA_VERSION);
   res.set_header("Access-Control-Allow-Origin", "*");
-  res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.set_header("Access-Control-Allow-Headers",
-                 "Origin, Content-Type, Accept");
-  res.set_header("Access-Control-Max-Age", "86400");
+
+  switch (method) {
+    case HTTP_METHOD_OPTIONS:
+      res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.set_header("Access-Control-Allow-Headers",
+                     "Origin, Content-Type, Accept");
+      res.set_header("Access-Control-Max-Age", "86400");
+      break;
+    default:
+      res.set_header("Content-Type", "application/json");
+      break;
+  }
 }
 
 status_t set_response_content(status_t ret, char** json_result) {
@@ -53,7 +62,7 @@ int main(int, char const**) {
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -63,8 +72,7 @@ int main(int, char const**) {
                                       &json_result);
         ret = set_response_content(ret, &json_result);
 
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -79,7 +87,7 @@ int main(int, char const**) {
   mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -88,8 +96,7 @@ int main(int, char const**) {
         ret = api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
                                            &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -104,7 +111,7 @@ int main(int, char const**) {
   mux.handle("/transaction/{tx:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -113,8 +120,7 @@ int main(int, char const**) {
         ret = api_get_transaction_object(&service, req.params["tx"].c_str(),
                                          &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -129,7 +135,7 @@ int main(int, char const**) {
   mux.handle("/tag/{tag:[A-Z9]{1,27}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -138,8 +144,7 @@ int main(int, char const**) {
         ret = api_find_transactions_obj_by_tag(
             &service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -152,7 +157,7 @@ int main(int, char const**) {
   mux.handle("/tips/pair")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -160,8 +165,7 @@ int main(int, char const**) {
 
         ret = api_get_tips_pair(&service, &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -174,7 +178,7 @@ int main(int, char const**) {
   mux.handle("/tips")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -182,8 +186,7 @@ int main(int, char const**) {
 
         ret = api_get_tips(&service, &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -196,7 +199,7 @@ int main(int, char const**) {
   mux.handle("/address")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -204,8 +207,7 @@ int main(int, char const**) {
 
         ret = api_generate_address(&service, &json_result);
         ret = set_response_content(ret, &json_result);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
       });
@@ -218,7 +220,7 @@ int main(int, char const**) {
   mux.handle("/transaction")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
@@ -239,8 +241,7 @@ int main(int, char const**) {
           res.set_status(ret);
         }
 
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_POST);
         res << json_result;
       });
 
@@ -253,7 +254,7 @@ int main(int, char const**) {
   mux.handle("{*}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
-                set_options_method_header(res);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([](served::response& res, const served::request&) {
         cJSON* json_obj = cJSON_CreateObject();
@@ -261,8 +262,7 @@ int main(int, char const**) {
         const char* json = cJSON_PrintUnformatted(json_obj);
 
         res.set_status(SC_HTTP_BAD_REQUEST);
-        res.set_header("Content-Type", "application/json");
-        res.set_header("Access-Control-Allow-Origin", "*");
+        set_method_header(res, HTTP_METHOD_GET);
         res << json;
 
         cJSON_Delete(json_obj);
