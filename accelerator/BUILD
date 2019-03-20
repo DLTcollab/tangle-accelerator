@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+
 cc_binary(
     name = "accelerator",
     srcs = ["server.cc"],
@@ -9,6 +11,11 @@ cc_binary(
         ":ta_errors",
         "@served",
     ],
+)
+
+cc_image(
+    name = "ta_image",
+    binary = ":accelerator",
 )
 
 cc_library(

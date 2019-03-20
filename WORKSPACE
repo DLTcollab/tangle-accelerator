@@ -18,6 +18,15 @@ git_repository(
     remote = "https://github.com/meltwater/served.git",
 )
 
+git_repository(
+    name = "io_bazel_rules_docker",
+    remote = "https://github.com/bazelbuild/rules_docker.git",
+    tag = "v0.6.0",
+)
+
 load("@rules_iota//:defs.bzl", "iota_deps")
+load("@io_bazel_rules_docker//cc:image.bzl", _cc_image_repos = "repositories")
 
 iota_deps()
+
+_cc_image_repos()
