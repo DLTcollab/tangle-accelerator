@@ -31,6 +31,7 @@ extern "C" {
  * The result is a 243 long flex trits hash stack.
  *
  * @param[in] service IRI node end point service
+ * @param[in] depth Depth of get transaction to approve
  * @param[out] res Result containing a tips pair in ta_get_tips_res_t
  *
  * @return
@@ -38,6 +39,7 @@ extern "C" {
  * - non-zero on error
  */
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
+                                    uint8_t const depth,
                                     ta_get_tips_res_t* res);
 
 /**
@@ -70,7 +72,8 @@ status_t cclient_get_tips(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address(const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const config,
+                             const iota_client_service_t* const service,
                              ta_generate_address_res_t* res);
 
 /**
@@ -80,6 +83,7 @@ status_t ta_generate_address(const iota_client_service_t* const service,
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
+ * @param[in] config IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
@@ -89,7 +93,8 @@ status_t ta_generate_address(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer(const iota_client_service_t* const service,
+status_t ta_send_transfer(const iota_config_t* const config,
+                          const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req,
                           ta_send_transfer_res_t* res);
 
@@ -101,6 +106,8 @@ status_t ta_send_transfer(const iota_client_service_t* const service,
  * transaction to tangle.
  *
  * @param[in] service IRI node end point service
+ * @param[in] dpeth Depth of get transaction to approve
+ * @param[in] mwm Minimum weight magnitude
  * @param[in] trytes Trytes that will be attached to tangle
  *
  * @return
@@ -108,6 +115,7 @@ status_t ta_send_transfer(const iota_client_service_t* const service,
  * - non-zero on error
  */
 status_t ta_send_trytes(const iota_client_service_t* const service,
+                        uint8_t const depth, uint8_t const mwm,
                         hash8019_array_p trytes);
 
 /**

@@ -4,6 +4,7 @@
 #include "utils/pow.h"
 
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
+                                    uint8_t const depth,
                                     ta_get_tips_res_t* res) {
   if (res == NULL) {
     return SC_TA_NULL;
@@ -19,7 +20,7 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
     goto done;
   }
   // The depth at which Random Walk starts. Mininal is 3, and max is 15.
-  get_transactions_to_approve_req_set_depth(get_txn_req, DEPTH);
+  get_transactions_to_approve_req_set_depth(get_txn_req, depth);
 
   ret = iota_client_get_transactions_to_approve(service, get_txn_req,
                                                 get_txn_res);
@@ -162,6 +163,7 @@ done:
 }
 
 status_t ta_send_trytes(const iota_client_service_t* const service,
+                        uint8_t const depth, uint8_t const mwm,
                         hash8019_array_p trytes) {
   status_t ret = SC_OK;
   ta_get_tips_res_t* get_txn_res = ta_get_tips_res_new();
@@ -173,7 +175,7 @@ status_t ta_send_trytes(const iota_client_service_t* const service,
   }
 
   // get transaction to approve
-  ret = cclient_get_txn_to_approve(service, get_txn_res);
+  ret = cclient_get_txn_to_approve(service, depth, get_txn_res);
   if (ret) {
     goto done;
   }
@@ -186,7 +188,7 @@ status_t ta_send_trytes(const iota_client_service_t* const service,
   memcpy(attach_req->branch, hash243_stack_peek(get_txn_res->tips),
          FLEX_TRIT_SIZE_243);
   hash243_stack_pop(&get_txn_res->tips);
-  attach_req->mwm = MWM;
+  attach_req->mwm = mwm;
   attach_req->trytes = trytes;
   ret = ta_attach_to_tangle(attach_req, attach_res);
   if (ret) {
@@ -208,7 +210,8 @@ done:
   return ret;
 }
 
-status_t ta_generate_address(const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const config,
+                             const iota_client_service_t* const service,
                              ta_generate_address_res_t* res) {
   if (res == NULL) {
     return SC_TA_NULL;
@@ -217,8 +220,9 @@ status_t ta_generate_address(const iota_client_service_t* const service,
   status_t ret = SC_OK;
   hash243_queue_t out_address = NULL;
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)SEED,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH,
+                         (const tryte_t*)config->seed, NUM_TRYTES_HASH,
+                         NUM_TRYTES_HASH);
   address_opt_t opt = {.security = 3, .start = 0, .total = 0};
 
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
@@ -231,7 +235,8 @@ status_t ta_generate_address(const iota_client_service_t* const service,
   return ret;
 }
 
-status_t ta_send_transfer(const iota_client_service_t* const service,
+status_t ta_send_transfer(const iota_config_t* const config,
+                          const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req,
                           ta_send_transfer_res_t* res) {
   if (req == NULL || res == NULL) {
@@ -270,7 +275,7 @@ status_t ta_send_transfer(const iota_client_service_t* const service,
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(service, raw_tx);
+  ret = ta_send_trytes(service, config->depth, config->mwm, raw_tx);
   if (ret) {
     goto done;
   }
