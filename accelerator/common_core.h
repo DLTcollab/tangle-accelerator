@@ -2,10 +2,6 @@
 #define ACCELERATOR_COMMON_CORE_H_
 
 #include "accelerator/config.h"
-#include "accelerator/errors.h"
-#include "cclient/api/core/core_api.h"
-#include "cclient/api/extended/extended_api.h"
-#include "cclient/types/types.h"
 #include "common/model/bundle.h"
 #include "common/model/transfer.h"
 #include "request/request.h"
