@@ -1,14 +1,14 @@
 #include "config.h"
 #include "utils/logger_helper.h"
 
-#define CONFIG_LOGGER_ID "config"
+#define CONFIG_LOGGER_ID "TA"
 
 static logger_id_t logger_id;
 
-status_t ta_config_init(ta_config_t* const info, iota_config_t* const config,
+status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
                         iota_client_service_t* const service) {
   status_t ret = SC_OK;
-  if (info == NULL || config == NULL || service == NULL) {
+  if (info == NULL || tangle == NULL || service == NULL) {
     return SC_TA_NULL;
   }
 
@@ -23,9 +23,9 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const config,
   info->thread_count = TA_THREAD_COUNT;
 
   log_info(logger_id, "Initializing IRI configuration\n");
-  config->depth = DEPTH;
-  config->mwm = MWM;
-  config->seed = SEED;
+  tangle->depth = DEPTH;
+  tangle->mwm = MWM;
+  tangle->seed = SEED;
 
   log_info(logger_id, "Initializing IRI connection\n");
   service->http.path = "/";

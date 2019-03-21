@@ -44,7 +44,7 @@ done:
   return ret;
 }
 
-status_t api_get_tips_pair(const iota_config_t* const config,
+status_t api_get_tips_pair(const iota_config_t* const tangle,
                            const iota_client_service_t* const service,
                            char** json_result) {
   status_t ret = SC_OK;
@@ -54,7 +54,7 @@ status_t api_get_tips_pair(const iota_config_t* const config,
     goto done;
   }
 
-  ret = cclient_get_txn_to_approve(service, config->depth, res);
+  ret = cclient_get_txn_to_approve(service, tangle->depth, res);
   if (ret) {
     goto done;
   }
@@ -66,7 +66,7 @@ done:
   return ret;
 }
 
-status_t api_generate_address(const iota_config_t* const config,
+status_t api_generate_address(const iota_config_t* const tangle,
                               const iota_client_service_t* const service,
                               char** json_result) {
   status_t ret = SC_OK;
@@ -76,7 +76,7 @@ status_t api_generate_address(const iota_config_t* const config,
     goto done;
   }
 
-  ret = ta_generate_address(config, service, res);
+  ret = ta_generate_address(tangle, service, res);
   if (ret) {
     goto done;
   }
@@ -205,7 +205,7 @@ done:
   return ret;
 }
 
-status_t api_send_transfer(const iota_config_t* const config,
+status_t api_send_transfer(const iota_config_t* const tangle,
                            const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;
@@ -225,7 +225,7 @@ status_t api_send_transfer(const iota_config_t* const config,
     goto done;
   }
 
-  ret = ta_send_transfer(config, service, req, res);
+  ret = ta_send_transfer(tangle, service, req, res);
   if (ret) {
     goto done;
   }

@@ -30,7 +30,7 @@ void test_generate_address(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(
-        api_generate_address(&ta_core.config, &ta_core.service, &json_result));
+        api_generate_address(&ta_core.tangle, &ta_core.service, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
@@ -48,7 +48,7 @@ void test_get_tips_pair(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(
-        api_get_tips_pair(&ta_core.config, &ta_core.service, &json_result));
+        api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
@@ -87,7 +87,7 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_send_transfer(&ta_core.config, &ta_core.service, json,
+    TEST_ASSERT_FALSE(api_send_transfer(&ta_core.tangle, &ta_core.service, json,
                                         &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
 #if defined(ENABLE_STAT)
@@ -175,7 +175,7 @@ void test_receive_mam_message(void) {
 int main(void) {
   UNITY_BEGIN();
 
-  ta_config_init(&ta_core.info, &ta_core.config, &ta_core.service);
+  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_generate_address);

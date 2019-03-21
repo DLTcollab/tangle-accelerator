@@ -52,7 +52,7 @@ typedef struct ta_config_s {
 /** struct type of accelerator core */
 typedef struct ta_core_s {
   ta_config_t info;              /**< accelerator configiuration structure */
-  iota_config_t config;          /**< iota configuration structure */
+  iota_config_t tangle;          /**< iota configuration structure */
   iota_client_service_t service; /**< iota connection structure */
 } ta_core_t;
 
@@ -61,14 +61,14 @@ typedef struct ta_core_s {
  * Should be called first
  *
  * @param info[in] Tangle-accelerator configuration variables
- * @param config[in] iota configuration variables
+ * @param tangle[in] iota configuration variables
  * @param service[in] IRI connection configuration variables
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_init(ta_config_t* const info, iota_config_t* const config,
+status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
                         iota_client_service_t* const service);
 
 /**

@@ -59,7 +59,7 @@ int main(int, char const**) {
   }
   logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
 
-  ta_config_init(&ta_core.info, &ta_core.config, &ta_core.service);
+  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
@@ -166,7 +166,7 @@ int main(int, char const**) {
         char* json_result;
 
         ret =
-            api_get_tips_pair(&ta_core.config, &ta_core.service, &json_result);
+            api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -208,7 +208,7 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_generate_address(&ta_core.config, &ta_core.service,
+        ret = api_generate_address(&ta_core.tangle, &ta_core.service,
                                    &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
@@ -240,7 +240,7 @@ int main(int, char const**) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.config, &ta_core.service,
+          ret = api_send_transfer(&ta_core.tangle, &ta_core.service,
                                   req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);

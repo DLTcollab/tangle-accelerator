@@ -210,7 +210,7 @@ done:
   return ret;
 }
 
-status_t ta_generate_address(const iota_config_t* const config,
+status_t ta_generate_address(const iota_config_t* const tangle,
                              const iota_client_service_t* const service,
                              ta_generate_address_res_t* res) {
   if (res == NULL) {
@@ -221,7 +221,7 @@ status_t ta_generate_address(const iota_config_t* const config,
   hash243_queue_t out_address = NULL;
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)config->seed, NUM_TRYTES_HASH,
+                         (const tryte_t*)tangle->seed, NUM_TRYTES_HASH,
                          NUM_TRYTES_HASH);
   address_opt_t opt = {.security = 3, .start = 0, .total = 0};
 
@@ -235,7 +235,7 @@ status_t ta_generate_address(const iota_config_t* const config,
   return ret;
 }
 
-status_t ta_send_transfer(const iota_config_t* const config,
+status_t ta_send_transfer(const iota_config_t* const tangle,
                           const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req,
                           ta_send_transfer_res_t* res) {
@@ -275,7 +275,7 @@ status_t ta_send_transfer(const iota_config_t* const config,
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(service, config->depth, config->mwm, raw_tx);
+  ret = ta_send_trytes(service, tangle->depth, tangle->mwm, raw_tx);
   if (ret) {
     goto done;
   }
