@@ -29,7 +29,7 @@ class IotaAPI {
   }
   virtual retcode_t iota_client_find_transaction_objects(
       const iota_client_service_t* const service,
-      const find_transactions_req_t* const req, transaction_array_t tx_objs) {
+      const find_transactions_req_t* const req, transaction_array_t* tx_objs) {
     return RC_OK;
   }
   virtual retcode_t iota_client_get_new_address(
@@ -71,7 +71,7 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_find_transaction_objects,
                retcode_t(const iota_client_service_t* const service,
                          const find_transactions_req_t* const req,
-                         transaction_array_t tx_objs));
+                         transaction_array_t* tx_objs));
   MOCK_METHOD4(iota_client_get_new_address,
                retcode_t(iota_client_service_t const* const serv,
                          flex_trit_t const* const seed,
