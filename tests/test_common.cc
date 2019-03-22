@@ -156,7 +156,7 @@ TEST(SendTransferTest, SendTransferTest) {
   flex_trits_slice(req->message, req->msg_len, msg_trits, req->msg_len, 0,
                    req->msg_len);
 
-  EXPECT_CALL(APIMockObj, ta_send_trytes(_, _, _, _)).Times(AtLeast(1));
+  EXPECT_CALL(APIMockObj, ta_send_trytes(_, _, _)).Times(AtLeast(1));
   EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
       .Times(AtLeast(1));
 

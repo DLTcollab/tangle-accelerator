@@ -77,7 +77,8 @@ retcode_t iota_client_get_trytes(const iota_client_service_t* const service,
   return APIMockObj.iota_client_get_trytes(service, req, res);
 }
 
-status_t ta_send_trytes(const iota_client_service_t* const service,
-                        uint8_t depth, uint8_t mwm, hash8019_array_p trytes) {
-  return APIMockObj.ta_send_trytes(service, depth, mwm, trytes);
+status_t ta_send_trytes(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
+                        hash8019_array_p trytes) {
+  return APIMockObj.ta_send_trytes(tangle, service, trytes);
 }

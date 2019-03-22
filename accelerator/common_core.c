@@ -162,8 +162,8 @@ done:
   return ret;
 }
 
-status_t ta_send_trytes(const iota_client_service_t* const service,
-                        uint8_t const depth, uint8_t const mwm,
+status_t ta_send_trytes(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
   status_t ret = SC_OK;
   ta_get_tips_res_t* get_txn_res = ta_get_tips_res_new();
@@ -175,7 +175,7 @@ status_t ta_send_trytes(const iota_client_service_t* const service,
   }
 
   // get transaction to approve
-  ret = cclient_get_txn_to_approve(service, depth, get_txn_res);
+  ret = cclient_get_txn_to_approve(service, tangle->depth, get_txn_res);
   if (ret) {
     goto done;
   }
@@ -188,7 +188,7 @@ status_t ta_send_trytes(const iota_client_service_t* const service,
   memcpy(attach_req->branch, hash243_stack_peek(get_txn_res->tips),
          FLEX_TRIT_SIZE_243);
   hash243_stack_pop(&get_txn_res->tips);
-  attach_req->mwm = mwm;
+  attach_req->mwm = tangle->mwm;
   attach_req->trytes = trytes;
   ret = ta_attach_to_tangle(attach_req, attach_res);
   if (ret) {
@@ -275,7 +275,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(service, tangle->depth, tangle->mwm, raw_tx);
+  ret = ta_send_trytes(tangle, service, raw_tx);
   if (ret) {
     goto done;
   }

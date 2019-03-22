@@ -106,17 +106,16 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
  * bundle and do PoW in `ta_attach_to_tangle` and store and broadcast
  * transaction to tangle.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
- * @param[in] dpeth Depth of get transaction to approve
- * @param[in] mwm Minimum weight magnitude
  * @param[in] trytes Trytes that will be attached to tangle
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes(const iota_client_service_t* const service,
-                        uint8_t const depth, uint8_t const mwm,
+status_t ta_send_trytes(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
                         hash8019_array_p trytes);
 
 /**
