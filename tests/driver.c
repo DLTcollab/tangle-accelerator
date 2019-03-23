@@ -31,13 +31,13 @@ void test_generate_address(void) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(api_generate_address(&service, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of generate_address: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_tips_pair(void) {
@@ -48,13 +48,13 @@ void test_get_tips_pair(void) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(api_get_tips_pair(&service, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of get_tips_pair: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_tips(void) {
@@ -65,13 +65,13 @@ void test_get_tips(void) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(api_get_tips(&service, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of get_tips: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_send_transfer(void) {
@@ -87,13 +87,13 @@ void test_send_transfer(void) {
     clock_gettime(CLOCK_REALTIME, &start_time);
     TEST_ASSERT_FALSE(api_send_transfer(&service, json, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_transaction_object(void) {
@@ -106,13 +106,13 @@ void test_get_transaction_object(void) {
     TEST_ASSERT_FALSE(
         api_get_transaction_object(&service, TRYTES_81_1, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of get_transaction_object: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_find_transactions_by_tag(void) {
@@ -124,13 +124,13 @@ void test_find_transactions_by_tag(void) {
     TEST_ASSERT_FALSE(
         api_find_transactions_by_tag(&service, TAG_MSG, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of find_transactions_by_tag: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_find_transactions_obj_by_tag(void) {
@@ -142,13 +142,13 @@ void test_find_transactions_obj_by_tag(void) {
     TEST_ASSERT_FALSE(
         api_find_transactions_obj_by_tag(&service, TAG_MSG, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_receive_mam_message(void) {
@@ -160,13 +160,13 @@ void test_receive_mam_message(void) {
     TEST_ASSERT_FALSE(
         api_receive_mam_message(&service, BUNDLE_HASH, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
+    free(json_result);
 #if defined(ENABLE_STAT)
     printf("%lf\n", diff_time(start_time, end_time));
 #endif
     sum += diff_time(start_time, end_time);
   }
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 int main(void) {
