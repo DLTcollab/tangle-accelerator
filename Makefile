@@ -10,6 +10,7 @@ all: $(DEPS)
 
 $(DCURL_LIB): $(DCURL_DIR)
 	git submodule update --init $^
+	git submodule update --remote $^
 	$(MAKE) -C $^ config
 	@echo
 	$(info Modify $^/build/local.mk for your environments.)
