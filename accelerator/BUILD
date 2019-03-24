@@ -39,8 +39,6 @@ cc_library(
         "//utils:cache",
         "//utils:pow",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient/api",
-        "@entangled//cclient/types",
         "@entangled//common/model:bundle",
         "@entangled//utils:time",
     ],
@@ -48,8 +46,14 @@ cc_library(
 
 cc_library(
     name = "ta_config",
+    srcs = ["config.c"],
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
+    deps = [
+        ":ta_errors",
+        "@entangled//cclient/api",
+        "@entangled//cclient/types",
+    ],
 )
 
 cc_library(

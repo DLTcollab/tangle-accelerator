@@ -8,6 +8,7 @@ using ::testing::AtLeast;
 using ::testing::ElementsAreArray;
 
 APIMock APIMockObj;
+iota_config_t tangle;
 iota_client_service_t service;
 
 TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
@@ -24,7 +25,7 @@ TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
   EXPECT_CALL(APIMockObj, iota_client_get_transactions_to_approve(_, _, _))
       .Times(AtLeast(1));
 
-  EXPECT_EQ(cclient_get_txn_to_approve(&service, res), 0);
+  EXPECT_EQ(cclient_get_txn_to_approve(&service, 3, res), 0);
   EXPECT_FALSE(memcmp(res->tips->hash, hash_trits_1,
                       sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   hash243_stack_pop(&res->tips);
@@ -72,6 +73,7 @@ TEST(FindTxnTest, TxnHashTest) {
 }
 
 TEST(GenAdressTest, GetNewAddressTest) {
+  tangle.seed = SEED;
   hash243_queue_entry_t* q_iter = NULL;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
@@ -82,7 +84,7 @@ TEST(GenAdressTest, GetNewAddressTest) {
   EXPECT_CALL(APIMockObj, iota_client_get_new_address(_, _, _, _))
       .Times(AtLeast(1));
 
-  EXPECT_EQ(ta_generate_address(&service, res), 0);
+  EXPECT_EQ(ta_generate_address(&tangle, &service, res), 0);
   CDL_FOREACH(res->addresses, q_iter) {
     EXPECT_FALSE(memcmp(q_iter->hash, hash_trits_1,
                         sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
@@ -154,11 +156,11 @@ TEST(SendTransferTest, SendTransferTest) {
   flex_trits_slice(req->message, req->msg_len, msg_trits, req->msg_len, 0,
                    req->msg_len);
 
-  EXPECT_CALL(APIMockObj, ta_send_trytes(_, _)).Times(AtLeast(1));
+  EXPECT_CALL(APIMockObj, ta_send_trytes(_, _, _)).Times(AtLeast(1));
   EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _))
       .Times(AtLeast(1));
 
-  EXPECT_EQ(ta_send_transfer(&service, req, res), 0);
+  EXPECT_EQ(ta_send_transfer(&tangle, &service, req, res), 0);
   txn_hash = hash243_queue_peek(res->hash);
   EXPECT_FALSE(
       memcmp(txn_hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));

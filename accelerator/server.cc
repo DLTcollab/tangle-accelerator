@@ -5,9 +5,15 @@
 #include "accelerator/config.h"
 #include "accelerator/errors.h"
 #include "cJSON.h"
+#include "utils/logger_helper.h"
+
+#define MAIN_LOGGER_ID "main"
+
+static ta_core_t ta_core;
+static logger_id_t logger_id;
 
 void set_method_header(served::response& res, http_method_t method) {
-  res.set_header("Server", TA_VERSION);
+  res.set_header("Server", ta_core.info.version);
   res.set_header("Access-Control-Allow-Origin", "*");
 
   switch (method) {
@@ -48,16 +54,12 @@ int main(int, char const**) {
   served::multiplexer mux;
   mux.use_after(served::plugin::access_log);
 
-  iota_client_service_t service;
-  service.http.path = "/";
-  service.http.content_type = "application/json";
-  service.http.accept = "application/json";
-  service.http.host = IRI_HOST;
-  service.http.port = IRI_PORT;
-  service.http.api_version = 1;
-  service.serializer_type = SR_JSON;
-  iota_client_core_init(&service);
-  iota_client_extended_init();
+  if (logger_helper_init() != RC_OK) {
+    return EXIT_FAILURE;
+  }
+  logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
+
+  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
@@ -68,8 +70,8 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_receive_mam_message(&service, req.params["bundle"].c_str(),
-                                      &json_result);
+        ret = api_receive_mam_message(
+            &ta_core.service, req.params["bundle"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -93,8 +95,8 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_by_tag(&service, req.params["tag"].c_str(),
-                                           &json_result);
+        ret = api_find_transactions_by_tag(
+            &ta_core.service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -117,8 +119,8 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_transaction_object(&service, req.params["tx"].c_str(),
-                                         &json_result);
+        ret = api_get_transaction_object(
+            &ta_core.service, req.params["tx"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -142,7 +144,7 @@ int main(int, char const**) {
         char* json_result;
 
         ret = api_find_transactions_obj_by_tag(
-            &service, req.params["tag"].c_str(), &json_result);
+            &ta_core.service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -163,7 +165,8 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_tips_pair(&service, &json_result);
+        ret =
+            api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -184,7 +187,7 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_tips(&service, &json_result);
+        ret = api_get_tips(&ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -205,7 +208,8 @@ int main(int, char const**) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_generate_address(&service, &json_result);
+        ret = api_generate_address(&ta_core.tangle, &ta_core.service,
+                                   &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -236,7 +240,8 @@ int main(int, char const**) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&service, req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core.tangle, &ta_core.service,
+                                  req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -269,10 +274,13 @@ int main(int, char const**) {
       });
 
   std::cout << "Starting..." << std::endl;
-  served::net::server server(TA_HOST, TA_PORT, mux);
-  server.run(TA_THREAD_COUNT);
+  served::net::server server(ta_core.info.host, ta_core.info.port, mux);
+  server.run(ta_core.info.thread_count);
 
-  iota_client_extended_destroy();
-  iota_client_core_destroy(&service);
+  ta_config_destroy(&ta_core.service);
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    return EXIT_FAILURE;
+  }
   return 0;
 }

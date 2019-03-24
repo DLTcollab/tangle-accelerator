@@ -28,6 +28,7 @@ extern "C" {
  * Generate and return an unused address from the seed. An unused address means
  * the address does not have any transaction with it yet.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] json_result Result containing an unused address in json format
  *
@@ -35,7 +36,8 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_generate_address(const iota_client_service_t* const service,
+status_t api_generate_address(const iota_config_t* const tangle,
+                              const iota_client_service_t* const service,
                               char** json_result);
 
 /**
@@ -44,6 +46,7 @@ status_t api_generate_address(const iota_client_service_t* const service,
  * Get a tips pair as trunk/branch transactions for transaction construction.
  * The result is char array in json format:
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] json_result Result containing a tips pair in json format
  *
@@ -51,7 +54,8 @@ status_t api_generate_address(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips_pair(const iota_client_service_t* const service,
+status_t api_get_tips_pair(const iota_config_t* const tangle,
+                           const iota_client_service_t* const service,
                            char** json_result);
 
 /**
@@ -93,6 +97,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] obj Input data in JSON
  * @param[out] json_result Result containing transaction objects in json format
@@ -101,7 +106,8 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_transfer(const iota_client_service_t* const service,
+status_t api_send_transfer(const iota_config_t* const tangle,
+                           const iota_client_service_t* const service,
                            const char* const obj, char** json_result);
 
 /**
