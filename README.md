@@ -69,6 +69,20 @@ Before running tangle-accelerator, please edit binding address/port of accelerat
 $ make && bazel run //accelerator
 ```
 
+### Build from docker
+
+If you prefer building a docker image, tangle-accelerator also provides build rules for it. Note that you still have to edit configurations in `accelerator/config.h`.
+
+```
+$ make && bazel run //accelerator:ta_image
+```
+
+There's also an easier option to pull image from docker hub then simply run with default configs. Please do remember a redis-server is still required in this way.
+
+```
+$ docker run -d --net=host --name tangle-accelerator wusyong/tangel-accelerator:latest
+```
+
 ## Developing
 
 The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html):
