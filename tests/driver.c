@@ -106,7 +106,7 @@ void test_get_transaction_object(void) {
   clock_gettime(CLOCK_REALTIME, &start_time);
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_get_transaction_object(&ta_core.service, TRYTES_81_1,
+    TEST_ASSERT_FALSE(api_get_transaction_object(&ta_core.service, TRYTES_81_3,
                                                  &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
     free(json_result);
@@ -124,8 +124,8 @@ void test_find_transactions_by_tag(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(
-        api_find_transactions_by_tag(&ta_core.service, TAG_MSG, &json_result));
+    TEST_ASSERT_FALSE(api_find_transactions_by_tag(&ta_core.service,
+                                                   FIND_TAG_MSG, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
     free(json_result);
 #if defined(ENABLE_STAT)
@@ -142,8 +142,8 @@ void test_find_transactions_obj_by_tag(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_find_transactions_obj_by_tag(&ta_core.service,
-                                                       TAG_MSG, &json_result));
+    TEST_ASSERT_FALSE(api_find_transactions_obj_by_tag(
+        &ta_core.service, FIND_TAG_MSG, &json_result));
     clock_gettime(CLOCK_REALTIME, &end_time);
     free(json_result);
 #if defined(ENABLE_STAT)
