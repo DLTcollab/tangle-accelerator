@@ -41,6 +41,12 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
   }
   iota_client_extended_init();
 
+  log_info(logger_id, "Initializing PoW implementation context\n");
+  pow_init();
+
+  log_info(logger_id, "Initializing cache connection\n");
+  cache_init(REDIS_HOST, REDIS_PORT);
+
   return ret;
 }
 
@@ -48,5 +54,8 @@ void ta_config_destroy(iota_client_service_t* const service) {
   log_info(logger_id, "Destroying IRI connection\n");
   iota_client_extended_destroy();
   iota_client_core_destroy(service);
+
+  pow_destroy();
+  cache_stop();
   logger_helper_release(logger_id);
 }

@@ -194,6 +194,8 @@ TEST(GetBundleTest, RetreiveBundleTest) {
 }
 
 int main(int argc, char** argv) {
+  // GTest manage to cleanup after testing, so only need to initialize here
+  cache_init(REDIS_HOST, REDIS_PORT);
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
   return RUN_ALL_TESTS();

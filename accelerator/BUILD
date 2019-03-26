@@ -43,8 +43,6 @@ cc_library(
         ":ta_errors",
         "//request",
         "//response",
-        "//utils:cache",
-        "//utils:pow",
         "@com_github_uthash//:uthash",
         "@entangled//common/model:bundle",
         "@entangled//utils:time",
@@ -58,6 +56,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_errors",
+        "//utils:cache",
+        "//utils:pow",
         "@entangled//cclient/api",
         "@entangled//cclient/types",
     ],
