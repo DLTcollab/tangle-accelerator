@@ -1,7 +1,6 @@
 #include "common_core.h"
 #include <sys/time.h>
 #include "utils/cache.h"
-#include "utils/pow.h"
 
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                     uint8_t const depth,
@@ -115,7 +114,6 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   char cache_key[NUM_TRYTES_HASH] = {0};
   char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
   cache_t* cache = cache_init();
-  pow_init();
 
   // create bundle
   bundle_transactions_new(&bundle);
@@ -157,7 +155,6 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
 
 done:
   cache_stop(&cache);
-  pow_destroy();
   bundle_transactions_free(&bundle);
   return ret;
 }

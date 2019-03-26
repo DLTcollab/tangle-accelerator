@@ -17,7 +17,6 @@ cc_library(
     srcs = ["pow.c"],
     hdrs = ["pow.h"],
     deps = [
-        "//accelerator:ta_config",
         "//accelerator:ta_errors",
         "//third_party:dcurl",
         "@entangled//cclient/types",

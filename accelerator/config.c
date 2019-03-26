@@ -41,6 +41,8 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
   }
   iota_client_extended_init();
 
+  pow_init();
+
   return ret;
 }
 
@@ -48,5 +50,7 @@ void ta_config_destroy(iota_client_service_t* const service) {
   log_info(logger_id, "Destroying IRI connection\n");
   iota_client_extended_destroy();
   iota_client_core_destroy(service);
+
+  pow_destroy();
   logger_helper_release(logger_id);
 }
