@@ -113,7 +113,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   flex_trit_t* elt = NULL;
   char cache_key[NUM_TRYTES_HASH] = {0};
   char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
-  cache_t* cache = cache_init();
+  cache_init();
 
   // create bundle
   bundle_transactions_new(&bundle);
@@ -127,7 +127,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
     flex_trits_to_trytes(
         (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
         NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-    ret = cache_set(cache, cache_key, cache_value);
+    ret = cache_set(cache_key, cache_value);
     if (ret) {
       goto done;
     }
@@ -154,7 +154,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   }
 
 done:
-  cache_stop(&cache);
+  cache_stop();
   bundle_transactions_free(&bundle);
   return ret;
 }
@@ -355,16 +355,16 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
   char cache_value[FLEX_TRIT_SIZE_8019] = {0};
 
   // get raw transaction data of transaction hashes
-  cache_t* cache = cache_init();
+  cache_init();
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
   get_trytes_res_t* get_trytes_res = get_trytes_res_new();
-  if (cache == NULL || get_trytes_req == NULL || get_trytes_res == NULL) {
+  if (get_trytes_req == NULL || get_trytes_res == NULL) {
     ret = SC_CCLIENT_OOM;
     goto done;
   }
 
   // get in cache first, then get from full node if no result in cache
-  ret = cache_get(cache, req, cache_value);
+  ret = cache_get(req, cache_value);
   if (ret == SC_OK) {
     flex_trits_from_trytes(
         tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
@@ -390,7 +390,7 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
       flex_trits_to_trytes(
           (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      cache_set(cache, req, cache_value);
+      cache_set(req, cache_value);
     } else {
       ret = SC_CCLIENT_NOT_FOUND;
       goto done;
@@ -406,7 +406,7 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
   transaction_set_hash(res->txn, hash_trits);
 
 done:
-  cache_stop(&cache);
+  cache_stop();
   get_trytes_req_free(&get_trytes_req);
   get_trytes_res_free(&get_trytes_res);
   return ret;

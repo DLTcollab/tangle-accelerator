@@ -25,45 +25,40 @@ typedef struct {
  * Initiate cache module
  *
  * @return
- * - struct of cache_t on success
- * - NULL on error
+ * - True on success
+ * - False on error
  */
-cache_t* cache_init();
+bool cache_init();
 
 /**
  * Stop interacting with cache module
  *
- * @param cache Data type for Cache module
- *
  * @return NULL
  */
-void cache_stop(cache_t** cache);
+void cache_stop();
 
 /**
  * Delete certain key-value store from cache
  *
- * @param[in] cache Data type for Cache module
  * @param[in] key Key string to search
  *
  * @return
  * - SC_OK on success
- * - 1 on error
+ * - non-zero on error
  */
-status_t cache_del(const cache_t* const cache, const char* const key);
+status_t cache_del(const char* const key);
 
 /**
  * Get key-value store from in-memory cache
  *
- * @param[in] cache Data type for Cache module
  * @param[in] key Key string to search
  * @param[out] res Result of GET key
  *
  * @return
  * - SC_OK on success
- * - 1 on error
+ * - non-zero on error
  */
-status_t cache_get(const cache_t* const cache, const char* const key,
-                   char* res);
+status_t cache_get(const char* const key, char* res);
 
 /**
  * Set key-value store into in-memory cache
@@ -74,10 +69,9 @@ status_t cache_get(const cache_t* const cache, const char* const key,
  *
  * @return
  * - SC_OK on success
- * - 1 on error
+ * - non-zero on error
  */
-status_t cache_set(const cache_t* const cache, const char* const key,
-                   const char* const value);
+status_t cache_set(const char* const key, const char* const value);
 
 #ifdef __cplusplus
 }
