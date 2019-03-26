@@ -22,7 +22,7 @@ void test_cache_set(void) {
 
 int main(void) {
   UNITY_BEGIN();
-  cache_init();
+  cache_init(REDIS_HOST, REDIS_PORT);
   RUN_TEST(test_cache_set);
   RUN_TEST(test_cache_get);
   RUN_TEST(test_cache_del);

@@ -8,6 +8,10 @@
 #include "accelerator/errors.h"
 #include "cclient/types/types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @file cache.h
  * @brief Implementation of cache interface
@@ -24,11 +28,14 @@ typedef struct {
 /**
  * Initiate cache module
  *
+ * @param[in] host cache server host
+ * @param[in] port cache server port
+ *
  * @return
  * - True on success
  * - False on error
  */
-bool cache_init();
+bool cache_init(const char* host, int port);
 
 /**
  * Stop interacting with cache module

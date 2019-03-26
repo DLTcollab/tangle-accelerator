@@ -1,4 +1,3 @@
-#include "accelerator/config.h"
 #include "cache.h"
 #include "third_party/hiredis/hiredis.h"
 
@@ -70,9 +69,9 @@ static status_t redis_set(redisContext* c, const char* const key,
  * Public functions
  */
 
-bool cache_init() {
+bool cache_init(const char* host, int port) {
   cache.conn = (connection_private*)malloc(sizeof(connection_private));
-  CONN(cache)->rc = redisConnect(REDIS_HOST, REDIS_PORT);
+  CONN(cache)->rc = redisConnect(host, port);
   if (CONN(cache)->rc) {
     return true;
   }

@@ -43,6 +43,8 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
 
   pow_init();
 
+  cache_init(REDIS_HOST, REDIS_PORT);
+
   return ret;
 }
 
@@ -52,5 +54,6 @@ void ta_config_destroy(iota_client_service_t* const service) {
   iota_client_core_destroy(service);
 
   pow_destroy();
+  cache_stop();
   logger_helper_release(logger_id);
 }

@@ -2,7 +2,7 @@
 #define TESTS_TEST_DEFINE_H_
 
 #include <unity/unity.h>
-#include "cclient/types/types.h"
+#include "accelerator/config.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,7 +5,6 @@ cc_library(
     srcs = ["backend_redis.c"],
     hdrs = ["cache.h"],
     deps = [
-        "//accelerator:ta_config",
         "//accelerator:ta_errors",
         "//third_party:hiredis",
         "@entangled//cclient/types",

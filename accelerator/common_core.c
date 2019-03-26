@@ -1,6 +1,5 @@
 #include "common_core.h"
 #include <sys/time.h>
-#include "utils/cache.h"
 
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
                                     uint8_t const depth,
@@ -113,7 +112,6 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   flex_trit_t* elt = NULL;
   char cache_key[NUM_TRYTES_HASH] = {0};
   char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
-  cache_init();
 
   // create bundle
   bundle_transactions_new(&bundle);
@@ -154,7 +152,6 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
   }
 
 done:
-  cache_stop();
   bundle_transactions_free(&bundle);
   return ret;
 }
@@ -355,7 +352,6 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
   char cache_value[FLEX_TRIT_SIZE_8019] = {0};
 
   // get raw transaction data of transaction hashes
-  cache_init();
   get_trytes_req_t* get_trytes_req = get_trytes_req_new();
   get_trytes_res_t* get_trytes_res = get_trytes_res_new();
   if (get_trytes_req == NULL || get_trytes_res == NULL) {
@@ -406,7 +402,6 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
   transaction_set_hash(res->txn, hash_trits);
 
 done:
-  cache_stop();
   get_trytes_req_free(&get_trytes_req);
   get_trytes_res_free(&get_trytes_res);
   return ret;
