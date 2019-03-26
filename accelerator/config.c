@@ -41,8 +41,10 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
   }
   iota_client_extended_init();
 
+  log_info(logger_id, "Initializing PoW implementation context\n");
   pow_init();
 
+  log_info(logger_id, "Initializing cache connection\n");
   cache_init(REDIS_HOST, REDIS_PORT);
 
   return ret;
