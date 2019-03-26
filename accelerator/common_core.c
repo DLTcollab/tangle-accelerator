@@ -198,7 +198,6 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
 
 done:
   ta_get_tips_res_free(&get_txn_res);
-  attach_req->trytes = NULL;
   attach_to_tangle_req_free(&attach_req);
   attach_to_tangle_res_free(&attach_res);
   return ret;
@@ -467,7 +466,7 @@ static int idx_sort(void const* lhs, void const* rhs) {
 }
 
 static void get_first_bundle_from_transactions(
-    transaction_array_t const transactions,
+    transaction_array_t const* transactions,
     bundle_transactions_t* const bundle) {
   iota_transaction_t* tail = NULL;
   iota_transaction_t* curr_tx = NULL;
@@ -493,9 +492,8 @@ status_t ta_get_bundle(const iota_client_service_t* const service,
                        tryte_t const* const bundle_hash,
                        bundle_transactions_t* const bundle) {
   status_t ret = SC_OK;
-  iota_transaction_t* curr_tx = NULL;
   flex_trit_t bundle_hash_flex[FLEX_TRIT_SIZE_243];
-  transaction_array_t tx_objs = transaction_array_new();
+  transaction_array_t* tx_objs = transaction_array_new();
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   if (find_tx_req == NULL) {
     ret = SC_CCLIENT_OOM;
