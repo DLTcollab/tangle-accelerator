@@ -175,7 +175,6 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
   }
 
   // attach to tangle
-
   memcpy(attach_req->trunk, hash243_stack_peek(get_txn_res->tips),
          FLEX_TRIT_SIZE_243);
   hash243_stack_pop(&get_txn_res->tips);
@@ -183,7 +182,10 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
          FLEX_TRIT_SIZE_243);
   hash243_stack_pop(&get_txn_res->tips);
   attach_req->mwm = tangle->mwm;
-  attach_req->trytes = trytes;
+
+  flex_trit_t* elt = NULL;
+  HASH_ARRAY_FOREACH(trytes, elt) { hash_array_push(attach_req->trytes, elt); }
+
   ret = ta_attach_to_tangle(attach_req, attach_res);
   if (ret) {
     goto done;

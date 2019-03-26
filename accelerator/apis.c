@@ -154,54 +154,63 @@ done:
 }
 
 status_t api_receive_mam_message(const iota_client_service_t* const service,
-                                 const char* const obj, char** json_result) {
-  status_t ret = SC_OK;
+                                 const char* const bundle_hash,
+                                 char** json_result) {
   mam_api_t mam;
-
+  status_t ret = SC_OK;
   tryte_t* payload_trytes = NULL;
+  tryte_t* none_chid_trytes = NULL;
   size_t payload_size = 0;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
   bool is_last_packet;
 
   // Creating MAM API
-  if (mam_api_init(&mam, (tryte_t*)SEED)) {
-    ret = SC_MAM_OOM;
+  if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
+    ret = SC_MAM_FAILED_INIT;
     goto done;
   }
 
-  // Get bundle which is find_transactions_by_bundle
-  ret = ta_get_bundle(service, (tryte_t*)obj, bundle);
-  if (ret) {
+  ret = ta_get_bundle(service, (tryte_t*)bundle_hash, bundle);
+  if (ret != SC_OK) {
     goto done;
   }
 
-  // Read MAM message from bundle
+  // Set first transaction's address as chid, if no `chid` specified
   mam_psk_t_set_add(&mam.psks, &psk);
+  iota_transaction_t* curr_tx = (iota_transaction_t*)utarray_eltptr(bundle, 0);
+  none_chid_trytes = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
+  flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS,
+                       transaction_address(curr_tx), NUM_TRITS_ADDRESS,
+                       NUM_TRITS_ADDRESS);
+  mam_api_add_trusted_channel_pk(&mam, none_chid_trytes);
+
   if (mam_api_bundle_read(&mam, bundle, &payload_trytes, &payload_size,
                           &is_last_packet) == RC_OK) {
     if (payload_trytes == NULL || payload_size == 0) {
-      ret = SC_MAM_NULL;
+      ret = SC_MAM_NO_PAYLOAD;
+      goto done;
     } else {
-      char* payload = calloc(payload_size * 2 + 1, sizeof(char));
-
-      trytes_to_ascii(payload_trytes, payload_size, payload);
-      if (payload == NULL) {
-        ret = SC_MAM_NOT_FOUND;
-        goto done;
-      }
-      *json_result = payload;
-
-      payload = NULL;
-      free(payload_trytes);
+      *(json_result) = calloc(payload_size * 2 + 1, sizeof(char));
+      trytes_to_ascii(payload_trytes, payload_size, *(json_result));
     }
   } else {
-    ret = SC_MAM_FAILED_RESPONSE;
+    ret = SC_MAM_NOT_FOUND;
+    goto done;
   }
 
+  // Cleanup
 done:
-  mam_api_destroy(&mam);
+  // Destroying MAM API
+  if (ret != SC_MAM_FAILED_INIT) {
+    if (mam_api_destroy(&mam) != RC_OK) {
+      ret = SC_MAM_FAILED_DESTROYED;
+    }
+  }
+  free(none_chid_trytes);
+  free(payload_trytes);
   bundle_transactions_free(&bundle);
+
   return ret;
 }
 

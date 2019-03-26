@@ -7,6 +7,7 @@
 #include "common/trinary/trit_tryte.h"
 #include "common/trinary/tryte_ascii.h"
 #include "mam/api/api.h"
+#include "mam/mam/mam_channel_t_set.h"
 #include "serializer/serializer.h"
 
 #ifdef __cplusplus
@@ -80,7 +81,7 @@ status_t api_get_tips(const iota_client_service_t* const service,
  * Receive a MAM message from given bundle hash.
  *
  * @param[in] service IRI node end point service
- * @param[out] obj bundle hash in trytes
+ * @param[in] bundle_hash bundle hash decoded in trytes string
  * @param[out] json_result Result containing an unused address in json format
  *
  * @return
@@ -88,7 +89,8 @@ status_t api_get_tips(const iota_client_service_t* const service,
  * - non-zero on error
  */
 status_t api_receive_mam_message(const iota_client_service_t* const service,
-                                 const char* const obj, char** json_result);
+                                 const char* const bundle_hash,
+                                 char** json_result);
 
 /**
  * @brief Send transfer to tangle.
