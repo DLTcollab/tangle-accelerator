@@ -41,7 +41,7 @@ retcode_t iota_client_find_transactions(
 
 retcode_t iota_client_find_transaction_objects(
     const iota_client_service_t* const service,
-    const find_transactions_req_t* const req, transaction_array_t tx_objs) {
+    const find_transactions_req_t* const req, transaction_array_t* tx_objs) {
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   iota_transaction_t tx;
 

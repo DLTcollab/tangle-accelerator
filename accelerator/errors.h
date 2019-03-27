@@ -95,8 +95,14 @@ typedef enum {
   /**< NULL object in mam */
   SC_MAM_NOT_FOUND = 0x03 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Empty result from mam */
-  SC_MAM_FAILED_RESPONSE = 0x04 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_FAILED_INIT = 0x04 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Error in mam initialization */
+  SC_MAM_FAILED_RESPONSE = 0x05 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Error in mam response */
+  SC_MAM_FAILED_DESTROYED = 0x06 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Error in mam destroy */
+  SC_MAM_NO_PAYLOAD = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< No payload or no chid */
 } status_t;
 
 typedef enum {

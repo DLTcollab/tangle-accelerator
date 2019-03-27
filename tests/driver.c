@@ -141,12 +141,13 @@ void test_find_transactions_obj_by_tag(void) {
 void test_receive_mam_message(void) {
   char* json_result;
   double sum = 0;
-
+  status_t ret = SC_OK;
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    test_time_start(&start_time);
-    TEST_ASSERT_FALSE(
-        api_receive_mam_message(&ta_core.service, BUNDLE_HASH, &json_result));
-    test_time_end(&start_time, &end_time, &sum);
+    clock_gettime(CLOCK_REALTIME, &start_time);
+    ret = api_receive_mam_message(&ta_core.service, TEST_BUNDLE_HASH,
+                                  &json_result);
+    TEST_ASSERT_EQUAL_INT32(ret, SC_OK);
+    clock_gettime(CLOCK_REALTIME, &end_time);
     free(json_result);
   }
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
