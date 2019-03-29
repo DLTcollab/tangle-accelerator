@@ -111,6 +111,17 @@ status_t ta_find_transactions_res_serialize(
 status_t ta_find_transactions_obj_res_serialize(
     char** obj, const ta_find_transactions_obj_res_t* const res);
 
+/**
+ * @brief Serialize mam message
+ *
+ * @param[out] obj message formed in JSON
+ * @param[in] res Response of payload message
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t receive_mam_message_serialize(char** obj, const char** res);
 #ifdef __cplusplus
 }
 #endif
