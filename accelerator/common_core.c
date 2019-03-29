@@ -169,7 +169,8 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
   }
 
   // get transaction to approve
-  ret = cclient_get_txn_to_approve(service, tangle->depth, get_txn_res);
+  ret =
+      cclient_get_txn_to_approve(service, tangle->milestone_depth, get_txn_res);
   if (ret) {
     goto done;
   }
@@ -519,4 +520,28 @@ done:
   transaction_array_free(tx_objs);
   find_transactions_req_free(&find_tx_req);
   return ret;
+}
+
+status_t ta_send_bundle(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
+                        bundle_transactions_t* const bundle) {
+  Kerl kerl;
+  kerl_init(&kerl);
+  bundle_finalize(bundle, &kerl);
+  transaction_array_t* out_tx_objs = transaction_array_new();
+  hash8019_array_p raw_trytes = hash8019_array_new();
+  iota_transaction_t* curr_tx = NULL;
+  flex_trit_t trits_8019[FLEX_TRIT_SIZE_8019];
+
+  BUNDLE_FOREACH(bundle, curr_tx) {
+    transaction_serialize_on_flex_trits(curr_tx, trits_8019);
+    hash_array_push(raw_trytes, trits_8019);
+  }
+
+  ta_send_trytes(tangle, service, raw_trytes);
+
+  hash_array_free(raw_trytes);
+  transaction_array_free(out_tx_objs);
+
+  return SC_OK;
 }

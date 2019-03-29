@@ -23,7 +23,8 @@ status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
   info->thread_count = TA_THREAD_COUNT;
 
   log_info(logger_id, "Initializing IRI configuration\n");
-  tangle->depth = DEPTH;
+  tangle->milestone_depth = MILESTONE_DEPTH;
+  tangle->mss_depth = MSS_DEPTH;
   tangle->mwm = MWM;
   tangle->seed = SEED;
 
