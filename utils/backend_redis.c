@@ -1,4 +1,3 @@
-#include "accelerator/config.h"
 #include "cache.h"
 #include "third_party/hiredis/hiredis.h"
 
@@ -6,7 +5,9 @@
 typedef struct {
   redisContext* rc;
 } connection_private;
-#define CONN(c) ((connection_private*)(c->conn))
+#define CONN(c) ((connection_private*)(c.conn))
+
+static cache_t cache;
 
 /*
  * Private functions
@@ -68,39 +69,33 @@ static status_t redis_set(redisContext* c, const char* const key,
  * Public functions
  */
 
-cache_t* cache_init() {
-  cache_t* cache = (cache_t*)malloc(sizeof(cache_t));
-  if (cache != NULL) {
-    cache->conn = (connection_private*)malloc(sizeof(connection_private));
-    CONN(cache)->rc = redisConnect(REDIS_HOST, REDIS_PORT);
-    return cache;
+bool cache_init(const char* host, int port) {
+  cache.conn = (connection_private*)malloc(sizeof(connection_private));
+  CONN(cache)->rc = redisConnect(host, port);
+  if (CONN(cache)->rc) {
+    return true;
   }
-  return NULL;
+  return false;
 }
 
-void cache_stop(cache_t** cache) {
-  if (*cache) {
-    redisFree(CONN((*cache))->rc);
+void cache_stop() {
+  if (CONN(cache)->rc) {
+    redisFree(CONN(cache)->rc);
 
-    if (CONN((*cache))) {
-      free(CONN((*cache)));
+    if (CONN(cache)) {
+      free(CONN(cache));
     }
-
-    free(*cache);
-    *cache = NULL;
   }
 }
 
-status_t cache_del(const cache_t* const cache, const char* const key) {
+status_t cache_del(const char* const key) {
   return redis_del(CONN(cache)->rc, key);
 }
 
-status_t cache_get(const cache_t* const cache, const char* const key,
-                   char* res) {
+status_t cache_get(const char* const key, char* res) {
   return redis_get(CONN(cache)->rc, key, res);
 }
 
-status_t cache_set(const cache_t* const cache, const char* const key,
-                   const char* const value) {
+status_t cache_set(const char* const key, const char* const value) {
   return redis_set(CONN(cache)->rc, key, value);
 }

@@ -86,7 +86,7 @@ cc_library(
     name = "test_define",
     hdrs = ["test_define.h"],
     deps = [
-        "@entangled//cclient/types",
+        "//accelerator:ta_config",
         "@unity",
     ],
 )

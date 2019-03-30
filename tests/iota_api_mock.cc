@@ -41,7 +41,7 @@ retcode_t iota_client_find_transactions(
 
 retcode_t iota_client_find_transaction_objects(
     const iota_client_service_t* const service,
-    const find_transactions_req_t* const req, transaction_array_t tx_objs) {
+    const find_transactions_req_t* const req, transaction_array_t* tx_objs) {
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   iota_transaction_t tx;
 
@@ -77,7 +77,8 @@ retcode_t iota_client_get_trytes(const iota_client_service_t* const service,
   return APIMockObj.iota_client_get_trytes(service, req, res);
 }
 
-status_t ta_send_trytes(const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
-  return APIMockObj.ta_send_trytes(service, trytes);
+  return APIMockObj.ta_send_trytes(tangle, service, trytes);
 }

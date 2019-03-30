@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+
 cc_binary(
     name = "accelerator",
     srcs = ["server.cc"],
@@ -9,6 +11,11 @@ cc_binary(
         ":ta_errors",
         "@served",
     ],
+)
+
+cc_image(
+    name = "ta_image",
+    binary = ":accelerator",
 )
 
 cc_library(
@@ -36,11 +43,7 @@ cc_library(
         ":ta_errors",
         "//request",
         "//response",
-        "//utils:cache",
-        "//utils:pow",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient/api",
-        "@entangled//cclient/types",
         "@entangled//common/model:bundle",
         "@entangled//utils:time",
     ],
@@ -48,8 +51,16 @@ cc_library(
 
 cc_library(
     name = "ta_config",
+    srcs = ["config.c"],
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
+    deps = [
+        ":ta_errors",
+        "//utils:cache",
+        "//utils:pow",
+        "@entangled//cclient/api",
+        "@entangled//cclient/types",
+    ],
 )
 
 cc_library(

@@ -2,10 +2,6 @@
 #define ACCELERATOR_COMMON_CORE_H_
 
 #include "accelerator/config.h"
-#include "accelerator/errors.h"
-#include "cclient/api/core/core_api.h"
-#include "cclient/api/extended/extended_api.h"
-#include "cclient/types/types.h"
 #include "common/model/bundle.h"
 #include "common/model/transfer.h"
 #include "request/request.h"
@@ -35,6 +31,7 @@ extern "C" {
  * The result is a 243 long flex trits hash stack.
  *
  * @param[in] service IRI node end point service
+ * @param[in] depth Depth of get transaction to approve
  * @param[out] res Result containing a tips pair in ta_get_tips_res_t
  *
  * @return
@@ -42,6 +39,7 @@ extern "C" {
  * - non-zero on error
  */
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
+                                    uint8_t const depth,
                                     ta_get_tips_res_t* res);
 
 /**
@@ -66,6 +64,7 @@ status_t cclient_get_tips(const iota_client_service_t* const service,
  * Generate and return an unused address from the seed. An unused address means
  * the address does not have any transaction with it yet.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] res Result containing an unused address in
  * ta_generate_address_res_t
@@ -74,7 +73,8 @@ status_t cclient_get_tips(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address(const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const tangle,
+                             const iota_client_service_t* const service,
                              ta_generate_address_res_t* res);
 
 /**
@@ -84,6 +84,7 @@ status_t ta_generate_address(const iota_client_service_t* const service,
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
@@ -93,7 +94,8 @@ status_t ta_generate_address(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer(const iota_client_service_t* const service,
+status_t ta_send_transfer(const iota_config_t* const tangle,
+                          const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req,
                           ta_send_transfer_res_t* res);
 
@@ -104,6 +106,7 @@ status_t ta_send_transfer(const iota_client_service_t* const service,
  * bundle and do PoW in `ta_attach_to_tangle` and store and broadcast
  * transaction to tangle.
  *
+ * @param[in] tangle IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] trytes Trytes that will be attached to tangle
  *
@@ -111,7 +114,8 @@ status_t ta_send_transfer(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes(const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
                         hash8019_array_p trytes);
 
 /**

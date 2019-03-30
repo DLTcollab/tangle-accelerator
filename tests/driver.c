@@ -2,7 +2,7 @@
 #include "accelerator/apis.h"
 #include "test_define.h"
 
-iota_client_service_t service;
+static ta_core_t ta_core;
 struct timespec start_time, end_time;
 
 #if defined(ENABLE_STAT)
@@ -23,21 +23,31 @@ double diff_time(struct timespec start, struct timespec end) {
   return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
 }
 
+void test_time_start(struct timespec* start) {
+  clock_gettime(CLOCK_REALTIME, start);
+}
+
+void test_time_end(struct timespec* start, struct timespec* end, double* sum) {
+  clock_gettime(CLOCK_REALTIME, end);
+  double difference = diff_time(*start, *end);
+#if defined(ENABLE_STAT)
+  printf("%lf\n", difference);
+#endif
+  *sum += difference;
+}
+
 void test_generate_address(void) {
   char* json_result;
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_generate_address(&service, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(
+        api_generate_address(&ta_core.tangle, &ta_core.service, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of generate_address: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_tips_pair(void) {
@@ -45,16 +55,13 @@ void test_get_tips_pair(void) {
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_get_tips_pair(&service, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(
+        api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of get_tips_pair: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_tips(void) {
@@ -62,16 +69,12 @@ void test_get_tips(void) {
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_get_tips(&service, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(api_get_tips(&ta_core.service, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of get_tips: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_send_transfer(void) {
@@ -84,35 +87,27 @@ void test_send_transfer(void) {
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(api_send_transfer(&service, json, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(api_send_transfer(&ta_core.tangle, &ta_core.service, json,
+                                        &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_get_transaction_object(void) {
   char* json_result;
   double sum = 0;
 
-  clock_gettime(CLOCK_REALTIME, &start_time);
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(
-        api_get_transaction_object(&service, TRYTES_81_1, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(api_get_transaction_object(&ta_core.service, TRYTES_81_3,
+                                                 &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of get_transaction_object: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_find_transactions_by_tag(void) {
@@ -120,17 +115,13 @@ void test_find_transactions_by_tag(void) {
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(
-        api_find_transactions_by_tag(&service, TAG_MSG, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(api_find_transactions_by_tag(&ta_core.service,
+                                                   FIND_TAG_MSG, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of find_transactions_by_tag: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_find_transactions_obj_by_tag(void) {
@@ -138,45 +129,34 @@ void test_find_transactions_obj_by_tag(void) {
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(
-        api_find_transactions_obj_by_tag(&service, TAG_MSG, &json_result));
-    clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    test_time_start(&start_time);
+    TEST_ASSERT_FALSE(api_find_transactions_obj_by_tag(
+        &ta_core.service, FIND_TAG_MSG, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
   }
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 void test_receive_mam_message(void) {
   char* json_result;
   double sum = 0;
-
+  status_t ret = SC_OK;
   for (size_t count = 0; count < TEST_COUNT; count++) {
     clock_gettime(CLOCK_REALTIME, &start_time);
-    TEST_ASSERT_FALSE(
-        api_receive_mam_message(&service, BUNDLE_HASH, &json_result));
+    ret = api_receive_mam_message(&ta_core.service, TEST_BUNDLE_HASH,
+                                  &json_result);
+    TEST_ASSERT_EQUAL_INT32(ret, SC_OK);
     clock_gettime(CLOCK_REALTIME, &end_time);
-#if defined(ENABLE_STAT)
-    printf("%lf\n", diff_time(start_time, end_time));
-#endif
-    sum += diff_time(start_time, end_time);
+    free(json_result);
   }
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
-  free(json_result);
 }
 
 int main(void) {
   UNITY_BEGIN();
-  service.http.path = "/";
-  service.http.host = IRI_HOST;
-  service.http.port = IRI_PORT;
-  service.http.api_version = 1;
-  service.serializer_type = SR_JSON;
-  iota_client_core_init(&service);
+
+  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_generate_address);
@@ -187,6 +167,6 @@ int main(void) {
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
   RUN_TEST(test_receive_mam_message);
-  iota_client_core_destroy(&service);
+  ta_config_destroy(&ta_core.service);
   return UNITY_END();
 }

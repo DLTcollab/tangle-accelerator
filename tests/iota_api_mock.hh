@@ -29,7 +29,7 @@ class IotaAPI {
   }
   virtual retcode_t iota_client_find_transaction_objects(
       const iota_client_service_t* const service,
-      const find_transactions_req_t* const req, transaction_array_t tx_objs) {
+      const find_transactions_req_t* const req, transaction_array_t* tx_objs) {
     return RC_OK;
   }
   virtual retcode_t iota_client_get_new_address(
@@ -42,7 +42,8 @@ class IotaAPI {
       get_trytes_res_t* res) {
     return RC_OK;
   }
-  virtual status_t ta_send_trytes(const iota_client_service_t* const service,
+  virtual status_t ta_send_trytes(const iota_config_t* const tangle,
+                                  const iota_client_service_t* const service,
                                   hash8019_array_p trytes) {
     return SC_OK;
   }
@@ -70,7 +71,7 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_find_transaction_objects,
                retcode_t(const iota_client_service_t* const service,
                          const find_transactions_req_t* const req,
-                         transaction_array_t tx_objs));
+                         transaction_array_t* tx_objs));
   MOCK_METHOD4(iota_client_get_new_address,
                retcode_t(iota_client_service_t const* const serv,
                          flex_trit_t const* const seed,
@@ -79,7 +80,8 @@ class APIMock : public IotaAPI {
   MOCK_METHOD3(iota_client_get_trytes,
                retcode_t(const iota_client_service_t* const service,
                          get_trytes_req_t* const req, get_trytes_res_t* res));
-  MOCK_METHOD2(ta_send_trytes,
-               status_t(const iota_client_service_t* const service,
+  MOCK_METHOD3(ta_send_trytes,
+               status_t(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
                         hash8019_array_p trytes));
 };

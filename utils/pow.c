@@ -39,12 +39,17 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm) {
 status_t ta_pow(const bundle_transactions_t* bundle,
                 const flex_trit_t* const trunk, const flex_trit_t* const branch,
                 const uint8_t mwm) {
+  status_t ret = SC_OK;
   iota_transaction_t* tx;
   flex_trit_t* ctrunk =
       (flex_trit_t*)calloc(FLEX_TRIT_SIZE_243, sizeof(flex_trit_t));
   size_t cur_idx = 0;
 
   tx = (iota_transaction_t*)utarray_front(bundle);
+  if (tx == NULL) {
+    ret = SC_TA_NULL;
+    goto done;
+  }
   cur_idx = transaction_last_index(tx) + 1;
   memcpy(ctrunk, trunk, FLEX_TRIT_SIZE_243);
 
@@ -60,13 +65,15 @@ status_t ta_pow(const bundle_transactions_t* bundle,
 
     flex_trit_t* tx_trits = transaction_serialize(tx);
     if (tx_trits == NULL) {
-      return SC_CCLIENT_INVALID_FLEX_TRITS;
+      ret = SC_CCLIENT_INVALID_FLEX_TRITS;
+      goto done;
     }
 
     // get nonce
     flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
-      return SC_TA_OOM;
+      ret = SC_TA_OOM;
+      goto done;
     }
     transaction_set_nonce(tx, nonce);
 
@@ -76,6 +83,7 @@ status_t ta_pow(const bundle_transactions_t* bundle,
     free(tx_trits);
   } while (cur_idx != 0);
 
+done:
   free(ctrunk);
-  return SC_OK;
+  return ret;
 }
