@@ -386,3 +386,24 @@ done:
   cJSON_Delete(json_root);
   return ret;
 }
+
+status_t receive_mam_message_serialize(char** obj, const char** res) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    goto done;
+  }
+
+  cJSON_AddStringToObject(json_root, "message", *res);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}

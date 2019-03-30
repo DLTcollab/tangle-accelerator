@@ -160,6 +160,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
   status_t ret = SC_OK;
   tryte_t* payload_trytes = NULL;
   tryte_t* none_chid_trytes = NULL;
+  char* payload = NULL;
   size_t payload_size = 0;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
@@ -191,15 +192,20 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
       ret = SC_MAM_NO_PAYLOAD;
       goto done;
     } else {
-      *(json_result) = calloc(payload_size * 2 + 1, sizeof(char));
-      trytes_to_ascii(payload_trytes, payload_size, *(json_result));
+      payload = calloc(payload_size * 2 + 1, sizeof(char));
+      if (payload == NULL) {
+        ret = SC_TA_NULL;
+        goto done;
+      }
+      trytes_to_ascii(payload_trytes, payload_size, payload);
     }
   } else {
     ret = SC_MAM_NOT_FOUND;
     goto done;
   }
 
-  // Cleanup
+  ret = receive_mam_message_serialize(json_result, &payload);
+
 done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
@@ -209,6 +215,7 @@ done:
   }
   free(none_chid_trytes);
   free(payload_trytes);
+  free(payload);
   bundle_transactions_free(&bundle);
 
   return ret;
