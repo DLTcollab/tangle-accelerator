@@ -43,9 +43,10 @@ status_t ta_pow(const bundle_transactions_t* bundle,
   iota_transaction_t* tx;
   flex_trit_t* ctrunk =
       (flex_trit_t*)calloc(FLEX_TRIT_SIZE_243, sizeof(flex_trit_t));
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   size_t cur_idx = 0;
 
-  tx = (iota_transaction_t*)utarray_front(bundle);
+  tx = (iota_transaction_t*)utarray_back(bundle);
   if (tx == NULL) {
     ret = SC_TA_NULL;
     goto done;
@@ -55,7 +56,6 @@ status_t ta_pow(const bundle_transactions_t* bundle,
 
   do {
     cur_idx--;
-
     // set trunk, branch, and attachment timestamp
     transaction_set_trunk(tx, ctrunk);
     transaction_set_branch(tx, branch);
@@ -63,7 +63,7 @@ status_t ta_pow(const bundle_transactions_t* bundle,
     transaction_set_attachment_timestamp_upper(tx, 3812798742493LL);
     transaction_set_attachment_timestamp_lower(tx, 0);
 
-    flex_trit_t* tx_trits = transaction_serialize(tx);
+    transaction_serialize_on_flex_trits(tx, tx_trits);
     if (tx_trits == NULL) {
       ret = SC_CCLIENT_INVALID_FLEX_TRITS;
       goto done;
@@ -78,9 +78,10 @@ status_t ta_pow(const bundle_transactions_t* bundle,
     transaction_set_nonce(tx, nonce);
 
     free(ctrunk);
+    transaction_serialize_on_flex_trits(tx, tx_trits);
     ctrunk = iota_flex_digest(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION);
+    tx = (iota_transaction_t*)utarray_prev(bundle, tx);
     free(nonce);
-    free(tx_trits);
   } while (cur_idx != 0);
 
 done:
