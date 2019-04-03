@@ -195,6 +195,24 @@ status_t ta_get_bundle(const iota_client_service_t* const service,
                        tryte_t const* const bundle_hash,
                        bundle_transactions_t* const bundle);
 
+/**
+ * @brief Send bundle object.
+ *
+ * Send the unpacked bundle which contains transactions. MAM functions should
+ * send message with this function.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] bundle bundle object to send
+ * @param[out] bundle Result containing bundle object in bundle_transactions_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_send_bundle(const iota_config_t* const tangle,
+                        const iota_client_service_t* const service,
+                        bundle_transactions_t* const bundle);
+
 #ifdef __cplusplus
 }
 #endif

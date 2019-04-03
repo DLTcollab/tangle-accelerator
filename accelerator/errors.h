@@ -103,6 +103,8 @@ typedef enum {
   /**< Error in mam destroy */
   SC_MAM_NO_PAYLOAD = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< No payload or no chid */
+  SC_MAM_FAILED_WRITE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to write */
 } status_t;
 
 typedef enum {

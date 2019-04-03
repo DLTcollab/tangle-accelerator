@@ -93,6 +93,29 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
                                  char** json_result);
 
 /**
+ * @brief Send a MAM message with given Payload.
+ *
+ * Send a MAM message from given Payload(ascii message).
+ * There is no need to decode the ascii payload to tryte, since the
+ * api_mam_send_message() will take this job.
+ *
+ * @param[in] tangle IOTA API parameter configurations
+ * @param[in] service IRI node end point service
+ * @param[in] payload message to send undecoded ascii string.
+ * @param[out] bundle_hashes_result the bundle hash of sent message
+ * @param[out] channel_id_result the channel id the sent message to
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_mam_send_message(const iota_config_t* const tangle,
+                              const iota_client_service_t* const service,
+                              char const* const payload,
+                              char** bundle_hash_result,
+                              char** channel_id_result);
+
+/**
  * @brief Send transfer to tangle.
  *
  * Build the transfer bundle from request and broadcast to the tangle. Input

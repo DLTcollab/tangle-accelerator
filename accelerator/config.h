@@ -23,7 +23,8 @@ extern "C" {
 #define TA_THREAD_COUNT 10
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
-#define DEPTH 3
+#define MILESTONE_DEPTH 3
+#define MSS_DEPTH 4
 #define MWM 14
 #define SEED                                                                   \
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
@@ -45,8 +46,9 @@ typedef struct ta_info_s {
 
 /** struct type of iota configuration */
 typedef struct ta_config_s {
-  uint8_t depth; /**< Depth of API argument */
-  uint8_t mwm;   /**< Minimum weight magnitude of API argument */
+  uint8_t milestone_depth; /**< Depth of API argument */
+  uint8_t mss_depth;       /**< Depth of MSS layer merkle tree */
+  uint8_t mwm;             /**< Minimum weight magnitude of API argument */
   /** Seed to generate address. This does not do any signature yet. */
   const char* seed;
 } iota_config_t;

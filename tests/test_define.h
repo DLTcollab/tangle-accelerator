@@ -113,6 +113,27 @@ extern "C" {
   "WYEVIWJN9DF9SBQHBUWYUECD9KD9BQHQXHOGQDTVKKYBRQUFQYGOFOTHREGVSKSSEVXMFOEHWN" \
   "KHLHDKQ"
 
+#define TEST_PAYLOAD                                                           \
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer aliquam "  \
+  "velit ac placerat dignissim. Suspendisse interdum nisl velit, quis "        \
+  "consequat lacus gravida vitae. Mauris in faucibus eros. Phasellus "         \
+  "eleifend bibendum magna in iaculis. Nullam quis nibh posuere, efficitur "   \
+  "metus nec, cursus justo. Cras in eros velit. Suspendisse tempus a ipsum "   \
+  "et vehicula. Nulla sed ipsum porttitor, molestie enim ut, porttitor "       \
+  "neque. Aenean rutrum nunc eros, vitae ullamcorper neque pretium ut. Etiam " \
+  "tempor libero sit amet fringilla eleifend. Maecenas varius nunc vel porta " \
+  "bibendum. Vestibulum ultricies sagittis elit eu rutrum. Duis id orci at "   \
+  "eros vehicula suscipit a ac tortor. Morbi nulla nisi, laoreet vel leo "     \
+  "vel, dignissim convallis sem. Nunc id lacus consectetur, iaculis metus "    \
+  "ac, dictum erat. Curabitur eget erat eu eros hendrerit dapibus quis nec "   \
+  "diam. Sed vulputate velit a mi ullamcorper, ut vestibulum felis "           \
+  "tincidunt. Fusce et euismod elit. Phasellus augue turpis, efficitur a "     \
+  "augue ac, rutrum vehicula nisl. Morbi ullamcorper, dui non ultrices "       \
+  "consequat, odio felis aliquam dui, et mattis nibh purus vitae felis. "      \
+  "Pellentesque rhoncus diam enim, in porttitor turpis dignissim in. "         \
+  "Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere "  \
+  "cubilia Curae;"
+
 #ifdef __cplusplus
 }
 #endif
