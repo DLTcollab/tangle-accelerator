@@ -10,5 +10,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "@entangled//cclient/types",
+        "@entangled//common/model:transaction",
+        "//accelerator:ta_errors",
     ],
 )

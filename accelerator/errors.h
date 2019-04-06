@@ -40,6 +40,7 @@ extern "C" {
 #define SC_MODULE_SERIALIZER (0x03 << SC_MODULE_SHIFT)
 #define SC_MODULE_CACHE (0x04 << SC_MODULE_SHIFT)
 #define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
+#define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -105,6 +106,12 @@ typedef enum {
   /**< No payload or no chid */
   SC_MAM_FAILED_WRITE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to write */
+
+  // response module
+  SC_RES_OOM = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,
+  /**< Fail to create response object */
+  SC_RES_NULL = 0x02 | SC_MODULE_RES | SC_SEVERITY_FATAL,
+  /**< NULL object in response */
 } status_t;
 
 typedef enum {
