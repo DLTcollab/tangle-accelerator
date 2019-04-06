@@ -1,9 +1,6 @@
 #ifndef REQUEST_TA_SEND_MAM_REQ_H_
 #define REQUEST_TA_SEND_MAM_REQ_H_
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 #include "accelerator/errors.h"
 #include "cclient/types/types.h"
 
