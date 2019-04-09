@@ -149,30 +149,16 @@ void test_find_transactions_obj_by_tag(void) {
 
 void test_send_mam_message(void) {
   double sum = 0;
-
-  char* bundle_hash_result;
-  char* channel_id_result;
+  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
+  char* json_result;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK,
-        api_mam_send_message(&ta_core.tangle, &ta_core.service, TEST_PAYLOAD,
-                             &bundle_hash_result, &channel_id_result));
+        SC_OK, api_mam_send_message(&ta_core.tangle, &ta_core.service, json,
+                                    &json_result));
     test_time_end(&start_time, &end_time, &sum);
-
-    for (size_t i = 0; i < FLEX_TRIT_SIZE_243; i++) {
-      printf("%c", channel_id_result[i]);
-    }
-    printf("\n");
-    printf("Bundle: ");
-    for (size_t i = 0; i < FLEX_TRIT_SIZE_243; i++) {
-      printf("%c", bundle_hash_result[i]);
-    }
-    printf("\n");
-
-    free(bundle_hash_result);
-    free(channel_id_result);
+    free(json_result);
   }
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
 }

@@ -251,6 +251,41 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_free(txn);
   free(json_result);
 }
+
+void test_serialize_send_mam_message(void) {
+  const char* json = "{\"channel\":\"" TRYTES_81_1
+                     "\","
+                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
+  char* json_result;
+  send_mam_res_t* res = send_mam_res_new();
+
+  send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
+  send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
+
+  send_mam_res_serialize(&json_result, res);
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  free(json_result);
+  send_mam_res_free(&res);
+}
+
+void test_deserialize_send_mam_message(void) {
+  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
+  send_mam_req_t* req = send_mam_req_new();
+
+  send_mam_req_deserialize(json, req);
+
+  size_t payload_size = strlen(TEST_PAYLOAD) * 2;
+  tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
+  ascii_to_trytes(TEST_PAYLOAD, payload_trytes);
+
+  TEST_ASSERT_EQUAL_UINT(payload_size, req->payload_trytes_size);
+  TEST_ASSERT_EQUAL_MEMORY(payload_trytes, req->payload_trytes, payload_size);
+
+  free(payload_trytes);
+  send_mam_req_free(&req);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -260,5 +295,7 @@ int main(void) {
   RUN_TEST(test_serialize_ta_get_transaction_object);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
+  RUN_TEST(test_serialize_send_mam_message);
+  RUN_TEST(test_deserialize_send_mam_message);
   return UNITY_END();
 }

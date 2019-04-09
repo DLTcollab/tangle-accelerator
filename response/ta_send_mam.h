@@ -15,9 +15,9 @@ extern "C" {
 /** struct of ta_send_mam_res_t */
 typedef struct send_mam_res_s {
   /** ascii string bundle hash */
-  char* bundle_hash;
+  char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
-  char* channel_id;
+  char channel_id[NUM_TRYTES_HASH + 1];
 } send_mam_res_t;
 
 /**

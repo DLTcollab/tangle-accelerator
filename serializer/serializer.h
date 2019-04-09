@@ -6,6 +6,7 @@
 #include "accelerator/errors.h"
 #include "cJSON.h"
 #include "cclient/types/types.h"
+#include "common/trinary/tryte_ascii.h"
 #include "request/request.h"
 #include "response/response.h"
 
@@ -122,6 +123,30 @@ status_t ta_find_transactions_obj_res_serialize(
  * - non-zero on error
  */
 status_t receive_mam_message_serialize(char** obj, const char** res);
+
+/**
+ * @brief Serialze type of send_mam_res_t to JSON string
+ *
+ * @param[out] obj send mam response object in JSON
+ * @param[in] res Response data in type of send_mam_res_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res);
+
+/**
+ * @brief Deserialze JSON string to type of send_mam_req_t
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] req Request data in type of send_mam_req_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req);
 #ifdef __cplusplus
 }
 #endif
