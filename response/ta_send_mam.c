@@ -1,4 +1,4 @@
-#include "ta_send_mam_res.h"
+#include "ta_send_mam.h"
 
 send_mam_res_t* send_mam_res_new() {
   send_mam_res_t* res = (send_mam_res_t*)malloc(sizeof(send_mam_res_t));

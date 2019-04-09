@@ -1,5 +1,5 @@
-#ifndef RESPONSE_TA_SEND_MAM_RES_H_
-#define RESPONSE_TA_SEND_MAM_RES_H_
+#ifndef RESPONSE_TA_SEND_MAM_H_
+#define RESPONSE_TA_SEND_MAM_H_
 
 #include "accelerator/errors.h"
 #include "common/model/transaction.h"
@@ -76,4 +76,4 @@ void send_mam_res_free(send_mam_res_t** res);
 }
 #endif
 
-#endif  // RESPONSE_TA_SEND_MAM_RES_H_
+#endif  // RESPONSE_TA_SEND_MAM_H_

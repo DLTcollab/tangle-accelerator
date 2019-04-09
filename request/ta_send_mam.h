@@ -1,5 +1,5 @@
-#ifndef REQUEST_TA_SEND_MAM_REQ_H_
-#define REQUEST_TA_SEND_MAM_REQ_H_
+#ifndef REQUEST_TA_SEND_MAM_H_
+#define REQUEST_TA_SEND_MAM_H_
 
 #include "accelerator/errors.h"
 #include "cclient/types/types.h"
@@ -21,4 +21,4 @@ void send_mam_req_free(send_mam_req_t** req);
 }
 #endif
 
-#endif  // REQUEST_TA_SEND_MAM_REQ_H_
+#endif  // REQUEST_TA_SEND_MAM_H_
