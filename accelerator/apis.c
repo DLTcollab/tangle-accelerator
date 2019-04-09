@@ -223,9 +223,7 @@ done:
 
 status_t api_mam_send_message(const iota_config_t* const tangle,
                               const iota_client_service_t* const service,
-                              char const* const payload,
-                              char** bundle_hash_result,
-                              char** channel_id_result) {
+                              char const* const payload, char** json_result) {
   status_t ret = SC_OK;
   mam_api_t mam;
   const bool last_packet = true;
@@ -234,24 +232,12 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   bundle_transactions_new(&bundle);
   tryte_t channel_id[MAM_CHANNEL_ID_SIZE];
   trit_t msg_id[MAM_MSG_ID_SIZE];
+  send_mam_req_t* req = send_mam_req_new();
+  send_mam_res_t* res = send_mam_res_new();
 
-  size_t payload_size = strlen(payload) * 2;
-  if ((payload_size == 0) || ((payload_size * 3) > SIZE_MAX)) {
-    return SC_MAM_OOM;
-  }
-  tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
-  if (!payload_trytes) {
-    return SC_MAM_OOM;
-  }
-  ascii_to_trytes(payload, payload_trytes);
-
-  *bundle_hash_result = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
-  if (!(*bundle_hash_result)) {
-    return SC_MAM_OOM;
-  }
-  *channel_id_result = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
-  if (!(*channel_id_result)) {
-    return SC_MAM_OOM;
+  ret = send_mam_req_deserialize(payload, req);
+  if (ret) {
+    goto done;
   }
 
   // Creating MAM API
@@ -281,21 +267,23 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
     ret = SC_MAM_FAILED_WRITE;
     goto done;
   }
-  if (mam_api_bundle_write_packet(&mam, msg_id, payload_trytes, payload_size, 0,
-                                  last_packet, bundle) != RC_OK) {
+  if (mam_api_bundle_write_packet(&mam, msg_id, req->payload_trytes,
+                                  req->payload_trytes_size, 0, last_packet,
+                                  bundle) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
   }
-  memcpy(*channel_id_result, channel_id, sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
+  send_mam_res_set_channel_id(res, channel_id);
 
   // Sending bundle
   if (ta_send_bundle(tangle, service, bundle) != SC_OK) {
     ret = SC_MAM_FAILED_RESPONSE;
     goto done;
   }
-  memcpy(*bundle_hash_result,
-         ((iota_transaction_t*)utarray_front(bundle))->essence.bundle,
-         sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
+  send_mam_res_set_bundle_hash(
+      res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+
+  ret = send_mam_res_serialize(json_result, res);
 
 done:
   // Destroying MAM API
@@ -304,9 +292,10 @@ done:
       ret = SC_MAM_FAILED_DESTROYED;
     }
   }
-  free(payload_trytes);
   mam_psk_t_set_free(&psks);
   bundle_transactions_free(&bundle);
+  send_mam_req_free(&req);
+  send_mam_res_free(&res);
   return ret;
 }
 

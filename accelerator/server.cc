@@ -87,7 +87,6 @@ int main(int, char const**) {
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
-        char* chid_result;
 
         if (req.header("content-type").find("application/json") ==
             std::string::npos) {
@@ -100,7 +99,7 @@ int main(int, char const**) {
           cJSON_Delete(json_obj);
         } else {
           api_mam_send_message(&ta_core.tangle, &ta_core.service,
-                               req.body().c_str(), &json_result, &chid_result);
+                               req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
