@@ -28,7 +28,6 @@ cc_library(
         ":ta_errors",
         "//serializer",
         "@entangled//common/trinary:trit_tryte",
-        "@entangled//common/trinary:tryte_ascii",
         "@entangled//mam/api",
     ],
 )

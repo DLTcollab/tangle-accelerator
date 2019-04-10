@@ -407,3 +407,56 @@ done:
   cJSON_Delete(json_root);
   return ret;
 }
+
+status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    goto done;
+  }
+
+  cJSON_AddStringToObject(json_root, "channel", res->channel_id);
+
+  cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
+  if (obj == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_result = NULL;
+  status_t ret = SC_OK;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
+  if (json_result != NULL) {
+    size_t payload_size = strlen(json_result->valuestring) * 2;
+    tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
+    ascii_to_trytes(json_result->valuestring, payload_trytes);
+
+    req->payload_trytes = payload_trytes;
+    req->payload_trytes_size = payload_size;
+  } else {
+    ret = SC_SERIALIZER_NULL;
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}

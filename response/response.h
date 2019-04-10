@@ -6,7 +6,7 @@
 #include "response/ta_generate_address.h"
 #include "response/ta_get_tips.h"
 #include "response/ta_get_transaction_object.h"
-#include "response/ta_send_mam_res.h"
+#include "response/ta_send_mam.h"
 #include "response/ta_send_transfer.h"
 
 /**

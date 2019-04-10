@@ -1,4 +1,4 @@
-#include "ta_send_mam_req.h"
+#include "ta_send_mam.h"
 
 send_mam_req_t* send_mam_req_new() {
   send_mam_req_t* req = (send_mam_req_t*)malloc(sizeof(send_mam_req_t));

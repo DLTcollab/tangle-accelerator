@@ -1,5 +1,5 @@
-#ifndef RESPONSE_TA_SEND_MAM_RES_H_
-#define RESPONSE_TA_SEND_MAM_RES_H_
+#ifndef RESPONSE_TA_SEND_MAM_H_
+#define RESPONSE_TA_SEND_MAM_H_
 
 #include "accelerator/errors.h"
 #include "common/model/transaction.h"
@@ -15,9 +15,9 @@ extern "C" {
 /** struct of ta_send_mam_res_t */
 typedef struct send_mam_res_s {
   /** ascii string bundle hash */
-  char* bundle_hash;
+  char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
-  char* channel_id;
+  char channel_id[NUM_TRYTES_HASH + 1];
 } send_mam_res_t;
 
 /**
@@ -76,4 +76,4 @@ void send_mam_res_free(send_mam_res_t** res);
 }
 #endif
 
-#endif  // RESPONSE_TA_SEND_MAM_RES_H_
+#endif  // RESPONSE_TA_SEND_MAM_H_
