@@ -182,7 +182,9 @@ void test_receive_mam_message(void) {
 int main(void) {
   UNITY_BEGIN();
 
-  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
+  ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
+                         &ta_core.service);
+  ta_config_set(&ta_core.cache, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_generate_address);
