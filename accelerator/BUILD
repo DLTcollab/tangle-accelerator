@@ -68,3 +68,9 @@ cc_library(
     hdrs = ["errors.h"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "message",
+    srcs = ["message.c"],
+    hdrs = ["message.h"],
+)
