@@ -54,6 +54,7 @@ cc_library(
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":message",
         ":ta_errors",
         "//utils:cache",
         "//utils:pow",

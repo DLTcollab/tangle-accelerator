@@ -1,7 +1,10 @@
 #ifndef ACCELERATOR_CONFIG_H_
 #define ACCELERATOR_CONFIG_H_
 
+#include <getopt.h>
+
 #include "accelerator/errors.h"
+#include "accelerator/message.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
 #include "cclient/types/types.h"
@@ -53,9 +56,16 @@ typedef struct ta_config_s {
   const char* seed;
 } iota_config_t;
 
+/** struct type of accelerator cache */
+typedef struct ta_cache_s {
+  char* host;    /**< Binding address of redis server */
+  uint16_t port; /**< Binding port of redis server */
+} ta_cache_t;
+
 /** struct type of accelerator core */
 typedef struct ta_core_s {
   ta_config_t info;              /**< accelerator configiuration structure */
+  ta_cache_t cache;              /**< redis configiuration structure */
   iota_config_t tangle;          /**< iota configuration structure */
   iota_client_service_t service; /**< iota connection structure */
 } ta_core_t;
@@ -66,14 +76,44 @@ typedef struct ta_core_s {
  *
  * @param info[in] Tangle-accelerator configuration variables
  * @param tangle[in] iota configuration variables
+ * @param cache[in] redis configuration variables
  * @param service[in] IRI connection configuration variables
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_init(ta_config_t* const info, iota_config_t* const tangle,
-                        iota_client_service_t* const service);
+status_t ta_config_default_init(ta_config_t* const info,
+                                iota_config_t* const tangle,
+                                ta_cache_t* const cache,
+                                iota_client_service_t* const service);
+
+/**
+ * Initializes configurations with CLI values
+ * Should be called third
+ *
+ * @param ta_conf[in] All configuration variables
+ * @param argc[in] Number of argumentof CLI
+ * @param argv[in] Argument of CLI
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_config_cli_init(ta_core_t* const ta_conf, int argc, char** argv);
+
+/**
+ * Start services after configurations are set
+ *
+ * @param cache[in] Redis server configuration variables
+ * @param service[in] IRI connection configuration variables
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_config_set(ta_cache_t* const cache,
+                       iota_client_service_t* const service);
 
 /**
  * Free memory of configuration variables

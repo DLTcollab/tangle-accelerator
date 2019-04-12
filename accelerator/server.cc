@@ -50,7 +50,7 @@ status_t set_response_content(status_t ret, char** json_result) {
   return http_ret;
 }
 
-int main(int, char const**) {
+int main(int argc, char* argv[]) {
   served::multiplexer mux;
   mux.use_after(served::plugin::access_log);
 
@@ -59,7 +59,22 @@ int main(int, char const**) {
   }
   logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
 
-  ta_config_init(&ta_core.info, &ta_core.tangle, &ta_core.service);
+  // Initialize configurations with default value
+  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
+                             &ta_core.service) != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  // Initialize configurations with CLI value
+  if (ta_config_cli_init(&ta_core, argc, argv) != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
+    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__,
+                 __LINE__, MAIN_LOGGER_ID);
+    return EXIT_FAILURE;
+  }
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,

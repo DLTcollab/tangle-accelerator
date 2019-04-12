@@ -41,6 +41,7 @@ extern "C" {
 #define SC_MODULE_CACHE (0x04 << SC_MODULE_SHIFT)
 #define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
 #define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
+#define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -112,6 +113,14 @@ typedef enum {
   /**< Fail to create response object */
   SC_RES_NULL = 0x02 | SC_MODULE_RES | SC_SEVERITY_FATAL,
   /**< NULL object in response */
+
+  // configuration module
+  SC_CONF_NULL = 0x02 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< NULL object in response */
+  SC_CONF_MISSING_ARGUMENT = 0x04 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< No argument in CLI */
+  SC_CONF_UNKNOWN_OPTION = 0x05 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< undefined option in CLI */
 } status_t;
 
 typedef enum {
