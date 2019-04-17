@@ -5,11 +5,22 @@
 static ta_core_t ta_core;
 struct timespec start_time, end_time;
 
+char driver_tag_msg[NUM_TRYTES_TAG];
+send_mam_res_t* res;
+
 #if defined(ENABLE_STAT)
 #define TEST_COUNT 100
 #else
 #define TEST_COUNT 1
 #endif
+
+static void gen_rand_tag(char* tag) {
+  const char tryte_alpahbet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
+
+  for (int i = 0; i < NUM_TRYTES_TAG; i++) {
+    tag[i] = tryte_alpahbet[rand() % 27];
+  }
+}
 
 double diff_time(struct timespec start, struct timespec end) {
   struct timespec diff;
@@ -81,13 +92,18 @@ void test_get_tips(void) {
 }
 
 void test_send_transfer(void) {
-  const char* json =
+  const char* pre_json =
       "{\"value\":100,"
-      "\"message\":\"" TAG_MSG "\",\"tag\":\"" TAG_MSG
-      "\","
+      "\"message\":\"" TAG_MSG
+      "\",\"tag\":\"%s\","
       "\"address\":\"" TRYTES_81_1 "\"}";
   char* json_result;
   double sum = 0;
+
+  gen_rand_tag(driver_tag_msg);
+  int json_len = strlen(pre_json);
+  char json[json_len + NUM_TRYTES_TAG];
+  sprintf(json, pre_json, driver_tag_msg);
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
@@ -123,7 +139,7 @@ void test_find_transactions_by_tag(void) {
     test_time_start(&start_time);
 
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_find_transactions_by_tag(&ta_core.service, FIND_TAG_MSG,
+        SC_OK, api_find_transactions_by_tag(&ta_core.service, driver_tag_msg,
                                             &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
@@ -139,8 +155,8 @@ void test_find_transactions_obj_by_tag(void) {
     test_time_start(&start_time);
 
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_find_transactions_obj_by_tag(&ta_core.service, FIND_TAG_MSG,
-                                                &json_result));
+        SC_OK, api_find_transactions_obj_by_tag(&ta_core.service,
+                                                driver_tag_msg, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -151,12 +167,15 @@ void test_send_mam_message(void) {
   double sum = 0;
   const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
   char* json_result;
+  res = send_mam_res_new();
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(
         SC_OK, api_mam_send_message(&ta_core.tangle, &ta_core.service, json,
                                     &json_result));
+    send_mam_res_deserialize(json_result, res);
+
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -171,8 +190,8 @@ void test_receive_mam_message(void) {
     test_time_start(&start_time);
 
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_receive_mam_message(&ta_core.service, TEST_BUNDLE_HASH,
-                                       &json_result));
+        SC_OK, api_receive_mam_message(&ta_core.service,
+                                       (char*)res->bundle_hash, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -180,6 +199,8 @@ void test_receive_mam_message(void) {
 }
 
 int main(void) {
+  srand(time(NULL));
+
   UNITY_BEGIN();
 
   ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
@@ -194,8 +215,8 @@ int main(void) {
   RUN_TEST(test_get_transaction_object);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
-  RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_send_mam_message);
+  RUN_TEST(test_receive_mam_message);
   ta_config_destroy(&ta_core.service);
   return UNITY_END();
 }

@@ -78,17 +78,20 @@ static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
 static status_t ta_json_get_string(cJSON const* const json_obj,
                                    char const* const obj_name,
                                    char* const text) {
-  retcode_t ret = SC_OK;
+  status_t ret = SC_OK;
+  if (json_obj == NULL || obj_name == NULL || text == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
 
   cJSON* json_value = cJSON_GetObjectItemCaseSensitive(json_obj, obj_name);
   if (json_value == NULL) {
-    return RC_CCLIENT_JSON_KEY;
+    return SC_CCLIENT_JSON_KEY;
   }
 
   if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
     strcpy(text, json_value->valuestring);
   } else {
-    return RC_CCLIENT_JSON_PARSE;
+    return SC_CCLIENT_JSON_PARSE;
   }
 
   return ret;
