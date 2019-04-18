@@ -137,6 +137,19 @@ status_t receive_mam_message_serialize(char** obj, const char** res);
 status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res);
 
 /**
+ * @brief Deserialze JSON string to type of send_mam_res_t
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] res Response data in type of send_mam_res_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_deserialize(const char* const obj,
+                                  send_mam_res_t* const res);
+
+/**
  * @brief Deserialze JSON string to type of send_mam_req_t
  *
  * @param[in] obj Input values in JSON

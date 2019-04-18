@@ -269,6 +269,20 @@ void test_serialize_send_mam_message(void) {
   send_mam_res_free(&res);
 }
 
+void test_deserialize_send_mam_message_response(void) {
+  const char* json = "{\"channel\":\"" TRYTES_81_1
+                     "\","
+                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
+  send_mam_res_t* res = send_mam_res_new();
+
+  send_mam_res_deserialize(json, res);
+
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, res->channel_id);
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_2, res->bundle_hash);
+
+  send_mam_res_free(&res);
+}
+
 void test_deserialize_send_mam_message(void) {
   const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
   send_mam_req_t* req = send_mam_req_new();
@@ -296,6 +310,7 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
   RUN_TEST(test_serialize_send_mam_message);
+  RUN_TEST(test_deserialize_send_mam_message_response);
   RUN_TEST(test_deserialize_send_mam_message);
   return UNITY_END();
 }

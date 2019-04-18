@@ -75,6 +75,10 @@ typedef enum {
   /**< flex_trits conversion error */
   SC_CCLIENT_HASH = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< hash container operation error */
+  SC_CCLIENT_JSON_KEY = 0x07 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< JSON key not found */
+  SC_CCLIENT_JSON_PARSE = 0x08 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< json parsing error, might the wrong format */
 
   // Serializer module
   SC_SERIALIZER_JSON_CREATE = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,

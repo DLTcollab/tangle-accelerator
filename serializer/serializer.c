@@ -6,9 +6,9 @@ void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
   sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
 }
 
-status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
-                                        cJSON* const json_root,
-                                        char const* const obj_name) {
+static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
+                                               cJSON* const json_root,
+                                               char const* const obj_name) {
   size_t array_count = 0;
   cJSON* array_obj = NULL;
   hash243_stack_entry_t* s_iter = NULL;
@@ -41,9 +41,9 @@ status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
   return SC_OK;
 }
 
-status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
-                                        cJSON* const json_root,
-                                        char const* const obj_name) {
+static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
+                                               cJSON* const json_root,
+                                               char const* const obj_name) {
   size_t array_count;
   cJSON* array_obj = NULL;
   hash243_queue_entry_t* q_iter = NULL;
@@ -73,6 +73,28 @@ status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
     return SC_CCLIENT_NOT_FOUND;
   }
   return SC_OK;
+}
+
+static status_t ta_json_get_string(cJSON const* const json_obj,
+                                   char const* const obj_name,
+                                   char* const text) {
+  status_t ret = SC_OK;
+  if (json_obj == NULL || obj_name == NULL || text == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+
+  cJSON* json_value = cJSON_GetObjectItemCaseSensitive(json_obj, obj_name);
+  if (json_value == NULL) {
+    return SC_CCLIENT_JSON_KEY;
+  }
+
+  if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
+    strcpy(text, json_value->valuestring);
+  } else {
+    return SC_CCLIENT_JSON_PARSE;
+  }
+
+  return ret;
 }
 
 status_t iota_transaction_to_json_object(iota_transaction_t const* const txn,
@@ -428,6 +450,37 @@ status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res) {
 
 done:
   cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t send_mam_res_deserialize(const char* const obj,
+                                  send_mam_res_t* const res) {
+  if (obj == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  status_t ret = SC_OK;
+  tryte_t addr[NUM_TRYTES_ADDRESS + 1];
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+  if (ta_json_get_string(json_obj, "channel", (char*)addr) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    goto done;
+  }
+  send_mam_res_set_channel_id(res, addr);
+
+  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    goto done;
+  }
+  send_mam_res_set_bundle_hash(res, addr);
+
+done:
+  cJSON_Delete(json_obj);
   return ret;
 }
 
