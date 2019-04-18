@@ -113,8 +113,8 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          api_mam_send_message(&ta_core.tangle, &ta_core.service,
-                               req.body().c_str(), &json_result);
+          ret = api_mam_send_message(&ta_core.tangle, &ta_core.service,
+                                     req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
