@@ -210,14 +210,14 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   send_mam_req_t* req = send_mam_req_new();
   send_mam_res_t* res = send_mam_res_new();
 
-  ret = send_mam_req_deserialize(payload, req);
-  if (ret) {
-    goto done;
-  }
-
   // Creating MAM API
   if (mam_api_init(&mam, (tryte_t*)SEED)) {
     ret = SC_MAM_FAILED_INIT;
+    goto done;
+  }
+
+  ret = send_mam_req_deserialize(payload, req);
+  if (ret) {
     goto done;
   }
 
