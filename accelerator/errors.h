@@ -85,7 +85,7 @@ typedef enum {
   /**< Fail to create JSON object in serializer */
   SC_SERIALIZER_NULL = 0x02 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< NULL object in serializer */
-  SC_SERIALIZER_JSON_PARSE = 0x07 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  SC_SERIALIZER_JSON_PARSE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Fail to parse JSON object in serializer */
 
   // Cache module

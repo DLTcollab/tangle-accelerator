@@ -1,28 +1,5 @@
 #include "apis.h"
 
-// TODO: Generate actual pre shared keys
-static mam_psk_t const psk = {
-    .id = {1,  0,  -1, -1, 0,  -1, -1, 0,  0,  1,  -1, 0,  1,  0,  0,  1,  1,
-           1,  -1, 1,  1,  0,  1,  1,  0,  0,  -1, 1,  -1, -1, -1, -1, -1, -1,
-           -1, 1,  -1, -1, 0,  -1, -1, 1,  0,  -1, -1, -1, 1,  1,  1,  0,  0,
-           -1, 1,  -1, -1, -1, 0,  -1, 1,  -1, -1, -1, 1,  1,  -1, 1,  0,  0,
-           1,  1,  1,  -1, -1, 0,  0,  -1, -1, 1,  0,  -1, 1},
-    .key = {-1, 1,  -1, -1, 1,  -1, -1, 0,  0,  0,  -1, -1, 1,  1,  1,  -1, -1,
-            -1, 0,  0,  0,  0,  -1, -1, 1,  1,  1,  0,  -1, -1, -1, 0,  0,  0,
-            -1, -1, 1,  -1, 0,  0,  1,  0,  0,  -1, 1,  1,  0,  -1, 0,  0,  1,
-            -1, 1,  0,  1,  0,  0,  -1, 1,  1,  -1, 1,  0,  -1, 0,  -1, 1,  -1,
-            -1, -1, 0,  -1, -1, 0,  -1, -1, 0,  0,  -1, -1, 1,  -1, 0,  0,  -1,
-            -1, -1, -1, 0,  -1, -1, -1, 1,  -1, -1, 1,  1,  1,  1,  1,  0,  1,
-            0,  1,  -1, 0,  0,  1,  0,  1,  0,  0,  1,  0,  -1, 0,  1,  1,  0,
-            0,  -1, -1, 1,  1,  0,  0,  1,  -1, 1,  1,  1,  0,  1,  1,  1,  0,
-            0,  -1, -1, -1, -1, 1,  1,  1,  0,  0,  -1, 0,  1,  -1, 1,  1,  1,
-            0,  0,  1,  -1, -1, 0,  -1, 1,  -1, 1,  0,  0,  1,  -1, 0,  1,  -1,
-            0,  0,  1,  1,  1,  1,  1,  0,  0,  1,  -1, 1,  -1, 1,  0,  1,  1,
-            1,  -1, 0,  0,  -1, 1,  1,  0,  -1, -1, 0,  0,  -1, 1,  0,  1,  -1,
-            0,  0,  -1, 1,  -1, 1,  1,  1,  -1, 0,  1,  1,  0,  0,  -1, -1, -1,
-            0,  0,  1,  0,  1,  0,  -1, 1,  -1, 0,  1,  0,  -1, 1,  1,  -1, -1,
-            0,  0,  -1, 0,  -1}};
-
 status_t api_get_tips(const iota_client_service_t* const service,
                       char** json_result) {
   status_t ret = SC_OK;
@@ -178,7 +155,6 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
   }
 
   // Set first transaction's address as chid, if no `chid` specified
-  mam_psk_t_set_add(&mam.psks, &psk);
   iota_transaction_t* curr_tx = (iota_transaction_t*)utarray_eltptr(bundle, 0);
   none_chid_trytes = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
   flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS,
@@ -228,21 +204,20 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   mam_api_t mam;
   const bool last_packet = true;
   bundle_transactions_t* bundle = NULL;
-  mam_psk_t_set_t psks = NULL;
   bundle_transactions_new(&bundle);
   tryte_t channel_id[MAM_CHANNEL_ID_SIZE];
   trit_t msg_id[MAM_MSG_ID_SIZE];
   send_mam_req_t* req = send_mam_req_new();
   send_mam_res_t* res = send_mam_res_new();
 
-  ret = send_mam_req_deserialize(payload, req);
-  if (ret) {
-    goto done;
-  }
-
   // Creating MAM API
   if (mam_api_init(&mam, (tryte_t*)SEED)) {
     ret = SC_MAM_FAILED_INIT;
+    goto done;
+  }
+
+  ret = send_mam_req_deserialize(payload, req);
+  if (ret) {
     goto done;
   }
 
@@ -256,13 +231,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   }
 
   // Write header and packet
-  if (!mam_psk_t_set_contains(&psks, &psk)) {
-    if (mam_psk_t_set_add(&psks, &psk) != RC_OK) {
-      ret = SC_MAM_FAILED_WRITE;
-      goto done;
-    }
-  }
-  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, psks, NULL, 0,
+  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL, 0,
                                              bundle, msg_id) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
@@ -292,7 +261,6 @@ done:
       ret = SC_MAM_FAILED_DESTROYED;
     }
   }
-  mam_psk_t_set_free(&psks);
   bundle_transactions_free(&bundle);
   send_mam_req_free(&req);
   send_mam_res_free(&res);
