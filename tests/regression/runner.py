@@ -4,6 +4,8 @@ import requests
 import sys
 import subprocess
 import unittest
+import numpy as np
+import time
 
 if len(sys.argv) == 2:
     raw_url = sys.argv[1]
@@ -16,6 +18,50 @@ headers = {'content-type': 'application/json'}
 TIMEOUT = 100  # [sec]
 MSG_STATUS_CODE_405 = "[405] Method Not Allowed"
 CURL_EMPTY_REPLY = "000"
+
+TIMES_TOTAL = 100
+
+
+def eval_stat(time_cost, func_name):
+    avg = np.average(time_cost)
+    var = np.var(time_cost)
+    print("Average Elapsed Time of " + str(func_name) + ":" + str(avg) +
+          " sec")
+    print("With the range +- " + str(2 * var) +
+          "sec, including 95% of API call time consumption")
+
+
+class Time_Consumption():
+    def test_mam_send_msg(self):
+        payload = "Who are we? Just a speck of dust within the galaxy?"
+        post_data = {"message": payload}
+        post_data_json = json.dumps(post_data)
+
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/mam/", post_data=post_data_json)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "mam send message")
+
+    def test_mam_recv_msg(self):
+        payload = "Who are we? Just a speck of dust within the galaxy?"
+        post_data = {"message": payload}
+        post_data_json = json.dumps(post_data)
+        response = API("/mam/", post_data=post_data_json)
+
+        res_split = response.split(", ")
+        res_json = json.loads(res_split[0])
+        bundle_hash = res_json["bundle_hash"]
+
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/mam/", get_data=bundle_hash)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "mam recv message")
 
 
 def is_addr_trytes(trytes):
@@ -49,7 +95,6 @@ def API(get_query, get_data=None, post_data=None):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             out, err = p.communicate()
-            # print("err = " + str(err))
             response = str(out.decode('ascii'))
         else:
             print("Wrong request method")
@@ -153,3 +198,12 @@ class Regression_Test(unittest.TestCase):
 # Run all the API Test here
 if __name__ == '__main__':
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
+
+    # Run all the Time_Consumption() tests
+    f = Time_Consumption()
+    public_method_names = [
+        method for method in dir(f) if callable(getattr(f, method))
+        if not method.startswith('_')
+    ]  # 'private' methods start from _
+    for method in public_method_names:
+        getattr(f, method)()  # call
