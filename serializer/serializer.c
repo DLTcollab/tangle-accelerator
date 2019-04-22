@@ -243,6 +243,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   cJSON* json_result = NULL;
   flex_trit_t tag_trits[NUM_TRITS_TAG], address_trits[NUM_TRITS_HASH];
   int msg_len = 0, tag_len = 0;
+  bool raw_message = true;
   status_t ret = SC_OK;
 
   if (json_obj == NULL) {
@@ -288,13 +289,29 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
     goto done;
   }
 
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message_format");
+  if (json_result != NULL) {
+    strncmp("trytes", json_result->valuestring, 6);
+    raw_message = false;
+  }
+
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   if (json_result != NULL) {
-    msg_len = strlen(json_result->valuestring);
-    req->msg_len = msg_len * 3;
-    flex_trits_from_trytes(req->message, req->msg_len,
-                           (const tryte_t*)json_result->valuestring, msg_len,
-                           msg_len);
+    if (raw_message) {
+      msg_len = strlen(json_result->valuestring) * 2;
+      req->msg_len = msg_len * 3;
+      tryte_t trytes_buffer[msg_len];
+
+      ascii_to_trytes(json_result->valuestring, trytes_buffer);
+      flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len,
+                             msg_len);
+    } else {
+      msg_len = strlen(json_result->valuestring);
+      req->msg_len = msg_len * 3;
+      flex_trits_from_trytes(req->message, req->msg_len,
+                             (const tryte_t*)json_result->valuestring, msg_len,
+                             msg_len);
+    }
   } else {
     // 'message' does not exists, set to DEFAULT_MSG
     req->msg_len = DEFAULT_MSG_LEN * 3;
