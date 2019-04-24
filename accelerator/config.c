@@ -72,6 +72,7 @@ status_t ta_config_default_init(ta_config_t* const info,
                                 ta_cache_t* const cache,
                                 iota_client_service_t* const service) {
   status_t ret = SC_OK;
+  char mss_tmp[] = "/tmp/XXXXXX";
   if (info == NULL || tangle == NULL || cache == NULL || service == NULL) {
     return SC_TA_NULL;
   }
@@ -92,6 +93,8 @@ status_t ta_config_default_init(ta_config_t* const info,
 
   log_info(logger_id, "Initializing IRI configuration\n");
   tangle->milestone_depth = MILESTONE_DEPTH;
+  mkstemp(mss_tmp);
+  strncpy(tangle->mam_file, mss_tmp, FSIZE);
   tangle->mss_depth = MSS_DEPTH;
   tangle->mwm = MWM;
   tangle->seed = SEED;
