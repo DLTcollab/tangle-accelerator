@@ -201,6 +201,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
                               const iota_client_service_t* const service,
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
+  retcode_t rc = RC_OK;
   mam_api_t mam;
   const bool last_packet = true;
   bundle_transactions_t* bundle = NULL;
@@ -210,8 +211,14 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   send_mam_req_t* req = send_mam_req_new();
   send_mam_res_t* res = send_mam_res_new();
 
-  // Creating MAM API
-  if (mam_api_init(&mam, (tryte_t*)SEED)) {
+  // Loading and creating MAM API
+  if ((rc = mam_api_load(tangle->mam_file, &mam)) ==
+      RC_UTILS_FAILED_TO_OPEN_FILE) {
+    if (mam_api_init(&mam, (tryte_t*)SEED)) {
+      ret = SC_MAM_FAILED_INIT;
+      goto done;
+    }
+  } else if (rc != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     goto done;
   }
@@ -255,9 +262,9 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   ret = send_mam_res_serialize(json_result, res);
 
 done:
-  // Destroying MAM API
+  // Save and destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
-    if (mam_api_destroy(&mam) != RC_OK) {
+    if (mam_api_save(&mam, tangle->mam_file) || mam_api_destroy(&mam)) {
       ret = SC_MAM_FAILED_DESTROYED;
     }
   }
