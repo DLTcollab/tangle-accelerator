@@ -76,6 +76,8 @@ bazel*
 cclient/bazel*
 cclient/cmake-*
 
+coverage
+
 # Atom conf
 .clang_complete
 
