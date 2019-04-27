@@ -67,17 +67,17 @@ typedef enum {
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Fail to create cclient object */
-  SC_CCLIENT_NOT_FOUND = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
+  SC_CCLIENT_NOT_FOUND = 0x02 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Empty result from cclient */
-  SC_CCLIENT_FAILED_RESPONSE = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
+  SC_CCLIENT_FAILED_RESPONSE = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Error in cclient response */
-  SC_CCLIENT_INVALID_FLEX_TRITS = 0x05 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_INVALID_FLEX_TRITS = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< flex_trits conversion error */
-  SC_CCLIENT_HASH = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_HASH = 0x05 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< hash container operation error */
-  SC_CCLIENT_JSON_KEY = 0x07 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_JSON_KEY = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< JSON key not found */
-  SC_CCLIENT_JSON_PARSE = 0x08 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_JSON_PARSE = 0x07 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< json parsing error, might the wrong format */
 
   // Serializer module
@@ -89,9 +89,9 @@ typedef enum {
   /**< Fail to parse JSON object in serializer */
 
   // Cache module
-  SC_CACHE_NULL = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  SC_CACHE_NULL = 0x01 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
   /**< NULL parameters in cache */
-  SC_CACHE_FAILED_RESPONSE = 0x04 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
   /**< Fail in cache operations */
 
   // MAM module
@@ -119,11 +119,11 @@ typedef enum {
   /**< NULL object in response */
 
   // configuration module
-  SC_CONF_NULL = 0x02 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  SC_CONF_NULL = 0x01 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< NULL object in response */
-  SC_CONF_MISSING_ARGUMENT = 0x04 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  SC_CONF_MISSING_ARGUMENT = 0x02 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< No argument in CLI */
-  SC_CONF_UNKNOWN_OPTION = 0x05 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
 } status_t;
 
