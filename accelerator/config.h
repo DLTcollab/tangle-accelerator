@@ -20,7 +20,7 @@ extern "C" {
  * @brief Configuration of tangle-accelerator
  */
 
-#define TA_VERSION "tangle-accelerator/0.3.0"
+#define TA_VERSION "tangle-accelerator/0.5.0"
 #define TA_HOST "localhost"
 #define TA_PORT "8000"
 #define TA_THREAD_COUNT 10
