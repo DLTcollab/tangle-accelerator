@@ -179,7 +179,7 @@ void test_send_mam_message(void) {
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
-  printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
+  printf("Average time of send_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
 void test_receive_mam_message(void) {
