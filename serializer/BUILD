@@ -11,5 +11,6 @@ cc_library(
         "//response",
         "@cJSON",
         "@entangled//cclient/types",
+        "@entangled//common/trinary:tryte_ascii",
     ],
 )

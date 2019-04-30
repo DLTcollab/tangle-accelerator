@@ -28,7 +28,6 @@ cc_library(
         ":ta_errors",
         "//serializer",
         "@entangled//common/trinary:trit_tryte",
-        "@entangled//common/trinary:tryte_ascii",
         "@entangled//mam/api",
     ],
 )
@@ -55,6 +54,7 @@ cc_library(
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":message",
         ":ta_errors",
         "//utils:cache",
         "//utils:pow",
@@ -67,4 +67,10 @@ cc_library(
     name = "ta_errors",
     hdrs = ["errors.h"],
     visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "message",
+    srcs = ["message.c"],
+    hdrs = ["message.h"],
 )

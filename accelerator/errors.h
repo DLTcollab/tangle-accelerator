@@ -40,6 +40,8 @@ extern "C" {
 #define SC_MODULE_SERIALIZER (0x03 << SC_MODULE_SHIFT)
 #define SC_MODULE_CACHE (0x04 << SC_MODULE_SHIFT)
 #define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
+#define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
+#define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -65,27 +67,31 @@ typedef enum {
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Fail to create cclient object */
-  SC_CCLIENT_NOT_FOUND = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
+  SC_CCLIENT_NOT_FOUND = 0x02 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Empty result from cclient */
-  SC_CCLIENT_FAILED_RESPONSE = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
+  SC_CCLIENT_FAILED_RESPONSE = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Error in cclient response */
-  SC_CCLIENT_INVALID_FLEX_TRITS = 0x05 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_INVALID_FLEX_TRITS = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< flex_trits conversion error */
-  SC_CCLIENT_HASH = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  SC_CCLIENT_HASH = 0x05 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< hash container operation error */
+  SC_CCLIENT_JSON_KEY = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< JSON key not found */
+  SC_CCLIENT_JSON_PARSE = 0x07 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< json parsing error, might the wrong format */
 
   // Serializer module
   SC_SERIALIZER_JSON_CREATE = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Fail to create JSON object in serializer */
   SC_SERIALIZER_NULL = 0x02 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< NULL object in serializer */
-  SC_SERIALIZER_JSON_PARSE = 0x07 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  SC_SERIALIZER_JSON_PARSE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Fail to parse JSON object in serializer */
 
   // Cache module
-  SC_CACHE_NULL = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  SC_CACHE_NULL = 0x01 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
   /**< NULL parameters in cache */
-  SC_CACHE_FAILED_RESPONSE = 0x04 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
   /**< Fail in cache operations */
 
   // MAM module
@@ -103,6 +109,22 @@ typedef enum {
   /**< Error in mam destroy */
   SC_MAM_NO_PAYLOAD = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< No payload or no chid */
+  SC_MAM_FAILED_WRITE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to write */
+
+  // response module
+  SC_RES_OOM = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,
+  /**< Fail to create response object */
+  SC_RES_NULL = 0x02 | SC_MODULE_RES | SC_SEVERITY_FATAL,
+  /**< NULL object in response */
+
+  // configuration module
+  SC_CONF_NULL = 0x01 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< NULL object in response */
+  SC_CONF_MISSING_ARGUMENT = 0x02 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< No argument in CLI */
+  SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< undefined option in CLI */
 } status_t;
 
 typedef enum {

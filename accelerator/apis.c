@@ -1,28 +1,5 @@
 #include "apis.h"
 
-// TODO: Generate actual pre shared keys
-static mam_psk_t const psk = {
-    .id = {1,  0,  -1, -1, 0,  -1, -1, 0,  0,  1,  -1, 0,  1,  0,  0,  1,  1,
-           1,  -1, 1,  1,  0,  1,  1,  0,  0,  -1, 1,  -1, -1, -1, -1, -1, -1,
-           -1, 1,  -1, -1, 0,  -1, -1, 1,  0,  -1, -1, -1, 1,  1,  1,  0,  0,
-           -1, 1,  -1, -1, -1, 0,  -1, 1,  -1, -1, -1, 1,  1,  -1, 1,  0,  0,
-           1,  1,  1,  -1, -1, 0,  0,  -1, -1, 1,  0,  -1, 1},
-    .key = {-1, 1,  -1, -1, 1,  -1, -1, 0,  0,  0,  -1, -1, 1,  1,  1,  -1, -1,
-            -1, 0,  0,  0,  0,  -1, -1, 1,  1,  1,  0,  -1, -1, -1, 0,  0,  0,
-            -1, -1, 1,  -1, 0,  0,  1,  0,  0,  -1, 1,  1,  0,  -1, 0,  0,  1,
-            -1, 1,  0,  1,  0,  0,  -1, 1,  1,  -1, 1,  0,  -1, 0,  -1, 1,  -1,
-            -1, -1, 0,  -1, -1, 0,  -1, -1, 0,  0,  -1, -1, 1,  -1, 0,  0,  -1,
-            -1, -1, -1, 0,  -1, -1, -1, 1,  -1, -1, 1,  1,  1,  1,  1,  0,  1,
-            0,  1,  -1, 0,  0,  1,  0,  1,  0,  0,  1,  0,  -1, 0,  1,  1,  0,
-            0,  -1, -1, 1,  1,  0,  0,  1,  -1, 1,  1,  1,  0,  1,  1,  1,  0,
-            0,  -1, -1, -1, -1, 1,  1,  1,  0,  0,  -1, 0,  1,  -1, 1,  1,  1,
-            0,  0,  1,  -1, -1, 0,  -1, 1,  -1, 1,  0,  0,  1,  -1, 0,  1,  -1,
-            0,  0,  1,  1,  1,  1,  1,  0,  0,  1,  -1, 1,  -1, 1,  0,  1,  1,
-            1,  -1, 0,  0,  -1, 1,  1,  0,  -1, -1, 0,  0,  -1, 1,  0,  1,  -1,
-            0,  0,  -1, 1,  -1, 1,  1,  1,  -1, 0,  1,  1,  0,  0,  -1, -1, -1,
-            0,  0,  1,  0,  1,  0,  -1, 1,  -1, 0,  1,  0,  -1, 1,  1,  -1, -1,
-            0,  0,  -1, 0,  -1}};
-
 status_t api_get_tips(const iota_client_service_t* const service,
                       char** json_result) {
   status_t ret = SC_OK;
@@ -54,7 +31,7 @@ status_t api_get_tips_pair(const iota_config_t* const tangle,
     goto done;
   }
 
-  ret = cclient_get_txn_to_approve(service, tangle->depth, res);
+  ret = cclient_get_txn_to_approve(service, tangle->milestone_depth, res);
   if (ret) {
     goto done;
   }
@@ -178,7 +155,6 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
   }
 
   // Set first transaction's address as chid, if no `chid` specified
-  mam_psk_t_set_add(&mam.psks, &psk);
   iota_transaction_t* curr_tx = (iota_transaction_t*)utarray_eltptr(bundle, 0);
   none_chid_trytes = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
   flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS,
@@ -218,6 +194,83 @@ done:
   free(payload);
   bundle_transactions_free(&bundle);
 
+  return ret;
+}
+
+status_t api_mam_send_message(const iota_config_t* const tangle,
+                              const iota_client_service_t* const service,
+                              char const* const payload, char** json_result) {
+  status_t ret = SC_OK;
+  retcode_t rc = RC_OK;
+  mam_api_t mam;
+  const bool last_packet = true;
+  bundle_transactions_t* bundle = NULL;
+  bundle_transactions_new(&bundle);
+  tryte_t channel_id[MAM_CHANNEL_ID_SIZE];
+  trit_t msg_id[MAM_MSG_ID_SIZE];
+  send_mam_req_t* req = send_mam_req_new();
+  send_mam_res_t* res = send_mam_res_new();
+
+  // Loading and creating MAM API
+  if ((rc = mam_api_load(tangle->mam_file, &mam)) ==
+      RC_UTILS_FAILED_TO_OPEN_FILE) {
+    if (mam_api_init(&mam, (tryte_t*)SEED)) {
+      ret = SC_MAM_FAILED_INIT;
+      goto done;
+    }
+  } else if (rc != RC_OK) {
+    ret = SC_MAM_FAILED_INIT;
+    goto done;
+  }
+
+  ret = send_mam_req_deserialize(payload, req);
+  if (ret) {
+    goto done;
+  }
+
+  // Create mam channel
+  if (mam_channel_t_set_size(mam.channels) == 0) {
+    mam_api_create_channel(&mam, tangle->mss_depth, channel_id);
+  } else {
+    mam_channel_t* channel = &mam.channels->value;
+    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id,
+                    NUM_TRITS_ADDRESS);
+  }
+
+  // Write header and packet
+  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL, 0,
+                                             bundle, msg_id) != RC_OK) {
+    ret = SC_MAM_FAILED_WRITE;
+    goto done;
+  }
+  if (mam_api_bundle_write_packet(&mam, msg_id, req->payload_trytes,
+                                  req->payload_trytes_size, 0, last_packet,
+                                  bundle) != RC_OK) {
+    ret = SC_MAM_FAILED_WRITE;
+    goto done;
+  }
+  send_mam_res_set_channel_id(res, channel_id);
+
+  // Sending bundle
+  if (ta_send_bundle(tangle, service, bundle) != SC_OK) {
+    ret = SC_MAM_FAILED_RESPONSE;
+    goto done;
+  }
+  send_mam_res_set_bundle_hash(
+      res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+
+  ret = send_mam_res_serialize(json_result, res);
+
+done:
+  // Save and destroying MAM API
+  if (ret != SC_MAM_FAILED_INIT) {
+    if (mam_api_save(&mam, tangle->mam_file) || mam_api_destroy(&mam)) {
+      ret = SC_MAM_FAILED_DESTROYED;
+    }
+  }
+  bundle_transactions_free(&bundle);
+  send_mam_req_free(&req);
+  send_mam_res_free(&res);
   return ret;
 }
 

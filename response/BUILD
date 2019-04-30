@@ -9,6 +9,8 @@ cc_library(
     include_prefix = "response",
     visibility = ["//visibility:public"],
     deps = [
+        "//accelerator:ta_errors",
         "@entangled//cclient/types",
+        "@entangled//common/model:transaction",
     ],
 )

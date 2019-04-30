@@ -5,7 +5,6 @@
 #include "accelerator/errors.h"
 #include "cclient/types/types.h"
 #include "common/trinary/trit_tryte.h"
-#include "common/trinary/tryte_ascii.h"
 #include "mam/api/api.h"
 #include "mam/mam/mam_channel_t_set.h"
 #include "serializer/serializer.h"
@@ -91,6 +90,26 @@ status_t api_get_tips(const iota_client_service_t* const service,
 status_t api_receive_mam_message(const iota_client_service_t* const service,
                                  const char* const bundle_hash,
                                  char** json_result);
+
+/**
+ * @brief Send a MAM message with given Payload.
+ *
+ * Send a MAM message from given Payload(ascii message).
+ * There is no need to decode the ascii payload to tryte, since the
+ * api_mam_send_message() will take this job.
+ *
+ * @param[in] tangle IOTA API parameter configurations
+ * @param[in] service IRI node end point service
+ * @param[in] payload message to send undecoded ascii string.
+ * @param[out] json_result Result containing channel id and bundle hash
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_mam_send_message(const iota_config_t* const tangle,
+                              const iota_client_service_t* const service,
+                              char const* const payload, char** json_result);
 
 /**
  * @brief Send transfer to tangle.

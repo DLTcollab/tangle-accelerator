@@ -9,6 +9,7 @@ cc_library(
     include_prefix = "request",
     visibility = ["//visibility:public"],
     deps = [
+        "//accelerator:ta_errors",
         "@entangled//cclient/types",
     ],
 )

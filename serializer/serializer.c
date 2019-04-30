@@ -6,9 +6,9 @@ void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
   sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
 }
 
-status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
-                                        cJSON* const json_root,
-                                        char const* const obj_name) {
+static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
+                                               cJSON* const json_root,
+                                               char const* const obj_name) {
   size_t array_count = 0;
   cJSON* array_obj = NULL;
   hash243_stack_entry_t* s_iter = NULL;
@@ -41,9 +41,9 @@ status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
   return SC_OK;
 }
 
-status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
-                                        cJSON* const json_root,
-                                        char const* const obj_name) {
+static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
+                                               cJSON* const json_root,
+                                               char const* const obj_name) {
   size_t array_count;
   cJSON* array_obj = NULL;
   hash243_queue_entry_t* q_iter = NULL;
@@ -73,6 +73,28 @@ status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
     return SC_CCLIENT_NOT_FOUND;
   }
   return SC_OK;
+}
+
+static status_t ta_json_get_string(cJSON const* const json_obj,
+                                   char const* const obj_name,
+                                   char* const text) {
+  status_t ret = SC_OK;
+  if (json_obj == NULL || obj_name == NULL || text == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+
+  cJSON* json_value = cJSON_GetObjectItemCaseSensitive(json_obj, obj_name);
+  if (json_value == NULL) {
+    return SC_CCLIENT_JSON_KEY;
+  }
+
+  if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
+    strcpy(text, json_value->valuestring);
+  } else {
+    return SC_CCLIENT_JSON_PARSE;
+  }
+
+  return ret;
 }
 
 status_t iota_transaction_to_json_object(iota_transaction_t const* const txn,
@@ -221,6 +243,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   cJSON* json_result = NULL;
   flex_trit_t tag_trits[NUM_TRITS_TAG], address_trits[NUM_TRITS_HASH];
   int msg_len = 0, tag_len = 0;
+  bool raw_message = true;
   status_t ret = SC_OK;
 
   if (json_obj == NULL) {
@@ -266,13 +289,29 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
     goto done;
   }
 
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message_format");
+  if (json_result != NULL) {
+    strncmp("trytes", json_result->valuestring, 6);
+    raw_message = false;
+  }
+
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   if (json_result != NULL) {
-    msg_len = strlen(json_result->valuestring);
-    req->msg_len = msg_len * 3;
-    flex_trits_from_trytes(req->message, req->msg_len,
-                           (const tryte_t*)json_result->valuestring, msg_len,
-                           msg_len);
+    if (raw_message) {
+      msg_len = strlen(json_result->valuestring) * 2;
+      req->msg_len = msg_len * 3;
+      tryte_t trytes_buffer[msg_len];
+
+      ascii_to_trytes(json_result->valuestring, trytes_buffer);
+      flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len,
+                             msg_len);
+    } else {
+      msg_len = strlen(json_result->valuestring);
+      req->msg_len = msg_len * 3;
+      flex_trits_from_trytes(req->message, req->msg_len,
+                             (const tryte_t*)json_result->valuestring, msg_len,
+                             msg_len);
+    }
   } else {
     // 'message' does not exists, set to DEFAULT_MSG
     req->msg_len = DEFAULT_MSG_LEN * 3;
@@ -405,5 +444,89 @@ status_t receive_mam_message_serialize(char** obj, const char** res) {
 
 done:
   cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    goto done;
+  }
+
+  cJSON_AddStringToObject(json_root, "channel", res->channel_id);
+
+  cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t send_mam_res_deserialize(const char* const obj,
+                                  send_mam_res_t* const res) {
+  if (obj == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  status_t ret = SC_OK;
+  tryte_t addr[NUM_TRYTES_ADDRESS + 1];
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+  if (ta_json_get_string(json_obj, "channel", (char*)addr) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    goto done;
+  }
+  send_mam_res_set_channel_id(res, addr);
+
+  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    goto done;
+  }
+  send_mam_res_set_bundle_hash(res, addr);
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
+  if (obj == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_result = NULL;
+  status_t ret = SC_OK;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
+  if (json_result != NULL) {
+    size_t payload_size = strlen(json_result->valuestring) * 2;
+    tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
+    ascii_to_trytes(json_result->valuestring, payload_trytes);
+
+    req->payload_trytes = payload_trytes;
+    req->payload_trytes_size = payload_size;
+  } else {
+    ret = SC_SERIALIZER_NULL;
+  }
+
+done:
+  cJSON_Delete(json_obj);
   return ret;
 }
