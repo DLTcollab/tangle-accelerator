@@ -10,19 +10,19 @@ extern "C" {
  * @brief Error Code of tangle-acclerator
  *
  * bit division:
- * 0 - 3 actual error code
- * 4 - 5 serverity
- * 6 - 8 error module
+ * 0 - 5  actual error code
+ * 6 - 7  serverity
+ * 8 - 15 error module
  *
- * *--------*
- * |MMMSSCCC|
- * *--------*
+ * *--------*--------*
+ * |MMMMMMMM|SSCCCCCC|
+ * *--------*--------*
  */
 
 /** @name serverity code */
 /** @{ */
-#define SC_SEVERITY_MASK 0x18
-#define SC_SEVERITY_SHIFT 3
+#define SC_SEVERITY_MASK 0x00C0
+#define SC_SEVERITY_SHIFT 6
 
 #define SC_SEVERITY_MINOR (0x0 << SC_SEVERITY_SHIFT)
 #define SC_SEVERITY_MODERATE (0x01 << SC_SEVERITY_SHIFT)
@@ -32,8 +32,8 @@ extern "C" {
 
 /** @name module code */
 /** @{ */
-#define SC_MODULE_MASK 0xE0
-#define SC_MODULE_SHIFT 5
+#define SC_MODULE_MASK 0xFF00
+#define SC_MODULE_SHIFT 8
 
 #define SC_MODULE_TA (0x01 << SC_MODULE_SHIFT)
 #define SC_MODULE_CCLIENT (0x02 << SC_MODULE_SHIFT)
@@ -46,7 +46,7 @@ extern "C" {
 
 /** @name serverity code */
 /** @{ */
-#define SC_ERROR_MASK 0x07
+#define SC_ERROR_MASK 0x003F
 /** @} */
 
 /* status code */
