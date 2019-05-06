@@ -42,6 +42,7 @@ extern "C" {
 #define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
 #define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
 #define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
+#define SC_MODULE_HTTP (0x08 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -125,6 +126,12 @@ typedef enum {
   /**< No argument in CLI */
   SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
+
+  // HTTP module
+  SC_HTTP_OOM = 0x01 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
+  /**< Fail to create http object */
+  SC_HTTP_NULL = 0x02 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
+  /**< NULL object in http */
 } status_t;
 
 typedef enum {
