@@ -36,15 +36,21 @@ status_t set_response_content(status_t ret, char** json_result) {
   }
 
   cJSON* json_obj = cJSON_CreateObject();
-  if ((ret & SC_ERROR_MASK) == 0x03) {
-    http_ret = SC_HTTP_NOT_FOUND;
-    cJSON_AddStringToObject(json_obj, "message", "Request not found");
-  } else if ((ret & SC_ERROR_MASK) == 0x07) {
-    http_ret = SC_HTTP_BAD_REQUEST;
-    cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
-  } else {
-    http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
-    cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+  switch (ret) {
+    case SC_CCLIENT_NOT_FOUND:
+    case SC_MAM_NOT_FOUND:
+      http_ret = SC_HTTP_NOT_FOUND;
+      cJSON_AddStringToObject(json_obj, "message", "Request not found");
+      break;
+    case SC_CCLIENT_JSON_KEY:
+    case SC_MAM_NO_PAYLOAD:
+      http_ret = SC_HTTP_BAD_REQUEST;
+      cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+      break;
+    default:
+      http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
+      cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+      break;
   }
   *json_result = cJSON_PrintUnformatted(json_obj);
   return http_ret;
