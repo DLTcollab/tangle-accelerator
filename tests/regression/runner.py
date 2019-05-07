@@ -6,6 +6,8 @@ import subprocess
 import unittest
 import statistics
 import time
+import random
+import logging
 
 DEBUG_FLAG = False
 if len(sys.argv) == 2:
@@ -29,6 +31,11 @@ if DEBUG_FLAG == True:
     TIMES_TOTAL = 2
 else:
     TIMES_TOTAL = 100
+TIMES_TOTAL = 100
+LEN_TAG = 27
+LEN_ADDR = 81
+LEN_MSG_SIGN = 2187
+tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
 
 def eval_stat(time_cost, func_name):
@@ -73,15 +80,20 @@ class Time_Consumption():
         eval_stat(time_cost, "mam recv message")
 
 
-def is_addr_trytes(trytes):
-    tryte_alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ9"
-    if len(trytes) != 81:
+def gen_rand_trytes(tryte_len):
+    trytes = ""
+    for i in range(tryte_len):
+        trytes = trytes + tryte_alphabet[random.randint(0, 26)]
+    return trytes
+
+
+def valid_trytes(trytes, trytes_len):
+    if len(trytes) != trytes_len:
         return False
 
     for char in trytes:
         if char not in tryte_alphabet:
             return False
-
     return True
 
 
@@ -115,6 +127,7 @@ def API(get_query, get_data=None, post_data=None):
         return None
     if not response:
         response = ""
+    time.sleep(2)
     return response
 
 
@@ -170,7 +183,7 @@ class Regression_Test(unittest.TestCase):
             4. Not existing bundle hash (address)
         """
         test_cases = [
-            "QBFXQETKSHDYPFUDO9ILVCAVQIXOHXKCECZYFLPBNVIX9JUXQZJE9URQEEUWPWYZOIACTCGZX9IDIODCA",
+            "BDIQXTDSGAWKCEPEHLRBSLDEFLXMX9ZOTUZW9JAIGZBFKPICXPEO9LLVTNIFGFDWWHEQNZXJZ9F9HTXD9",
             "", "生れてすみません"
         ]
         expect_cases = [
@@ -186,6 +199,95 @@ class Regression_Test(unittest.TestCase):
         self.assertEqual(len(expect_cases), len(test_cases))
         for i in range(len(test_cases)):
             self.assertTrue(expect_cases[i] in response[i])
+
+    def test_send_transfer(self):
+        # cmd
+        #    0. positive value, tryte maessage, tryte tag, tryte address
+        #    1. zero value, tryte message, tryte tag, tryte address
+        #    2. chinese value, tryte message, tryte tag, tryte address
+        #    3. zero value, chinese message, tryte tag, tryte address
+        #    4. zero value, tryte message, chinese tag, tryte address
+        #    5. negative value, tryte maessage, tryte tag, tryte address
+        #    6. no value, tryte maessage, tryte tag, tryte address
+        #    7. zero value, no maessage, tryte tag, tryte address
+        #    8. zero value, tryte maessage, no tag, tryte address
+        #    9. zero value, tryte maessage, tryte tag, no address
+        #    10. zero value, tryte maessage, tryte tag, unicode address
+        rand_msg = gen_rand_trytes(30)
+        rand_tag = gen_rand_trytes(27)
+        rand_addr = gen_rand_trytes(81)
+        test_cases = [
+            [420, rand_msg, rand_tag, rand_addr],
+            [0, rand_msg, rand_tag, rand_addr],
+            [
+                "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_msg, rand_tag,
+                rand_addr
+            ], [0, "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_tag, rand_addr],
+            [0, rand_msg, "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_addr],
+            [-5, rand_msg, rand_tag, rand_addr],
+            [None, rand_msg, rand_tag, rand_addr],
+            [0, None, rand_tag, rand_addr], [0, rand_msg, None, rand_addr],
+            [0, rand_msg, rand_tag, None], [0, rand_msg, rand_tag, "我思故我在"]
+        ]
+
+        response = []
+        for i in range(len(test_cases)):
+            logging.debug("testing case = " + str(test_cases[i]))
+            post_data = {
+                "value": test_cases[i][0],
+                "message": test_cases[i][1],
+                "tag": test_cases[i][2],
+                "address": test_cases[i][3]
+            }
+            logging.debug("post_data = " + repr(post_data))
+            post_data_json = json.dumps(post_data)
+            response.append(API("/transaction/", post_data=post_data_json))
+
+        if DEBUG_FLAG == True:
+            for i in range(len(response)):
+                logging.debug("send transfer i = " + str(i) + ", response = " +
+                              response[i])
+
+        pass_case = [0, 1, 2]
+        for i in range(len(response)):
+            if i in pass_case:
+                logging.debug("i = " + str(i) + ", response = " + response[i])
+                res_split = response[i].split(", ")
+                res_json = json.loads(res_split[0])
+
+                # we only send zero tx at this moment
+                self.assertEqual(0, res_json["value"])
+                self.assertTrue(valid_trytes(res_json["tag"], LEN_TAG))
+                self.assertTrue(valid_trytes(res_json["address"], LEN_ADDR))
+                self.assertTrue(
+                    valid_trytes(res_json["trunk_transaction_hash"], LEN_ADDR))
+                self.assertTrue(
+                    valid_trytes(res_json["branch_transaction_hash"],
+                                 LEN_ADDR))
+                self.assertTrue(valid_trytes(res_json["bundle_hash"],
+                                             LEN_ADDR))
+                self.assertTrue(valid_trytes(res_json["hash"], LEN_ADDR))
+                self.assertTrue(
+                    valid_trytes(res_json["signature_and_message_fragment"],
+                                 LEN_MSG_SIGN))
+            else:
+                self.assertTrue(EMPTY_REPLY in response[i]
+                                or MSG_STATUS_CODE_404 in response[i])
+
+        # Time Statistics
+        time_cost = []
+        rand_msg = gen_rand_trytes(30)
+        rand_tag = gen_rand_trytes(27)
+        rand_addr = gen_rand_trytes(81)
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            post_data = "{\"value\":0,\"message\":\"" + str(
+                rand_msg) + "\",\"tag\":\"" + str(
+                    rand_tag) + "\",\"address\":\"" + str(rand_addr) + "\"}"
+            API("/transaction/", post_data=post_data)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "send transfer")
 
 
 """
