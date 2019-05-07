@@ -15,6 +15,7 @@ else
     url="$1"
 fi
 
+sudo pip install > requirements.txt
 python3 tests/regression/runner.py $url
 runner_pid=$!
 wait $runner_pid
