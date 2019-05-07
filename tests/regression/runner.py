@@ -25,59 +25,27 @@ headers = {'content-type': 'application/json'}
 # Utils:
 TIMEOUT = 100  # [sec]
 MSG_STATUS_CODE_405 = "[405] Method Not Allowed"
-CURL_EMPTY_REPLY = "000"
-
-if DEBUG_FLAG == True:
-    TIMES_TOTAL = 2
-else:
-    TIMES_TOTAL = 100
-TIMES_TOTAL = 100
+MSG_STATUS_CODE_400 = "{\"message\":\"Invalid request header\"}"
+MSG_STATUS_CODE_404 = "404 Not Found"
+EMPTY_REPLY = "000"
 LEN_TAG = 27
 LEN_ADDR = 81
 LEN_MSG_SIGN = 2187
 tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
+if DEBUG_FLAG == True:
+    TIMES_TOTAL = 2
+else:
+    TIMES_TOTAL = 100
+
 
 def eval_stat(time_cost, func_name):
     avg = statistics.mean(time_cost)
     var = statistics.variance(time_cost)
-    print("Average Elapsed Time of " + str(func_name) + ":" + str(avg) +
+    print("Average Elapsed Time of `" + str(func_name) + "`:" + str(avg) +
           " sec")
     print("With the range +- " + str(2 * var) +
           "sec, including 95% of API call time consumption")
-
-
-class Time_Consumption():
-    def test_mam_send_msg(self):
-        payload = "Who are we? Just a speck of dust within the galaxy?"
-        post_data = {"message": payload}
-        post_data_json = json.dumps(post_data)
-
-        time_cost = []
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/mam/", post_data=post_data_json)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "mam send message")
-
-    def test_mam_recv_msg(self):
-        payload = "Who are we? Just a speck of dust within the galaxy?"
-        post_data = {"message": payload}
-        post_data_json = json.dumps(post_data)
-        response = API("/mam/", post_data=post_data_json)
-
-        res_split = response.split(", ")
-        res_json = json.loads(res_split[0])
-        bundle_hash = res_json["bundle_hash"]
-
-        time_cost = []
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/mam/", get_data=bundle_hash)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "mam recv message")
 
 
 def gen_rand_trytes(tryte_len):
@@ -94,10 +62,11 @@ def valid_trytes(trytes, trytes_len):
     for char in trytes:
         if char not in tryte_alphabet:
             return False
+
     return True
 
 
-def API(get_query, get_data=None, post_data=None):
+def API(get_query, get_data=None, post_data=None, delay=True):
     try:
         if get_data is not None:
             r = requests.get(str(url + get_query + get_data), timeout=TIMEOUT)
@@ -111,6 +80,7 @@ def API(get_query, get_data=None, post_data=None):
                 url + get_query
             ) + " -X POST -H 'Content-Type: application/json' -w \", %{http_code}\" -d '" + str(
                 post_data) + "'"
+            logging.debug("curl command = " + command)
             p = subprocess.Popen(command,
                                  shell=True,
                                  stdout=subprocess.PIPE,
@@ -118,30 +88,34 @@ def API(get_query, get_data=None, post_data=None):
             out, err = p.communicate()
             response = str(out.decode('ascii'))
         else:
-            print("Wrong request method")
+            logging.error("Wrong request method")
             response = None
 
     except BaseException:
-        print(url, "Timeout!")
-        print('\n    ' + repr(sys.exc_info()))
+        logging.error(url, "Timeout!")
+        logging.error('\n    ' + repr(sys.exc_info()))
         return None
     if not response:
         response = ""
-    time.sleep(2)
+    
+    if delay == True:
+        time.sleep(2)
     return response
 
 
 class Regression_Test(unittest.TestCase):
     def test_mam_send_msg(self):
-        """ cmd
-            0. English char only msg [success]
-            1. ASCII symbols msg [success]
-            2. Chinese msg [failed] curl response: "curl: (52) Empty reply from server"
-            3. Japanese msg [failed] curl response: "curl: (52) Empty reply from server"
-            4. Empty msg [failed]
-            5. Non-JSON, plain text msg [failed]
-            6. JSON msg with wrong key (not "message") [failed]
-        """
+        logging.debug(
+            "\n================================mam send msg================================"
+        )
+        # cmd
+        #    0. English char only msg [success]
+        #    1. ASCII symbols msg [success]
+        #    2. Chinese msg [failed] curl response: "curl: (52) Empty reply from server"
+        #    3. Japanese msg [failed] curl response: "curl: (52) Empty reply from server"
+        #    4. Empty msg [failed]
+        #    5. Non-JSON, plain text msg [failed]
+        #    6. JSON msg with wrong key (not "message") [failed]
         test_cases = [
             "ToBeOrNotToBe", "I met my soulmate. She didnt", "當工程師好開心阿",
             "今夜は月が綺麗ですね", "", "Non-JSON, plain text msg",
@@ -155,7 +129,7 @@ class Regression_Test(unittest.TestCase):
 
         response = []
         for i in range(len(test_cases)):
-            print("testing case = " + str(test_cases[i]))
+            logging.debug("testing case = " + str(test_cases[i]))
             if i == 5:
                 post_data_json = test_cases[i]
             elif i == 6:
@@ -166,41 +140,87 @@ class Regression_Test(unittest.TestCase):
                 post_data_json = json.dumps(post_data)
             response.append(API("/mam/", post_data=post_data_json))
 
+        if DEBUG_FLAG == True:
+            for i in range(len(response)):
+                logging.debug("send msg i = " + str(i) + ", response = " +
+                              response[i])
+
         for i in range(len(response)):
+            logging.debug("send msg i = " + str(i) + ", res = " + response[i])
             if i in pass_case:
                 res_split = response[i].split(", ")
                 res_json = json.loads(res_split[0])
-                self.assertTrue(is_addr_trytes(res_json["channel"]))
-                self.assertTrue(is_addr_trytes(res_json["bundle_hash"]))
+                self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
+                self.assertTrue(valid_trytes(res_json["bundle_hash"],
+                                             LEN_ADDR))
             else:
-                self.assertTrue(CURL_EMPTY_REPLY in response[i])
+                self.assertTrue(EMPTY_REPLY in response[i]
+                                or MSG_STATUS_CODE_404 in response[i])
+
+        # Time Statistics
+        payload = "Who are we? Just a speck of dust within the galaxy?"
+        post_data = {"message": payload}
+        post_data_json = json.dumps(post_data)
+
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/mam/", post_data=post_data_json, delay=False)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "mam send message")
 
     def test_mam_recv_msg(self):
-        """ cmd
-            1. Correct exist MAMv2 msg [success]
-            2. Empty msg [failed] empty parameter causes http error 405
-            3. Unicode msg [failed] {\"message\":\"Internal service error\"}
-            4. Not existing bundle hash (address)
-        """
+        logging.debug(
+            "\n================================mam recv msg================================"
+        )
+        # cmd
+        #    0. Correct exist MAMv2 msg [success]
+        #    1. Empty msg [failed] empty parameter causes http error 405
+        #    2. Unicode msg [failed] {\"message\":\"Internal service error\"}
+        #    3. Not existing bundle hash (address)
         test_cases = [
             "BDIQXTDSGAWKCEPEHLRBSLDEFLXMX9ZOTUZW9JAIGZBFKPICXPEO9LLVTNIFGFDWWHEQNZXJZ9F9HTXD9",
             "", "生れてすみません"
         ]
         expect_cases = [
-            "{\"message\":\"jjjjjjjjj\"}", MSG_STATUS_CODE_405,
+            "{\"message\":\"ToBeOrNotToBe\"}", MSG_STATUS_CODE_405,
             MSG_STATUS_CODE_405
         ]
 
         response = []
         for t_case in test_cases:
-            print("testing case = " + t_case)
+            logging.debug("testing case = " + t_case)
             response.append(API("/mam/", get_data=t_case))
 
         self.assertEqual(len(expect_cases), len(test_cases))
         for i in range(len(test_cases)):
+            logging.debug("recv msg i = " + str(i) + ", res = " + response[i])
             self.assertTrue(expect_cases[i] in response[i])
 
+        # Time Statistics
+        # send a MAM message and use it as the the message to be searched
+        payload = "Who are we? Just a speck of dust within the galaxy?"
+        post_data = {"message": payload}
+        post_data_json = json.dumps(post_data)
+        response = API("/mam/", post_data=post_data_json)
+
+        res_split = response.split(", ")
+        res_json = json.loads(res_split[0])
+        bundle_hash = res_json["bundle_hash"]
+
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/mam/", get_data=bundle_hash, delay=False)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "mam recv message")
+
     def test_send_transfer(self):
+        logging.debug(
+            "\n================================send transfer================================"
+        )
         # cmd
         #    0. positive value, tryte maessage, tryte tag, tryte address
         #    1. zero value, tryte message, tryte tag, tryte address
@@ -216,19 +236,17 @@ class Regression_Test(unittest.TestCase):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)
         rand_addr = gen_rand_trytes(81)
-        test_cases = [
-            [420, rand_msg, rand_tag, rand_addr],
-            [0, rand_msg, rand_tag, rand_addr],
-            [
-                "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_msg, rand_tag,
-                rand_addr
-            ], [0, "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_tag, rand_addr],
-            [0, rand_msg, "生而為人, 我很抱歉".encode(encoding='utf-8'), rand_addr],
-            [-5, rand_msg, rand_tag, rand_addr],
-            [None, rand_msg, rand_tag, rand_addr],
-            [0, None, rand_tag, rand_addr], [0, rand_msg, None, rand_addr],
-            [0, rand_msg, rand_tag, None], [0, rand_msg, rand_tag, "我思故我在"]
-        ]
+        test_cases = [[420, rand_msg, rand_tag, rand_addr],
+                      [0, rand_msg, rand_tag, rand_addr],
+                      ["生而為人, 我很抱歉", rand_msg, rand_tag, rand_addr],
+                      [0, "生而為人, 我很抱歉", rand_tag, rand_addr],
+                      [0, rand_msg, "生而為人, 我很抱歉", rand_addr],
+                      [-5, rand_msg, rand_tag, rand_addr],
+                      [None, rand_msg, rand_tag, rand_addr],
+                      [0, None, rand_tag, rand_addr],
+                      [0, rand_msg, None, rand_addr],
+                      [0, rand_msg, rand_tag, None],
+                      [0, rand_msg, rand_tag, "我思故我在"]]
 
         response = []
         for i in range(len(test_cases)):
@@ -250,8 +268,9 @@ class Regression_Test(unittest.TestCase):
 
         pass_case = [0, 1, 2]
         for i in range(len(response)):
+            logging.debug("send transfer i = " + str(i) + ", response = " +
+                          response[i])
             if i in pass_case:
-                logging.debug("i = " + str(i) + ", response = " + response[i])
                 res_split = response[i].split(", ")
                 res_json = json.loads(res_split[0])
 
@@ -284,7 +303,7 @@ class Regression_Test(unittest.TestCase):
             post_data = "{\"value\":0,\"message\":\"" + str(
                 rand_msg) + "\",\"tag\":\"" + str(
                     rand_tag) + "\",\"address\":\"" + str(rand_addr) + "\"}"
-            API("/transaction/", post_data=post_data)
+            API("/transaction/", post_data=post_data, delay=False)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
@@ -294,7 +313,7 @@ class Regression_Test(unittest.TestCase):
     API List
         mam_recv_msg: GET
         mam_send_msg: POST
-        Find transactions by tag
+        Find transactions by tag: GET
         Get transaction object
         Find transaction objects by tag
         Get transaction object
@@ -302,22 +321,17 @@ class Regression_Test(unittest.TestCase):
         Fetch pair tips which base on GetTransactionToApprove
         Fetch all tips
         Generate an unused address
-        send transfer
+        send transfer: POST
         Client bad request
 """
 
 # Run all the API Test here
 if __name__ == '__main__':
+    if DEBUG_FLAG == True:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
-
-    # Run all the Time_Consumption() tests
-    f = Time_Consumption()
-    public_method_names = [
-        method for method in dir(f) if callable(getattr(f, method))
-        if not method.startswith('_')
-    ]  # 'private' methods start from _
-    for method in public_method_names:
-        getattr(f, method)()  # call
 
     if not unittest.TestResult().errors:
         exit(1)
