@@ -4,11 +4,17 @@ import requests
 import sys
 import subprocess
 import unittest
-import numpy as np
+import statistics
 import time
 
+DEBUG_FLAG = False
 if len(sys.argv) == 2:
     raw_url = sys.argv[1]
+elif len(sys.argv) == 3:
+    raw_url = sys.argv[1]
+    # if DEBUG_FLAG field == `Y`, then starts debugging mode
+    if sys.argv[2] == 'y' or sys.argv[2] == 'Y':
+        DEBUG_FLAG = True
 else:
     raw_url = "localhost:8000"
 url = "http://" + raw_url
@@ -19,12 +25,15 @@ TIMEOUT = 100  # [sec]
 MSG_STATUS_CODE_405 = "[405] Method Not Allowed"
 CURL_EMPTY_REPLY = "000"
 
-TIMES_TOTAL = 100
+if DEBUG_FLAG == True:
+    TIMES_TOTAL = 2
+else:
+    TIMES_TOTAL = 100
 
 
 def eval_stat(time_cost, func_name):
-    avg = np.average(time_cost)
-    var = np.var(time_cost)
+    avg = statistics.mean(time_cost)
+    var = statistics.variance(time_cost)
     print("Average Elapsed Time of " + str(func_name) + ":" + str(avg) +
           " sec")
     print("With the range +- " + str(2 * var) +
@@ -207,3 +216,6 @@ if __name__ == '__main__':
     ]  # 'private' methods start from _
     for method in public_method_names:
         getattr(f, method)()  # call
+
+    if not unittest.TestResult().errors:
+        exit(1)
