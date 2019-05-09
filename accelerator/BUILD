@@ -13,6 +13,16 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "accelerator_microhttpd",
+    srcs = ["main.c"],
+    deps = [
+        ":http",
+        ":ta_config",
+        ":ta_errors",
+    ],
+)
+
 cc_image(
     name = "ta_image",
     binary = ":accelerator",
@@ -29,6 +39,19 @@ cc_library(
         "//serializer",
         "@entangled//common/trinary:trit_tryte",
         "@entangled//mam/api",
+    ],
+)
+
+cc_library(
+    name = "http",
+    srcs = ["http.c"],
+    hdrs = ["http.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":apis",
+        ":ta_config",
+        ":ta_errors",
+        "@libmicrohttpd",
     ],
 )
 
