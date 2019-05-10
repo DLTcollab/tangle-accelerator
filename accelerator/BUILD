@@ -16,10 +16,12 @@ cc_binary(
 cc_binary(
     name = "accelerator_microhttpd",
     srcs = ["main.c"],
+    copts = ["-DLOGGER_ENABLE"],
     deps = [
         ":http",
         ":ta_config",
         ":ta_errors",
+        "@entangled//utils/handles:signal",
     ],
 )
 
