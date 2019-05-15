@@ -260,7 +260,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  if (json_result != NULL) {
+  if (json_result != NULL && json_result->valuestring != NULL) {
     tag_len = strnlen(json_result->valuestring, NUM_TRYTES_TAG);
 
     // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
@@ -297,7 +297,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  if (json_result != NULL) {
+  if (json_result != NULL && json_result->valuestring != NULL) {
     if (raw_message) {
       msg_len = strlen(json_result->valuestring) * 2;
       req->msg_len = msg_len * 3;
@@ -322,7 +322,8 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  if (json_result != NULL && (strnlen(json_result->valuestring, 81) == 81)) {
+  if (json_result != NULL && json_result->valuestring != NULL &&
+      (strnlen(json_result->valuestring, 81) == 81)) {
     flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
                            (const tryte_t*)json_result->valuestring,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);

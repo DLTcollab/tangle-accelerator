@@ -14,7 +14,7 @@ if len(sys.argv) == 2:
     raw_url = sys.argv[1]
 elif len(sys.argv) == 3:
     raw_url = sys.argv[1]
-    # if DEBUG_FLAG field == `Y`, then starts debugging mode
+    # if DEBUG_FLAG field == `Y`, then starts debugging mode with less iteration in statistical tests
     if sys.argv[2] == 'y' or sys.argv[2] == 'Y':
         DEBUG_FLAG = True
 else:
@@ -27,13 +27,14 @@ TIMEOUT = 100  # [sec]
 MSG_STATUS_CODE_405 = "[405] Method Not Allowed"
 MSG_STATUS_CODE_400 = "{\"message\":\"Invalid request header\"}"
 MSG_STATUS_CODE_404 = "404 Not Found"
+MSG_STATUS_CODE_500 = "500"
 EMPTY_REPLY = "000"
 LEN_TAG = 27
 LEN_ADDR = 81
 LEN_MSG_SIGN = 2187
 tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
-if DEBUG_FLAG == True:
+if sys.argv[2] == 'Y':
     TIMES_TOTAL = 2
 else:
     TIMES_TOTAL = 100
@@ -97,7 +98,7 @@ def API(get_query, get_data=None, post_data=None, delay=True):
         return None
     if not response:
         response = ""
-    
+
     if delay == True:
         time.sleep(2)
     return response
@@ -122,7 +123,7 @@ class Regression_Test(unittest.TestCase):
             "JSON msg with wrong key"
         ]
 
-        pass_case = [0, 1]
+        pass_case = [0, 1, 4]
         for i in range(len(test_cases)):
             if i not in pass_case:
                 test_cases[i].encode(encoding='utf-8')
@@ -155,7 +156,8 @@ class Regression_Test(unittest.TestCase):
                                              LEN_ADDR))
             else:
                 self.assertTrue(EMPTY_REPLY in response[i]
-                                or MSG_STATUS_CODE_404 in response[i])
+                                or MSG_STATUS_CODE_404 in response[i]
+                                or MSG_STATUS_CODE_500 in response[i])
 
         # Time Statistics
         payload = "Who are we? Just a speck of dust within the galaxy?"
@@ -266,7 +268,7 @@ class Regression_Test(unittest.TestCase):
                 logging.debug("send transfer i = " + str(i) + ", response = " +
                               response[i])
 
-        pass_case = [0, 1, 2]
+        pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
             logging.debug("send transfer i = " + str(i) + ", response = " +
                           response[i])
@@ -291,7 +293,8 @@ class Regression_Test(unittest.TestCase):
                                  LEN_MSG_SIGN))
             else:
                 self.assertTrue(EMPTY_REPLY in response[i]
-                                or MSG_STATUS_CODE_404 in response[i])
+                                or MSG_STATUS_CODE_404 in response[i]
+                                or MSG_STATUS_CODE_500 in response[i])
 
         # Time Statistics
         time_cost = []
@@ -333,5 +336,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
 
-    if not unittest.TestResult().errors:
+    if len(unittest.TestResult().errors) != 0:
         exit(1)
