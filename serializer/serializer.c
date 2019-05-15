@@ -521,6 +521,15 @@ status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
     tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
     ascii_to_trytes(json_result->valuestring, payload_trytes);
 
+    // in case the payload is unicode, char more than 128 will result to an
+    // error status_t code
+    for (int i = 0; i < strlen(json_result->valuestring); i++) {
+      if (json_result->valuestring[i] & (unsigned)128) {
+        ret = SC_SERIALIZER_JSON_PARSE_UNICODE;
+        goto done;
+      }
+    }
+
     req->payload_trytes = payload_trytes;
     req->payload_trytes_size = payload_size;
   } else {
