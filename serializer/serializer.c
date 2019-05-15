@@ -291,8 +291,9 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message_format");
   if (json_result != NULL) {
-    strncmp("trytes", json_result->valuestring, 6);
-    raw_message = false;
+    if (!strncmp("trytes", json_result->valuestring, 6)) {
+      raw_message = false;
+    }
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
@@ -426,7 +427,7 @@ done:
   return ret;
 }
 
-status_t receive_mam_message_serialize(char** obj, const char** res) {
+status_t receive_mam_message_serialize(char** obj, char** const res) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {

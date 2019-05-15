@@ -122,7 +122,7 @@ status_t ta_find_transactions_obj_res_serialize(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t receive_mam_message_serialize(char** obj, const char** res);
+status_t receive_mam_message_serialize(char** obj, char** const res);
 
 /**
  * @brief Serialze type of send_mam_res_t to JSON string
