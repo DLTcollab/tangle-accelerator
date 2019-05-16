@@ -79,6 +79,10 @@ typedef enum {
   /**< JSON key not found */
   SC_CCLIENT_JSON_PARSE = 0x07 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< json parsing error, might the wrong format */
+  SC_CCLIENT_FLEX_TRITS = 0x09 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< Flex trits converting error */
+  SC_CCLIENT_JSON_CREATE = 0x0A | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
+  /**< json create object error, might OOM. */
 
   // Serializer module
   SC_SERIALIZER_JSON_CREATE = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,

@@ -186,6 +186,27 @@ status_t api_find_transactions_obj_by_tag(
     const iota_client_service_t* const service, const char* const obj,
     char** json_result);
 
+/**
+ * @brief Attach trytes to Tangle and return transaction hashes
+ *
+ * Persist trytes locally before sending to network.
+ * This allows for reattachments and prevents key reuse if trytes can't
+ * be recovered by querying the network after broadcasting.
+ *
+ * @param[in] tangle IOTA API parameter configurations
+ * @param[in] service IRI node end point service
+ * @param[in] obj trytes to attach, store and broadcast in json array
+ * @param[out] json_result Result containing list of attached transaction hashes
+ * in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_send_trytes(const iota_config_t* const tangle,
+                         const iota_client_service_t* const service,
+                         const char* const obj, char** json_result);
+
 #ifdef __cplusplus
 }
 #endif

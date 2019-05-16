@@ -74,6 +74,33 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
                                           ta_send_transfer_req_t* req);
 
 /**
+ * @brief Deserialze JSON string to hash8019_array_p
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] out_trytes trytes arrary in the request data in type of
+ * hash8019_array_p
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_send_trytes_req_deserialize(const char* const obj,
+                                        hash8019_array_p out_trytes);
+
+/**
+ * @brief Serialze hash8019_array_p to JSON string
+ *
+ * @param[in] trytes trytes array returned in type of hash8019_array_p
+ * @param[out] obj output serialized JSON values
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes,
+                                      char** obj);
+
+/**
  * @brief Serialze type of ta_get_transaction_object_res_t to JSON string
  *
  * @param[out] obj List of transaction object in JSON

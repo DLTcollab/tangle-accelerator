@@ -301,6 +301,53 @@ void test_deserialize_send_mam_message(void) {
   send_mam_req_free(&req);
 }
 
+void test_deserialize_ta_send_trytes_req(void) {
+  const char* json =
+      "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  hash8019_array_p out_trytes = hash8019_array_new();
+  ta_send_trytes_req_deserialize(json, out_trytes);
+
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
+  flex_trits_from_trytes(
+      hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  TEST_ASSERT_EQUAL_MEMORY(hash, hash_array_at(out_trytes, 0),
+                           NUM_TRYTES_SERIALIZED_TRANSACTION);
+
+  flex_trits_from_trytes(
+      hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  TEST_ASSERT_EQUAL_MEMORY(hash, hash_array_at(out_trytes, 1),
+                           NUM_TRYTES_SERIALIZED_TRANSACTION);
+
+  hash_array_free(out_trytes);
+}
+
+void test_serialize_ta_send_trytes_res(void) {
+  const char* json =
+      "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  char* json_result;
+  hash8019_array_p trytes = hash8019_array_new();
+
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
+  flex_trits_from_trytes(
+      hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, hash);
+
+  flex_trits_from_trytes(
+      hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, hash);
+
+  ta_send_trytes_res_serialize(trytes, &json_result);
+
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  hash_array_free(trytes);
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -313,5 +360,7 @@ int main(void) {
   RUN_TEST(test_serialize_send_mam_message);
   RUN_TEST(test_deserialize_send_mam_message_response);
   RUN_TEST(test_deserialize_send_mam_message);
+  RUN_TEST(test_deserialize_ta_send_trytes_req);
+  RUN_TEST(test_serialize_ta_send_trytes_res);
   return UNITY_END();
 }

@@ -116,6 +116,23 @@ void test_send_transfer(void) {
   printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
 }
 
+void test_send_trytes(void) {
+  const char* json =
+      "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK,
+        api_send_trytes(&ta_core.tangle, &ta_core.service, json, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of send_trytes: %lf\n", sum / TEST_COUNT);
+}
+
 void test_get_transaction_object(void) {
   char* json_result;
   double sum = 0;
@@ -212,6 +229,7 @@ int main(void) {
   RUN_TEST(test_get_tips_pair);
   RUN_TEST(test_get_tips);
   RUN_TEST(test_send_transfer);
+  RUN_TEST(test_send_trytes);
   RUN_TEST(test_get_transaction_object);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
