@@ -6,8 +6,8 @@ cc_library(
     hdrs = ["cache.h"],
     deps = [
         "//accelerator:ta_errors",
-        "//third_party:hiredis",
         "@entangled//cclient/types",
+        "@hiredis",
     ],
 )
 

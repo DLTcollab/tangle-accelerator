@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+load("//third_party:third_party.bzl", "third_party_deps")
 
 git_repository(
     name = "rules_iota",
@@ -28,5 +29,7 @@ load("@rules_iota//:defs.bzl", "iota_deps")
 load("@io_bazel_rules_docker//cc:image.bzl", _cc_image_repos = "repositories")
 
 iota_deps()
+
+third_party_deps()
 
 _cc_image_repos()
