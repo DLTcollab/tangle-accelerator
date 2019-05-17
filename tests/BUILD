@@ -48,7 +48,7 @@ cc_binary(
     ],
 )
 
-cc_binary(
+cc_test(
     name = "test_cache",
     srcs = [
         "test_cache.c",
