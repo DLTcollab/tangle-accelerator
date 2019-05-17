@@ -260,7 +260,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
-  if (json_result != NULL) {
+  if (json_result != NULL && json_result->valuestring != NULL) {
     tag_len = strnlen(json_result->valuestring, NUM_TRYTES_TAG);
 
     // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
@@ -297,7 +297,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  if (json_result != NULL) {
+  if (json_result != NULL && json_result->valuestring != NULL) {
     if (raw_message) {
       msg_len = strlen(json_result->valuestring) * 2;
       req->msg_len = msg_len * 3;
@@ -322,7 +322,8 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  if (json_result != NULL && (strnlen(json_result->valuestring, 81) == 81)) {
+  if (json_result != NULL && json_result->valuestring != NULL &&
+      (strnlen(json_result->valuestring, 81) == 81)) {
     flex_trits_from_trytes(address_trits, NUM_TRITS_HASH,
                            (const tryte_t*)json_result->valuestring,
                            NUM_TRYTES_HASH, NUM_TRYTES_HASH);
@@ -520,6 +521,15 @@ status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
     size_t payload_size = strlen(json_result->valuestring) * 2;
     tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
     ascii_to_trytes(json_result->valuestring, payload_trytes);
+
+    // in case the payload is unicode, char more than 128 will result to an
+    // error status_t code
+    for (int i = 0; i < strlen(json_result->valuestring); i++) {
+      if (json_result->valuestring[i] & (unsigned)128) {
+        ret = SC_SERIALIZER_JSON_PARSE_UNICODE;
+        goto done;
+      }
+    }
 
     req->payload_trytes = payload_trytes;
     req->payload_trytes_size = payload_size;

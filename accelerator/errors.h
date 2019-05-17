@@ -87,6 +87,9 @@ typedef enum {
   /**< NULL object in serializer */
   SC_SERIALIZER_JSON_PARSE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Fail to parse JSON object in serializer */
+  SC_SERIALIZER_JSON_PARSE_UNICODE =
+      0x04 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< unicode value in JSON */
 
   // Cache module
   SC_CACHE_NULL = 0x01 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
