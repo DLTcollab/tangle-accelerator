@@ -67,7 +67,7 @@ def valid_trytes(trytes, trytes_len):
     return True
 
 
-def API(get_query, get_data=None, post_data=None, delay=True):
+def API(get_query, get_data=None, post_data=None):
     try:
         if get_data is not None:
             r = requests.get(str(url + get_query + get_data), timeout=TIMEOUT)
@@ -99,8 +99,6 @@ def API(get_query, get_data=None, post_data=None, delay=True):
     if not response:
         response = ""
 
-    if delay == True:
-        time.sleep(2)
     return response
 
 
@@ -167,7 +165,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/mam/", post_data=post_data_json, delay=False)
+            API("/mam/", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "mam send message")
@@ -214,7 +212,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/mam/", get_data=bundle_hash, delay=False)
+            API("/mam/", get_data=bundle_hash)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "mam recv message")
@@ -303,10 +301,14 @@ class Regression_Test(unittest.TestCase):
         rand_addr = gen_rand_trytes(81)
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            post_data = "{\"value\":0,\"message\":\"" + str(
-                rand_msg) + "\",\"tag\":\"" + str(
-                    rand_tag) + "\",\"address\":\"" + str(rand_addr) + "\"}"
-            API("/transaction/", post_data=post_data, delay=False)
+            post_data = {
+                "value": 0,
+                "message": rand_msg,
+                "tag": rand_tag,
+                "address": rand_addr
+            }
+            post_data_json = json.dumps(post_data)
+            response.append(API("/transaction/", post_data=post_data_json))
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
