@@ -103,6 +103,7 @@ def API(get_query, get_data=None, post_data=None):
 
 
 class Regression_Test(unittest.TestCase):
+    """
     def test_mam_send_msg(self):
         logging.debug(
             "\n================================mam send msg================================"
@@ -312,6 +313,65 @@ class Regression_Test(unittest.TestCase):
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
+    """
+
+    def test_find_transactions_by_tag(self):
+        logging.debug(
+            "\n================================find transactions by tag================================"
+        )
+        # cmd
+        #    0. 27 trytes tag
+        #    1. 20 trytes tag
+        #    2. 30 trytes tag
+        #    3. unicode trytes tag
+        #    4. Null trytes tag
+
+        rand_tag_27 = gen_rand_trytes(27)
+        rand_tag_20 = gen_rand_trytes(20)
+        rand_tag_30 = gen_rand_trytes(30)
+
+        test_cases = [rand_tag_27, rand_tag_20, rand_tag_30, "半導體絆倒你", None]
+
+        rand_msg = gen_rand_trytes(30)
+        rand_addr = gen_rand_trytes(81)
+        transaction_response = []
+        for i in range(3):
+            post_data = {
+                "value": 0,
+                "message": rand_msg,
+                "tag": test_cases[i],
+                "address": rand_addr
+            }
+            post_data_json = json.dumps(post_data)
+            transaction_response.append(
+                API("/transaction/", post_data=post_data_json))
+
+        response = []
+        for t_case in test_cases:
+            logging.debug("testing case = " + repr(t_case))
+            if t_case != None:
+                response.append(API("/tag/", get_data=(t_case + "/hashes")))
+            else:
+                response.append(API("/tag/", get_data="/hashes"))
+
+        if DEBUG_FLAG == True:
+            for i in range(len(response)):
+                logging.debug("find transactions by tag i = " + str(i) +
+                              ", response = " + response[i])
+
+        for i in range(len(response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", response = " + response[i])
+            if i == 0:
+                self.assertEqual(rand_tag_27, response[i])
+            elif i == 1:
+                self.assertTrue(rand_tag_20 in response[i])
+            elif i == 2:
+                self.assertTrue(response[i] in rand_tag_30)
+            else:
+                self.assertTrue(EMPTY_REPLY in response[i]
+                                or MSG_STATUS_CODE_404 in response[i]
+                                or MSG_STATUS_CODE_500 in response[i])
 
 
 """
