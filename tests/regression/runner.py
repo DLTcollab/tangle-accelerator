@@ -14,8 +14,7 @@ if len(sys.argv) == 2:
     raw_url = sys.argv[1]
 elif len(sys.argv) == 3:
     raw_url = sys.argv[1]
-    # if DEBUG_FLAG field == `Y`, then starts debugging mode with less iteration in statistical tests
-    if sys.argv[2] == 'y' or sys.argv[2] == 'Y':
+    if sys.argv[2] == 'Y':
         DEBUG_FLAG = True
 else:
     raw_url = "localhost:8000"
@@ -34,7 +33,8 @@ LEN_ADDR = 81
 LEN_MSG_SIGN = 2187
 tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
-if sys.argv[2] == 'Y':
+# the 3rd arg is the option which determine if use the debugging mode of statistical tests
+if sys.argv[3] == 'Y':
     TIMES_TOTAL = 2
 else:
     TIMES_TOTAL = 100
@@ -138,11 +138,9 @@ class Regression_Test(unittest.TestCase):
                 post_data_json = json.dumps(post_data)
             response.append(API("/mam/", post_data=post_data_json))
 
-        if DEBUG_FLAG == True:
-            for i in range(len(response)):
-                logging.debug("send msg i = " + str(i) + ", res = " +
-                              response[i][0] + ", status code = " +
-                              response[i][1])
+        for i in range(len(response)):
+            logging.debug("send msg i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
 
         for i in range(len(response)):
             logging.debug("send msg i = " + str(i) + ", res = " +
@@ -260,11 +258,9 @@ class Regression_Test(unittest.TestCase):
             post_data_json = json.dumps(post_data)
             response.append(API("/transaction/", post_data=post_data_json))
 
-        if DEBUG_FLAG == True:
-            for i in range(len(response)):
-                logging.debug("send transfer i = " + str(i) + ", res = " +
-                              response[i][0] + ", status code = " +
-                              response[i][1])
+        for i in range(len(response)):
+            logging.debug("send transfer i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
 
         pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
@@ -340,11 +336,11 @@ class Regression_Test(unittest.TestCase):
             post_data_json = json.dumps(post_data)
             transaction_response.append(
                 API("/transaction/", post_data=post_data_json))
-        if DEBUG_FLAG == True:
-            for i in range(len(transaction_response)):
-                logging.debug("find transactions by tag i = " + str(i) +
-                              ", tx_res = " + transaction_response[i][0] +
-                              ", status code = " + transaction_response[i][1])
+
+        for i in range(len(transaction_response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", tx_res = " + transaction_response[i][0] +
+                          ", status code = " + transaction_response[i][1])
 
         response = []
         for t_case in test_cases:
@@ -354,11 +350,10 @@ class Regression_Test(unittest.TestCase):
             else:
                 response.append(API("/tag/", get_data="/hashes"))
 
-        if DEBUG_FLAG == True:
-            for i in range(len(response)):
-                logging.debug("find transactions by tag i = " + str(i) +
-                              ", res = " + response[i][0] +
-                              ", status code = " + response[i][1])
+        for i in range(len(response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", res = " + response[i][0] + ", status code = " +
+                          response[i][1])
 
         for i in range(len(response)):
             logging.debug("find transactions by tag i = " + str(i) +
