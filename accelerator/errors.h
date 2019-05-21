@@ -158,6 +158,12 @@ typedef enum {
   /**< Fail to create http object */
   SC_HTTP_NULL = 0x02 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
   /**< NULL object in http */
+  SC_HTTP_INVALID_REGEX = 0x03 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< Invalid URL regular expression rule in http */
+  SC_HTTP_URL_NOT_MATCH = 0x04 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< URL doesn't match regular expression rule */
+  SC_HTTP_URL_PARSE_ERROR = 0x05 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< URL parameter parsing error */
 } status_t;
 
 typedef enum {
