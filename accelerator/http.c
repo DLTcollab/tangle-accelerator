@@ -1,4 +1,6 @@
 #include <microhttpd.h>
+#include <regex.h>
+#include <string.h>
 
 #include "accelerator/http.h"
 #include "cJSON.h"
@@ -8,18 +10,119 @@ typedef struct ta_http_request_s {
   char *request;
 } ta_http_request_t;
 
+static status_t ta_http_url_matcher(char const *const url,
+                                    char *const regex_rule) {
+  if (regex_rule == NULL) {
+    return SC_HTTP_NULL;
+  }
+  regex_t reg;
+  status_t ret = SC_OK;
+  int reg_flag = REG_EXTENDED | REG_NOSUB;
+
+  if (regcomp(&reg, regex_rule, reg_flag) != 0) {
+    return SC_HTTP_INVALID_REGEX;
+  }
+  if (regexec(&reg, url, 0, NULL, 0) != 0) {
+    // Did not match pattern
+    ret = SC_HTTP_URL_NOT_MATCH;
+  }
+
+  regfree(&reg);
+  return ret;
+}
+
+static status_t ta_get_url_parameter(char const *const url, int index,
+                                     char **param) {
+  if (param == NULL) {
+    return SC_HTTP_NULL;
+  }
+  if (index < 0) {
+    index = 0;
+  }
+
+  // Copy url for parsing
+  int url_len = strlen(url);
+  char *tmp = NULL;
+  char url_parse[url_len + 1];
+  snprintf(url_parse, url_len, "%s", url);
+
+  // Parse URL with '/' and get parameter
+  tmp = strtok(url_parse, "/");
+  while (index) {
+    --index;
+    tmp = strtok(NULL, "/");
+  }
+  if (tmp == NULL) {
+    return SC_HTTP_URL_PARSE_ERROR;
+  }
+
+  // Copy found parameter
+  int token_len = strlen(tmp);
+  *param = (char *)malloc(token_len * sizeof(char));
+  if (param == NULL) {
+    return SC_HTTP_OOM;
+  }
+  strncpy(*param, tmp, token_len);
+  return SC_OK;
+}
+
 static status_t ta_http_process_request(ta_http_t *const http,
                                         char const *const url,
                                         char const *const payload,
                                         char **const out) {
-  // TODO: url parser
   // TODO: TA api callback functions,
   //      includes error response, handling option request
+  status_t ret = SC_OK;
+  char *tag = NULL;
+  char *hash = NULL;
+  char *bundle = NULL;
+
+  if (ta_http_url_matcher(url, "/address") == SC_OK) {
+    // TODO: generate_address
+  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes") == SC_OK) {
+    // TODO: find_transactions_by_tag
+    ret = ta_get_url_parameter(url, 1, &tag);
+    if (ret) {
+      goto done;
+    }
+  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}") == SC_OK) {
+    // TODO: find_transaction_obj_by_tag
+    ret = ta_get_url_parameter(url, 1, &tag);
+    if (ret) {
+      goto done;
+    }
+  } else if (ta_http_url_matcher(url, "/tips") == SC_OK) {
+    // TODO: get_tips
+  } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
+    // TODO: get_txn_to_approve
+  } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}") == SC_OK) {
+    // TODO: get_txn_obj
+    ret = ta_get_url_parameter(url, 1, &hash);
+    if (ret) {
+      goto done;
+    }
+  } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
+    // TODO: send_transfer
+  } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
+    // TODO: get_mam_msg
+    ret = ta_get_url_parameter(url, 1, &bundle);
+    if (ret) {
+      goto done;
+    }
+  } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
+    // TODO: send_mam_msg
+  } else {
+    // TODO: Invalid request
+  }
   cJSON *res = cJSON_CreateObject();
   cJSON_AddStringToObject(res, "message", "OK");
   *out = cJSON_PrintUnformatted(res);
 
-  return SC_OK;
+done:
+  free(tag);
+  free(hash);
+  free(bundle);
+  return ret;
 }
 
 static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind,
