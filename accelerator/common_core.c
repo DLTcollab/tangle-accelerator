@@ -160,47 +160,51 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
                         const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
   status_t ret = SC_OK;
-  ta_get_tips_res_t* get_txn_res = ta_get_tips_res_new();
+  get_transactions_to_approve_req_t* tx_approve_req =
+      get_transactions_to_approve_req_new();
+  get_transactions_to_approve_res_t* tx_approve_res =
+      get_transactions_to_approve_res_new();
   attach_to_tangle_req_t* attach_req = attach_to_tangle_req_new();
   attach_to_tangle_res_t* attach_res = attach_to_tangle_res_new();
-  if (!get_txn_res || !attach_req || !attach_res) {
+  if (!tx_approve_req || !tx_approve_res || !attach_req || !attach_res) {
     ret = SC_CCLIENT_OOM;
     goto done;
   }
 
-  // get transaction to approve
-  ret =
-      cclient_get_txn_to_approve(service, tangle->milestone_depth, get_txn_res);
-  if (ret) {
+  get_transactions_to_approve_req_set_depth(tx_approve_req,
+                                            tangle->milestone_depth);
+  if (iota_client_get_transactions_to_approve(service, tx_approve_req,
+                                              tx_approve_res)) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
 
-  // attach to tangle
-  memcpy(attach_req->trunk, hash243_stack_peek(get_txn_res->tips),
-         FLEX_TRIT_SIZE_243);
-  hash243_stack_pop(&get_txn_res->tips);
-  memcpy(attach_req->branch, hash243_stack_peek(get_txn_res->tips),
-         FLEX_TRIT_SIZE_243);
-  hash243_stack_pop(&get_txn_res->tips);
-  attach_req->mwm = tangle->mwm;
-
+  // copy trytes to attach_req->trytes
   flex_trit_t* elt = NULL;
-  HASH_ARRAY_FOREACH(trytes, elt) { hash_array_push(attach_req->trytes, elt); }
-
-  ret = ta_attach_to_tangle(attach_req, attach_res);
-  if (ret) {
+  HASH_ARRAY_FOREACH(trytes, elt) {
+    attach_to_tangle_req_trytes_add(attach_req, elt);
+  }
+  attach_to_tangle_req_init(
+      attach_req, get_transactions_to_approve_res_trunk(tx_approve_res),
+      get_transactions_to_approve_res_branch(tx_approve_res), tangle->mwm);
+  if (ta_attach_to_tangle(attach_req, attach_res) != SC_OK) {
     goto done;
   }
 
   // store and broadcast
-  ret = iota_client_store_and_broadcast(service,
-                                        (store_transactions_req_t*)attach_res);
-  if (ret) {
+  if (iota_client_store_and_broadcast(
+          service, (store_transactions_req_t*)attach_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
   }
 
+  // set the value of attach_res->trytes as output trytes result
+  memcpy(trytes, attach_res->trytes,
+         hash_array_len(attach_res->trytes) * sizeof(hash8019_array_p));
+
 done:
-  ta_get_tips_res_free(&get_txn_res);
+  get_transactions_to_approve_req_free(&tx_approve_req);
+  get_transactions_to_approve_res_free(&tx_approve_res);
   attach_to_tangle_req_free(&attach_req);
   attach_to_tangle_res_free(&attach_res);
   return ret;

@@ -193,6 +193,41 @@ TEST(GetBundleTest, RetreiveBundleTest) {
   bundle_transactions_free(&bundle);
 }
 
+TEST(SendTrytesTest, SendTrytesTest) {
+  size_t trits_count;
+  hash8019_array_p trytes = hash8019_array_new();
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
+  tryte_t trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {};
+
+  flex_trits_from_trytes(
+      tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, tx_trits);
+
+  flex_trits_from_trytes(
+      tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+      NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, tx_trits);
+
+  EXPECT_EQ(ta_send_trytes(&tangle, &service, trytes), SC_OK);
+
+  trits_count = flex_trits_to_trytes(
+      trytes_out, NUM_TRYTES_SERIALIZED_TRANSACTION, hash_array_at(trytes, 0),
+      NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+  trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
+  EXPECT_EQ(NUM_TRITS_SERIALIZED_TRANSACTION, trits_count);
+  EXPECT_STREQ(TRYTES_2673_1, (char*)trytes_out);
+
+  trits_count = flex_trits_to_trytes(
+      trytes_out, NUM_TRYTES_SERIALIZED_TRANSACTION, hash_array_at(trytes, 1),
+      NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+  trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
+  EXPECT_EQ(NUM_TRITS_SERIALIZED_TRANSACTION, trits_count);
+  EXPECT_STREQ(TRYTES_2673_2, (char*)trytes_out);
+
+  hash_array_free(trytes);
+}
+
 int main(int argc, char** argv) {
   // GTest manage to cleanup after testing, so only need to initialize here
   cache_init(REDIS_HOST, REDIS_PORT);

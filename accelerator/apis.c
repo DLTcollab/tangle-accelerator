@@ -317,3 +317,31 @@ done:
   ta_get_transaction_object_res_free(&txn_obj_res);
   return ret;
 }
+
+status_t api_send_trytes(const iota_config_t* const tangle,
+                         const iota_client_service_t* const service,
+                         const char* const obj, char** json_result) {
+  status_t ret = SC_OK;
+  hash8019_array_p trytes = hash8019_array_new();
+
+  if (!trytes) {
+    ret = SC_TA_OOM;
+    goto done;
+  }
+
+  ret = ta_send_trytes_req_deserialize(obj, trytes);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  ret = ta_send_trytes(tangle, service, trytes);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  ret = ta_send_trytes_res_serialize(trytes, json_result);
+
+done:
+  hash_array_free(trytes);
+  return ret;
+}

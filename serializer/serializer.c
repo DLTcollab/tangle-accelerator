@@ -75,6 +75,61 @@ static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue,
   return SC_OK;
 }
 
+static status_t ta_json_array_to_hash8019_array(cJSON const* const obj,
+                                                char const* const obj_name,
+                                                hash8019_array_p array) {
+  status_t ret = SC_OK;
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
+  cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
+  if (!cJSON_IsArray(json_item)) {
+    return SC_CCLIENT_JSON_PARSE;
+  }
+
+  cJSON* current_obj = NULL;
+  cJSON_ArrayForEach(current_obj, json_item) {
+    if (current_obj->valuestring != NULL) {
+      flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION,
+                             (tryte_t const*)current_obj->valuestring,
+                             NUM_TRYTES_SERIALIZED_TRANSACTION,
+                             NUM_TRYTES_SERIALIZED_TRANSACTION);
+      hash_array_push(array, hash);
+    }
+  }
+  return ret;
+}
+
+status_t ta_hash8019_array_to_json_array(hash8019_array_p array,
+                                         cJSON* const json_root,
+                                         char const* const obj_name) {
+  size_t array_count = 0;
+  cJSON* array_obj = NULL;
+  tryte_t trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {};
+  size_t trits_count = 0;
+  flex_trit_t* elt = NULL;
+
+  array_count = hash_array_len(array);
+  if (array_count > 0) {
+    array_obj = cJSON_CreateArray();
+    if (array_obj == NULL) {
+      return SC_SERIALIZER_JSON_CREATE;
+    }
+    cJSON_AddItemToObject(json_root, obj_name, array_obj);
+
+    HASH_ARRAY_FOREACH(array, elt) {
+      trits_count = flex_trits_to_trytes(
+          trytes_out, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
+          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+      trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
+      if (trits_count == 0) {
+        return SC_CCLIENT_FLEX_TRITS;
+      }
+      cJSON_AddItemToArray(array_obj,
+                           cJSON_CreateString((char const*)trytes_out));
+    }
+  }
+  return SC_OK;
+}
+
 static status_t ta_json_get_string(cJSON const* const json_obj,
                                    char const* const obj_name,
                                    char* const text) {
@@ -341,6 +396,53 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
 
 done:
   cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t ta_send_trytes_req_deserialize(const char* const obj,
+                                        hash8019_array_p out_trytes) {
+  if (obj == NULL || out_trytes == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+  ret = ta_json_array_to_hash8019_array(json_obj, "trytes", out_trytes);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes,
+                                      char** obj) {
+  if (trytes == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+
+  ret = ta_hash8019_array_to_json_array(trytes, json_root, "trytes");
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+
+done:
+  cJSON_Delete(json_root);
   return ret;
 }
 
