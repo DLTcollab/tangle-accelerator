@@ -14,8 +14,7 @@ if len(sys.argv) == 2:
     raw_url = sys.argv[1]
 elif len(sys.argv) == 3:
     raw_url = sys.argv[1]
-    # if DEBUG_FLAG field == `Y`, then starts debugging mode with less iteration in statistical tests
-    if sys.argv[2] == 'y' or sys.argv[2] == 'Y':
+    if sys.argv[2] == 'Y':
         DEBUG_FLAG = True
 else:
     raw_url = "localhost:8000"
@@ -24,17 +23,18 @@ headers = {'content-type': 'application/json'}
 
 # Utils:
 TIMEOUT = 100  # [sec]
-MSG_STATUS_CODE_405 = "[405] Method Not Allowed"
-MSG_STATUS_CODE_400 = "{\"message\":\"Invalid request header\"}"
-MSG_STATUS_CODE_404 = "404 Not Found"
-MSG_STATUS_CODE_500 = "500"
+STATUS_CODE_500 = "500"
+STATUS_CODE_405 = "405"
+STATUS_CODE_404 = "404"
+STATUS_CODE_400 = "400"
 EMPTY_REPLY = "000"
 LEN_TAG = 27
 LEN_ADDR = 81
 LEN_MSG_SIGN = 2187
 tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
 
-if sys.argv[2] == 'Y':
+# the 3rd arg is the option which determine if use the debugging mode of statistical tests
+if sys.argv[3] == 'Y':
     TIMES_TOTAL = 2
 else:
     TIMES_TOTAL = 100
@@ -67,14 +67,12 @@ def valid_trytes(trytes, trytes_len):
     return True
 
 
-def API(get_query, get_data=None, post_data=None, delay=True):
+def API(get_query, get_data=None, post_data=None):
     try:
+        response = []
         if get_data is not None:
             r = requests.get(str(url + get_query + get_data), timeout=TIMEOUT)
-            if r.status_code == 405:
-                response = MSG_STATUS_CODE_405
-            else:
-                response = r.text
+            response = [r.text, str(r.status_code)]
 
         elif post_data is not None:
             command = "curl " + str(
@@ -87,7 +85,8 @@ def API(get_query, get_data=None, post_data=None, delay=True):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             out, err = p.communicate()
-            response = str(out.decode('ascii'))
+            curl_response = str(out.decode('ascii'))
+            response = curl_response.split(", ")
         else:
             logging.error("Wrong request method")
             response = None
@@ -97,10 +96,8 @@ def API(get_query, get_data=None, post_data=None, delay=True):
         logging.error('\n    ' + repr(sys.exc_info()))
         return None
     if not response:
-        response = ""
+        response = None
 
-    if delay == True:
-        time.sleep(2)
     return response
 
 
@@ -141,23 +138,20 @@ class Regression_Test(unittest.TestCase):
                 post_data_json = json.dumps(post_data)
             response.append(API("/mam/", post_data=post_data_json))
 
-        if DEBUG_FLAG == True:
-            for i in range(len(response)):
-                logging.debug("send msg i = " + str(i) + ", response = " +
-                              response[i])
+        for i in range(len(response)):
+            logging.debug("send msg i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
 
         for i in range(len(response)):
-            logging.debug("send msg i = " + str(i) + ", res = " + response[i])
+            logging.debug("send msg i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
-                res_split = response[i].split(", ")
-                res_json = json.loads(res_split[0])
+                res_json = json.loads(response[i][0])
                 self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
                 self.assertTrue(valid_trytes(res_json["bundle_hash"],
                                              LEN_ADDR))
             else:
-                self.assertTrue(EMPTY_REPLY in response[i]
-                                or MSG_STATUS_CODE_404 in response[i]
-                                or MSG_STATUS_CODE_500 in response[i])
+                self.assertEqual(STATUS_CODE_500, response[i][1])
 
         # Time Statistics
         payload = "Who are we? Just a speck of dust within the galaxy?"
@@ -167,7 +161,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/mam/", post_data=post_data_json, delay=False)
+            API("/mam/", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "mam send message")
@@ -185,20 +179,22 @@ class Regression_Test(unittest.TestCase):
             "BDIQXTDSGAWKCEPEHLRBSLDEFLXMX9ZOTUZW9JAIGZBFKPICXPEO9LLVTNIFGFDWWHEQNZXJZ9F9HTXD9",
             "", "生れてすみません"
         ]
-        expect_cases = [
-            "{\"message\":\"ToBeOrNotToBe\"}", MSG_STATUS_CODE_405,
-            MSG_STATUS_CODE_405
-        ]
+
+        expect_cases = ["\"message\":\"ToBeOrNotToBe\""]
 
         response = []
         for t_case in test_cases:
             logging.debug("testing case = " + t_case)
             response.append(API("/mam/", get_data=t_case))
 
-        self.assertEqual(len(expect_cases), len(test_cases))
+        pass_case = [0]
         for i in range(len(test_cases)):
-            logging.debug("recv msg i = " + str(i) + ", res = " + response[i])
-            self.assertTrue(expect_cases[i] in response[i])
+            logging.debug("recv msg i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
+            if i in pass_case:
+                self.assertTrue(expect_cases[i] in response[i][0])
+            else:
+                self.assertEqual(STATUS_CODE_405, response[i][1])
 
         # Time Statistics
         # send a MAM message and use it as the the message to be searched
@@ -207,14 +203,13 @@ class Regression_Test(unittest.TestCase):
         post_data_json = json.dumps(post_data)
         response = API("/mam/", post_data=post_data_json)
 
-        res_split = response.split(", ")
-        res_json = json.loads(res_split[0])
+        res_json = json.loads(response[0])
         bundle_hash = res_json["bundle_hash"]
 
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/mam/", get_data=bundle_hash, delay=False)
+            API("/mam/", get_data=bundle_hash)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "mam recv message")
@@ -263,18 +258,16 @@ class Regression_Test(unittest.TestCase):
             post_data_json = json.dumps(post_data)
             response.append(API("/transaction/", post_data=post_data_json))
 
-        if DEBUG_FLAG == True:
-            for i in range(len(response)):
-                logging.debug("send transfer i = " + str(i) + ", response = " +
-                              response[i])
+        for i in range(len(response)):
+            logging.debug("send transfer i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
 
         pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
-            logging.debug("send transfer i = " + str(i) + ", response = " +
-                          response[i])
+            logging.debug("send transfer i = " + str(i) + ", res = " +
+                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
-                res_split = response[i].split(", ")
-                res_json = json.loads(res_split[0])
+                res_json = json.loads(response[i][0])
 
                 # we only send zero tx at this moment
                 self.assertEqual(0, res_json["value"])
@@ -291,10 +284,10 @@ class Regression_Test(unittest.TestCase):
                 self.assertTrue(
                     valid_trytes(res_json["signature_and_message_fragment"],
                                  LEN_MSG_SIGN))
+            elif i == 4:
+                self.assertEqual(EMPTY_REPLY, response[i][1])
             else:
-                self.assertTrue(EMPTY_REPLY in response[i]
-                                or MSG_STATUS_CODE_404 in response[i]
-                                or MSG_STATUS_CODE_500 in response[i])
+                self.assertEqual(STATUS_CODE_404, response[i][1])
 
         # Time Statistics
         time_cost = []
@@ -303,13 +296,85 @@ class Regression_Test(unittest.TestCase):
         rand_addr = gen_rand_trytes(81)
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            post_data = "{\"value\":0,\"message\":\"" + str(
-                rand_msg) + "\",\"tag\":\"" + str(
-                    rand_tag) + "\",\"address\":\"" + str(rand_addr) + "\"}"
-            API("/transaction/", post_data=post_data, delay=False)
+            post_data = {
+                "value": 0,
+                "message": rand_msg,
+                "tag": rand_tag,
+                "address": rand_addr
+            }
+            post_data_json = json.dumps(post_data)
+            response.append(API("/transaction/", post_data=post_data_json))
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
+
+    def test_find_transactions_by_tag(self):
+        logging.debug(
+            "\n================================find transactions by tag================================"
+        )
+        # cmd
+        #    0. 27 trytes tag
+        #    1. 20 trytes tag
+        #    2. 30 trytes tag
+        #    3. unicode trytes tag
+        #    4. Null trytes tag
+        rand_tag_27 = gen_rand_trytes(27)
+        rand_tag_20 = gen_rand_trytes(20)
+        rand_tag_30 = gen_rand_trytes(30)
+        test_cases = [rand_tag_27, rand_tag_20, rand_tag_30, "半導體絆倒你", None]
+
+        rand_msg = gen_rand_trytes(30)
+        rand_addr = gen_rand_trytes(81)
+        transaction_response = []
+        for i in range(3):
+            post_data = {
+                "value": 0,
+                "message": rand_msg,
+                "tag": test_cases[i],
+                "address": rand_addr
+            }
+            post_data_json = json.dumps(post_data)
+            transaction_response.append(
+                API("/transaction/", post_data=post_data_json))
+
+        for i in range(len(transaction_response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", tx_res = " + transaction_response[i][0] +
+                          ", status code = " + transaction_response[i][1])
+
+        response = []
+        for t_case in test_cases:
+            logging.debug("testing case = " + repr(t_case))
+            if t_case != None:
+                response.append(API("/tag/", get_data=(t_case + "/hashes")))
+            else:
+                response.append(API("/tag/", get_data="/hashes"))
+
+        for i in range(len(response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", res = " + response[i][0] + ", status code = " +
+                          response[i][1])
+
+        for i in range(len(response)):
+            logging.debug("find transactions by tag i = " + str(i) +
+                          ", res = " + response[i][0] + ", status code = " +
+                          response[i][1])
+            if i == 0 or i == 1:
+                tx_res_json = json.loads(transaction_response[i][0])
+                res_json = json.loads(response[i][0])
+
+                self.assertEqual(tx_res_json["hash"], res_json["hashes"][0])
+            else:
+                self.assertEqual(STATUS_CODE_400, response[i][1])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            response.append(API("/tag/", get_data=(rand_tag_27 + "/hashes")))
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "find transactions by tag")
 
 
 """
@@ -334,7 +399,7 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    unittest.main(argv=['first-arg-is-ignored'], exit=False)
+    unittest.main(argv=['first-arg-is-ignored'], exit=True)
 
     if len(unittest.TestResult().errors) != 0:
         exit(1)
