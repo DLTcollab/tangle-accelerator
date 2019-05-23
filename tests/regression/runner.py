@@ -142,8 +142,6 @@ class Regression_Test(unittest.TestCase):
                           response[i][0] + ", status code = " + response[i][1])
 
         for i in range(len(response)):
-            logging.debug("send msg i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 res_json = json.loads(response[i][0])
                 self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
@@ -188,8 +186,6 @@ class Regression_Test(unittest.TestCase):
 
         pass_case = [0]
         for i in range(len(test_cases)):
-            logging.debug("recv msg i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 self.assertTrue(expect_cases[i] in response[i][0])
             else:
@@ -263,8 +259,6 @@ class Regression_Test(unittest.TestCase):
 
         pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
-            logging.debug("send transfer i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 res_json = json.loads(response[i][0])
 
@@ -353,11 +347,9 @@ class Regression_Test(unittest.TestCase):
             logging.debug("find transactions by tag i = " + str(i) +
                           ", res = " + response[i][0] + ", status code = " +
                           response[i][1])
+        pass_case = [0, 1]
         for i in range(len(response)):
-            logging.debug("find transactions by tag i = " + str(i) +
-                          ", res = " + response[i][0] + ", status code = " +
-                          response[i][1])
-            if i == 0 or i == 1:
+            if i in pass_case:
                 tx_res_json = json.loads(transaction_response[i][0])
                 res_json = json.loads(response[i][0])
 
@@ -417,11 +409,9 @@ class Regression_Test(unittest.TestCase):
                           ", res = " + repr(response[i][0]) +
                           ", status code = " + repr(response[i][1]))
 
+        pass_case = [0]
         for i in range(len(response)):
-            logging.debug("get transactions object i = " + str(i) +
-                          ", res = " + repr(response[i][0]) +
-                          ", status code = " + repr(response[i][1]))
-            if i == 0:
+            if i in pass_case:
                 res_json = json.loads(response[i][0])
                 self.assertEqual(sent_transaction_hash, res_json["hash"])
             else:
@@ -461,6 +451,3 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
     unittest.main(argv=['first-arg-is-ignored'], exit=True)
-
-    if len(unittest.TestResult().errors) != 0:
-        exit(1)
