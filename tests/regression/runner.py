@@ -10,12 +10,17 @@ import random
 import logging
 
 DEBUG_FLAG = False
+TIMES_TOTAL = 100
 if len(sys.argv) == 2:
     raw_url = sys.argv[1]
-elif len(sys.argv) == 3:
+elif len(sys.argv) == 4:
     raw_url = sys.argv[1]
     if sys.argv[2] == 'Y':
         DEBUG_FLAG = True
+
+    # the 3rd arg is the option which determine if use the debugging mode of statistical tests
+    if sys.argv[3] == 'Y':
+        TIMES_TOTAL = 2
 else:
     raw_url = "localhost:8000"
 url = "http://" + raw_url
@@ -32,12 +37,6 @@ LEN_TAG = 27
 LEN_ADDR = 81
 LEN_MSG_SIGN = 2187
 tryte_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ9"
-
-# the 3rd arg is the option which determine if use the debugging mode of statistical tests
-if sys.argv[3] == 'Y':
-    TIMES_TOTAL = 2
-else:
-    TIMES_TOTAL = 100
 
 
 def eval_stat(time_cost, func_name):
@@ -143,8 +142,6 @@ class Regression_Test(unittest.TestCase):
                           response[i][0] + ", status code = " + response[i][1])
 
         for i in range(len(response)):
-            logging.debug("send msg i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 res_json = json.loads(response[i][0])
                 self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
@@ -189,8 +186,6 @@ class Regression_Test(unittest.TestCase):
 
         pass_case = [0]
         for i in range(len(test_cases)):
-            logging.debug("recv msg i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 self.assertTrue(expect_cases[i] in response[i][0])
             else:
@@ -264,8 +259,6 @@ class Regression_Test(unittest.TestCase):
 
         pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
-            logging.debug("send transfer i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
             if i in pass_case:
                 res_json = json.loads(response[i][0])
 
@@ -354,12 +347,9 @@ class Regression_Test(unittest.TestCase):
             logging.debug("find transactions by tag i = " + str(i) +
                           ", res = " + response[i][0] + ", status code = " +
                           response[i][1])
-
+        pass_case = [0, 1]
         for i in range(len(response)):
-            logging.debug("find transactions by tag i = " + str(i) +
-                          ", res = " + response[i][0] + ", status code = " +
-                          response[i][1])
-            if i == 0 or i == 1:
+            if i in pass_case:
                 tx_res_json = json.loads(transaction_response[i][0])
                 res_json = json.loads(response[i][0])
 
@@ -375,6 +365,67 @@ class Regression_Test(unittest.TestCase):
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "find transactions by tag")
+
+    def test_get_transactions_object(self):
+        logging.debug(
+            "\n================================get transactions object================================"
+        )
+        # cmd
+        #    0. 81 trytes transaction hash
+        #    1. 20 trytes transaction hash
+        #    2. 100 trytes transaction hash
+        #    3. unicode transaction hash
+        #    4. Null transaction hash
+        rand_tag = gen_rand_trytes(27)
+        rand_msg = gen_rand_trytes(30)
+        rand_addr = gen_rand_trytes(81)
+        post_data = {
+            "value": 0,
+            "message": rand_msg,
+            "tag": rand_tag,
+            "address": rand_addr
+        }
+        post_data_json = json.dumps(post_data)
+        sent_transaction_obj = API("/transaction/", post_data=post_data_json)
+
+        logging.debug("sent_transaction_obj = " +
+                      ", sent_transaction_obj[0] = " +
+                      sent_transaction_obj[0] +
+                      ", sent_transaction_obj[1] = " + sent_transaction_obj[1])
+        sent_transaction_obj_json = json.loads(sent_transaction_obj[0])
+        sent_transaction_hash = sent_transaction_obj_json["hash"]
+        test_cases = [
+            sent_transaction_hash, sent_transaction_hash[0:19],
+            sent_transaction_hash + gen_rand_trytes(19), "工程師批哩趴啦的生活", ""
+        ]
+
+        response = []
+        for t_case in test_cases:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/transaction/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("get transactions object i = " + str(i) +
+                          ", res = " + repr(response[i][0]) +
+                          ", status code = " + repr(response[i][1]))
+
+        pass_case = [0]
+        for i in range(len(response)):
+            if i in pass_case:
+                res_json = json.loads(response[i][0])
+                self.assertEqual(sent_transaction_hash, res_json["hash"])
+            else:
+                self.assertEqual(STATUS_CODE_405, response[i][1])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            response.append(
+                API("/transaction/", get_data=sent_transaction_hash))
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "get transactions object")
 
 
 """
@@ -400,6 +451,3 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
     unittest.main(argv=['first-arg-is-ignored'], exit=True)
-
-    if len(unittest.TestResult().errors) != 0:
-        exit(1)
