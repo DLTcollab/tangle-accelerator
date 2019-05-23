@@ -427,6 +427,156 @@ class Regression_Test(unittest.TestCase):
 
         eval_stat(time_cost, "get transactions object")
 
+    def test_find_transactions_obj_by_tag(self):
+        logging.debug(
+            "\n================================find transactions object by tag================================"
+        )
+
+        # cmd
+        #    0. 27 trytes tag
+        #    1. 20 trytes tag
+        #    2. multiple transactions share the same 27 trytes tag
+        #    3. 30 trytes tag
+        #    4. unicode trytes tag
+        #    5. Null trytes tag
+        rand_tag_27 = gen_rand_trytes(27)
+        rand_tag_27_multi = gen_rand_trytes(27)
+        rand_tag_20 = gen_rand_trytes(20)
+        rand_tag_30 = gen_rand_trytes(30)
+        test_cases = [
+            rand_tag_27, rand_tag_27_multi, rand_tag_20, rand_tag_30, "半導體絆倒你",
+            ""
+        ]
+
+        rand_msg = gen_rand_trytes(30)
+        rand_addr = gen_rand_trytes(81)
+        transaction_response = []
+        for i in range(3):
+            post_data = {
+                "value": 0,
+                "message": rand_msg,
+                "tag": test_cases[i],
+                "address": rand_addr
+            }
+            post_data_json = json.dumps(post_data)
+
+            if i == 2:
+                transaction_response.append([
+                    API("/transaction/", post_data=post_data_json),
+                    API("/transaction/", post_data=post_data_json)
+                ])
+            else:
+                transaction_response.append(
+                    API("/transaction/", post_data=post_data_json))
+
+        for i in range(len(transaction_response)):
+            logging.debug("find transactions obj by tag i = " + str(i) +
+                          ", tx_res = " + repr(transaction_response[i][0]))
+
+        response = []
+        for t_case in test_cases:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/tag/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("find transactions obj by tag i = " + str(i) +
+                          ", res = " + repr(response[i]))
+
+        for i in range(len(response)):
+            if i == 0 or i == 1:
+                tx_res_json = json.loads(transaction_response[i][0])
+                res_tx_json = json.loads(response[i][0])
+                res_json = res_tx_json["transactions"][0]
+
+                self.assertEqual(tx_res_json["hash"], res_json["hash"])
+                self.assertEqual(tx_res_json["signature_and_message_fragment"],
+                                 res_json["signature_and_message_fragment"])
+                self.assertEqual(tx_res_json["address"], res_json["address"])
+                self.assertEqual(tx_res_json["value"], res_json["value"])
+                self.assertEqual(tx_res_json["obsolete_tag"],
+                                 res_json["obsolete_tag"])
+                self.assertEqual(tx_res_json["timestamp"],
+                                 res_json["timestamp"])
+                self.assertEqual(tx_res_json["last_index"],
+                                 res_json["last_index"])
+                self.assertEqual(tx_res_json["bundle_hash"],
+                                 res_json["bundle_hash"])
+                self.assertEqual(tx_res_json["trunk_transaction_hash"],
+                                 res_json["trunk_transaction_hash"])
+                self.assertEqual(tx_res_json["branch_transaction_hash"],
+                                 res_json["branch_transaction_hash"])
+                self.assertEqual(tx_res_json["tag"], res_json["tag"])
+                self.assertEqual(tx_res_json["attachment_timestamp"],
+                                 res_json["attachment_timestamp"])
+                self.assertEqual(
+                    tx_res_json["attachment_timestamp_lower_bound"],
+                    res_json["attachment_timestamp_lower_bound"])
+                self.assertEqual(
+                    tx_res_json["attachment_timestamp_upper_bound"],
+                    res_json["attachment_timestamp_upper_bound"])
+                self.assertEqual(tx_res_json["nonce"], res_json["nonce"])
+            elif i == 2:
+                res_tx_json = json.loads(response[i][0])
+                res_json = []
+                tx_res_json = []
+                for j in range(len(transaction_response[i])):
+                    res_json.append(res_tx_json["transactions"][j])
+                    tx_res_json.append(
+                        json.loads(transaction_response[i][j][0]))
+                
+                for j in range(len(tx_res_json)):
+                    case_examined_equal = False
+                    for k in range(len(res_json)):
+                        if tx_res_json[j]["hash"] == res_json[k]["hash"]:
+                            self.assertEqual(
+                                tx_res_json[j]["signature_and_message_fragment"],
+                                res_json[k]["signature_and_message_fragment"])
+                            self.assertEqual(tx_res_json[j]["address"],
+                                            res_json[k]["address"])
+                            self.assertEqual(tx_res_json[j]["value"],
+                                            res_json[k]["value"])
+                            self.assertEqual(tx_res_json[j]["obsolete_tag"],
+                                            res_json[k]["obsolete_tag"])
+                            self.assertEqual(tx_res_json[j]["timestamp"],
+                                            res_json[k]["timestamp"])
+                            self.assertEqual(tx_res_json[j]["last_index"],
+                                            res_json[k]["last_index"])
+                            self.assertEqual(tx_res_json[j]["bundle_hash"],
+                                            res_json[k]["bundle_hash"])
+                            self.assertEqual(
+                                tx_res_json[j]["trunk_transaction_hash"],
+                                res_json[k]["trunk_transaction_hash"])
+                            self.assertEqual(
+                                tx_res_json[j]["branch_transaction_hash"],
+                                res_json[k]["branch_transaction_hash"])
+                            self.assertEqual(tx_res_json[j]["tag"],
+                                            res_json[k]["tag"])
+                            self.assertEqual(
+                                tx_res_json[j]["attachment_timestamp"],
+                                res_json[k]["attachment_timestamp"])
+                            self.assertEqual(
+                                tx_res_json[j]["attachment_timestamp_lower_bound"],
+                                res_json[k]["attachment_timestamp_lower_bound"])
+                            self.assertEqual(
+                                tx_res_json[j]["attachment_timestamp_upper_bound"],
+                                res_json[k]["attachment_timestamp_upper_bound"])
+                            self.assertEqual(tx_res_json[j]["nonce"],
+                                            res_json[k]["nonce"])
+                            case_examined_equal = True
+                            break
+                    self.assertTrue(case_examined_equal)
+            else:
+                self.assertEqual(STATUS_CODE_400, response[i][1])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            response.append(API("/tag/", get_data=rand_tag_27))
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "find transactions obj by tag")
+
 
 """
     API List
