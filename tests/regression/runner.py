@@ -68,10 +68,10 @@ def valid_trytes(trytes, trytes_len):
 
 def API(get_query, get_data=None, post_data=None):
     try:
-        response = []
+        response = {}
         if get_data is not None:
             r = requests.get(str(url + get_query + get_data), timeout=TIMEOUT)
-            response = [r.text, str(r.status_code)]
+            response = {"content": r.text, "status_code": str(r.status_code)}
 
         elif post_data is not None:
             command = "curl " + str(
@@ -85,7 +85,10 @@ def API(get_query, get_data=None, post_data=None):
                                  stderr=subprocess.PIPE)
             out, err = p.communicate()
             curl_response = str(out.decode('ascii'))
-            response = curl_response.split(", ")
+            response = {
+                "content": curl_response.split(", ")[0],
+                "status_code": curl_response.split(", ")[1]
+            }
         else:
             logging.error("Wrong request method")
             response = None
@@ -139,16 +142,17 @@ class Regression_Test(unittest.TestCase):
 
         for i in range(len(response)):
             logging.debug("send msg i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
+                          response[i]["content"] + ", status code = " +
+                          response[i]["status_code"])
 
         for i in range(len(response)):
             if i in pass_case:
-                res_json = json.loads(response[i][0])
+                res_json = json.loads(response[i]["content"])
                 self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
                 self.assertTrue(valid_trytes(res_json["bundle_hash"],
                                              LEN_ADDR))
             else:
-                self.assertEqual(STATUS_CODE_500, response[i][1])
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
 
         # Time Statistics
         payload = "Who are we? Just a speck of dust within the galaxy?"
@@ -187,9 +191,9 @@ class Regression_Test(unittest.TestCase):
         pass_case = [0]
         for i in range(len(test_cases)):
             if i in pass_case:
-                self.assertTrue(expect_cases[i] in response[i][0])
+                self.assertTrue(expect_cases[i] in response[i]["content"])
             else:
-                self.assertEqual(STATUS_CODE_405, response[i][1])
+                self.assertEqual(STATUS_CODE_405, response[i]["status_code"])
 
         # Time Statistics
         # send a MAM message and use it as the the message to be searched
@@ -198,7 +202,7 @@ class Regression_Test(unittest.TestCase):
         post_data_json = json.dumps(post_data)
         response = API("/mam/", post_data=post_data_json)
 
-        res_json = json.loads(response[0])
+        res_json = json.loads(response["content"])
         bundle_hash = res_json["bundle_hash"]
 
         time_cost = []
@@ -255,12 +259,13 @@ class Regression_Test(unittest.TestCase):
 
         for i in range(len(response)):
             logging.debug("send transfer i = " + str(i) + ", res = " +
-                          response[i][0] + ", status code = " + response[i][1])
+                          response[i]["content"] + ", status code = " +
+                          response[i]["status_code"])
 
         pass_case = [0, 1, 2, 3]
         for i in range(len(response)):
             if i in pass_case:
-                res_json = json.loads(response[i][0])
+                res_json = json.loads(response[i]["content"])
 
                 # we only send zero tx at this moment
                 self.assertEqual(0, res_json["value"])
@@ -278,9 +283,9 @@ class Regression_Test(unittest.TestCase):
                     valid_trytes(res_json["signature_and_message_fragment"],
                                  LEN_MSG_SIGN))
             elif i == 4:
-                self.assertEqual(EMPTY_REPLY, response[i][1])
+                self.assertEqual(EMPTY_REPLY, response[i]["status_code"])
             else:
-                self.assertEqual(STATUS_CODE_404, response[i][1])
+                self.assertEqual(STATUS_CODE_404, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -332,8 +337,9 @@ class Regression_Test(unittest.TestCase):
 
         for i in range(len(transaction_response)):
             logging.debug("find transactions by tag i = " + str(i) +
-                          ", tx_res = " + transaction_response[i][0] +
-                          ", status code = " + transaction_response[i][1])
+                          ", tx_res = " + transaction_response[i]["content"] +
+                          ", status code = " +
+                          transaction_response[i]["status_code"])
 
         response = []
         for t_case in test_cases:
@@ -345,17 +351,19 @@ class Regression_Test(unittest.TestCase):
 
         for i in range(len(response)):
             logging.debug("find transactions by tag i = " + str(i) +
-                          ", res = " + response[i][0] + ", status code = " +
-                          response[i][1])
+                          ", res = " + response[i]["content"] +
+                          ", status code = " + response[i]["status_code"])
         pass_case = [0, 1]
         for i in range(len(response)):
             if i in pass_case:
-                tx_res_json = json.loads(transaction_response[i][0])
-                res_json = json.loads(response[i][0])
+                expected_tx_json = json.loads(
+                    transaction_response[i]["content"])
+                res_json = json.loads(response[i]["content"])
 
-                self.assertEqual(tx_res_json["hash"], res_json["hashes"][0])
+                self.assertEqual(expected_tx_json["hash"],
+                                 res_json["hashes"][0])
             else:
-                self.assertEqual(STATUS_CODE_400, response[i][1])
+                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -390,9 +398,10 @@ class Regression_Test(unittest.TestCase):
 
         logging.debug("sent_transaction_obj = " +
                       ", sent_transaction_obj[0] = " +
-                      sent_transaction_obj[0] +
-                      ", sent_transaction_obj[1] = " + sent_transaction_obj[1])
-        sent_transaction_obj_json = json.loads(sent_transaction_obj[0])
+                      sent_transaction_obj["content"] +
+                      ", sent_transaction_obj[1] = " +
+                      sent_transaction_obj["status_code"])
+        sent_transaction_obj_json = json.loads(sent_transaction_obj["content"])
         sent_transaction_hash = sent_transaction_obj_json["hash"]
         test_cases = [
             sent_transaction_hash, sent_transaction_hash[0:19],
@@ -406,16 +415,17 @@ class Regression_Test(unittest.TestCase):
 
         for i in range(len(response)):
             logging.debug("get transactions object i = " + str(i) +
-                          ", res = " + repr(response[i][0]) +
-                          ", status code = " + repr(response[i][1]))
+                          ", res = " + repr(response[i]["content"]) +
+                          ", status code = " +
+                          repr(response[i]["status_code"]))
 
         pass_case = [0]
         for i in range(len(response)):
             if i in pass_case:
-                res_json = json.loads(response[i][0])
+                res_json = json.loads(response[i]["content"])
                 self.assertEqual(sent_transaction_hash, res_json["hash"])
             else:
-                self.assertEqual(STATUS_CODE_405, response[i][1])
+                self.assertEqual(STATUS_CODE_405, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -467,11 +477,11 @@ class Regression_Test(unittest.TestCase):
                 ])
             else:
                 transaction_response.append(
-                    API("/transaction/", post_data=post_data_json))
+                    [API("/transaction/", post_data=post_data_json)])
 
         for i in range(len(transaction_response)):
             logging.debug("find transactions obj by tag i = " + str(i) +
-                          ", tx_res = " + repr(transaction_response[i][0]))
+                          ", tx_res = " + repr(transaction_response[i]))
 
         response = []
         for t_case in test_cases:
@@ -481,92 +491,67 @@ class Regression_Test(unittest.TestCase):
         for i in range(len(response)):
             logging.debug("find transactions obj by tag i = " + str(i) +
                           ", res = " + repr(response[i]))
-
+        pass_case = [0, 1, 2]
         for i in range(len(response)):
-            if i == 0 or i == 1:
-                tx_res_json = json.loads(transaction_response[i][0])
-                res_tx_json = json.loads(response[i][0])
-                res_json = res_tx_json["transactions"][0]
-
-                self.assertEqual(tx_res_json["hash"], res_json["hash"])
-                self.assertEqual(tx_res_json["signature_and_message_fragment"],
-                                 res_json["signature_and_message_fragment"])
-                self.assertEqual(tx_res_json["address"], res_json["address"])
-                self.assertEqual(tx_res_json["value"], res_json["value"])
-                self.assertEqual(tx_res_json["obsolete_tag"],
-                                 res_json["obsolete_tag"])
-                self.assertEqual(tx_res_json["timestamp"],
-                                 res_json["timestamp"])
-                self.assertEqual(tx_res_json["last_index"],
-                                 res_json["last_index"])
-                self.assertEqual(tx_res_json["bundle_hash"],
-                                 res_json["bundle_hash"])
-                self.assertEqual(tx_res_json["trunk_transaction_hash"],
-                                 res_json["trunk_transaction_hash"])
-                self.assertEqual(tx_res_json["branch_transaction_hash"],
-                                 res_json["branch_transaction_hash"])
-                self.assertEqual(tx_res_json["tag"], res_json["tag"])
-                self.assertEqual(tx_res_json["attachment_timestamp"],
-                                 res_json["attachment_timestamp"])
-                self.assertEqual(
-                    tx_res_json["attachment_timestamp_lower_bound"],
-                    res_json["attachment_timestamp_lower_bound"])
-                self.assertEqual(
-                    tx_res_json["attachment_timestamp_upper_bound"],
-                    res_json["attachment_timestamp_upper_bound"])
-                self.assertEqual(tx_res_json["nonce"], res_json["nonce"])
-            elif i == 2:
-                res_tx_json = json.loads(response[i][0])
+            if i in pass_case:
+                res_tx_json = json.loads(response[i]["content"])
                 res_json = []
-                tx_res_json = []
+                expected_tx_json = []
                 for j in range(len(transaction_response[i])):
                     res_json.append(res_tx_json["transactions"][j])
-                    tx_res_json.append(
-                        json.loads(transaction_response[i][j][0]))
-                
-                for j in range(len(tx_res_json)):
+                    expected_tx_json.append(
+                        json.loads(transaction_response[i][j]["content"]))
+
+                for j in range(len(expected_tx_json)):
                     case_examined_equal = False
                     for k in range(len(res_json)):
-                        if tx_res_json[j]["hash"] == res_json[k]["hash"]:
+                        if expected_tx_json[j]["hash"] == res_json[k]["hash"]:
                             self.assertEqual(
-                                tx_res_json[j]["signature_and_message_fragment"],
+                                expected_tx_json[j]
+                                ["signature_and_message_fragment"],
                                 res_json[k]["signature_and_message_fragment"])
-                            self.assertEqual(tx_res_json[j]["address"],
-                                            res_json[k]["address"])
-                            self.assertEqual(tx_res_json[j]["value"],
-                                            res_json[k]["value"])
-                            self.assertEqual(tx_res_json[j]["obsolete_tag"],
-                                            res_json[k]["obsolete_tag"])
-                            self.assertEqual(tx_res_json[j]["timestamp"],
-                                            res_json[k]["timestamp"])
-                            self.assertEqual(tx_res_json[j]["last_index"],
-                                            res_json[k]["last_index"])
-                            self.assertEqual(tx_res_json[j]["bundle_hash"],
-                                            res_json[k]["bundle_hash"])
+                            self.assertEqual(expected_tx_json[j]["address"],
+                                             res_json[k]["address"])
+                            self.assertEqual(expected_tx_json[j]["value"],
+                                             res_json[k]["value"])
                             self.assertEqual(
-                                tx_res_json[j]["trunk_transaction_hash"],
+                                expected_tx_json[j]["obsolete_tag"],
+                                res_json[k]["obsolete_tag"])
+                            self.assertEqual(expected_tx_json[j]["timestamp"],
+                                             res_json[k]["timestamp"])
+                            self.assertEqual(expected_tx_json[j]["last_index"],
+                                             res_json[k]["last_index"])
+                            self.assertEqual(
+                                expected_tx_json[j]["bundle_hash"],
+                                res_json[k]["bundle_hash"])
+                            self.assertEqual(
+                                expected_tx_json[j]["trunk_transaction_hash"],
                                 res_json[k]["trunk_transaction_hash"])
                             self.assertEqual(
-                                tx_res_json[j]["branch_transaction_hash"],
+                                expected_tx_json[j]["branch_transaction_hash"],
                                 res_json[k]["branch_transaction_hash"])
-                            self.assertEqual(tx_res_json[j]["tag"],
-                                            res_json[k]["tag"])
+                            self.assertEqual(expected_tx_json[j]["tag"],
+                                             res_json[k]["tag"])
                             self.assertEqual(
-                                tx_res_json[j]["attachment_timestamp"],
+                                expected_tx_json[j]["attachment_timestamp"],
                                 res_json[k]["attachment_timestamp"])
                             self.assertEqual(
-                                tx_res_json[j]["attachment_timestamp_lower_bound"],
-                                res_json[k]["attachment_timestamp_lower_bound"])
+                                expected_tx_json[j]
+                                ["attachment_timestamp_lower_bound"],
+                                res_json[k]
+                                ["attachment_timestamp_lower_bound"])
                             self.assertEqual(
-                                tx_res_json[j]["attachment_timestamp_upper_bound"],
-                                res_json[k]["attachment_timestamp_upper_bound"])
-                            self.assertEqual(tx_res_json[j]["nonce"],
-                                            res_json[k]["nonce"])
+                                expected_tx_json[j]
+                                ["attachment_timestamp_upper_bound"],
+                                res_json[k]
+                                ["attachment_timestamp_upper_bound"])
+                            self.assertEqual(expected_tx_json[j]["nonce"],
+                                             res_json[k]["nonce"])
                             case_examined_equal = True
                             break
                     self.assertTrue(case_examined_equal)
             else:
-                self.assertEqual(STATUS_CODE_400, response[i][1])
+                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
