@@ -66,63 +66,66 @@ static status_t ta_get_url_parameter(char const *const url, int index,
   return SC_OK;
 }
 
-static status_t ta_http_process_request(ta_http_t *const http,
-                                        char const *const url,
-                                        char const *const payload,
-                                        char **const out) {
+static int set_response_content(status_t ret, char **json_result) {
+  int http_ret;
+  if (ret == SC_OK) {
+    return MHD_HTTP_OK;
+  }
+
+  cJSON *json_obj = cJSON_CreateObject();
+  switch (ret & SC_ERROR_MASK) {
+    case 0x03:
+      http_ret = MHD_HTTP_NOT_FOUND;
+      cJSON_AddStringToObject(json_obj, "message", "Request not found");
+      break;
+    case 0x07:
+      http_ret = MHD_HTTP_BAD_REQUEST;
+      cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+      break;
+    default:
+      http_ret = MHD_HTTP_INTERNAL_SERVER_ERROR;
+      cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+      break;
+  }
+  *json_result = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
+  return http_ret;
+}
+
+static inline int process_generate_address_request(ta_http_t *const http,
+                                                   char **const out) {
+  status_t ret = SC_OK;
+  ret = api_generate_address(&http->core->tangle, &http->core->service, out);
+  return set_response_content(ret, out);
+}
+
+static int ta_http_process_request(ta_http_t *const http, char const *const url,
+                                   char const *const payload,
+                                   char **const out) {
   // TODO: TA api callback functions,
   //      includes error response, handling option request
-  status_t ret = SC_OK;
-  char *tag = NULL;
-  char *hash = NULL;
-  char *bundle = NULL;
-
   if (ta_http_url_matcher(url, "/address") == SC_OK) {
-    // TODO: generate_address
+    return process_generate_address_request(http, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes") == SC_OK) {
     // TODO: find_transactions_by_tag
-    ret = ta_get_url_parameter(url, 1, &tag);
-    if (ret) {
-      goto done;
-    }
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}") == SC_OK) {
     // TODO: find_transaction_obj_by_tag
-    ret = ta_get_url_parameter(url, 1, &tag);
-    if (ret) {
-      goto done;
-    }
   } else if (ta_http_url_matcher(url, "/tips") == SC_OK) {
     // TODO: get_tips
   } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
     // TODO: get_txn_to_approve
   } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}") == SC_OK) {
     // TODO: get_txn_obj
-    ret = ta_get_url_parameter(url, 1, &hash);
-    if (ret) {
-      goto done;
-    }
   } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
     // TODO: send_transfer
   } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
     // TODO: get_mam_msg
-    ret = ta_get_url_parameter(url, 1, &bundle);
-    if (ret) {
-      goto done;
-    }
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
     // TODO: send_mam_msg
   } else {
     // TODO: Invalid request
   }
-  cJSON *res = cJSON_CreateObject();
-  cJSON_AddStringToObject(res, "message", "OK");
-  *out = cJSON_PrintUnformatted(res);
-
-done:
-  free(tag);
-  free(hash);
-  free(bundle);
-  return ret;
+  return MHD_HTTP_OK;
 }
 
 static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind,
@@ -195,7 +198,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
   }
 
   /* decide which API function should be called */
-  ta_http_process_request(api, url, http_req->request, &response_buf);
+  ret = ta_http_process_request(api, url, http_req->request, &response_buf);
 
   response = MHD_create_response_from_buffer(strlen(response_buf), response_buf,
                                              MHD_RESPMEM_MUST_COPY);
@@ -214,7 +217,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
                             "application/json");
   }
 
-  ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
+  ret = MHD_queue_response(connection, ret, response);
   MHD_destroy_response(response);
 
 cleanup:
