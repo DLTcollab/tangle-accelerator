@@ -301,6 +301,40 @@ int main(int argc, char* argv[]) {
       });
 
   /**
+   * @method {post} /tryte send trytes
+   *
+   * @return {String} transaction object
+   */
+  mux.handle("/tryte")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
+
+        if (req.header("content-type").find("application/json") ==
+            std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message",
+                                  "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_send_trytes(&ta_core.tangle, &ta_core.service,
+                                req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  /**
    * @method {get} {*} Client bad request
    * @method {options} {*} Get server information
    *
