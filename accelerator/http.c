@@ -99,6 +99,18 @@ static inline int process_generate_address_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_find_txn_by_tag_request(ta_http_t *const http,
+                                                  char const *const url,
+                                                  char **const out) {
+  status_t ret = SC_OK;
+  char *tag = NULL;
+  ret = ta_get_url_parameter(url, 1, &tag);
+  if (ret == SC_OK) {
+    ret = api_find_transactions_by_tag(&http->core->service, tag, out);
+  }
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -107,7 +119,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   if (ta_http_url_matcher(url, "/address") == SC_OK) {
     return process_generate_address_request(http, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes") == SC_OK) {
-    // TODO: find_transactions_by_tag
+    return process_find_txn_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}") == SC_OK) {
     // TODO: find_transaction_obj_by_tag
   } else if (ta_http_url_matcher(url, "/tips") == SC_OK) {
