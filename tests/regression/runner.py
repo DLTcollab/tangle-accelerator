@@ -117,27 +117,27 @@ class Regression_Test(unittest.TestCase):
         #    4. Empty msg [failed]
         #    5. Non-JSON, plain text msg [failed]
         #    6. JSON msg with wrong key (not "message") [failed]
-        test_cases = [
+        query_string = [
             "ToBeOrNotToBe", "I met my soulmate. She didnt", "當工程師好開心阿",
             "今夜は月が綺麗ですね", "", "Non-JSON, plain text msg",
             "JSON msg with wrong key"
         ]
 
         pass_case = [0, 1, 4]
-        for i in range(len(test_cases)):
+        for i in range(len(query_string)):
             if i not in pass_case:
-                test_cases[i].encode(encoding='utf-8')
+                query_string[i].encode(encoding='utf-8')
 
         response = []
-        for i in range(len(test_cases)):
-            logging.debug("testing case = " + str(test_cases[i]))
+        for i in range(len(query_string)):
+            logging.debug("testing case = " + str(query_string[i]))
             if i == 5:
-                post_data_json = test_cases[i]
+                post_data_json = query_string[i]
             elif i == 6:
-                post_data = {"notkey": test_cases[i]}
+                post_data = {"notkey": query_string[i]}
                 post_data_json = json.dumps(post_data)
             else:
-                post_data = {"message": test_cases[i]}
+                post_data = {"message": query_string[i]}
                 post_data_json = json.dumps(post_data)
             response.append(API("/mam/", post_data=post_data_json))
 
@@ -177,7 +177,7 @@ class Regression_Test(unittest.TestCase):
         #    1. Empty msg [failed] empty parameter causes http error 405
         #    2. Unicode msg [failed] {\"message\":\"Internal service error\"}
         #    3. Not existing bundle hash (address)
-        test_cases = [
+        query_string = [
             "BDIQXTDSGAWKCEPEHLRBSLDEFLXMX9ZOTUZW9JAIGZBFKPICXPEO9LLVTNIFGFDWWHEQNZXJZ9F9HTXD9",
             "", "生れてすみません"
         ]
@@ -185,12 +185,12 @@ class Regression_Test(unittest.TestCase):
         expect_cases = ["\"message\":\"ToBeOrNotToBe\""]
 
         response = []
-        for t_case in test_cases:
+        for t_case in query_string:
             logging.debug("testing case = " + t_case)
             response.append(API("/mam/", get_data=t_case))
 
         pass_case = [0]
-        for i in range(len(test_cases)):
+        for i in range(len(query_string)):
             if i in pass_case:
                 self.assertTrue(expect_cases[i] in response[i]["content"])
             else:
@@ -233,26 +233,26 @@ class Regression_Test(unittest.TestCase):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)
         rand_addr = gen_rand_trytes(81)
-        test_cases = [[420, rand_msg, rand_tag, rand_addr],
-                      [0, rand_msg, rand_tag, rand_addr],
-                      ["生而為人, 我很抱歉", rand_msg, rand_tag, rand_addr],
-                      [0, "生而為人, 我很抱歉", rand_tag, rand_addr],
-                      [0, rand_msg, "生而為人, 我很抱歉", rand_addr],
-                      [-5, rand_msg, rand_tag, rand_addr],
-                      [None, rand_msg, rand_tag, rand_addr],
-                      [0, None, rand_tag, rand_addr],
-                      [0, rand_msg, None, rand_addr],
-                      [0, rand_msg, rand_tag, None],
-                      [0, rand_msg, rand_tag, "我思故我在"]]
+        query_string = [[420, rand_msg, rand_tag, rand_addr],
+                        [0, rand_msg, rand_tag, rand_addr],
+                        ["生而為人, 我很抱歉", rand_msg, rand_tag, rand_addr],
+                        [0, "生而為人, 我很抱歉", rand_tag, rand_addr],
+                        [0, rand_msg, "生而為人, 我很抱歉", rand_addr],
+                        [-5, rand_msg, rand_tag, rand_addr],
+                        [None, rand_msg, rand_tag, rand_addr],
+                        [0, None, rand_tag, rand_addr],
+                        [0, rand_msg, None, rand_addr],
+                        [0, rand_msg, rand_tag, None],
+                        [0, rand_msg, rand_tag, "我思故我在"]]
 
         response = []
-        for i in range(len(test_cases)):
-            logging.debug("testing case = " + str(test_cases[i]))
+        for i in range(len(query_string)):
+            logging.debug("testing case = " + str(query_string[i]))
             post_data = {
-                "value": test_cases[i][0],
-                "message": test_cases[i][1],
-                "tag": test_cases[i][2],
-                "address": test_cases[i][3]
+                "value": query_string[i][0],
+                "message": query_string[i][1],
+                "tag": query_string[i][2],
+                "address": query_string[i][3]
             }
             logging.debug("post_data = " + repr(post_data))
             post_data_json = json.dumps(post_data)
@@ -320,7 +320,7 @@ class Regression_Test(unittest.TestCase):
         rand_tag_27 = gen_rand_trytes(27)
         rand_tag_20 = gen_rand_trytes(20)
         rand_tag_30 = gen_rand_trytes(30)
-        test_cases = [rand_tag_27, rand_tag_20, rand_tag_30, "半導體絆倒你", None]
+        query_string = [rand_tag_27, rand_tag_20, rand_tag_30, "半導體絆倒你", None]
 
         rand_msg = gen_rand_trytes(30)
         rand_addr = gen_rand_trytes(81)
@@ -329,7 +329,7 @@ class Regression_Test(unittest.TestCase):
             post_data = {
                 "value": 0,
                 "message": rand_msg,
-                "tag": test_cases[i],
+                "tag": query_string[i],
                 "address": rand_addr
             }
             post_data_json = json.dumps(post_data)
@@ -343,7 +343,7 @@ class Regression_Test(unittest.TestCase):
                           transaction_response[i]["status_code"])
 
         response = []
-        for t_case in test_cases:
+        for t_case in query_string:
             logging.debug("testing case = " + repr(t_case))
             if t_case != None:
                 response.append(API("/tag/", get_data=(t_case + "/hashes")))
@@ -404,13 +404,13 @@ class Regression_Test(unittest.TestCase):
                       sent_transaction_obj["status_code"])
         sent_transaction_obj_json = json.loads(sent_transaction_obj["content"])
         sent_transaction_hash = sent_transaction_obj_json["hash"]
-        test_cases = [
+        query_string = [
             sent_transaction_hash, sent_transaction_hash[0:19],
             sent_transaction_hash + gen_rand_trytes(19), "工程師批哩趴啦的生活", ""
         ]
 
         response = []
-        for t_case in test_cases:
+        for t_case in query_string:
             logging.debug("testing case = " + repr(t_case))
             response.append(API("/transaction/", get_data=t_case))
 
@@ -454,7 +454,7 @@ class Regression_Test(unittest.TestCase):
         rand_tag_27_multi = gen_rand_trytes(27)
         rand_tag_20 = gen_rand_trytes(20)
         rand_tag_30 = gen_rand_trytes(30)
-        test_cases = [
+        query_string = [
             rand_tag_27, rand_tag_27_multi, rand_tag_20, rand_tag_30, "半導體絆倒你",
             ""
         ]
@@ -466,7 +466,7 @@ class Regression_Test(unittest.TestCase):
             post_data = {
                 "value": 0,
                 "message": rand_msg,
-                "tag": test_cases[i],
+                "tag": query_string[i],
                 "address": rand_addr
             }
             post_data_json = json.dumps(post_data)
@@ -485,7 +485,7 @@ class Regression_Test(unittest.TestCase):
                           ", tx_res = " + repr(transaction_response[i]))
 
         response = []
-        for t_case in test_cases:
+        for t_case in query_string:
             logging.debug("testing case = " + repr(t_case))
             response.append(API("/tag/", get_data=t_case))
 
@@ -572,10 +572,10 @@ class Regression_Test(unittest.TestCase):
         #    1. call get_tips with unwanted ascii string
         #    2. call get_tips with unwanted unicode string
         rand_tag_27 = gen_rand_trytes(27)
-        test_cases = ["", rand_tag_27, "飛天義大利麵神教"]
+        query_string = ["", rand_tag_27, "飛天義大利麵神教"]
 
         response = []
-        for t_case in test_cases:
+        for t_case in query_string:
             logging.debug("testing case = " + repr(t_case))
             response.append(API("/tips/", get_data=t_case))
 
