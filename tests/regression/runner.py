@@ -302,7 +302,7 @@ class Regression_Test(unittest.TestCase):
                 "address": rand_addr
             }
             post_data_json = json.dumps(post_data)
-            response.append(API("/transaction/", post_data=post_data_json))
+            API("/transaction/", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
@@ -370,7 +370,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tag/", get_data=(rand_tag_27 + "/hashes")))
+            API("/tag/", get_data=(rand_tag_27 + "/hashes"))
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "find transactions by tag")
@@ -432,8 +432,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(
-                API("/transaction/", get_data=sent_transaction_hash))
+            API("/transaction/", get_data=sent_transaction_hash)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "get transactions object")
@@ -558,7 +557,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tag/", get_data=rand_tag_27))
+            API("/tag/", get_data=rand_tag_27)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "find transactions obj by tag")
@@ -600,7 +599,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tips/", get_data=""))
+            API("/tips/", get_data="")
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "get_tips")
@@ -685,7 +684,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/address", get_data=""))
+            API("/address", get_data="")
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "generate_address")
