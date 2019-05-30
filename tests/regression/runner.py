@@ -605,6 +605,48 @@ class Regression_Test(unittest.TestCase):
 
         eval_stat(time_cost, "get_tips")
 
+    def test_generate_address(self):
+        logging.debug(
+            "\n================================generate_address================================"
+        )
+        # cmd
+        #    0. call generate_address normally
+        #    1. call generate_address with unwanted ascii string
+        #    2. call generate_address with unwanted unicode string
+        rand_tag_81 = gen_rand_trytes(81)
+        query_string = ["", rand_tag_81, "飛天義大利麵神教"]
+
+        response = []
+        for t_case in query_string:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/address/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("generate_address i = " + str(i) + ", res = " +
+                          repr(response[i]["content"]) + ", status code = " +
+                          repr(response[i]["status_code"]))
+
+        pass_case = [0]
+        for i in range(len(response)):
+            if i in pass_case:
+                res_json = json.loads(response[i]["content"])
+                addr_list = res_json["address"]
+
+                self.assertEqual(1, len(addr_list))
+                self.assertTrue(valid_trytes(addr_list[0], LEN_ADDR))
+            else:
+                # At this moment, api generate_address allow whatever string follow after /generate_address/
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            response.append(API("/address", get_data=""))
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "generate_address")
+
 
 """
     API List
