@@ -605,6 +605,49 @@ class Regression_Test(unittest.TestCase):
 
         eval_stat(time_cost, "get_tips")
 
+    def test_get_tips_pair(self):
+        logging.debug(
+            "\n================================get_tips_pair================================"
+        )
+        # cmd
+        #    0. call get_tips normally
+        #    1. call get_tips with unwanted ascii string
+        #    2. call get_tips with unwanted unicode string
+        rand_tag_27 = gen_rand_trytes(27)
+        query_string = ["", rand_tag_27, "飛天義大利麵神教"]
+
+        response = []
+        for t_case in query_string:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/tips/pair/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("get_tips i = " + str(i) + ", res = " +
+                          repr(response[i]["content"]) + ", status code = " +
+                          repr(response[i]["status_code"]))
+
+        pass_case = [0]
+        for i in range(len(response)):
+            if i in pass_case:
+                res_json = json.loads(response[i]["content"])
+                tips_hashes_array = res_json["tips"]
+
+                self.assertTrue(2, len(tips_hashes_array))
+                for tx_hashes in tips_hashes_array:
+                    self.assertTrue(valid_trytes(tx_hashes, LEN_ADDR))
+            else:
+                # At this moment, api get_tips allow whatever string follow after /tips/pair
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/tips/pair/", get_data="")
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "get_tips_pair")
+
     def test_generate_address(self):
         logging.debug(
             "\n================================generate_address================================"
