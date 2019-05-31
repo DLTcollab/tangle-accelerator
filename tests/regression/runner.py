@@ -302,7 +302,7 @@ class Regression_Test(unittest.TestCase):
                 "address": rand_addr
             }
             post_data_json = json.dumps(post_data)
-            response.append(API("/transaction/", post_data=post_data_json))
+            API("/transaction/", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "send transfer")
@@ -370,7 +370,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tag/", get_data=(rand_tag_27 + "/hashes")))
+            API("/tag/", get_data=(rand_tag_27 + "/hashes"))
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "find transactions by tag")
@@ -432,8 +432,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(
-                API("/transaction/", get_data=sent_transaction_hash))
+            API("/transaction/", get_data=sent_transaction_hash)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "get transactions object")
@@ -558,7 +557,7 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tag/", get_data=rand_tag_27))
+            API("/tag/", get_data=rand_tag_27)
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "find transactions obj by tag")
@@ -600,10 +599,95 @@ class Regression_Test(unittest.TestCase):
         time_cost = []
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            response.append(API("/tips/", get_data=""))
+            API("/tips/", get_data="")
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "get_tips")
+
+    def test_get_tips_pair(self):
+        logging.debug(
+            "\n================================get_tips_pair================================"
+        )
+        # cmd
+        #    0. call get_tips normally
+        #    1. call get_tips with unwanted ascii string
+        #    2. call get_tips with unwanted unicode string
+        rand_tag_27 = gen_rand_trytes(27)
+        query_string = ["", rand_tag_27, "飛天義大利麵神教"]
+
+        response = []
+        for t_case in query_string:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/tips/pair/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("get_tips i = " + str(i) + ", res = " +
+                          repr(response[i]["content"]) + ", status code = " +
+                          repr(response[i]["status_code"]))
+
+        pass_case = [0]
+        for i in range(len(response)):
+            if i in pass_case:
+                res_json = json.loads(response[i]["content"])
+                tips_hashes_array = res_json["tips"]
+
+                self.assertTrue(2, len(tips_hashes_array))
+                for tx_hashes in tips_hashes_array:
+                    self.assertTrue(valid_trytes(tx_hashes, LEN_ADDR))
+            else:
+                # At this moment, api get_tips allow whatever string follow after /tips/pair
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/tips/pair/", get_data="")
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "get_tips_pair")
+
+    def test_generate_address(self):
+        logging.debug(
+            "\n================================generate_address================================"
+        )
+        # cmd
+        #    0. call generate_address normally
+        #    1. call generate_address with unwanted ascii string
+        #    2. call generate_address with unwanted unicode string
+        rand_tag_81 = gen_rand_trytes(81)
+        query_string = ["", rand_tag_81, "飛天義大利麵神教"]
+
+        response = []
+        for t_case in query_string:
+            logging.debug("testing case = " + repr(t_case))
+            response.append(API("/address/", get_data=t_case))
+
+        for i in range(len(response)):
+            logging.debug("generate_address i = " + str(i) + ", res = " +
+                          repr(response[i]["content"]) + ", status code = " +
+                          repr(response[i]["status_code"]))
+
+        pass_case = [0]
+        for i in range(len(response)):
+            if i in pass_case:
+                res_json = json.loads(response[i]["content"])
+                addr_list = res_json["address"]
+
+                self.assertEqual(1, len(addr_list))
+                self.assertTrue(valid_trytes(addr_list[0], LEN_ADDR))
+            else:
+                # At this moment, api generate_address allow whatever string follow after /generate_address/
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+
+        # Time Statistics
+        time_cost = []
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/address", get_data="")
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "generate_address")
 
 
 """
