@@ -123,6 +123,18 @@ static inline int process_find_txn_obj_by_tag_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_get_txn_obj_request(ta_http_t *const http,
+                                              char const *const url,
+                                              char **const out) {
+  status_t ret = SC_OK;
+  char *hash = NULL;
+  ret = ta_get_url_parameter(url, 1, &hash);
+  if (ret == SC_OK) {
+    ret = api_get_transaction_object(&http->core->service, hash, out);
+  }
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -139,7 +151,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
     // TODO: get_txn_to_approve
   } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}") == SC_OK) {
-    // TODO: get_txn_obj
+    return process_get_txn_obj_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
     // TODO: send_transfer
   } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
