@@ -135,6 +135,13 @@ static inline int process_get_txn_obj_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_get_tips_pair_request(ta_http_t *const http,
+                                                char **const out) {
+  status_t ret = SC_OK;
+  ret = api_get_tips_pair(&http->core->tangle, &http->core->service, out);
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -146,10 +153,10 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_find_txn_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}") == SC_OK) {
     return process_find_txn_obj_by_tag_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
+    return process_get_tips_pair_request(http, out);
   } else if (ta_http_url_matcher(url, "/tips") == SC_OK) {
     // TODO: get_tips
-  } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
-    // TODO: get_txn_to_approve
   } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}") == SC_OK) {
     return process_get_txn_obj_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
