@@ -96,7 +96,19 @@ status_t api_find_transactions_by_tag(
     goto done;
   }
 
-  ret = ta_find_transactions_by_tag(service, obj, res);
+  char *req_tag = (char*)malloc((NUM_TRYTES_TAG + 1) * sizeof(char));
+  int obj_len = strlen(obj);
+
+  if (obj_len == NUM_TRYTES_TAG) {
+    strncpy(req_tag, obj, NUM_TRYTES_TAG);
+  } else if (obj_len < NUM_TRYTES_TAG) {
+    fill_nines(req_tag, obj, NUM_TRYTES_TAG);
+  } else {  // tag length > 27 trytes
+    ret = SC_TA_WRONG_REQUEST_OBJ;
+    goto done;
+  }
+
+  ret = ta_find_transactions_by_tag(service, req_tag, res);
   if (ret) {
     goto done;
   }
