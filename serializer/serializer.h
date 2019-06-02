@@ -9,6 +9,7 @@
 #include "common/trinary/tryte_ascii.h"
 #include "request/request.h"
 #include "response/response.h"
+#include "utils/fill_nines.h"
 
 #ifdef __cplusplus
 extern "C" {

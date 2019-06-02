@@ -24,3 +24,13 @@ cc_library(
         "@entangled//utils:time",
     ],
 )
+
+cc_library(
+    name = "fill_nines",
+    srcs = ["fill_nines.c"],
+    hdrs = ["fill_nines.h"],
+    deps = [
+        "//accelerator:ta_errors",
+        "@entangled//cclient/types",
+    ],
+)

@@ -1,11 +1,5 @@
 #include "serializer.h"
 
-void fill_tag(char* new_tag, char* old_tag, size_t tag_len) {
-  char nines[NUM_TRYTES_TAG] = "999999999999999999999999999";
-  int pad_len = NUM_TRYTES_TAG - (int)tag_len;
-  sprintf(new_tag, "%s%*.*s", old_tag, pad_len, pad_len, nines);
-}
-
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack,
                                                cJSON* const json_root,
                                                char const* const obj_name) {
@@ -322,7 +316,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
     if (tag_len < NUM_TRYTES_TAG) {
       char new_tag[NUM_TRYTES_TAG + 1];
       // Fill in '9' to get valid tag (27 trytes)
-      fill_tag(new_tag, json_result->valuestring, tag_len);
+      fill_nines(new_tag, json_result->valuestring, NUM_TRYTES_TAG);
       new_tag[NUM_TRYTES_TAG] = '\0';
       flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag,
                              NUM_TRYTES_TAG, NUM_TRYTES_TAG);

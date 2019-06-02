@@ -42,6 +42,7 @@ extern "C" {
 #define SC_MODULE_MAM (0x05 << SC_MODULE_SHIFT)
 #define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
 #define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
+#define SC_MODULE_UTILS (0x08 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -63,6 +64,8 @@ typedef enum {
   /**< Fail to create TA object */
   SC_TA_NULL = 0x02 | SC_MODULE_TA | SC_SEVERITY_FATAL,
   /**< NULL TA objects */
+  SC_TA_WRONG_REQUEST_OBJ = 0x03 | SC_MODULE_TA | SC_SEVERITY_FATAL,
+  /**< wrong TA request object */
 
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
@@ -132,6 +135,10 @@ typedef enum {
   /**< No argument in CLI */
   SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
+
+  SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  SC_UTILS_WRONG_REQUEST_OBJ = 0x02 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  /**< wrong TA request object */
 } status_t;
 
 typedef enum {

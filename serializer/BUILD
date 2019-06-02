@@ -9,6 +9,7 @@ cc_library(
         "//accelerator:ta_errors",
         "//request",
         "//response",
+        "//utils:fill_nines",
         "@cJSON",
         "@entangled//cclient/types",
         "@entangled//common/trinary:tryte_ascii",
