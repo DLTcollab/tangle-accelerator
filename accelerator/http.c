@@ -179,6 +179,13 @@ static inline int process_mam_send_msg_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_invalid_path_request(char **const out) {
+  cJSON *json_obj = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_obj, "message", "Invalid path");
+  *out = cJSON_PrintUnformatted(json_obj);
+  return MHD_HTTP_BAD_REQUEST;
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -203,7 +210,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
     return process_mam_send_msg_request(http, payload, out);
   } else {
-    // TODO: Invalid request
+    return process_invalid_path_request(out);
   }
   return MHD_HTTP_OK;
 }
