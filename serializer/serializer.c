@@ -82,6 +82,10 @@ static status_t ta_json_array_to_hash8019_array(cJSON const* const obj,
   cJSON* current_obj = NULL;
   cJSON_ArrayForEach(current_obj, json_item) {
     if (current_obj->valuestring != NULL) {
+      if (strlen(current_obj->valuestring) !=
+          NUM_TRYTES_SERIALIZED_TRANSACTION) {
+        return SC_SERIALIZER_INVALID_REQ;
+      }
       flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION,
                              (tryte_t const*)current_obj->valuestring,
                              NUM_TRYTES_SERIALIZED_TRANSACTION,

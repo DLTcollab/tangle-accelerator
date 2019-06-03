@@ -82,7 +82,7 @@ status_t ta_pow(const bundle_transactions_t* bundle,
     ctrunk = iota_flex_digest(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION);
     tx = (iota_transaction_t*)utarray_prev(bundle, tx);
     free(nonce);
-  } while (cur_idx != 0);
+  } while (cur_idx != 0 && tx != NULL);
 
 done:
   free(ctrunk);
