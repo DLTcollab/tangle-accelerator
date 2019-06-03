@@ -116,6 +116,7 @@ status_t api_find_transactions_by_tag(
   ret = ta_find_transactions_res_serialize(json_result, res);
 
 done:
+  free(req_tag);
   ta_find_transactions_res_free(&res);
   return ret;
 }
