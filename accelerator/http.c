@@ -158,6 +158,18 @@ static inline int process_send_transfer_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_recv_mam_msg_request(ta_http_t *const http,
+                                               char const *const url,
+                                               char **const out) {
+  status_t ret = SC_OK;
+  char *bundle = NULL;
+  ret = ta_get_url_parameter(url, 1, &bundle);
+  if (ret == SC_OK) {
+    ret = api_receive_mam_message(&http->core->service, bundle, out);
+  }
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -178,7 +190,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
     return process_send_transfer_request(http, payload, out);
   } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
-    // TODO: get_mam_msg
+    return process_recv_mam_msg_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
     // TODO: send_mam_msg
   } else {
