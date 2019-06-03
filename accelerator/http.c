@@ -149,6 +149,15 @@ static inline int process_get_tips_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_send_transfer_request(ta_http_t *const http,
+                                                char const *const payload,
+                                                char **const out) {
+  status_t ret = SC_OK;
+  ret = api_send_transfer(&http->core->tangle, &http->core->service, payload,
+                          out);
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -167,7 +176,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}") == SC_OK) {
     return process_get_txn_obj_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
-    // TODO: send_transfer
+    return process_send_transfer_request(http, payload, out);
   } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
     // TODO: get_mam_msg
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
