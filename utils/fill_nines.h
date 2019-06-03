@@ -1,5 +1,12 @@
+#ifndef UTILS_FILL_NINES_H_
+#define UTILS_FILL_NINES_H_
+
 #include "accelerator/errors.h"
 #include "cclient/types/types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief Patch input string with nines into assigned length.
@@ -14,3 +21,8 @@
  */
 status_t fill_nines(char* new_str, const char* const old_str,
                     size_t new_str_len);
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // UTILS_FILL_NINES_H_

@@ -96,7 +96,7 @@ status_t api_find_transactions_by_tag(
     goto done;
   }
 
-  char *req_tag = (char*)malloc((NUM_TRYTES_TAG + 1) * sizeof(char));
+  char* req_tag = (char*)malloc((NUM_TRYTES_TAG + 1) * sizeof(char));
   int obj_len = strlen(obj);
 
   if (obj_len == NUM_TRYTES_TAG) {
