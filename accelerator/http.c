@@ -170,6 +170,15 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_mam_send_msg_request(ta_http_t *const http,
+                                               char const *const payload,
+                                               char **const out) {
+  status_t ret = SC_OK;
+  ret = api_mam_send_message(&http->core->tangle, &http->core->service, payload,
+                             out);
+  return set_response_content(ret, out);
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload,
                                    char **const out) {
@@ -192,7 +201,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
     return process_recv_mam_msg_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
-    // TODO: send_mam_msg
+    return process_mam_send_msg_request(http, payload, out);
   } else {
     // TODO: Invalid request
   }
