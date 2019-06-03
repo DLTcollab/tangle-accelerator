@@ -680,7 +680,6 @@ class Regression_Test(unittest.TestCase):
                 res_json = json.loads(response[i]["content"])
                 addr_list = res_json["address"]
 
-                self.assertEqual(1, len(addr_list))
                 self.assertTrue(valid_trytes(addr_list[0], LEN_ADDR))
             else:
                 # At this moment, api generate_address allow whatever string follow after /generate_address/
