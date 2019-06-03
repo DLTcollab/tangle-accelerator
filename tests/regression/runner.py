@@ -269,7 +269,7 @@ class Regression_Test(unittest.TestCase):
                           response[i]["content"] + ", status code = " +
                           response[i]["status_code"])
 
-        pass_case = [0, 1, 2, 3]
+        pass_case = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]
         for i in range(len(response)):
             if i in pass_case:
                 res_json = json.loads(response[i]["content"])
@@ -290,7 +290,7 @@ class Regression_Test(unittest.TestCase):
                     valid_trytes(res_json["signature_and_message_fragment"],
                                  LEN_MSG_SIGN))
             elif i == 4:
-                self.assertEqual(EMPTY_REPLY, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
             else:
                 self.assertEqual(STATUS_CODE_404, response[i]["status_code"])
 
