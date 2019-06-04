@@ -1,8 +1,10 @@
 #ifndef REQUEST_TA_SEND_MAM_H_
 #define REQUEST_TA_SEND_MAM_H_
 
+#include <stdlib.h>
+#include <string.h>
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
+#include "common/trinary/tryte.h"
 
 #ifdef __cplusplus
 extern "C" {

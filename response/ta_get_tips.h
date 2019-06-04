@@ -1,7 +1,8 @@
 #ifndef RESPONSE_TA_GET_TIPS_H_
 #define RESPONSE_TA_GET_TIPS_H_
 
-#include "cclient/types/types.h"
+#include <stdlib.h>
+#include "utils/containers/hash/hash243_stack.h"
 
 #ifdef __cplusplus
 extern "C" {

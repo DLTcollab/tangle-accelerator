@@ -1,7 +1,8 @@
 #ifndef RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 #define RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 
-#include "cclient/types/types.h"
+#include "./utarray.h"
+#include "common/model/transaction.h"
 
 #ifdef __cplusplus
 extern "C" {

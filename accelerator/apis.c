@@ -251,7 +251,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   }
 
   // Write header and packet
-  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL, 0,
+  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL,
                                              bundle, msg_id) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;

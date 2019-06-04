@@ -27,6 +27,7 @@ cc_library(
         ":common_core",
         ":ta_errors",
         "//serializer",
+        "@entangled//common/model:bundle",
         "@entangled//common/trinary:trit_tryte",
         "@entangled//mam/api",
     ],
@@ -62,7 +63,6 @@ cc_library(
         "//utils:cache",
         "//utils:pow",
         "@entangled//cclient/api",
-        "@entangled//cclient/types",
     ],
 )
 
