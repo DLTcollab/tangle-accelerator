@@ -9,6 +9,10 @@ extern "C" {
 #endif
 
 /**
+ * @file utils/fill_nines.h
+ */
+
+/**
  * @brief Patch input string with nines into assigned length.
  *
  * @param[out] new_str Output patched string
