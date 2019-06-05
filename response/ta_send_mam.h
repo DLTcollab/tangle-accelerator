@@ -18,16 +18,16 @@ typedef struct send_mam_res_s {
   char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
   char channel_id[NUM_TRYTES_HASH + 1];
-} send_mam_res_t;
+} ta_send_mam_res_t;
 
 /**
- * Allocate memory of send_mam_res_t
+ * Allocate memory of ta_send_mam_res_t
  *
  * @return
- * - struct of send_mam_res_t on success
+ * - struct of ta_send_mam_res_t on success
  * - NULL on error
  */
-send_mam_res_t* send_mam_res_new();
+ta_send_mam_res_t* send_mam_res_new();
 
 /**
  * @brief Set the bundle_hash field of send_mam_res object.
@@ -36,14 +36,14 @@ send_mam_res_t* send_mam_res_new();
  * and convert (instead of decoding) the received bundle hash to ascii string.
  * After conversion, set the  bundle_hash field of send_mam_res object.
  *
- * @param[in] res send_mam_res_t struct object
+ * @param[in] res ta_send_mam_res_t struct object
  * @param[in] bundle_hash bundle hash decoded in trytes string
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_set_bundle_hash(send_mam_res_t* res,
+status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res,
                                       const tryte_t* bundle_hash);
 
 /**
@@ -53,24 +53,24 @@ status_t send_mam_res_set_bundle_hash(send_mam_res_t* res,
  * and convert (instead of decoding) the received channel id to ascii string.
  * After conversion, set the  channel_id field of send_mam_res object.
  *
- * @param[in] res send_mam_res_t struct object
+ * @param[in] res ta_send_mam_res_t struct object
  * @param[in] channel_id channel id decoded in trytes string
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_set_channel_id(send_mam_res_t* res,
+status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res,
                                      const tryte_t* channel_id);
 
 /**
- * Free memory of send_mam_res_t
+ * Free memory of ta_send_mam_res_t
  *
- * @param req Data type of send_mam_res_t
+ * @param req Data type of ta_send_mam_res_t
  *
  * @return NULL
  */
-void send_mam_res_free(send_mam_res_t** res);
+void send_mam_res_free(ta_send_mam_res_t** res);
 
 #ifdef __cplusplus
 }

@@ -221,8 +221,8 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   bundle_transactions_new(&bundle);
   tryte_t channel_id[MAM_CHANNEL_ID_SIZE];
   trit_t msg_id[MAM_MSG_ID_SIZE];
-  send_mam_req_t* req = send_mam_req_new();
-  send_mam_res_t* res = send_mam_res_new();
+  ta_send_mam_req_t* req = send_mam_req_new();
+  ta_send_mam_res_t* res = send_mam_res_new();
 
   // Loading and creating MAM API
   if ((rc = mam_api_load(tangle->mam_file, &mam)) ==
