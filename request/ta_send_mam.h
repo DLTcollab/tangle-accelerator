@@ -11,11 +11,11 @@ extern "C" {
 typedef struct send_mam_req_s {
   tryte_t* payload_trytes;
   size_t payload_trytes_size;
-} send_mam_req_t;
+} ta_send_mam_req_t;
 
-send_mam_req_t* send_mam_req_new();
-status_t send_mam_req_set_payload(send_mam_req_t* req, const tryte_t* payload);
-void send_mam_req_free(send_mam_req_t** req);
+ta_send_mam_req_t* send_mam_req_new();
+status_t send_mam_req_set_payload(ta_send_mam_req_t* req, const tryte_t* payload);
+void send_mam_req_free(ta_send_mam_req_t** req);
 
 #ifdef __cplusplus
 }
