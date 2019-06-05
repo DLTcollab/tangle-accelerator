@@ -82,6 +82,10 @@ static status_t ta_json_array_to_hash8019_array(cJSON const* const obj,
   cJSON* current_obj = NULL;
   cJSON_ArrayForEach(current_obj, json_item) {
     if (current_obj->valuestring != NULL) {
+      if (strlen(current_obj->valuestring) !=
+          NUM_TRYTES_SERIALIZED_TRANSACTION) {
+        return SC_SERIALIZER_INVALID_REQ;
+      }
       flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION,
                              (tryte_t const*)current_obj->valuestring,
                              NUM_TRYTES_SERIALIZED_TRANSACTION,
@@ -311,6 +315,13 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
   if (json_result != NULL && json_result->valuestring != NULL) {
     tag_len = strnlen(json_result->valuestring, NUM_TRYTES_TAG);
+
+    for (int i = 0; i < tag_len; i++) {
+      if (json_result->valuestring[i] & (unsigned)128) {
+        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        goto done;
+      }
+    }
 
     // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
     if (tag_len < NUM_TRYTES_TAG) {
@@ -620,9 +631,10 @@ status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
 
     // in case the payload is unicode, char more than 128 will result to an
     // error status_t code
-    for (int i = 0; i < strlen(json_result->valuestring); i++) {
+    size_t payload_ascii_len = payload_size > 1;
+    for (int i = 0; i < payload_ascii_len; i++) {
       if (json_result->valuestring[i] & (unsigned)128) {
-        ret = SC_SERIALIZER_JSON_PARSE_UNICODE;
+        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
         goto done;
       }
     }

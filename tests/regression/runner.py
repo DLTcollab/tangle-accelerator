@@ -49,6 +49,12 @@ def eval_stat(time_cost, func_name):
           "sec, including 95% of API call time consumption")
 
 
+def fill_nines(trytes, output_len):
+    out_str = trytes + "9" * (output_len - len(trytes))
+
+    return out_str
+
+
 def gen_rand_trytes(tryte_len):
     trytes = ""
     for i in range(tryte_len):
@@ -130,7 +136,7 @@ class Regression_Test(unittest.TestCase):
 
         response = []
         for i in range(len(query_string)):
-            logging.debug("testing case = " + str(query_string[i]))
+            logging.debug("testing case = " + repr(query_string[i]))
             if i == 5:
                 post_data_json = query_string[i]
             elif i == 6:
@@ -247,7 +253,7 @@ class Regression_Test(unittest.TestCase):
 
         response = []
         for i in range(len(query_string)):
-            logging.debug("testing case = " + str(query_string[i]))
+            logging.debug("testing case = " + repr(query_string[i]))
             post_data = {
                 "value": query_string[i][0],
                 "message": query_string[i][1],
@@ -263,7 +269,7 @@ class Regression_Test(unittest.TestCase):
                           response[i]["content"] + ", status code = " +
                           response[i]["status_code"])
 
-        pass_case = [0, 1, 2, 3]
+        pass_case = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]
         for i in range(len(response)):
             if i in pass_case:
                 res_json = json.loads(response[i]["content"])
@@ -284,7 +290,7 @@ class Regression_Test(unittest.TestCase):
                     valid_trytes(res_json["signature_and_message_fragment"],
                                  LEN_MSG_SIGN))
             elif i == 4:
-                self.assertEqual(EMPTY_REPLY, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
             else:
                 self.assertEqual(STATUS_CODE_404, response[i]["status_code"])
 
@@ -674,7 +680,6 @@ class Regression_Test(unittest.TestCase):
                 res_json = json.loads(response[i]["content"])
                 addr_list = res_json["address"]
 
-                self.assertEqual(1, len(addr_list))
                 self.assertTrue(valid_trytes(addr_list[0], LEN_ADDR))
             else:
                 # At this moment, api generate_address allow whatever string follow after /generate_address/
@@ -688,6 +693,68 @@ class Regression_Test(unittest.TestCase):
             time_cost.append(time.time() - start_time)
 
         eval_stat(time_cost, "generate_address")
+
+    def test_send_trytes(self):
+        logging.debug(
+            "\n================================send_trytes================================"
+        )
+        # cmd
+        #    0. single 2673 trytes legal transaction object
+        #    1. multiple 2673 ligal trytes transaction object
+        #    2. single 200 trytes illegal transaction object
+        #    3. single single 3000 trytes illegal transaction object
+        #    4. single unicode illegal transaction object
+        #    5. empty trytes list
+        #    6. empty not trytes list object
+        rand_trytes = []
+        for i in range(2):
+            all_9_context = fill_nines("", 2673 - 81 * 3)
+            tips_response = API("/tips/pair/", get_data="")
+            res_json = json.loads(tips_response["content"])
+            tips = res_json["tips"]
+
+            rand_trytes.append(all_9_context + tips[0] + tips[1] +
+                               fill_nines("", 81))
+
+        query_string = [[rand_trytes[0]], [rand_trytes[0], rand_trytes[1]],
+                        [gen_rand_trytes(200)], [gen_rand_trytes(3000)],
+                        ["逼類不司"], [""], ""]
+
+        response = []
+        for i in range(len(query_string)):
+            logging.debug("testing case = " + repr(query_string[i]))
+            post_data = {"trytes": query_string[i]}
+            logging.debug("post_data = " + repr(post_data))
+            post_data_json = json.dumps(post_data)
+            response.append(API("/tryte", post_data=post_data_json))
+
+        for i in range(len(response)):
+            logging.debug("send_trytes i = " + str(i) + ", res = " +
+                          response[i]["content"] + ", status code = " +
+                          response[i]["status_code"])
+
+        pass_case = [0, 1]
+        for i in range(len(response)):
+            logging.debug("send_trytes i = " + str(i) + ", res = " +
+                          response[i]["content"] + ", status code = " +
+                          response[i]["status_code"])
+            if i in pass_case:
+                res_json = json.loads(response[i]["content"])
+
+                self.assertEqual(query_string[i], res_json["trytes"])
+            else:
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
+
+        # Time Statistics
+        time_cost = []
+        post_data = {"trytes": [rand_trytes[0]]}
+        post_data_json = json.dumps(post_data)
+        for i in range(TIMES_TOTAL):
+            start_time = time.time()
+            API("/tryte", post_data=post_data_json)
+            time_cost.append(time.time() - start_time)
+
+        eval_stat(time_cost, "send trytes")
 
 
 """
