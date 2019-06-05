@@ -1,7 +1,8 @@
 #include "ta_send_mam.h"
 
-send_mam_req_t* send_mam_req_new() {
-  send_mam_req_t* req = (send_mam_req_t*)malloc(sizeof(send_mam_req_t));
+ta_send_mam_req_t* send_mam_req_new() {
+  ta_send_mam_req_t* req =
+      (ta_send_mam_req_t*)malloc(sizeof(ta_send_mam_req_t));
   if (req) {
     req->payload_trytes = NULL;
   }
@@ -9,7 +10,8 @@ send_mam_req_t* send_mam_req_new() {
   return req;
 }
 
-status_t send_mam_req_set_payload(send_mam_req_t* req, const tryte_t* payload) {
+status_t send_mam_req_set_payload(ta_send_mam_req_t* req,
+                                  const tryte_t* payload) {
   status_t ret = SC_OK;
   size_t payload_size = sizeof(payload) / sizeof(tryte_t);
 
@@ -27,7 +29,7 @@ status_t send_mam_req_set_payload(send_mam_req_t* req, const tryte_t* payload) {
   return ret;
 }
 
-void send_mam_req_free(send_mam_req_t** req) {
+void send_mam_req_free(ta_send_mam_req_t** req) {
   if (!req || !(*req)) {
     return;
   }

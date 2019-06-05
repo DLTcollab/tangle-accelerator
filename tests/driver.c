@@ -6,7 +6,7 @@ static ta_core_t ta_core;
 struct timespec start_time, end_time;
 
 char driver_tag_msg[NUM_TRYTES_TAG];
-send_mam_res_t* res;
+ta_send_mam_res_t* res;
 
 #if defined(ENABLE_STAT)
 #define TEST_COUNT 100

@@ -153,41 +153,42 @@ status_t ta_find_transactions_obj_res_serialize(
 status_t receive_mam_message_serialize(char** obj, char** const res);
 
 /**
- * @brief Serialze type of send_mam_res_t to JSON string
+ * @brief Serialze type of ta_send_mam_res_t to JSON string
  *
  * @param[out] obj send mam response object in JSON
- * @param[in] res Response data in type of send_mam_res_t
+ * @param[in] res Response data in type of ta_send_mam_res_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res);
+status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res);
 
 /**
- * @brief Deserialze JSON string to type of send_mam_res_t
+ * @brief Deserialze JSON string to type of ta_send_mam_res_t
  *
  * @param[in] obj Input values in JSON
- * @param[out] res Response data in type of send_mam_res_t
+ * @param[out] res Response data in type of ta_send_mam_res_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t send_mam_res_deserialize(const char* const obj,
-                                  send_mam_res_t* const res);
+                                  ta_send_mam_res_t* const res);
 
 /**
- * @brief Deserialze JSON string to type of send_mam_req_t
+ * @brief Deserialze JSON string to type of ta_send_mam_req_t
  *
  * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of send_mam_req_t
+ * @param[out] req Request data in type of ta_send_mam_req_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req);
+status_t send_mam_req_deserialize(const char* const obj,
+                                  ta_send_mam_req_t* req);
 #ifdef __cplusplus
 }
 #endif

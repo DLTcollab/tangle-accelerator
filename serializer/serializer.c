@@ -556,7 +556,8 @@ done:
   return ret;
 }
 
-status_t send_mam_res_serialize(char** obj, const send_mam_res_t* const res) {
+status_t send_mam_res_serialize(char** obj,
+                                const ta_send_mam_res_t* const res) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -580,7 +581,7 @@ done:
 }
 
 status_t send_mam_res_deserialize(const char* const obj,
-                                  send_mam_res_t* const res) {
+                                  ta_send_mam_res_t* const res) {
   if (obj == NULL) {
     return SC_SERIALIZER_NULL;
   }
@@ -610,7 +611,8 @@ done:
   return ret;
 }
 
-status_t send_mam_req_deserialize(const char* const obj, send_mam_req_t* req) {
+status_t send_mam_req_deserialize(const char* const obj,
+                                  ta_send_mam_req_t* req) {
   if (obj == NULL) {
     return SC_SERIALIZER_NULL;
   }

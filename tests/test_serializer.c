@@ -258,7 +258,7 @@ void test_serialize_send_mam_message(void) {
                      "\","
                      "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
   char* json_result;
-  send_mam_res_t* res = send_mam_res_new();
+  ta_send_mam_res_t* res = send_mam_res_new();
 
   send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
   send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
@@ -274,7 +274,7 @@ void test_deserialize_send_mam_message_response(void) {
   const char* json = "{\"channel\":\"" TRYTES_81_1
                      "\","
                      "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
-  send_mam_res_t* res = send_mam_res_new();
+  ta_send_mam_res_t* res = send_mam_res_new();
 
   send_mam_res_deserialize(json, res);
 
@@ -286,7 +286,7 @@ void test_deserialize_send_mam_message_response(void) {
 
 void test_deserialize_send_mam_message(void) {
   const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
-  send_mam_req_t* req = send_mam_req_new();
+  ta_send_mam_req_t* req = send_mam_req_new();
 
   send_mam_req_deserialize(json, req);
 
