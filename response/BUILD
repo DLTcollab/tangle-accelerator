@@ -14,7 +14,5 @@ cc_library(
         "@entangled//common/model:transaction",
         "@entangled//utils/containers/hash:hash243_queue",
         "@entangled//utils/containers/hash:hash243_stack",
-        "@entangled//utils/containers/hash:hash8019_queue",
-        "@entangled//utils/containers/hash:hash_array",
     ],
 )

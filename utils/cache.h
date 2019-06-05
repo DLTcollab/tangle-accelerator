@@ -5,10 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "common/trinary/flex_trit.h"
-
 #include "accelerator/errors.h"
+#include "common/trinary/flex_trit.h"
 
 #ifdef __cplusplus
 extern "C" {

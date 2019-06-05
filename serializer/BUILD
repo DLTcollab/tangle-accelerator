@@ -13,9 +13,6 @@ cc_library(
         "@cJSON",
         "@entangled//common/trinary:flex_trit",
         "@entangled//common/trinary:tryte_ascii",
-        "@entangled//utils/containers/hash:hash243_queue",
-        "@entangled//utils/containers/hash:hash243_stack",
-        "@entangled//utils/containers/hash:hash81_queue",
         "@entangled//utils/containers/hash:hash_array",
     ],
 )
