@@ -1,7 +1,8 @@
 #include "ta_send_mam.h"
 
 ta_send_mam_res_t* send_mam_res_new() {
-  ta_send_mam_res_t* res = (ta_send_mam_res_t*)malloc(sizeof(ta_send_mam_res_t));
+  ta_send_mam_res_t* res =
+      (ta_send_mam_res_t*)malloc(sizeof(ta_send_mam_res_t));
 
   return res;
 }

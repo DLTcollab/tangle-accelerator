@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 /**
- * @file response/ta_send_mam_res.h
+ * @file response/ta_send_mam.h
  */
 
 /** struct of ta_send_mam_res_t */

@@ -5,6 +5,11 @@
 extern "C" {
 #endif
 
+/**
+ * @file accelerator/message.h
+ * @brief Message and options for tangled-accelerator configures
+ */
+
 typedef enum ta_cli_arg_value_e {
   /** TA */
   TA_HOST_CLI = 127,

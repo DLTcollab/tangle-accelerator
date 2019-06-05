@@ -187,7 +187,8 @@ status_t send_mam_res_deserialize(const char* const obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
+status_t send_mam_req_deserialize(const char* const obj,
+                                  ta_send_mam_req_t* req);
 #ifdef __cplusplus
 }
 #endif
