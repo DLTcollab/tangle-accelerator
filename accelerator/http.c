@@ -186,11 +186,20 @@ static inline int process_invalid_path_request(char **const out) {
   return MHD_HTTP_BAD_REQUEST;
 }
 
+static inline int process_options_request(char **const out) {
+  cJSON *json_obj = cJSON_CreateObject();
+  cJSON_AddStringToObject(json_obj, "message", "OPTIONS request");
+  *out = cJSON_PrintUnformatted(json_obj);
+  return MHD_HTTP_OK;
+}
+
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
-                                   char const *const payload,
-                                   char **const out) {
-  // TODO: TA api callback functions,
-  //      includes error response, handling option request
+                                   char const *const payload, char **const out,
+                                   int is_options) {
+  if (is_options) {
+    return process_options_request(out);
+  }
+
   if (ta_http_url_matcher(url, "/address") == SC_OK) {
     return process_generate_address_request(http, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes") == SC_OK) {
@@ -285,7 +294,8 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
   }
 
   /* decide which API function should be called */
-  ret = ta_http_process_request(api, url, http_req->request, &response_buf);
+  ret = ta_http_process_request(api, url, http_req->request, &response_buf,
+                                is_options);
 
   response = MHD_create_response_from_buffer(strlen(response_buf), response_buf,
                                              MHD_RESPMEM_MUST_COPY);
