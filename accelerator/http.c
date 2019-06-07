@@ -179,6 +179,15 @@ static inline int process_mam_send_msg_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
+static inline int process_send_trytes_request(ta_http_t *const http,
+                                              char const *const payload,
+                                              char **const out) {
+  status_t ret = SC_OK;
+  ret =
+      api_send_trytes(&http->core->tangle, &http->core->service, payload, out);
+  return set_response_content(ret, out);
+}
+
 static inline int process_invalid_path_request(char **const out) {
   cJSON *json_obj = cJSON_CreateObject();
   cJSON_AddStringToObject(json_obj, "message", "Invalid path");
@@ -218,6 +227,8 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_recv_mam_msg_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
     return process_mam_send_msg_request(http, payload, out);
+  } else if (ta_http_url_matcher(url, "/tryte") == SC_OK) {
+    return process_send_trytes_request(http, payload, out);
   } else {
     return process_invalid_path_request(out);
   }
