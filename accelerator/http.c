@@ -204,8 +204,8 @@ static inline int process_options_request(char **const out) {
 
 static int ta_http_process_request(ta_http_t *const http, char const *const url,
                                    char const *const payload, char **const out,
-                                   int is_options) {
-  if (is_options) {
+                                   int options) {
+  if (options) {
     return process_options_request(out);
   }
 
@@ -250,7 +250,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
                            const char *version, const char *upload_data,
                            size_t *upload_data_size, void **ptr) {
   int ret = MHD_NO;
-  int is_post = 0, is_options = 0;
+  int post = 0, options = 0;
   ta_http_t *api = (ta_http_t *)cls;
   ta_http_request_t *http_req = *ptr;
   struct MHD_Response *response = NULL;
@@ -258,9 +258,9 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
 
   // Only accept POST, GET, OPTIONS
   if (strncmp(method, MHD_HTTP_METHOD_POST, 4) == 0) {
-    is_post = 1;
+    post = 1;
   } else if (strncmp(method, MHD_HTTP_METHOD_OPTIONS, 7) == 0) {
-    is_options = 1;
+    options = 1;
   } else if (strncmp(method, MHD_HTTP_METHOD_GET, 3) != 0) {
     return MHD_NO;
   }
@@ -271,7 +271,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
     *ptr = http_req;
 
     // Only POST request needs to get header information
-    if (is_post) {
+    if (post) {
       MHD_get_connection_values(connection, MHD_HEADER_KIND,
                                 ta_http_header_iter, http_req);
     }
@@ -279,7 +279,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
   }
 
   // Check request header for post request only
-  if (is_post && !http_req->valid_content_type) {
+  if (post && !http_req->valid_content_type) {
     ret = MHD_NO;
     goto cleanup;
   }
@@ -298,7 +298,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
     return MHD_YES;
   }
 
-  if (is_post && (http_req->request == NULL)) {
+  if (post && (http_req->request == NULL)) {
     // POST but no body, so we skip this request
     ret = MHD_NO;
     goto cleanup;
@@ -306,14 +306,14 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
 
   /* decide which API function should be called */
   ret = ta_http_process_request(api, url, http_req->request, &response_buf,
-                                is_options);
+                                options);
 
   response = MHD_create_response_from_buffer(strlen(response_buf), response_buf,
                                              MHD_RESPMEM_MUST_COPY);
   // Set response header
   MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
                           "*");
-  if (is_options) {
+  if (options) {
     // header information for OPTIONS request
     MHD_add_response_header(response, "Access-Control-Allow-Methods",
                             "GET, POST, OPTIONS");
