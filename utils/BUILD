@@ -6,7 +6,7 @@ cc_library(
     hdrs = ["cache.h"],
     deps = [
         "//accelerator:ta_errors",
-        "@entangled//cclient/types",
+        "@entangled//common/trinary:flex_trit",
         "@hiredis",
     ],
 )
@@ -18,9 +18,10 @@ cc_library(
     deps = [
         "//accelerator:ta_errors",
         "//third_party:dcurl",
-        "@entangled//cclient/types",
+        "@com_github_uthash//:uthash",
         "@entangled//common/helpers:digest",
         "@entangled//common/model:bundle",
+        "@entangled//common/trinary:flex_trit",
         "@entangled//utils:time",
     ],
 )
@@ -31,6 +32,6 @@ cc_library(
     hdrs = ["fill_nines.h"],
     deps = [
         "//accelerator:ta_errors",
-        "@entangled//cclient/types",
+        "@entangled//common/model:transaction",
     ],
 )

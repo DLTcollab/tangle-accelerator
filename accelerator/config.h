@@ -3,11 +3,9 @@
 
 #include <getopt.h>
 
-#include "accelerator/errors.h"
 #include "accelerator/message.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
-#include "cclient/types/types.h"
 #include "utils/cache.h"
 #include "utils/pow.h"
 

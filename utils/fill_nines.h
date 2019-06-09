@@ -1,8 +1,11 @@
 #ifndef UTILS_FILL_NINES_H_
 #define UTILS_FILL_NINES_H_
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
+#include "common/model/transaction.h"
 
 #ifdef __cplusplus
 extern "C" {

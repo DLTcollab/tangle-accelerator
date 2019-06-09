@@ -1,14 +1,11 @@
 #ifndef SERIALIZER_SERIALIZER_H_
 #define SERIALIZER_SERIALIZER_H_
 
-#include <stdlib.h>
-
-#include "accelerator/errors.h"
 #include "cJSON.h"
-#include "cclient/types/types.h"
 #include "common/trinary/tryte_ascii.h"
 #include "request/request.h"
 #include "response/response.h"
+#include "utils/containers/hash/hash_array.h"
 #include "utils/fill_nines.h"
 
 #ifdef __cplusplus

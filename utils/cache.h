@@ -1,12 +1,12 @@
 #ifndef UTILS_CACHE_H_
 #define UTILS_CACHE_H_
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
+#include "common/trinary/flex_trit.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,9 +2,10 @@
 #define UTILS_POW_H_
 
 #include <stdint.h>
+#include "./utarray.h"
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
 #include "common/model/bundle.h"
+#include "common/trinary/flex_trit.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -3,6 +3,7 @@
 
 #include "accelerator/errors.h"
 #include "common/model/transaction.h"
+#include "common/trinary/tryte.h"
 
 #ifdef __cplusplus
 extern "C" {

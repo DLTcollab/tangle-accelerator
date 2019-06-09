@@ -11,7 +11,8 @@ cc_library(
         "//response",
         "//utils:fill_nines",
         "@cJSON",
-        "@entangled//cclient/types",
+        "@entangled//common/trinary:flex_trit",
         "@entangled//common/trinary:tryte_ascii",
+        "@entangled//utils/containers/hash:hash_array",
     ],
 )

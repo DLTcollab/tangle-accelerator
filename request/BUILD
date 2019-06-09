@@ -10,6 +10,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator:ta_errors",
-        "@entangled//cclient/types",
+        "@entangled//common:errors",
+        "@entangled//common/trinary:tryte",
+        "@entangled//utils/containers/hash:hash243_queue",
+        "@entangled//utils/containers/hash:hash81_queue",
     ],
 )

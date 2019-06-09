@@ -1,7 +1,10 @@
 #ifndef REQUEST_TA_SEND_TRANSFER_H_
 #define REQUEST_TA_SEND_TRANSFER_H_
 
-#include "cclient/types/types.h"
+#include <stdlib.h>
+#include "common/trinary/flex_trit.h"
+#include "utils/containers/hash/hash243_queue.h"
+#include "utils/containers/hash/hash81_queue.h"
 
 #ifdef __cplusplus
 extern "C" {

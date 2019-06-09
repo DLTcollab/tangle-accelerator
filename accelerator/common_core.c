@@ -68,42 +68,6 @@ done:
   return ret;
 }
 
-status_t cclient_prepare_transfer(const iota_client_service_t* const service,
-                                  transfer_t** const transfers,
-                                  uint32_t const num_transfer,
-                                  bundle_transactions_t* out_bundle) {
-  if (transfers == NULL || out_bundle == NULL) {
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  iota_transaction_t* TX = transaction_new();
-  iota_transaction_t* tx = NULL;
-  Kerl kerl = {};
-  transfer_ctx_t transfer_ctx = {};
-  transfer_iterator_t* transfer_iterator =
-      transfer_iterator_new(transfers, num_transfer, &kerl, TX);
-  if (transfer_iterator == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  // calculate bundle hash
-  transfer_ctx_init(&transfer_ctx, transfers, 1);
-  transfer_ctx_hash(&transfer_ctx, &kerl, transfers, 1);
-
-  for (tx = transfer_iterator_next(transfer_iterator); tx;
-       tx = transfer_iterator_next(transfer_iterator)) {
-    transaction_set_bundle(tx, transfer_ctx.bundle);
-    bundle_transactions_add(out_bundle, tx);
-  }
-
-done:
-  transfer_iterator_free(&transfer_iterator);
-  transaction_free(TX);
-  return ret;
-}
-
 status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
                              attach_to_tangle_res_t* res) {
   status_t ret = SC_OK;
@@ -251,17 +215,41 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
   iota_transaction_t* txn = NULL;
   bundle_transactions_t* out_bundle = NULL;
   bundle_transactions_new(&out_bundle);
-  transfer_t* transfers[1];
-  transfers[0] = transfer_data_new(hash243_queue_peek(req->address),
-                                   hash81_queue_peek(req->tag), req->message,
-                                   req->msg_len, current_timestamp_ms());
-  if (find_tx_req == NULL || find_tx_res == NULL) {
+  transfer_array_t* transfers = transfer_array_new();
+  if (find_tx_req == NULL || find_tx_res == NULL || transfers == NULL) {
     ret = SC_CCLIENT_OOM;
     goto done;
   }
 
-  ret = cclient_prepare_transfer(service, transfers, 1, out_bundle);
-  if (ret) {
+  // TODO Maybe we can replace the variable type of message from flex_trit_t to
+  // tryte_t
+  tryte_t msg_tryte[NUM_TRYTES_SERIALIZED_TRANSACTION];
+  flex_trits_to_trytes(msg_tryte, req->msg_len / 3, req->message, req->msg_len,
+                       req->msg_len);
+
+  transfer_t transfer = {.value = 0,
+                         .timestamp = current_timestamp_ms(),
+                         .msg_len = req->msg_len / 3};
+
+  if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) !=
+      RC_OK) {
+    ret = SC_CCLIENT_OOM;
+    goto done;
+  }
+  memcpy(transfer.address, hash243_queue_peek(req->address),
+         FLEX_TRIT_SIZE_243);
+  memcpy(transfer.tag, hash81_queue_peek(req->tag), FLEX_TRIT_SIZE_81);
+  transfer_array_add(transfers, &transfer);
+
+  // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
+  // future and declare `security` field in `iota_config_t`
+  flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
+  flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)tangle->seed,
+                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL,
+                                    false, current_timestamp_ms(),
+                                    out_bundle) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
 
@@ -297,8 +285,9 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
   find_tx_res->hashes = NULL;
 
 done:
+  transfer_message_free(&transfer);
   hash_array_free(raw_tx);
-  transfer_free(transfers);
+  transfer_array_free(transfers);
   bundle_transactions_free(&out_bundle);
   find_transactions_req_free(&find_tx_req);
   find_transactions_res_free(&find_tx_res);
