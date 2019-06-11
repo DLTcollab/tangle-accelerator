@@ -47,16 +47,14 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
   return ret;
 }
 
-static status_t redis_set(redisContext* c, const char* const key,
-                          const char* const value) {
+static status_t redis_set(redisContext* c, const char* const key, const char* const value) {
   status_t ret = SC_OK;
 
   if (key == NULL || value == NULL) {
     return SC_CACHE_NULL;
   }
 
-  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243,
-                                   value, FLEX_TRIT_SIZE_8019);
+  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243, value, FLEX_TRIT_SIZE_8019);
   if (!reply->integer) {
     ret = SC_CACHE_FAILED_RESPONSE;
   }
@@ -88,14 +86,8 @@ void cache_stop() {
   }
 }
 
-status_t cache_del(const char* const key) {
-  return redis_del(CONN(cache)->rc, key);
-}
+status_t cache_del(const char* const key) { return redis_del(CONN(cache)->rc, key); }
 
-status_t cache_get(const char* const key, char* res) {
-  return redis_get(CONN(cache)->rc, key, res);
-}
+status_t cache_get(const char* const key, char* res) { return redis_get(CONN(cache)->rc, key, res); }
 
-status_t cache_set(const char* const key, const char* const value) {
-  return redis_set(CONN(cache)->rc, key, value);
-}
+status_t cache_set(const char* const key, const char* const value) { return redis_set(CONN(cache)->rc, key, value); }

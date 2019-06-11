@@ -19,8 +19,7 @@ void set_method_header(served::response& res, http_method_t method) {
   switch (method) {
     case HTTP_METHOD_OPTIONS:
       res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set_header("Access-Control-Allow-Headers",
-                     "Origin, Content-Type, Accept");
+      res.set_header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
       res.set_header("Access-Control-Max-Age", "86400");
       break;
     default:
@@ -66,8 +65,7 @@ int main(int argc, char* argv[]) {
   logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
-                             &ta_core.service) != SC_OK) {
+  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -77,22 +75,18 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__,
-                 __LINE__, MAIN_LOGGER_ID);
+    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__, __LINE__, MAIN_LOGGER_ID);
     return EXIT_FAILURE;
   }
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_receive_mam_message(
-            &ta_core.service, req.params["bundle"].c_str(), &json_result);
+        ret = api_receive_mam_message(&ta_core.service, req.params["bundle"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -102,25 +96,20 @@ int main(int argc, char* argv[]) {
 
   mux.handle("/mam")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        if (req.header("content-type").find("application/json") ==
-            std::string::npos) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
-          cJSON_AddStringToObject(json_obj, "message",
-                                  "Invalid request header");
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_mam_send_message(&ta_core.tangle, &ta_core.service,
-                                     req.body().c_str(), &json_result);
+          ret = api_mam_send_message(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -138,15 +127,12 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_by_tag(
-            &ta_core.service, req.params["tag"].c_str(), &json_result);
+        ret = api_find_transactions_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -162,15 +148,12 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/transaction/{tx:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_transaction_object(
-            &ta_core.service, req.params["tx"].c_str(), &json_result);
+        ret = api_get_transaction_object(&ta_core.service, req.params["tx"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -186,15 +169,12 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/tag/{tag:[A-Z9]{1,27}}")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_obj_by_tag(
-            &ta_core.service, req.params["tag"].c_str(), &json_result);
+        ret = api_find_transactions_obj_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -208,15 +188,12 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/tips/pair")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret =
-            api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
+        ret = api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -230,9 +207,7 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/tips")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
@@ -251,15 +226,12 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/address")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_generate_address(&ta_core.tangle, &ta_core.service,
-                                   &json_result);
+        ret = api_generate_address(&ta_core.tangle, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -273,25 +245,20 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/transaction")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        if (req.header("content-type").find("application/json") ==
-            std::string::npos) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
-          cJSON_AddStringToObject(json_obj, "message",
-                                  "Invalid request header");
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.tangle, &ta_core.service,
-                                  req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -307,25 +274,20 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("/tryte")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        if (req.header("content-type").find("application/json") ==
-            std::string::npos) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
-          cJSON_AddStringToObject(json_obj, "message",
-                                  "Invalid request header");
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_trytes(&ta_core.tangle, &ta_core.service,
-                                req.body().c_str(), &json_result);
+          ret = api_send_trytes(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -342,9 +304,7 @@ int main(int argc, char* argv[]) {
    */
   mux.handle("{*}")
       .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
       .get([](served::response& res, const served::request&) {
         cJSON* json_obj = cJSON_CreateObject();
         cJSON_AddStringToObject(json_obj, "message", "Invalid path");

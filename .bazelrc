@@ -1,7 +1,6 @@
 build --copt -W
 build --copt -Wall
 build --copt -Wextra
-build --fat_apk_cpu='armeabi-v7a,arm64-v8a,x86,x86_64'
 build --output_filter='^//((?!external:).)*$'
 
 coverage -s

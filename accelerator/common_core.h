@@ -37,8 +37,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
-                                    uint8_t const depth,
+status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, uint8_t const depth,
                                     ta_get_tips_res_t* res);
 
 /**
@@ -54,8 +53,7 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cclient_get_tips(const iota_client_service_t* const service,
-                          ta_get_tips_res_t* res);
+status_t cclient_get_tips(const iota_client_service_t* const service, ta_get_tips_res_t* res);
 
 /**
  * @brief Generate an unused address.
@@ -72,8 +70,7 @@ status_t cclient_get_tips(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address(const iota_config_t* const tangle,
-                             const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
                              ta_generate_address_res_t* res);
 
 /**
@@ -93,10 +90,8 @@ status_t ta_generate_address(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer(const iota_config_t* const tangle,
-                          const iota_client_service_t* const service,
-                          const ta_send_transfer_req_t* const req,
-                          ta_send_transfer_res_t* res);
+status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
+                          const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res);
 
 /**
  * @brief Send trytes to tangle.
@@ -113,8 +108,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes(const iota_config_t* const tangle,
-                        const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
                         hash8019_array_p trytes);
 
 /**
@@ -132,8 +126,7 @@ status_t ta_send_trytes(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
-                                     const char* const req,
+status_t ta_find_transactions_by_tag(const iota_client_service_t* const service, const char* const req,
                                      ta_find_transactions_res_t* const res);
 
 /**
@@ -151,9 +144,8 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_obj_by_tag(
-    const iota_client_service_t* const service, const char* const req,
-    ta_find_transactions_obj_res_t* res);
+status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const req,
+                                         ta_find_transactions_obj_res_t* res);
 
 /**
  * @brief Return transaction object with given transaction hash.
@@ -171,8 +163,7 @@ status_t ta_find_transactions_obj_by_tag(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_transaction_object(const iota_client_service_t* const service,
-                                   const char* const req,
+status_t ta_get_transaction_object(const iota_client_service_t* const service, const char* const req,
                                    ta_get_transaction_object_res_t* res);
 
 /**
@@ -190,8 +181,7 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_bundle(const iota_client_service_t* const service,
-                       tryte_t const* const bundle_hash,
+status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const* const bundle_hash,
                        bundle_transactions_t* const bundle);
 
 /**
@@ -208,8 +198,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_bundle(const iota_config_t* const tangle,
-                        const iota_client_service_t* const service,
+status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_service_t* const service,
                         bundle_transactions_t* const bundle);
 
 #ifdef __cplusplus

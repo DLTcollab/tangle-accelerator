@@ -37,8 +37,7 @@ ta_send_mam_req_t* send_mam_req_new();
  *
  * @return NULL
  */
-status_t send_mam_req_set_payload(ta_send_mam_req_t* req,
-                                  const tryte_t* payload);
+status_t send_mam_req_set_payload(ta_send_mam_req_t* req, const tryte_t* payload);
 
 /**
  * Free memory of ta_send_mam_req_t

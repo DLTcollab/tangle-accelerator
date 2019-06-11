@@ -1,8 +1,7 @@
 #include "ta_send_transfer.h"
 
 ta_send_transfer_res_t* ta_send_transfer_res_new() {
-  ta_send_transfer_res_t* res =
-      (ta_send_transfer_res_t*)malloc(sizeof(ta_send_transfer_res_t));
+  ta_send_transfer_res_t* res = (ta_send_transfer_res_t*)malloc(sizeof(ta_send_transfer_res_t));
   res->hash = NULL;
   return res;
 }

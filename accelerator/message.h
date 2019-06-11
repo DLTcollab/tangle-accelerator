@@ -30,34 +30,27 @@ typedef enum ta_cli_arg_value_e {
   SEED_CLI,
 } ta_cli_arg_value_t;
 
-typedef enum ta_cli_arg_requirement_e {
-  NO_ARG,
-  REQUIRED_ARG,
-  OPTIONAL_ARG
-} ta_cli_arg_requirement_t;
+typedef enum ta_cli_arg_requirement_e { NO_ARG, REQUIRED_ARG, OPTIONAL_ARG } ta_cli_arg_requirement_t;
 
 static struct ta_cli_argument_s {
   char const* name;
   int val;
   char const* desc;
   ta_cli_arg_requirement_t has_arg;
-} ta_cli_arguments_g[] = {
-    {"help", 'h', "Show tangle-accelerator usage", NO_ARG},
-    {"version", 'v', "tangle-accelerator version", NO_ARG},
-    {"ta_host", TA_HOST_CLI, "TA listening host", REQUIRED_ARG},
-    {"ta_port", TA_PORT_CLI, "TA listening port", REQUIRED_ARG},
-    {"ta_thread", TA_THREAD_COUNT_CLI, "TA executing thread", OPTIONAL_ARG},
-    {"iri_host", IRI_HOST_CLI, "IRI listening host", REQUIRED_ARG},
-    {"iri_port", IRI_PORT_CLI, "IRI listening port", REQUIRED_ARG},
-    {"redis_host", REDIS_HOST_CLI, "Redis server listening host", REQUIRED_ARG},
-    {"redis_port", REDIS_PORT_CLI, "Redis server listening port", REQUIRED_ARG},
-    {"milestone_depth", MILESTONE_DEPTH_CLI, "IRI milestone depth",
-     OPTIONAL_ARG},
-    {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
-    {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG}};
+} ta_cli_arguments_g[] = {{"help", 'h', "Show tangle-accelerator usage", NO_ARG},
+                          {"version", 'v', "tangle-accelerator version", NO_ARG},
+                          {"ta_host", TA_HOST_CLI, "TA listening host", REQUIRED_ARG},
+                          {"ta_port", TA_PORT_CLI, "TA listening port", REQUIRED_ARG},
+                          {"ta_thread", TA_THREAD_COUNT_CLI, "TA executing thread", OPTIONAL_ARG},
+                          {"iri_host", IRI_HOST_CLI, "IRI listening host", REQUIRED_ARG},
+                          {"iri_port", IRI_PORT_CLI, "IRI listening port", REQUIRED_ARG},
+                          {"redis_host", REDIS_HOST_CLI, "Redis server listening host", REQUIRED_ARG},
+                          {"redis_port", REDIS_PORT_CLI, "Redis server listening port", REQUIRED_ARG},
+                          {"milestone_depth", MILESTONE_DEPTH_CLI, "IRI milestone depth", OPTIONAL_ARG},
+                          {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
+                          {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG}};
 
-static const int cli_cmd_num =
-    sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
+static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
 void ta_usage();
 #ifdef __cplusplus
 }

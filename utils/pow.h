@@ -53,8 +53,7 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_pow(const bundle_transactions_t* bundle,
-                const flex_trit_t* const trunk, const flex_trit_t* const branch,
+status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const trunk, const flex_trit_t* const branch,
                 const uint8_t mwm);
 
 #ifdef __cplusplus

@@ -1,8 +1,7 @@
 #include "ta_find_transactions.h"
 
 ta_find_transactions_res_t* ta_find_transactions_res_new() {
-  ta_find_transactions_res_t* res =
-      (ta_find_transactions_res_t*)malloc(sizeof(ta_find_transactions_res_t));
+  ta_find_transactions_res_t* res = (ta_find_transactions_res_t*)malloc(sizeof(ta_find_transactions_res_t));
   if (res) {
     res->hashes = NULL;
   }

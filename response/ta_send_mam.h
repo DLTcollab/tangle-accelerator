@@ -44,8 +44,7 @@ ta_send_mam_res_t* send_mam_res_new();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res,
-                                      const tryte_t* bundle_hash);
+status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bundle_hash);
 
 /**
  * @brief Set the channel_id field of send_mam_res object.
@@ -61,8 +60,7 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res,
-                                     const tryte_t* channel_id);
+status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id);
 
 /**
  * Free memory of ta_send_mam_res_t

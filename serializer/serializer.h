@@ -42,8 +42,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address_res_serialize(
-    char** obj, const ta_generate_address_res_t* const res);
+status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res);
 
 /**
  * @brief Serialze type of ta_get_tips_res_t to JSON string
@@ -55,8 +54,7 @@ status_t ta_generate_address_res_serialize(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_tips_res_serialize(char** obj,
-                                   const ta_get_tips_res_t* const res);
+status_t ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
@@ -68,8 +66,7 @@ status_t ta_get_tips_res_serialize(char** obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer_req_deserialize(const char* const obj,
-                                          ta_send_transfer_req_t* req);
+status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req);
 
 /**
  * @brief Deserialze JSON string to hash8019_array_p
@@ -82,8 +79,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes_req_deserialize(const char* const obj,
-                                        hash8019_array_p out_trytes);
+status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p out_trytes);
 
 /**
  * @brief Serialze hash8019_array_p to JSON string
@@ -95,8 +91,7 @@ status_t ta_send_trytes_req_deserialize(const char* const obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes,
-                                      char** obj);
+status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj);
 
 /**
  * @brief Serialze type of ta_get_transaction_object_res_t to JSON string
@@ -108,8 +103,7 @@ status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_transaction_object_res_serialize(
-    char** obj, const ta_get_transaction_object_res_t* const res);
+status_t ta_get_transaction_object_res_serialize(char** obj, const ta_get_transaction_object_res_t* const res);
 
 /**
  * @brief Serialze type of ta_find_transactions_res_t to JSON string
@@ -121,8 +115,7 @@ status_t ta_get_transaction_object_res_serialize(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_res_serialize(
-    char** obj, const ta_find_transactions_res_t* const res);
+status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactions_res_t* const res);
 
 /**
  * @brief Serialze type of ta_find_transactions_obj_res_t to JSON string
@@ -134,8 +127,7 @@ status_t ta_find_transactions_res_serialize(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_obj_res_serialize(
-    char** obj, const ta_find_transactions_obj_res_t* const res);
+status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transactions_obj_res_t* const res);
 
 /**
  * @brief Serialize mam message
@@ -171,8 +163,7 @@ status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_deserialize(const char* const obj,
-                                  ta_send_mam_res_t* const res);
+status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_mam_req_t
@@ -184,8 +175,7 @@ status_t send_mam_res_deserialize(const char* const obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_req_deserialize(const char* const obj,
-                                  ta_send_mam_req_t* req);
+status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
 #ifdef __cplusplus
 }
 #endif
