@@ -34,8 +34,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_generate_address(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
                               char** json_result);
 
 /**
@@ -52,8 +51,7 @@ status_t api_generate_address(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips_pair(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            char** json_result);
 
 /**
@@ -69,8 +67,7 @@ status_t api_get_tips_pair(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips(const iota_client_service_t* const service,
-                      char** json_result);
+status_t api_get_tips(const iota_client_service_t* const service, char** json_result);
 
 /**
  * @brief Receive a MAM message.
@@ -85,8 +82,7 @@ status_t api_get_tips(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_receive_mam_message(const iota_client_service_t* const service,
-                                 const char* const bundle_hash,
+status_t api_receive_mam_message(const iota_client_service_t* const service, const char* const bundle_hash,
                                  char** json_result);
 
 /**
@@ -105,8 +101,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_mam_send_message(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_mam_send_message(const iota_config_t* const tangle, const iota_client_service_t* const service,
                               char const* const payload, char** json_result);
 
 /**
@@ -125,8 +120,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_transfer(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            const char* const obj, char** json_result);
 
 /**
@@ -143,8 +137,8 @@ status_t api_send_transfer(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_transaction_object(const iota_client_service_t* const service,
-                                    const char* const obj, char** json_result);
+status_t api_get_transaction_object(const iota_client_service_t* const service, const char* const obj,
+                                    char** json_result);
 
 /**
  * @brief Return list of transaction hash with given tag hash.
@@ -161,9 +155,8 @@ status_t api_get_transaction_object(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result);
+status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result);
 
 /**
  * @brief Return list of transaction object with given tag hash.
@@ -180,9 +173,8 @@ status_t api_find_transactions_by_tag(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_obj_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result);
+status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                          char** json_result);
 
 /**
  * @brief Attach trytes to Tangle and return transaction hashes
@@ -201,8 +193,7 @@ status_t api_find_transactions_obj_by_tag(
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_trytes(const iota_config_t* const tangle,
-                         const iota_client_service_t* const service,
+status_t api_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
                          const char* const obj, char** json_result);
 
 #ifdef __cplusplus

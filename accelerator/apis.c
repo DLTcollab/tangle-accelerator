@@ -1,7 +1,6 @@
 #include "apis.h"
 
-status_t api_get_tips(const iota_client_service_t* const service,
-                      char** json_result) {
+status_t api_get_tips(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
   ta_get_tips_res_t* res = ta_get_tips_res_new();
   if (res == NULL) {
@@ -21,8 +20,7 @@ done:
   return ret;
 }
 
-status_t api_get_tips_pair(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            char** json_result) {
   status_t ret = SC_OK;
   ta_get_tips_res_t* res = ta_get_tips_res_new();
@@ -43,8 +41,7 @@ done:
   return ret;
 }
 
-status_t api_generate_address(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
                               char** json_result) {
   status_t ret = SC_OK;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
@@ -65,8 +62,8 @@ done:
   return ret;
 }
 
-status_t api_get_transaction_object(const iota_client_service_t* const service,
-                                    const char* const obj, char** json_result) {
+status_t api_get_transaction_object(const iota_client_service_t* const service, const char* const obj,
+                                    char** json_result) {
   status_t ret = SC_OK;
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
   if (res == NULL) {
@@ -86,9 +83,8 @@ done:
   return ret;
 }
 
-status_t api_find_transactions_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result) {
+status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result) {
   status_t ret = SC_OK;
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
   if (res == NULL) {
@@ -121,9 +117,8 @@ done:
   return ret;
 }
 
-status_t api_find_transactions_obj_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result) {
+status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                          char** json_result) {
   status_t ret = SC_OK;
   ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
   if (res == NULL) {
@@ -143,8 +138,7 @@ done:
   return ret;
 }
 
-status_t api_receive_mam_message(const iota_client_service_t* const service,
-                                 const char* const bundle_hash,
+status_t api_receive_mam_message(const iota_client_service_t* const service, const char* const bundle_hash,
                                  char** json_result) {
   mam_api_t mam;
   status_t ret = SC_OK;
@@ -170,13 +164,11 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
   // Set first transaction's address as chid, if no `chid` specified
   iota_transaction_t* curr_tx = (iota_transaction_t*)utarray_eltptr(bundle, 0);
   none_chid_trytes = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
-  flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS,
-                       transaction_address(curr_tx), NUM_TRITS_ADDRESS,
+  flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS, transaction_address(curr_tx), NUM_TRITS_ADDRESS,
                        NUM_TRITS_ADDRESS);
   mam_api_add_trusted_channel_pk(&mam, none_chid_trytes);
 
-  if (mam_api_bundle_read(&mam, bundle, &payload_trytes, &payload_size,
-                          &is_last_packet) == RC_OK) {
+  if (mam_api_bundle_read(&mam, bundle, &payload_trytes, &payload_size, &is_last_packet) == RC_OK) {
     if (payload_trytes == NULL || payload_size == 0) {
       ret = SC_MAM_NO_PAYLOAD;
       goto done;
@@ -210,8 +202,7 @@ done:
   return ret;
 }
 
-status_t api_mam_send_message(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_mam_send_message(const iota_config_t* const tangle, const iota_client_service_t* const service,
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
   retcode_t rc = RC_OK;
@@ -225,8 +216,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
   ta_send_mam_res_t* res = send_mam_res_new();
 
   // Loading and creating MAM API
-  if ((rc = mam_api_load(tangle->mam_file, &mam)) ==
-      RC_UTILS_FAILED_TO_OPEN_FILE) {
+  if ((rc = mam_api_load(tangle->mam_file, &mam)) == RC_UTILS_FAILED_TO_OPEN_FILE) {
     if (mam_api_init(&mam, (tryte_t*)SEED)) {
       ret = SC_MAM_FAILED_INIT;
       goto done;
@@ -246,18 +236,15 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
     mam_api_create_channel(&mam, tangle->mss_depth, channel_id);
   } else {
     mam_channel_t* channel = &mam.channels->value;
-    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id,
-                    NUM_TRITS_ADDRESS);
+    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);
   }
 
   // Write header and packet
-  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL,
-                                             bundle, msg_id) != RC_OK) {
+  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL, bundle, msg_id) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
   }
-  if (mam_api_bundle_write_packet(&mam, msg_id, req->payload_trytes,
-                                  req->payload_trytes_size, 0, last_packet,
+  if (mam_api_bundle_write_packet(&mam, msg_id, req->payload_trytes, req->payload_trytes_size, 0, last_packet,
                                   bundle) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
@@ -269,8 +256,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
     ret = SC_MAM_FAILED_RESPONSE;
     goto done;
   }
-  send_mam_res_set_bundle_hash(
-      res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+  send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
 
   ret = send_mam_res_serialize(json_result, res);
 
@@ -287,15 +273,13 @@ done:
   return ret;
 }
 
-status_t api_send_transfer(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   char hash_trytes[NUM_TRYTES_HASH + 1];
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
-  ta_get_transaction_object_res_t* txn_obj_res =
-      ta_get_transaction_object_res_new();
+  ta_get_transaction_object_res_t* txn_obj_res = ta_get_transaction_object_res_new();
 
   if (req == NULL || res == NULL || txn_obj_res == NULL) {
     ret = SC_TA_OOM;
@@ -313,8 +297,7 @@ status_t api_send_transfer(const iota_config_t* const tangle,
   }
 
   // return transaction object
-  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH,
-                       hash243_queue_peek(res->hash), NUM_TRITS_HASH,
+  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash243_queue_peek(res->hash), NUM_TRITS_HASH,
                        NUM_TRITS_HASH);
   hash_trytes[NUM_TRYTES_HASH] = '\0';
   ret = ta_get_transaction_object(service, hash_trytes, txn_obj_res);
@@ -331,8 +314,7 @@ done:
   return ret;
 }
 
-status_t api_send_trytes(const iota_config_t* const tangle,
-                         const iota_client_service_t* const service,
+status_t api_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
                          const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   hash8019_array_p trytes = hash8019_array_new();

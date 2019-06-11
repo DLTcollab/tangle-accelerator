@@ -1,7 +1,6 @@
 #include "fill_nines.h"
 
-status_t fill_nines(char* new_str, const char* const old_str,
-                    size_t new_str_len) {
+status_t fill_nines(char* new_str, const char* const old_str, size_t new_str_len) {
   if (!new_str || !old_str || new_str_len != NUM_TRYTES_TAG) {
     return SC_SERIALIZER_NULL;
   }

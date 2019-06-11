@@ -26,8 +26,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t fill_nines(char* new_str, const char* const old_str,
-                    size_t new_str_len);
+status_t fill_nines(char* new_str, const char* const old_str, size_t new_str_len);
 #ifdef __cplusplus
 }
 #endif

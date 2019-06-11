@@ -6,8 +6,7 @@
 static logger_id_t logger_id;
 
 struct option* cli_build_options() {
-  struct option* long_options =
-      (struct option*)malloc(cli_cmd_num * sizeof(struct option));
+  struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
   for (int i = 0; i < cli_cmd_num; ++i) {
     long_options[i].name = ta_cli_arguments_g[i].name;
     long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
@@ -17,12 +16,9 @@ struct option* cli_build_options() {
   return long_options;
 }
 
-status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle,
-                        ta_cache_t* const cache,
-                        iota_client_service_t* const service, int key,
-                        char* const value) {
-  if (value == NULL || info == NULL || tangle == NULL || cache == NULL ||
-      service == NULL) {
+status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
+                        iota_client_service_t* const service, int key, char* const value) {
+  if (value == NULL || info == NULL || tangle == NULL || cache == NULL || service == NULL) {
     return SC_CONF_NULL;
   }
   switch (key) {
@@ -67,9 +63,7 @@ status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle,
   return SC_OK;
 }
 
-status_t ta_config_default_init(ta_config_t* const info,
-                                iota_config_t* const tangle,
-                                ta_cache_t* const cache,
+status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
                                 iota_client_service_t* const service) {
   status_t ret = SC_OK;
   char mss_tmp[] = "/tmp/XXXXXX";
@@ -78,8 +72,7 @@ status_t ta_config_default_init(ta_config_t* const info,
   }
 
   logger_id = logger_helper_enable(CONFIG_LOGGER_ID, LOGGER_DEBUG, true);
-  log_info(logger_id, "[%s:%d] enable logger %s.\n", __func__, __LINE__,
-           CONFIG_LOGGER_ID);
+  log_info(logger_id, "[%s:%d] enable logger %s.\n", __func__, __LINE__, CONFIG_LOGGER_ID);
 
   log_info(logger_id, "Initializing TA information\n");
   info->version = TA_VERSION;
@@ -130,8 +123,7 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
         printf("%s\n", TA_VERSION);
         exit(EXIT_SUCCESS);
       default:
-        ret = cli_config_set(&conf->info, &conf->tangle, &conf->cache,
-                             &conf->service, key, optarg);
+        ret = cli_config_set(&conf->info, &conf->tangle, &conf->cache, &conf->service, key, optarg);
         break;
     }
     if (ret != SC_OK) {
@@ -143,8 +135,7 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
   return ret;
 }
 
-status_t ta_config_set(ta_cache_t* const cache,
-                       iota_client_service_t* const service) {
+status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const service) {
   status_t ret = SC_OK;
   if (cache == NULL || service == NULL) {
     return SC_TA_NULL;

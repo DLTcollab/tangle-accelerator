@@ -1,8 +1,7 @@
 #include "ta_generate_address.h"
 
 ta_generate_address_res_t* ta_generate_address_res_new() {
-  ta_generate_address_res_t* res =
-      (ta_generate_address_res_t*)malloc(sizeof(ta_generate_address_res_t));
+  ta_generate_address_res_t* res = (ta_generate_address_res_t*)malloc(sizeof(ta_generate_address_res_t));
   if (res) {
     res->addresses = NULL;
   }

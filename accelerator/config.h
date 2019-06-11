@@ -83,9 +83,7 @@ typedef struct ta_core_s {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_default_init(ta_config_t* const info,
-                                iota_config_t* const tangle,
-                                ta_cache_t* const cache,
+status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
                                 iota_client_service_t* const service);
 
 /**
@@ -112,8 +110,7 @@ status_t ta_config_cli_init(ta_core_t* const ta_conf, int argc, char** argv);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_set(ta_cache_t* const cache,
-                       iota_client_service_t* const service);
+status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const service);
 
 /**
  * Free memory of configuration variables

@@ -34,9 +34,7 @@ double diff_time(struct timespec start, struct timespec end) {
   return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
 }
 
-void test_time_start(struct timespec* start) {
-  clock_gettime(CLOCK_REALTIME, start);
-}
+void test_time_start(struct timespec* start) { clock_gettime(CLOCK_REALTIME, start); }
 
 void test_time_end(struct timespec* start, struct timespec* end, double* sum) {
   clock_gettime(CLOCK_REALTIME, end);
@@ -53,9 +51,7 @@ void test_generate_address(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK,
-        api_generate_address(&ta_core.tangle, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.tangle, &ta_core.service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -68,9 +64,7 @@ void test_get_tips_pair(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK,
-        api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -83,8 +77,7 @@ void test_get_tips(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK,
-                            api_get_tips(&ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&ta_core.service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -107,9 +100,7 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_send_transfer(&ta_core.tangle, &ta_core.service, json,
-                                 &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.tangle, &ta_core.service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -117,16 +108,13 @@ void test_send_transfer(void) {
 }
 
 void test_send_trytes(void) {
-  const char* json =
-      "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  const char* json = "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
   char* json_result;
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK,
-        api_send_trytes(&ta_core.tangle, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.tangle, &ta_core.service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -139,9 +127,7 @@ void test_get_transaction_object(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_get_transaction_object(&ta_core.service, TRYTES_81_3,
-                                          &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_transaction_object(&ta_core.service, TRYTES_81_3, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -155,9 +141,7 @@ void test_find_transactions_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_find_transactions_by_tag(&ta_core.service, driver_tag_msg,
-                                            &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.service, driver_tag_msg, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -171,9 +155,7 @@ void test_find_transactions_obj_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_find_transactions_obj_by_tag(&ta_core.service,
-                                                driver_tag_msg, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.service, driver_tag_msg, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -188,9 +170,7 @@ void test_send_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_mam_send_message(&ta_core.tangle, &ta_core.service, json,
-                                    &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_mam_send_message(&ta_core.tangle, &ta_core.service, json, &json_result));
     send_mam_res_deserialize(json_result, res);
 
     test_time_end(&start_time, &end_time, &sum);
@@ -206,9 +186,7 @@ void test_receive_mam_message(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_receive_mam_message(&ta_core.service,
-                                       (char*)res->bundle_hash, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_receive_mam_message(&ta_core.service, (char*)res->bundle_hash, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -220,8 +198,7 @@ int main(void) {
 
   UNITY_BEGIN();
 
-  ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
-                         &ta_core.service);
+  ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service);
   ta_config_set(&ta_core.cache, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
