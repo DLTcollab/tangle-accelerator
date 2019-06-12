@@ -5,6 +5,7 @@
 #include "common/trinary/tryte_ascii.h"
 #include "request/request.h"
 #include "response/response.h"
+#include "utils/char_buffer.h"
 #include "utils/containers/hash/hash_array.h"
 #include "utils/fill_nines.h"
 
@@ -43,18 +44,6 @@ extern "C" {
  * - non-zero on error
  */
 status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res);
-
-/**
- * @brief Serialze type of ta_get_tips_res_t to JSON string
- *
- * @param[out] obj List of tip hashes in JSON
- * @param[in] res Response data in type of ta_get_tips_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
@@ -176,6 +165,7 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
  * - non-zero on error
  */
 status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
+
 #ifdef __cplusplus
 }
 #endif

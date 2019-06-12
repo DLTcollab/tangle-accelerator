@@ -2,42 +2,69 @@
 
 status_t api_get_tips(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  if (res == NULL) {
-    ret = SC_TA_OOM;
+  get_tips_res_t* res = get_tips_res_new();
+  char_buffer_t* res_buff = char_buffer_new();
+
+  if (res == NULL || res_buff == NULL) {
+    ret = SC_CCLIENT_OOM;
     goto done;
   }
 
-  ret = cclient_get_tips(service, res);
-  if (ret) {
+  if (iota_client_get_tips(service, res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
 
-  ret = ta_get_tips_res_serialize(json_result, res);
+  if (service->serializer.vtable.get_tips_serialize_response(res, res_buff) != RC_OK) {
+    ret = SC_CCLIENT_JSON_PARSE;
+    goto done;
+  }
+
+  *json_result = (char*)malloc(res_buff->length * sizeof(char));
+  if (*json_result == NULL) {
+    goto done;
+  }
+  memcpy(*json_result, res_buff->data, res_buff->length);
 
 done:
-  ta_get_tips_res_free(&res);
+  get_tips_res_free(&res);
+  char_buffer_free(res_buff);
   return ret;
 }
 
 status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            char** json_result) {
   status_t ret = SC_OK;
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  if (res == NULL) {
+  get_transactions_to_approve_req_t* req = get_transactions_to_approve_req_new();
+  get_transactions_to_approve_res_t* res = get_transactions_to_approve_res_new();
+  char_buffer_t* res_buff = char_buffer_new();
+
+  if (req == NULL || res == NULL || res_buff == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
 
-  ret = cclient_get_txn_to_approve(service, tangle->milestone_depth, res);
-  if (ret) {
+  get_transactions_to_approve_req_set_depth(req, tangle->milestone_depth);
+  if (iota_client_get_transactions_to_approve(service, req, res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
 
-  ret = ta_get_tips_res_serialize(json_result, res);
+  if (service->serializer.vtable.get_transactions_to_approve_serialize_response(res, res_buff) != RC_OK) {
+    ret = SC_CCLIENT_JSON_PARSE;
+    goto done;
+  }
+
+  *json_result = (char*)malloc(res_buff->length * sizeof(char));
+  if (*json_result == NULL) {
+    goto done;
+  }
+  memcpy(*json_result, res_buff->data, res_buff->length);
 
 done:
-  ta_get_tips_res_free(&res);
+  get_transactions_to_approve_req_free(&req);
+  get_transactions_to_approve_res_free(&res);
+  char_buffer_free(res_buff);
   return ret;
 }
 

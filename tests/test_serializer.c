@@ -1,23 +1,6 @@
 #include "serializer/serializer.h"
 #include "test_define.h"
 
-void test_serialize_ta_get_tips(void) {
-  const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
-  char* json_result;
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-
-  hash243_stack_push(&res->tips, hash_trits_2);
-  hash243_stack_push(&res->tips, hash_trits_1);
-
-  ta_get_tips_res_serialize(&json_result, res);
-  TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_get_tips_res_free(&res);
-  free(json_result);
-}
-
 void test_serialize_ta_generate_address(void) {
   const char* json = "{\"address\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
@@ -311,7 +294,6 @@ void test_serialize_ta_send_trytes_res(void) {
 int main(void) {
   UNITY_BEGIN();
 
-  RUN_TEST(test_serialize_ta_get_tips);
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_get_transaction_object);

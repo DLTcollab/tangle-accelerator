@@ -233,25 +233,6 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
   return ret;
 }
 
-status_t ta_get_tips_res_serialize(char** obj, const ta_get_tips_res_t* const res) {
-  cJSON* json_root = cJSON_CreateObject();
-  status_t ret = SC_OK;
-  if (json_root == NULL) {
-    return SC_SERIALIZER_JSON_CREATE;
-  }
-  ret = ta_hash243_stack_to_json_array(res->tips, json_root, "tips");
-  if (ret) {
-    return ret;
-  }
-
-  *obj = cJSON_PrintUnformatted(json_root);
-  if (*obj == NULL) {
-    return SC_SERIALIZER_JSON_PARSE;
-  }
-  cJSON_Delete(json_root);
-  return ret;
-}
-
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req) {
   if (obj == NULL) {
     return SC_SERIALIZER_NULL;

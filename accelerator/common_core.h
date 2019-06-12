@@ -41,21 +41,6 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, 
                                     ta_get_tips_res_t* res);
 
 /**
- * @brief Get list of all tips from IRI node.
- *
- * Get list of all tips from IRI node which usually has thousands of tips in
- * its queue.
- *
- * @param[in] service IRI node end point service
- * @param[out] res Result containing list of all tips in ta_get_tips_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t cclient_get_tips(const iota_client_service_t* const service, ta_get_tips_res_t* res);
-
-/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means
