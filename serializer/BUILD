@@ -13,6 +13,7 @@ cc_library(
         "@cJSON",
         "@entangled//common/trinary:flex_trit",
         "@entangled//common/trinary:tryte_ascii",
+        "@entangled//utils:char_buffer",
         "@entangled//utils/containers/hash:hash_array",
     ],
 )

@@ -26,21 +26,6 @@ TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
   ta_get_tips_res_free(&res);
 }
 
-TEST(GetTipsTest, TipsHashTest) {
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-
-  EXPECT_CALL(APIMockObj, iota_client_get_tips(_, _)).Times(AtLeast(1));
-
-  EXPECT_EQ(cclient_get_tips(&service, res), 0);
-  hash243_stack_entry_t* s_iter = NULL;
-  LL_FOREACH(res->tips, s_iter) {
-    EXPECT_FALSE(memcmp(s_iter->hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
-  }
-  ta_get_tips_res_free(&res);
-}
-
 TEST(FindTxnTest, TxnHashTest) {
   const char req[NUM_TRYTES_TAG] = {};
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();

@@ -39,30 +39,6 @@ done:
   return ret;
 }
 
-status_t cclient_get_tips(const iota_client_service_t* const service, ta_get_tips_res_t* res) {
-  if (res == NULL) {
-    return SC_TA_NULL;
-  }
-  status_t ret = SC_OK;
-  get_tips_res_t* get_tips_res = get_tips_res_new();
-  if (get_tips_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  ret = iota_client_get_tips(service, get_tips_res);
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-  res->tips = get_tips_res->hashes;
-  get_tips_res->hashes = NULL;
-
-done:
-  get_tips_res_free(&get_tips_res);
-  return ret;
-}
-
 status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_tangle_res_t* res) {
   status_t ret = SC_OK;
   bundle_transactions_t* bundle = NULL;
