@@ -364,21 +364,20 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
   }
 
   // get transaction obj
-  for (hash_trits = hash243_queue_peek(hash_res->hashes); hash_trits != NULL;
-       hash_trits = hash243_queue_peek(hash_res->hashes)) {
+  hash243_queue_entry_t* q_iter = NULL;
+  CDL_FOREACH(hash_res->hashes, q_iter) {
     ta_get_transaction_object_res_t* obj_res = ta_get_transaction_object_res_new();
     if (obj_res == NULL) {
       ret = SC_TA_OOM;
       goto done;
     }
-    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash_trits, NUM_TRITS_HASH, NUM_TRITS_HASH);
-    hash243_queue_pop(&hash_res->hashes);
+    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
     hash_trytes[NUM_TRYTES_HASH] = '\0';
+
     ret = ta_get_transaction_object(service, hash_trytes, obj_res);
-    if (ret) {
+    if (ret != SC_OK) {
       break;
     }
-    utarray_push_back(res->txn_obj, obj_res->txn);
     ta_get_transaction_object_res_free(&obj_res);
   }
 
