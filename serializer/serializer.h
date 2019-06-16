@@ -83,6 +83,18 @@ status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p 
 status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj);
 
 /**
+ * @brief Deserialze type of ta_get_transaction_object_req_t from JSON string
+ *
+ * @param[in] obj List of transaction hash
+ * @param[out] res Response data in type of ta_get_transaction_object_req_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_transaction_object_req_deserialize(char** obj, const ta_get_transaction_object_req_t* const req);
+
+/**
  * @brief Serialze type of ta_get_transaction_object_res_t to JSON string
  *
  * @param[out] obj List of transaction object in JSON

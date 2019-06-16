@@ -382,19 +382,32 @@ done:
   return ret;
 }
 
+status_t ta_get_transaction_object_req_deserialize(char** obj, const ta_get_transaction_object_req_t* const req) {
+  status_t ret = SC_OK;
+  cJSON *json_obj = cJSON_Parse(obj);
+  
+  if (json_string_array_to_utarray(*obj, "hashes", req->hashes) != RC_OK){
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+  
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
 status_t ta_get_transaction_object_res_serialize(char** obj, const ta_get_transaction_object_res_t* const res) {
   status_t ret = SC_OK;
-  cJSON* json_root = NULL;
-
-  ret = iota_transaction_to_json_object(res->txn, &json_root);
-  if (ret) {
+  cJSON* json_root = cJSON_CreateObject();
+  
+  if (utarray_to_json_array(res->txn_array, json_root, "hashes") != RC_OK) {
+    ret = SC_SERIALIZER_JSON_PARSE;
     goto done;
   }
+
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
   }
-
+  
 done:
   cJSON_Delete(json_root);
   return ret;

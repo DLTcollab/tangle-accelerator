@@ -1,3 +1,4 @@
+#include "stdio.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "accelerator/common_core.h"
@@ -59,16 +60,19 @@ TEST(GenAdressTest, GetNewAddressTest) {
 }
 
 TEST(GetTxnObjTest, GetTrytesTest) {
-  const char req[FLEX_TRIT_SIZE_243] = {};
   flex_trit_t* txn_msg = NULL;
+  ta_get_transaction_object_req_t* req = ta_get_transaction_object_req_new();
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561];
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
-
+                         
+  ta_get_transaction_object_req_push_address(req, TRYTES_81_1);
   EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
   EXPECT_EQ(ta_get_transaction_object(&service, req, res), 0);
-  txn_msg = transaction_message(res->txn);
+  
+  iota_transaction_t *txn = transaction_array_at(res->txn_array, 0);
+  txn_msg = transaction_message(txn);
   EXPECT_FALSE(memcmp(txn_msg, msg_trits, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_6561));
   ta_get_transaction_object_res_free(&res);
 }

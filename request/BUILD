@@ -12,6 +12,7 @@ cc_library(
         "//accelerator:ta_errors",
         "@entangled//common:errors",
         "@entangled//common/trinary:tryte",
+        "@entangled//common/model:transaction",
         "@entangled//utils/containers/hash:hash243_queue",
         "@entangled//utils/containers/hash:hash81_queue",
     ],

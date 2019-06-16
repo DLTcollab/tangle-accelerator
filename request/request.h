@@ -3,6 +3,7 @@
 
 #include "request/ta_send_mam.h"
 #include "request/ta_send_transfer.h"
+#include "request/ta_get_transaction_object.h"
 
 /**
  * @file request.h

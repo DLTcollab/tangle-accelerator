@@ -92,20 +92,27 @@ done:
 status_t api_get_transaction_object(const iota_client_service_t* const service, const char* const obj,
                                     char** json_result) {
   status_t ret = SC_OK;
+  ta_get_transaction_object_req_t* req = ta_get_transaction_object_req_new();
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
-  if (res == NULL) {
+  if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
 
+  ret = ta_get_transaction_object_req_deserialize(obj, req);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
   ret = ta_get_transaction_object(service, obj, res);
-  if (ret) {
+  if (ret != SC_OK) {
     goto done;
   }
 
   ret = ta_get_transaction_object_res_serialize(json_result, res);
 
 done:
+  ta_get_transaction_object_req_free(&req);
   ta_get_transaction_object_res_free(&res);
   return ret;
 }
@@ -306,9 +313,10 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
   char hash_trytes[NUM_TRYTES_HASH + 1];
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
+  ta_get_transaction_object_req_t* txn_obj_req = ta_get_transaction_object_req_new();
   ta_get_transaction_object_res_t* txn_obj_res = ta_get_transaction_object_res_new();
 
-  if (req == NULL || res == NULL || txn_obj_res == NULL) {
+  if (req == NULL || res == NULL || txn_obj_req == NULL || txn_obj_res == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
@@ -327,7 +335,8 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
   flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash243_queue_peek(res->hash), NUM_TRITS_HASH,
                        NUM_TRITS_HASH);
   hash_trytes[NUM_TRYTES_HASH] = '\0';
-  ret = ta_get_transaction_object(service, hash_trytes, txn_obj_res);
+  ta_get_transaction_object_req_push_address(txn_obj_req, hash_trytes);
+  ret = ta_get_transaction_object(service, txn_obj_req, txn_obj_res);
   if (ret) {
     goto done;
   }
@@ -337,6 +346,7 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
 done:
   ta_send_transfer_req_free(&req);
   ta_send_transfer_res_free(&res);
+  ta_get_transaction_object_req_free(&txn_obj_req);
   ta_get_transaction_object_res_free(&txn_obj_res);
   return ret;
 }

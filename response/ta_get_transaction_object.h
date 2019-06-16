@@ -14,7 +14,7 @@ extern "C" {
 /** struct of ta_get_transaction_object_res_t */
 typedef struct ta_get_transaction_object_res {
   /** Transaction is a iota_transaction_t list. */
-  iota_transaction_t* txn;
+  transaction_array_t* txn_array;
 } ta_get_transaction_object_res_t;
 
 /**
