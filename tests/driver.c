@@ -122,12 +122,13 @@ void test_send_trytes(void) {
 }
 
 void test_get_transaction_object(void) {
+  const char* json = "{\"hashes\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
   char* json_result;
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_transaction_object(&ta_core.service, TRYTES_81_3, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_transaction_object(&ta_core.service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }

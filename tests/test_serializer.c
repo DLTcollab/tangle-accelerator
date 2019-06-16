@@ -43,7 +43,7 @@ void test_deserialize_ta_send_transfer(void) {
 
 void test_serialize_ta_get_transaction_object(void) {
   const char* json =
-      "{\"hash\":\"" TRYTES_81_1 "\","
+      "{\"transactions\":[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
       "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
@@ -55,61 +55,62 @@ void test_serialize_ta_get_transaction_object(void) {
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
-      "\"nonce\":\"" NONCE "\"}";
+      "\"nonce\":\"" NONCE "\"}]}";
   char* json_result;
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81], hash_trits_1[FLEX_TRIT_SIZE_243],
       hash_trits_2[FLEX_TRIT_SIZE_243];
   ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
-  res->txn = transaction_new();
 
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-
+  iota_transaction_t* txn = transaction_new();
   // set transaction hash
-  transaction_set_hash(res->txn, hash_trits_1);
+  transaction_set_hash(txn, hash_trits_1);
 
   // set message
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
-  transaction_set_signature(res->txn, msg_trits);
+  transaction_set_signature(txn, msg_trits);
 
   // set address
-  transaction_set_address(res->txn, hash_trits_1);
+  transaction_set_address(txn, hash_trits_1);
   // set value
-  transaction_set_value(res->txn, VALUE);
+  transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
   flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  transaction_set_obsolete_tag(res->txn, tag_trits);
+  transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
-  transaction_set_timestamp(res->txn, TIMESTAMP);
+  transaction_set_timestamp(txn, TIMESTAMP);
   // set current_index
-  transaction_set_current_index(res->txn, CURRENT_INDEX);
+  transaction_set_current_index(txn, CURRENT_INDEX);
   // set last_index
-  transaction_set_last_index(res->txn, LAST_INDEX);
+  transaction_set_last_index(txn, LAST_INDEX);
   // set bundle_hash
-  transaction_set_bundle(res->txn, hash_trits_2);
+  transaction_set_bundle(txn, hash_trits_2);
   // set trunk
-  transaction_set_trunk(res->txn, hash_trits_2);
+  transaction_set_trunk(txn, hash_trits_2);
   // set branch
-  transaction_set_branch(res->txn, hash_trits_1);
+  transaction_set_branch(txn, hash_trits_1);
   // set tag
-  transaction_set_tag(res->txn, tag_trits);
+  transaction_set_tag(txn, tag_trits);
   // set attachment_timestamp
-  transaction_set_attachment_timestamp(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp(txn, TIMESTAMP);
   // set attachment_timestamp_lower_bound
-  transaction_set_attachment_timestamp_lower(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp_lower(txn, TIMESTAMP);
   // set attachment_timestamp_upper_bound
-  transaction_set_attachment_timestamp_upper(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp_upper(txn, TIMESTAMP);
   // set nonce
   flex_trits_from_trytes(tag_trits, NUM_TRITS_NONCE, (const tryte_t*)NONCE, NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
-  transaction_set_nonce(res->txn, tag_trits);
+  transaction_set_nonce(txn, tag_trits);
+  transaction_array_push_back(res->txn_array, txn);
 
   ta_get_transaction_object_res_serialize(&json_result, res);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_get_transaction_object_res_free(&res);
+  transaction_free(txn);
   free(json_result);
 }
 

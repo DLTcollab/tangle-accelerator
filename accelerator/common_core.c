@@ -276,16 +276,16 @@ done:
   return ret;
 }
 
-status_t ta_get_transaction_object(const iota_client_service_t* const service, const char* const req,
+status_t ta_get_transaction_object(const iota_client_service_t* const service,
+                                   const ta_get_transaction_object_req_t* const req,
                                    ta_get_transaction_object_res_t* res) {
-  if (res == NULL) {
+  if (req == NULL || res == NULL) {
     return SC_TA_NULL;
   }
 
   status_t ret = SC_OK;
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trit_t hash_trits[NUM_TRITS_HASH];
-  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   char cache_value[FLEX_TRIT_SIZE_8019] = {0};
 
   // get raw transaction data of transaction hashes
@@ -296,44 +296,50 @@ status_t ta_get_transaction_object(const iota_client_service_t* const service, c
     goto done;
   }
 
-  // get in cache first, then get from full node if no result in cache
-  ret = cache_get(req, cache_value);
-  if (ret == SC_OK) {
-    flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
-                           NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
-  } else {
-    ret = hash243_queue_push(&get_trytes_req->hashes, hash_trits);
-    if (ret) {
-      ret = SC_CCLIENT_HASH;
-      goto done;
+  char** elt = NULL;
+  while ((elt = (char**)utarray_next(req->hashes, elt))) {
+    // get in cache first, then get from full node if no result in cache
+    ret = cache_get(*elt, cache_value);
+    if (ret == SC_OK) {
+      flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
+                             NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+    } else {
+      flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)*elt, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+      ret = hash243_queue_push(&get_trytes_req->hashes, hash_trits);
+      if (ret) {
+        ret = SC_CCLIENT_HASH;
+        goto done;
+      }
+
+      ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
+      if (ret) {
+        ret = SC_CCLIENT_FAILED_RESPONSE;
+        goto done;
+      }
+
+      memcpy(tx_trits, hash8019_queue_peek(get_trytes_res->trytes), FLEX_TRIT_SIZE_8019);
+
+      // set into cache if get_trytes response is not null trytes
+      if (!flex_trits_are_null(tx_trits, FLEX_TRIT_SIZE_8019)) {
+        flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
+                             NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+        cache_set(*elt, cache_value);
+      } else {
+        ret = SC_CCLIENT_NOT_FOUND;
+        goto done;
+      }
     }
 
-    ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
-    if (ret) {
+    // deserialize raw data to transaction object
+    iota_transaction_t* txn = transaction_deserialize(tx_trits, 0);
+    if (txn == NULL) {
       ret = SC_CCLIENT_FAILED_RESPONSE;
       goto done;
     }
-
-    memcpy(tx_trits, hash8019_queue_peek(get_trytes_res->trytes), FLEX_TRIT_SIZE_8019);
-
-    // set into cache if get_trytes response is not null trytes
-    if (!flex_trits_are_null(tx_trits, FLEX_TRIT_SIZE_8019)) {
-      flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
-                           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      cache_set(req, cache_value);
-    } else {
-      ret = SC_CCLIENT_NOT_FOUND;
-      goto done;
-    }
+    transaction_set_hash(txn, hash_trits);
+    transaction_array_push_back(res->txn_array, txn);
+    transaction_free(txn);
   }
-
-  // deserialize raw data to transaction object
-  res->txn = transaction_deserialize(tx_trits, 0);
-  if (res->txn == NULL) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-  transaction_set_hash(res->txn, hash_trits);
 
 done:
   get_trytes_req_free(&get_trytes_req);
@@ -365,23 +371,24 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
 
   // get transaction obj
   hash243_queue_entry_t* q_iter = NULL;
-  CDL_FOREACH(hash_res->hashes, q_iter) {
-    ta_get_transaction_object_res_t* obj_res = ta_get_transaction_object_res_new();
-    if (obj_res == NULL) {
-      ret = SC_TA_OOM;
-      goto done;
-    }
-    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
-    hash_trytes[NUM_TRYTES_HASH] = '\0';
-
-    ret = ta_get_transaction_object(service, hash_trytes, obj_res);
-    if (ret != SC_OK) {
-      break;
-    }
-    ta_get_transaction_object_res_free(&obj_res);
+  ta_get_transaction_object_req_t* obj_req = ta_get_transaction_object_req_new();
+  ta_get_transaction_object_res_t* obj_res = ta_get_transaction_object_res_new();
+  if (obj_req == NULL || obj_res == NULL) {
+    ret = SC_TA_OOM;
+    goto done;
   }
 
+  CDL_FOREACH(hash_res->hashes, q_iter) {
+    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
+    hash_trytes[NUM_TRYTES_HASH] = '\0';
+    ta_get_transaction_object_req_push_address(obj_req, hash_trytes);
+  }
+
+  ret = ta_get_transaction_object(service, obj_req, obj_res);
+
 done:
+  ta_get_transaction_object_req_free(&obj_req);
+  ta_get_transaction_object_res_free(&obj_res);
   ta_find_transactions_res_free(&hash_res);
   return ret;
 }

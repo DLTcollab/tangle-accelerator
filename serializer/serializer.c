@@ -214,6 +214,28 @@ status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJ
   return SC_OK;
 }
 
+status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name, const transaction_array_t* const txn_array) {
+  status_t ret = SC_OK;
+  iota_transaction_t* txn = NULL;
+  cJSON* txn_obj = NULL;
+  cJSON* array_obj = cJSON_CreateArray();
+
+  if (array_obj == NULL) {
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+  cJSON_AddItemToObject(json_root, obj_name, array_obj);
+
+  TX_OBJS_FOREACH(txn_array, txn) {
+    txn_obj = NULL;
+    ret = iota_transaction_to_json_object(txn, &txn_obj);
+    if (ret != SC_OK) {
+      return ret;
+    }
+    cJSON_AddItemToArray(array_obj, txn_obj);
+  }
+  return ret;
+}
+
 status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res) {
   cJSON* json_root = cJSON_CreateObject();
   status_t ret = SC_OK;
@@ -382,14 +404,30 @@ done:
   return ret;
 }
 
+status_t ta_get_transaction_object_req_deserialize(char* obj, const ta_get_transaction_object_req_t* const req) {
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_string_array_to_utarray(json_obj, "hashes", req->hashes) != RC_OK) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
 status_t ta_get_transaction_object_res_serialize(char** obj, const ta_get_transaction_object_res_t* const res) {
   status_t ret = SC_OK;
-  cJSON* json_root = NULL;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    return SC_CCLIENT_JSON_CREATE;
+  }
 
-  ret = iota_transaction_to_json_object(res->txn, &json_root);
-  if (ret) {
+  ret = transaction_array_to_json_array(json_root, "transactions", res->txn_array);
+  if (ret != SC_OK) {
     goto done;
   }
+
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
@@ -425,33 +463,17 @@ done:
 
 status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transactions_obj_res_t* const res) {
   status_t ret = SC_OK;
-  iota_transaction_t* txn = NULL;
-  cJSON* array_obj = NULL;
-  cJSON* txn_obj = NULL;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
     goto done;
   }
 
-  // Create json array
-  array_obj = cJSON_CreateArray();
-  if (array_obj == NULL) {
-    ret = SC_SERIALIZER_JSON_CREATE;
+  ret = transaction_array_to_json_array(json_root, "transactions", res->txn_obj);
+  if (ret != SC_OK) {
     goto done;
   }
-  cJSON_AddItemToObject(json_root, "transactions", array_obj);
 
-  // Serialize iota_transaction_t
-  for (txn = (iota_transaction_t*)utarray_front(res->txn_obj); txn != NULL;
-       txn = (iota_transaction_t*)utarray_next(res->txn_obj, txn)) {
-    txn_obj = NULL;
-    ret = iota_transaction_to_json_object(txn, &txn_obj);
-    if (ret) {
-      goto done;
-    }
-    cJSON_AddItemToArray(array_obj, txn_obj);
-  }
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
