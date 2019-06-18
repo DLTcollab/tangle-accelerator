@@ -8,6 +8,12 @@ git_repository(
 )
 
 git_repository(
+    name = "iota_toolchains",
+    commit = "0f93f76fdff9f091dd3a99aa3f19b5d3f4f7f7fc",
+    remote = "https://github.com/iotaledger/toolchains.git",
+)
+
+git_repository(
     name = "entangled",
     commit = "6ad56514a8a13fb1bf01beb10934cb9e3fd1a8a4",
     remote = "https://github.com/iotaledger/entangled.git",
@@ -33,3 +39,11 @@ iota_deps()
 third_party_deps()
 
 _cc_image_repos()
+
+load("@iota_toolchains//:toolchains.bzl", "setup_initial_deps")
+
+setup_initial_deps()
+
+load("@iota_toolchains//:defs.bzl", "setup_toolchains_repositories")
+
+setup_toolchains_repositories()
