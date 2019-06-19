@@ -1,8 +1,9 @@
 #include "iota_api_mock.hh"
+
 extern APIMock APIMockObj;
 
-retcode_t iota_client_get_transactions_to_approve(const iota_client_service_t* const service,
-                                                  const get_transactions_to_approve_req_t* const req,
+retcode_t iota_client_get_transactions_to_approve(iota_client_service_t const* const service,
+                                                  get_transactions_to_approve_req_t const* const req,
                                                   get_transactions_to_approve_res_t* res) {
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
@@ -12,23 +13,23 @@ retcode_t iota_client_get_transactions_to_approve(const iota_client_service_t* c
   return APIMockObj.iota_client_get_transactions_to_approve(service, req, res);
 }
 
-retcode_t iota_client_get_tips(const iota_client_service_t* const service, get_tips_res_t* res) {
+retcode_t iota_client_get_tips(iota_client_service_t const* const service, get_tips_res_t* res) {
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   hash243_stack_push(&res->hashes, hash_trits_1);
   return APIMockObj.iota_client_get_tips(service, res);
 }
 
-retcode_t iota_client_find_transactions(const iota_client_service_t* const service,
-                                        const find_transactions_req_t* const req, find_transactions_res_t* res) {
+retcode_t iota_client_find_transactions(iota_client_service_t const* const service,
+                                        find_transactions_req_t const* const req, find_transactions_res_t* res) {
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   hash243_queue_push(&res->hashes, hash_trits_1);
   return APIMockObj.iota_client_find_transactions(service, req, res);
 }
 
-retcode_t iota_client_find_transaction_objects(const iota_client_service_t* const service,
-                                               const find_transactions_req_t* const req, transaction_array_t* tx_objs) {
+retcode_t iota_client_find_transaction_objects(iota_client_service_t const* const service,
+                                               find_transactions_req_t const* const req, transaction_array_t* tx_objs) {
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   iota_transaction_t tx;
 
@@ -47,7 +48,7 @@ retcode_t iota_client_get_new_address(iota_client_service_t const* const serv, f
   return APIMockObj.iota_client_get_new_address(serv, seed, addr_opt, out_addresses);
 }
 
-retcode_t iota_client_get_trytes(const iota_client_service_t* const service, get_trytes_req_t* const req,
+retcode_t iota_client_get_trytes(iota_client_service_t const* const service, get_trytes_req_t const* const req,
                                  get_trytes_res_t* res) {
   flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
   flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
@@ -56,7 +57,7 @@ retcode_t iota_client_get_trytes(const iota_client_service_t* const service, get
   return APIMockObj.iota_client_get_trytes(service, req, res);
 }
 
-status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_trytes(iota_config_t const* const tangle, const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
   return APIMockObj.ta_send_trytes(tangle, service, trytes);
 }
