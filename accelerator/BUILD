@@ -26,6 +26,7 @@ cc_library(
     deps = [
         ":common_core",
         ":ta_errors",
+        "//map:mode",
         "//serializer",
         "@entangled//common/model:bundle",
         "@entangled//common/trinary:trit_tryte",

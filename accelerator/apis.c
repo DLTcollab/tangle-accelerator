@@ -1,4 +1,5 @@
 #include "apis.h"
+#include "map/mode.h"
 
 status_t api_get_tips(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
@@ -232,7 +233,6 @@ done:
 status_t api_mam_send_message(const iota_config_t* const tangle, const iota_client_service_t* const service,
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
-  retcode_t rc = RC_OK;
   mam_api_t mam;
   const bool last_packet = true;
   bundle_transactions_t* bundle = NULL;
@@ -242,13 +242,8 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
 
-  // Loading and creating MAM API
-  if ((rc = mam_api_load(tangle->mam_file, &mam, NULL, NULL)) == RC_UTILS_FAILED_TO_OPEN_FILE) {
-    if (mam_api_init(&mam, (tryte_t*)SEED)) {
-      ret = SC_MAM_FAILED_INIT;
-      goto done;
-    }
-  } else if (rc != RC_OK) {
+  // Creating MAM API
+  if (mam_api_init(&mam, (tryte_t*)SEED)) {
     ret = SC_MAM_FAILED_INIT;
     goto done;
   }
@@ -258,21 +253,21 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
     goto done;
   }
 
-  // Create mam channel
-  if (mam_channel_t_set_size(mam.channels) == 0) {
-    mam_api_channel_create(&mam, tangle->mss_depth, channel_id);
-  } else {
-    mam_channel_t* channel = &mam.channels->value;
-    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);
+  // Creating channel
+  mam.channel_ord = req->channel_ord;
+  if (map_channel_create(&mam, channel_id)) {
+    ret = SC_MAM_NULL;
+    goto done;
   }
 
-  // Write header and packet
-  if (mam_api_bundle_write_header_on_channel(&mam, channel_id, NULL, NULL, bundle, msg_id) != RC_OK) {
+  // Writing header to bundle
+  if (map_write_header_on_channel(&mam, channel_id, bundle, msg_id)) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
   }
-  if (mam_api_bundle_write_packet(&mam, msg_id, req->payload_trytes, req->payload_trytes_size, 0, last_packet,
-                                  bundle) != RC_OK) {
+
+  // Writing packet to bundle
+  if (map_write_packet(&mam, bundle, req->payload, msg_id, last_packet)) {
     ret = SC_MAM_FAILED_WRITE;
     goto done;
   }
@@ -288,11 +283,9 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   ret = send_mam_res_serialize(json_result, res);
 
 done:
-  // Save and destroying MAM API
-  if (ret != SC_MAM_FAILED_INIT) {
-    if (mam_api_save(&mam, tangle->mam_file, NULL, NULL) || mam_api_destroy(&mam)) {
-      ret = SC_MAM_FAILED_DESTROYED;
-    }
+  // Destroying MAM API
+  if (mam_api_destroy(&mam)) {
+    ret = SC_MAM_FAILED_DESTROYED;
   }
   bundle_transactions_free(&bundle);
   send_mam_req_free(&req);

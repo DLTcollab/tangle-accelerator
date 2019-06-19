@@ -16,8 +16,8 @@ extern "C" {
 
 /** struct of ta_send_transfer_req_t */
 typedef struct send_mam_req_s {
-  tryte_t* payload_trytes;
-  size_t payload_trytes_size;
+  char* payload;
+  uint8_t channel_ord;
 } ta_send_mam_req_t;
 
 /**
@@ -28,16 +28,6 @@ typedef struct send_mam_req_s {
  * - NULL on error
  */
 ta_send_mam_req_t* send_mam_req_new();
-
-/**
- * Set payload of ta_send_mam_req_t object
- *
- * @param req Data type of ta_send_transfer_req_t
- * @param payload Tryte data going to send with mam
- *
- * @return NULL
- */
-status_t send_mam_req_set_payload(ta_send_mam_req_t* req, const tryte_t* payload);
 
 /**
  * Free memory of ta_send_mam_req_t
