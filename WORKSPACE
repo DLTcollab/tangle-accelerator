@@ -3,7 +3,7 @@ load("//third_party:third_party.bzl", "third_party_deps")
 
 git_repository(
     name = "rules_iota",
-    commit = "8a302aaeba60b9eb38f6500d48249b8cbba16c73",
+    commit = "be6081052283769b9b934d66b824f31695014c82",
     remote = "https://github.com/iotaledger/rules_iota.git",
 )
 
@@ -15,7 +15,7 @@ git_repository(
 
 git_repository(
     name = "entangled",
-    commit = "6ad56514a8a13fb1bf01beb10934cb9e3fd1a8a4",
+    commit = "46cab95db5fa1e03274446d9f2df9a4b7ba12462",
     remote = "https://github.com/iotaledger/entangled.git",
 )
 

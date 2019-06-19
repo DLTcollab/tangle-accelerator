@@ -237,13 +237,13 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   const bool last_packet = true;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
-  tryte_t channel_id[MAM_CHANNEL_ID_SIZE];
+  tryte_t channel_id[MAM_CHANNEL_ID_TRYTE_SIZE];
   trit_t msg_id[MAM_MSG_ID_SIZE];
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
 
   // Loading and creating MAM API
-  if ((rc = mam_api_load(tangle->mam_file, &mam)) == RC_UTILS_FAILED_TO_OPEN_FILE) {
+  if ((rc = mam_api_load(tangle->mam_file, &mam, NULL, NULL)) == RC_UTILS_FAILED_TO_OPEN_FILE) {
     if (mam_api_init(&mam, (tryte_t*)SEED)) {
       ret = SC_MAM_FAILED_INIT;
       goto done;
@@ -260,7 +260,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
 
   // Create mam channel
   if (mam_channel_t_set_size(mam.channels) == 0) {
-    mam_api_create_channel(&mam, tangle->mss_depth, channel_id);
+    mam_api_channel_create(&mam, tangle->mss_depth, channel_id);
   } else {
     mam_channel_t* channel = &mam.channels->value;
     trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);
@@ -290,7 +290,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
 done:
   // Save and destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
-    if (mam_api_save(&mam, tangle->mam_file) || mam_api_destroy(&mam)) {
+    if (mam_api_save(&mam, tangle->mam_file, NULL, NULL) || mam_api_destroy(&mam)) {
       ret = SC_MAM_FAILED_DESTROYED;
     }
   }
