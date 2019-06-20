@@ -1,0 +1,69 @@
+#include "map/mode.h"
+#include "common/trinary/tryte_ascii.h"
+#include "mam/mam/mam_channel_t_set.h"
+
+retcode_t map_channel_create(mam_api_t *const api, tryte_t *const channel_id) {
+  if (mam_channel_t_set_size(api->channels) == 0) {
+    mam_api_channel_create(api, MSS_DEPTH, channel_id);
+  } else {
+    mam_channel_t *channel = &api->channels->value;
+    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);
+  }
+
+  return RC_OK;
+}
+
+retcode_t map_announce_channel(mam_api_t *const api, tryte_t const *const channel_id,
+                               bundle_transactions_t *const bundle, trit_t *const msg_id,
+                               tryte_t *const new_channel_id) {
+  retcode_t ret = RC_OK;
+
+  ERR_BIND_RETURN(mam_api_channel_create(api, MSS_DEPTH, new_channel_id), ret);
+
+  ret = mam_api_bundle_announce_channel(api, channel_id, new_channel_id, NULL, NULL, bundle, msg_id);
+
+  return ret;
+}
+
+retcode_t map_announce_endpoint(mam_api_t *const api, tryte_t const *const channel_id,
+                                bundle_transactions_t *const bundle, trit_t *const msg_id,
+                                tryte_t *const new_endpoint_id) {
+  retcode_t ret = RC_OK;
+
+  ERR_BIND_RETURN(mam_api_endpoint_create(api, MSS_DEPTH, channel_id, new_endpoint_id), ret);
+
+  ret = mam_api_bundle_announce_endpoint(api, channel_id, new_endpoint_id, NULL, NULL, bundle, msg_id);
+
+  return ret;
+}
+
+retcode_t map_write_header_on_channel(mam_api_t *const api, tryte_t const *const channel_id,
+                                      bundle_transactions_t *const bundle, trit_t *const msg_id) {
+  retcode_t ret = RC_OK;
+
+  ret = mam_api_bundle_write_header_on_channel(api, channel_id, NULL, NULL, bundle, msg_id);
+
+  return ret;
+}
+
+retcode_t map_write_header_on_endpoint(mam_api_t *const api, tryte_t const *const channel_id,
+                                       tryte_t const *const endpoint_id, bundle_transactions_t *const bundle,
+                                       trit_t *const msg_id) {
+  retcode_t ret = RC_OK;
+
+  mam_api_bundle_write_header_on_endpoint(api, channel_id, endpoint_id, NULL, NULL, bundle, msg_id);
+
+  return ret;
+}
+
+retcode_t map_write_packet(mam_api_t *const api, bundle_transactions_t *const bundle, char const *const payload,
+                           trit_t const *const msg_id, bool is_last_packet) {
+  retcode_t ret = RC_OK;
+  tryte_t *payload_trytes = (tryte_t *)malloc(2 * strlen(payload) * sizeof(tryte_t));
+
+  ascii_to_trytes(payload, payload_trytes);
+  ret = mam_api_bundle_write_packet(api, msg_id, payload_trytes, strlen(payload) * 2, 0, is_last_packet, bundle);
+
+  free(payload_trytes);
+  return ret;
+}

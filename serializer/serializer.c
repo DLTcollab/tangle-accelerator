@@ -552,24 +552,30 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   if (json_result != NULL) {
-    size_t payload_size = strlen(json_result->valuestring) * 2;
-    tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
-    ascii_to_trytes(json_result->valuestring, payload_trytes);
+    size_t payload_size = strlen(json_result->valuestring);
+    char* payload = (char*)malloc((payload_size + 1) * sizeof(char));
 
-    // in case the payload is unicode, char more than 128 will result to an
+    // In case the payload is unicode, char more than 128 will result to an
     // error status_t code
-    size_t payload_ascii_len = payload_size > 1;
-    for (int i = 0; i < payload_ascii_len; i++) {
-      if (json_result->valuestring[i] & (unsigned)128) {
+    for (int i = 0; i < payload_size; i++) {
+      if (json_result->valuestring[i] & 0x80) {
         ret = SC_SERIALIZER_JSON_PARSE_ASCII;
         goto done;
       }
     }
 
-    req->payload_trytes = payload_trytes;
-    req->payload_trytes_size = payload_size;
+    snprintf(payload, payload_size + 1, "%s", json_result->valuestring);
+    req->payload = payload;
   } else {
     ret = SC_SERIALIZER_NULL;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "order");
+  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
+    req->channel_ord = json_result->valueint;
+  } else {
+    // 'value' does not exist or invalid, set to 0
+    req->channel_ord = 0;
   }
 
 done:

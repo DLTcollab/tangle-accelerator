@@ -82,6 +82,17 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "test_map_mode",
+    srcs = [
+        "test_map_mode.c",
+    ],
+    deps = [
+        ":test_define",
+        "//map:mode",
+    ],
+)
+
 cc_library(
     name = "test_define",
     hdrs = ["test_define.h"],

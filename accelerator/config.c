@@ -86,9 +86,6 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ta
 
   log_info(logger_id, "Initializing IRI configuration\n");
   tangle->milestone_depth = MILESTONE_DEPTH;
-  mkstemp(mss_tmp);
-  strncpy(tangle->mam_file, mss_tmp, FSIZE);
-  tangle->mss_depth = MSS_DEPTH;
   tangle->mwm = MWM;
   tangle->seed = SEED;
 

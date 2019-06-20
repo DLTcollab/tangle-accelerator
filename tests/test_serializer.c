@@ -236,19 +236,15 @@ void test_deserialize_send_mam_message_response(void) {
 }
 
 void test_deserialize_send_mam_message(void) {
-  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
+  const char* json = "{\"message\":\"" TEST_PAYLOAD
+                     "\","
+                     "\"order\":2}";
   ta_send_mam_req_t* req = send_mam_req_new();
 
   send_mam_req_deserialize(json, req);
+  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, req->payload);
+  TEST_ASSERT_EQUAL_INT(2, req->channel_ord);
 
-  size_t payload_size = strlen(TEST_PAYLOAD) * 2;
-  tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
-  ascii_to_trytes(TEST_PAYLOAD, payload_trytes);
-
-  TEST_ASSERT_EQUAL_UINT(payload_size, req->payload_trytes_size);
-  TEST_ASSERT_EQUAL_MEMORY(payload_trytes, req->payload_trytes, payload_size);
-
-  free(payload_trytes);
   send_mam_req_free(&req);
 }
 
