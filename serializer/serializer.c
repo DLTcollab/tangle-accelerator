@@ -550,6 +550,17 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
     goto done;
   }
 
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "prng");
+  if (json_result != NULL) {
+    size_t prng_size = strlen(json_result->valuestring);
+
+    if (prng_size != NUM_TRYTES_HASH) {
+      ret = SC_SERIALIZER_INVALID_REQ;
+      goto done;
+    }
+    snprintf(req->prng, prng_size + 1, "%s", json_result->valuestring);
+  }
+
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   if (json_result != NULL) {
     size_t payload_size = strlen(json_result->valuestring);

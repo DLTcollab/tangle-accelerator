@@ -237,25 +237,37 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   const bool last_packet = true;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
+  tryte_t* prng = NULL;
   tryte_t channel_id[MAM_CHANNEL_ID_TRYTE_SIZE];
   trit_t msg_id[MAM_MSG_ID_SIZE];
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
 
-  // Creating MAM API
-  if (mam_api_init(&mam, (tryte_t*)SEED)) {
+  if (send_mam_req_deserialize(payload, req)) {
     ret = SC_MAM_FAILED_INIT;
     goto done;
   }
 
-  ret = send_mam_req_deserialize(payload, req);
-  if (ret) {
+  // Creating MAM API
+  prng = (req->prng[0]) ? req->prng : SEED;
+  if (mam_api_init(&mam, prng) != RC_OK) {
+    ret = SC_MAM_FAILED_INIT;
     goto done;
   }
 
   // Creating channel
+  // TODO: TA only supports mss depth under 2. Larger than this would result in wasting too much time generate keys.
+  // With depth of 2, user can send a bundle with  3 transaction messages filled (last one is for header).
+  size_t payload_size = strlen(req->payload);
+  size_t payload_depth = 1;
+  if (payload_size > (NUM_TRYTES_SIGNATURE / 2) * 3) {
+    ret = SC_MAM_NO_PAYLOAD;
+    goto done;
+  } else if (payload_size > (NUM_TRYTES_SIGNATURE / 2)) {
+    payload_depth = 2;
+  }
   mam.channel_ord = req->channel_ord;
-  if (map_channel_create(&mam, channel_id)) {
+  if (map_channel_create(&mam, channel_id, payload_depth)) {
     ret = SC_MAM_NULL;
     goto done;
   }
@@ -284,8 +296,10 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
 
 done:
   // Destroying MAM API
-  if (mam_api_destroy(&mam)) {
-    ret = SC_MAM_FAILED_DESTROYED;
+  if (ret != SC_MAM_FAILED_INIT) {
+    if (mam_api_destroy(&mam)) {
+      ret = SC_MAM_FAILED_DESTROYED;
+    }
   }
   bundle_transactions_free(&bundle);
   send_mam_req_free(&req);
