@@ -2,9 +2,9 @@
 #include "common/trinary/tryte_ascii.h"
 #include "mam/mam/mam_channel_t_set.h"
 
-retcode_t map_channel_create(mam_api_t *const api, tryte_t *const channel_id) {
+retcode_t map_channel_create(mam_api_t *const api, tryte_t *const channel_id, const size_t depth) {
   if (mam_channel_t_set_size(api->channels) == 0) {
-    mam_api_channel_create(api, MSS_DEPTH, channel_id);
+    mam_api_channel_create(api, depth, channel_id);
   } else {
     mam_channel_t *channel = &api->channels->value;
     trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);

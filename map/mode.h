@@ -14,10 +14,11 @@ extern "C" {
  *
  * @param api - The API [in,out]
  * @param channel_id - A known channel ID [out]
+ * @param depth - depth of merkle tree going to generate [in]
  *
  * @return return code
  */
-retcode_t map_channel_create(mam_api_t* const api, tryte_t* const channel_id);
+retcode_t map_channel_create(mam_api_t* const api, tryte_t* const channel_id, const size_t depth);
 
 /**
  * Creates and announce a new channel on header

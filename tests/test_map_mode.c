@@ -10,7 +10,7 @@ void test_channel_create(void) {
   tryte_t channel_id[MAM_CHANNEL_ID_TRYTE_SIZE + 1];
   mam_api_init(&mam, (tryte_t *)TRYTES_81_1);
 
-  map_channel_create(&mam, channel_id);
+  map_channel_create(&mam, channel_id, 1);
   channel_id[MAM_CHANNEL_ID_TRYTE_SIZE] = '\0';
   TEST_ASSERT_EQUAL_STRING(CHID, channel_id);
 
@@ -25,7 +25,7 @@ void test_announce_channel(void) {
   trit_t msg_id[MAM_MSG_ID_SIZE];
   mam_api_init(&mam, (tryte_t *)TRYTES_81_1);
 
-  map_channel_create(&mam, channel_id);
+  map_channel_create(&mam, channel_id, 1);
   map_announce_channel(&mam, channel_id, bundle, msg_id, channel_id);
   channel_id[MAM_CHANNEL_ID_TRYTE_SIZE] = '\0';
   TEST_ASSERT_EQUAL_STRING(NEW_CHID, channel_id);
@@ -42,7 +42,7 @@ void test_announce_endpoint(void) {
   trit_t msg_id[MAM_MSG_ID_SIZE];
   mam_api_init(&mam, (tryte_t *)TRYTES_81_1);
 
-  map_channel_create(&mam, channel_id);
+  map_channel_create(&mam, channel_id, 1);
   // Channel_id is actually the new endpoint id
   map_announce_endpoint(&mam, channel_id, bundle, msg_id, channel_id);
   channel_id[MAM_CHANNEL_ID_TRYTE_SIZE] = '\0';
@@ -61,7 +61,7 @@ void test_write_message(void) {
   mam_api_init(&mam, (tryte_t *)TRYTES_81_1);
   retcode_t ret = RC_ERROR;
 
-  map_channel_create(&mam, channel_id);
+  map_channel_create(&mam, channel_id, 1);
   ret = map_write_header_on_channel(&mam, channel_id, bundle, msg_id);
   TEST_ASSERT_EQUAL(RC_OK, ret);
 

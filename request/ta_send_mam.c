@@ -3,6 +3,7 @@
 ta_send_mam_req_t* send_mam_req_new() {
   ta_send_mam_req_t* req = (ta_send_mam_req_t*)malloc(sizeof(ta_send_mam_req_t));
   if (req) {
+    req->prng[0] = 0;
     req->payload = NULL;
     req->channel_ord = 0;
   }

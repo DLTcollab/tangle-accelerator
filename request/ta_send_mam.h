@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "accelerator/errors.h"
+#include "common/model/transaction.h"
 #include "common/trinary/tryte.h"
 
 #ifdef __cplusplus
@@ -16,6 +17,7 @@ extern "C" {
 
 /** struct of ta_send_transfer_req_t */
 typedef struct send_mam_req_s {
+  tryte_t prng[NUM_TRYTES_ADDRESS + 1];
   char* payload;
   uint8_t channel_ord;
 } ta_send_mam_req_t;
