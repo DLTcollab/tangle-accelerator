@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #include "serializer.h"
 
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
