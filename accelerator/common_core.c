@@ -378,6 +378,8 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
     if (ret != SC_OK) {
       break;
     }
+
+    utarray_push_back(res->txn_obj, obj_res->txn);
     ta_get_transaction_object_res_free(&obj_res);
   }
 

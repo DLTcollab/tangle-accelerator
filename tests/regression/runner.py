@@ -593,7 +593,7 @@ class Regression_Test(unittest.TestCase):
         for i in range(len(response)):
             if i in pass_case:
                 res_json = json.loads(response[i]["content"])
-                tips_hashes_array = res_json["tips"]
+                tips_hashes_array = res_json["hashes"]
 
                 for tx_hashes in tips_hashes_array:
                     self.assertTrue(valid_trytes(tx_hashes, LEN_ADDR))
@@ -635,11 +635,11 @@ class Regression_Test(unittest.TestCase):
         for i in range(len(response)):
             if i in pass_case:
                 res_json = json.loads(response[i]["content"])
-                tips_hashes_array = res_json["tips"]
 
-                self.assertTrue(2, len(tips_hashes_array))
-                for tx_hashes in tips_hashes_array:
-                    self.assertTrue(valid_trytes(tx_hashes, LEN_ADDR))
+                self.assertTrue(
+                    valid_trytes(res_json["trunkTransaction"], LEN_ADDR))
+                self.assertTrue(
+                    valid_trytes(res_json["branchTransaction"], LEN_ADDR))
             else:
                 # At this moment, api get_tips allow whatever string follow after /tips/pair
                 self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
@@ -711,9 +711,9 @@ class Regression_Test(unittest.TestCase):
             all_9_context = fill_nines("", 2673 - 81 * 3)
             tips_response = API("/tips/pair/", get_data="")
             res_json = json.loads(tips_response["content"])
-            tips = res_json["tips"]
 
-            rand_trytes.append(all_9_context + tips[0] + tips[1] +
+            rand_trytes.append(all_9_context + res_json["trunkTransaction"] +
+                               res_json["branchTransaction"] +
                                fill_nines("", 81))
 
         query_string = [[rand_trytes[0]], [rand_trytes[0], rand_trytes[1]],

@@ -21,11 +21,11 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
     goto done;
   }
 
-  *json_result = (char*)malloc(res_buff->length * sizeof(char));
+  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     goto done;
   }
-  memcpy(*json_result, res_buff->data, res_buff->length);
+  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
 
 done:
   get_tips_res_free(&res);
@@ -56,11 +56,11 @@ status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_
     goto done;
   }
 
-  *json_result = (char*)malloc(res_buff->length * sizeof(char));
+  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     goto done;
   }
-  memcpy(*json_result, res_buff->data, res_buff->length);
+  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
 
 done:
   get_transactions_to_approve_req_free(&req);
