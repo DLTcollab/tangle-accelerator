@@ -71,7 +71,7 @@ Before running tangle-accelerator, please edit binding address/port of accelerat
 $ make && bazel run //accelerator
 ```
 
-### Build from docker
+### Optional: Build Docker Images
 
 If you prefer building a docker image, tangle-accelerator also provides build rules for it. Note that you still have to edit configurations in `accelerator/config.h`.
 
