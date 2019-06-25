@@ -141,23 +141,22 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
                                          ta_find_transactions_obj_res_t* res);
 
 /**
- * @brief Return transaction object with given transaction hash.
+ * @brief Return transaction object with given transaction hashes.
  *
- * Explore transaction hash information with given transaction hash. This would
- * return whole transaction object details in ta_get_transaction_object_res_t
+ * Explore transaction hash information with given transaction hashes. This would
+ * return whole transaction object details in transaction_array_t
  * instead of raw trytes, includes address, value, timestamp, mwm, nonce...
  *
  * @param[in] service IRI node end point service
- * @param[in] req transaction hash in trytes
- * @param[out] res Result containing transaction object in
- *                 ta_get_transaction_object_res_t
+ * @param[in] req Given transaction hashes
+ * @param[out] res Result containing transaction object in transaction_array_t.
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_transaction_object(const iota_client_service_t* const service, const char* const req,
-                                   ta_get_transaction_object_res_t* res);
+status_t ta_find_transaction_objects(const iota_client_service_t* const service,
+                                     const ta_find_transaction_objects_req_t* const req, transaction_array_t* res);
 
 /**
  * @brief Return bundle object with given bundle hash.

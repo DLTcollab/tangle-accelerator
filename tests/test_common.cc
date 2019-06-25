@@ -11,9 +11,9 @@
 #include "accelerator/common_core.h"
 #include "iota_api_mock.hh"
 
-using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::ElementsAreArray;
+using ::testing::_;
 
 APIMock APIMockObj;
 iota_config_t tangle;
@@ -67,18 +67,26 @@ TEST(GenAdressTest, GetNewAddressTest) {
 }
 
 TEST(GetTxnObjTest, GetTrytesTest) {
-  const char req[FLEX_TRIT_SIZE_243] = {};
   flex_trit_t* txn_msg = NULL;
-  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
+  ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
+  transaction_array_t* res = transaction_array_new();
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561];
+  flex_trit_t tx_trits[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
+  flex_trits_from_trytes(tx_trits, NUM_TRITS_ADDRESS, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_ADDRESS,
+                         NUM_TRYTES_ADDRESS);
+  hash243_queue_push(&req->hashes, tx_trits);
 
-  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
-  EXPECT_EQ(ta_get_transaction_object(&service, req, res), 0);
-  txn_msg = transaction_message(res->txn);
+  EXPECT_CALL(APIMockObj, iota_client_find_transaction_objects(_, _, _)).Times(AtLeast(0));
+  EXPECT_EQ(ta_find_transaction_objects(&service, req, res), 0);
+
+  iota_transaction_t* txn = transaction_array_at(res, 0);
+  txn_msg = transaction_message(txn);
   EXPECT_FALSE(memcmp(txn_msg, msg_trits, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_6561));
-  ta_get_transaction_object_res_free(&res);
+
+  ta_find_transaction_objects_req_free(&req);
+  transaction_array_free(res);
 }
 
 TEST(FindTxnObjTest, TxnObjTest) {

@@ -13,7 +13,6 @@
 #include "response/ta_find_transactions_obj.h"
 #include "response/ta_generate_address.h"
 #include "response/ta_get_tips.h"
-#include "response/ta_get_transaction_object.h"
 #include "response/ta_send_mam.h"
 #include "response/ta_send_transfer.h"
 

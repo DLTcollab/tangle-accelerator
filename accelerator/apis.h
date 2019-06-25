@@ -132,9 +132,25 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
                            const char* const obj, char** json_result);
 
 /**
+ * @brief Return transaction hashes with given information such as bundle hashes, addresses, tags, or approvees.
+ *
+ * Explore transaction hash with given transaction related information. This would
+ * return a list of transaction hashes in json format.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] obj bundle hashes, addresses, tags, or approvees.
+ * @param[out] json_result Result containing transaction objects in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result);
+
+/**
  * @brief Return transaction object with given transaction hash.
  *
- * Explore transaction hash information with given transaction haash. This would
+ * Explore transaction hash information with given transaction hash. This would
  * return whole transaction object details in json format instead of raw trytes.
  *
  * @param[in] service IRI node end point service
@@ -145,44 +161,8 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_transaction_object(const iota_client_service_t* const service, const char* const obj,
-                                    char** json_result);
-
-/**
- * @brief Return list of transaction hash with given tag hash.
- *
- * Retreive all transactions that have same given tag. The result is a list of
- * transaction hash in json format.
- *
- * @param[in] service IRI node end point service
- * @param[in] obj tag in trytes
- * @param[out] json_result Result containing list of transaction hash in json
- *             format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
                                       char** json_result);
-
-/**
- * @brief Return list of transaction object with given tag hash.
- *
- * Retreive all transactions that have same given tag. The result is a list of
- * transaction objects in json format.
- *
- * @param[in] service IRI node end point service
- * @param[in] obj tag in trytes
- * @param[out] json_result Result containing list of transaction object in json
- * format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                          char** json_result);
 
 /**
  * @brief Attach trytes to Tangle and return transaction hashes

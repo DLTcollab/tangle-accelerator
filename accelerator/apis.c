@@ -98,79 +98,68 @@ done:
   return ret;
 }
 
-status_t api_get_transaction_object(const iota_client_service_t* const service, const char* const obj,
-                                    char** json_result) {
+status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
-  if (res == NULL) {
+  find_transactions_req_t* req = find_transactions_req_new();
+  find_transactions_res_t* res = find_transactions_res_new();
+  char_buffer_t* res_buff = char_buffer_new();
+  if (req == NULL || res == NULL || res_buff == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
-
-  ret = ta_get_transaction_object(service, obj, res);
-  if (ret) {
+  if (service->serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
+    ret = SC_CCLIENT_JSON_PARSE;
     goto done;
   }
 
-  ret = ta_get_transaction_object_res_serialize(json_result, res);
+  if (iota_client_find_transactions(service, req, res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+
+  if (service->serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
+    ret = SC_CCLIENT_JSON_PARSE;
+    goto done;
+  }
+
+  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
+  if (*json_result == NULL) {
+    goto done;
+  }
+  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
 
 done:
-  ta_get_transaction_object_res_free(&res);
+  find_transactions_req_free(&req);
+  find_transactions_res_free(&res);
+  char_buffer_free(res_buff);
   return ret;
 }
 
-status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
                                       char** json_result) {
   status_t ret = SC_OK;
-  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
-  if (res == NULL) {
+  ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
+  transaction_array_t* res = transaction_array_new();
+  if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
 
-  char* req_tag = (char*)malloc((NUM_TRYTES_TAG + 1) * sizeof(char));
-  int obj_len = strlen(obj);
-
-  if (obj_len == NUM_TRYTES_TAG) {
-    strncpy(req_tag, obj, NUM_TRYTES_TAG);
-  } else if (obj_len < NUM_TRYTES_TAG) {
-    fill_nines(req_tag, obj, NUM_TRYTES_TAG);
-  } else {  // tag length > 27 trytes
-    ret = SC_TA_WRONG_REQUEST_OBJ;
+  ret = ta_find_transaction_objects_req_deserialize(obj, req);
+  if (ret != SC_OK) {
     goto done;
   }
 
-  ret = ta_find_transactions_by_tag(service, req_tag, res);
+  ret = ta_find_transaction_objects(service, req, res);
   if (ret) {
     goto done;
   }
 
-  ret = ta_find_transactions_res_serialize(json_result, res);
+  ret = ta_find_transaction_objects_res_serialize(json_result, res);
 
 done:
-  free(req_tag);
-  ta_find_transactions_res_free(&res);
-  return ret;
-}
-
-status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                          char** json_result) {
-  status_t ret = SC_OK;
-  ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
-  if (res == NULL) {
-    ret = SC_TA_OOM;
-    goto done;
-  }
-
-  ret = ta_find_transactions_obj_by_tag(service, obj, res);
-  if (ret) {
-    goto done;
-  }
-
-  ret = ta_find_transactions_obj_res_serialize(json_result, res);
-
-done:
-  ta_find_transactions_obj_res_free(&res);
+  ta_find_transaction_objects_req_free(&req);
+  transaction_array_free(res);
   return ret;
 }
 
@@ -318,12 +307,12 @@ done:
 status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  char hash_trytes[NUM_TRYTES_HASH + 1];
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
-  ta_get_transaction_object_res_t* txn_obj_res = ta_get_transaction_object_res_new();
+  ta_find_transaction_objects_req_t* txn_obj_req = ta_find_transaction_objects_req_new();
+  transaction_array_t* res_txn_array = transaction_array_new();
 
-  if (req == NULL || res == NULL || txn_obj_res == NULL) {
+  if (req == NULL || res == NULL || txn_obj_req == NULL || res_txn_array == NULL) {
     ret = SC_TA_OOM;
     goto done;
   }
@@ -339,20 +328,20 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
   }
 
   // return transaction object
-  flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash243_queue_peek(res->hash), NUM_TRITS_HASH,
-                       NUM_TRITS_HASH);
-  hash_trytes[NUM_TRYTES_HASH] = '\0';
-  ret = ta_get_transaction_object(service, hash_trytes, txn_obj_res);
+  hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash));
+
+  ret = ta_find_transaction_objects(service, txn_obj_req, res_txn_array);
   if (ret) {
     goto done;
   }
 
-  ret = ta_get_transaction_object_res_serialize(json_result, txn_obj_res);
+  ret = ta_find_transaction_objects_res_serialize(json_result, res_txn_array);
 
 done:
   ta_send_transfer_req_free(&req);
   ta_send_transfer_res_free(&res);
-  ta_get_transaction_object_res_free(&txn_obj_res);
+  ta_find_transaction_objects_req_free(&txn_obj_req);
+  transaction_array_free(res_txn_array);
   return ret;
 }
 
