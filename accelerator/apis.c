@@ -124,6 +124,7 @@ status_t api_find_transactions(const iota_client_service_t* const service, const
 
   *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
+    ret = SC_CCLIENT_JSON_PARSE;
     goto done;
   }
   snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);

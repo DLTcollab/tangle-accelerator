@@ -69,11 +69,10 @@ retcode_t iota_client_get_transaction_objects(iota_client_service_t const* const
                                               get_trytes_req_t* const tx_hashes, transaction_array_t* out_tx_objs) {
   flex_trit_t tx_trits[NUM_TRITS_SERIALIZED_TRANSACTION];
   flex_trit_t hash_trits[NUM_TRITS_HASH];
-  flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+  flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
                          NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
 
-  iota_transaction_t* temp = transaction_deserialize(tx_trits, 0);
-  transaction_set_hash(temp, hash_trits);
+  iota_transaction_t* temp = transaction_deserialize(tx_trits, true);
   transaction_array_push_back(out_tx_objs, temp);
   transaction_free(temp);
 

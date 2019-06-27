@@ -222,7 +222,8 @@ status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJ
   return SC_OK;
 }
 
-status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name, const transaction_array_t* const txn_array) {
+static status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name,
+                                                const transaction_array_t* const txn_array) {
   status_t ret = SC_OK;
   iota_transaction_t* txn = NULL;
   cJSON* txn_obj = NULL;
@@ -415,7 +416,14 @@ done:
 status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
                                                      ta_find_transaction_objects_req_t* const req) {
   status_t ret = SC_OK;
+  if (obj == NULL) {
+    return SC_SERIALIZER_NULL;
+  }
+
   cJSON* json_obj = cJSON_Parse(obj);
+  if (json_obj == NULL) {
+    return SC_SERIALIZER_JSON_PARSE;
+  }
 
   if (json_array_to_hash243_queue(json_obj, "hashes", &req->hashes) != RC_OK) {
     ret = SC_SERIALIZER_JSON_PARSE;

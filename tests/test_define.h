@@ -23,15 +23,9 @@ extern "C" {
   "LCIKYSBE9IHXLIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
   "OORVZTZ"
 #define TRYTES_81_2                                                            \
-  "RVORZ9SIIP9RCYMREUIXXVPQIPHVCNPQ9HZWYKFWYWZRE9JQKG9REPKIASHUUECPSQO9JT9XNM" \
-  "VKWYGVA"
-#define TRYTES_81_3                                                            \
-  "BGBQJCVSOESTAVKHKD9QBNYVHUUEQUGZ9BEUAPG9HGQWAHMDAJXKDPUZPRBZVVIPRHMERPOBCD" \
-  "YB99999"
-#define TX_HASH_1                                                              \
   "PXOB9CZFPDEKEKXKUH9BPTZWXVANCRWNBILDFPQSILXAGFCKFPWWKYAUIPDDHGZMATMSRR9RDN" \
   "RU99999"
-#define TX_HASH_2                                                              \
+#define TRYTES_81_3                                                            \
   "VULTESFNRYKRKVFBMNOVOV9BRXLXYAOLIBCRCXBTWECGWIAMLOFI9SRROIW9PMSUEWSJOFOWPB" \
   "OQA9999"
 #define BUNDLE_HASH                                                            \

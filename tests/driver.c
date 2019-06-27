@@ -130,7 +130,7 @@ void test_send_trytes(void) {
 }
 
 void test_find_transactions(void) {
-  const char* json = "{\"addresses\":[\"" TX_HASH_1 "\",\"" TX_HASH_2 "\"]}";
+  const char* json = "{\"addresses\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}";
   char* json_result;
   double sum = 0;
 
@@ -144,7 +144,7 @@ void test_find_transactions(void) {
 }
 
 void test_find_transaction_objects(void) {
-  const char* json = "{\"hashes\":[\"" TX_HASH_1 "\",\"" TX_HASH_2 "\"]}";
+  const char* json = "{\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}";
   char* json_result;
   double sum = 0;
 

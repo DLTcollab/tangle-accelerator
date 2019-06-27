@@ -292,7 +292,8 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   get_trytes_req_t* req_get_trytes = get_trytes_req_new();
   transaction_array_t* uncached_txn_array = transaction_array_new();
   if (req == NULL || res == NULL || req_get_trytes == NULL || uncached_txn_array == NULL) {
-    return SC_TA_NULL;
+    ret = SC_TA_NULL;
+    goto done;
   }
   char txn_hash[NUM_TRYTES_HASH + 1] = {0};
   char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {0};
@@ -319,16 +320,16 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
 
       transaction_array_push_back(res, temp);
       transaction_free(temp);
+
+      // reset the string `cache_value`
+      cache_value[0] = '\0';
     } else {
       if (hash243_queue_push(&req_get_trytes->hashes, q_iter->hash) != RC_OK) {
-        ret = SC_CCLIENT_OOM;
+        ret = SC_CCLIENT_HASH;
         goto done;
       }
       ret = SC_OK;
     }
-
-    // reset the string `cache_value`
-    cache_value[0] = '\0';
   }
 
   if (req_get_trytes->hashes != NULL) {
@@ -338,7 +339,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
     }
   }
 
-  // append response of `iota_client_find_transaction_objectss` into cache
+  // append response of `iota_client_find_transaction_objects` into cache
   flex_trit_t* temp_txn_trits = NULL;
   TX_OBJS_FOREACH(uncached_txn_array, temp) {
     temp_txn_trits = transaction_serialize(temp);
@@ -366,41 +367,6 @@ done:
   get_trytes_req_free(&req_get_trytes);
   transaction_array_free(uncached_txn_array);
   free(temp_txn_trits);
-  return ret;
-}
-
-status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const req,
-                                         ta_find_transactions_obj_res_t* res) {
-  if (req == NULL || res == NULL) {
-    return SC_TA_NULL;
-  }
-  status_t ret = SC_OK;
-
-  ta_find_transactions_res_t* hash_res = ta_find_transactions_res_new();
-  if (hash_res == NULL) {
-    ret = SC_TA_OOM;
-    goto done;
-  }
-
-  // get transaction hash
-  ret = ta_find_transactions_by_tag(service, req, hash_res);
-  if (ret) {
-    goto done;
-  }
-
-  // get transaction obj
-  ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
-  if (obj_req == NULL) {
-    ret = SC_TA_OOM;
-    goto done;
-  }
-  hash243_queue_copy(&obj_req->hashes, hash_res->hashes, hash243_queue_count(hash_res->hashes));
-
-  ret = ta_find_transaction_objects(service, obj_req, res->txn_obj);
-
-done:
-  ta_find_transaction_objects_req_free(&obj_req);
-  ta_find_transactions_res_free(&hash_res);
   return ret;
 }
 

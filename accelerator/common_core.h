@@ -149,7 +149,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
  *
  * @param[in] service IRI node end point service
  * @param[in] req Given transaction hashes
- * @param[out] res Result containing transaction object in transaction_array_t.
+ * @param[out] res Result containing transaction objects in transaction_array_t.
  *
  * @return
  * - SC_OK on success

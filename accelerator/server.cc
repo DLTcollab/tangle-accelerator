@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {post} /transaction/object Get transaction hash
+   * @method {post} /transaction/object Find transaction hash
    *
    * @return {String[]} hash Transaction hash
    */
@@ -156,9 +156,9 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {post} /transaction/object Get transaction object
+   * @method {post} /transaction/object Find transaction object
    *
-   * @return {String[]} object Info of enitre transaction object
+   * @return {String[]} object Info of entire transaction object
    */
   mux.handle("/transaction/object")
       .method(served::method::OPTIONS,
