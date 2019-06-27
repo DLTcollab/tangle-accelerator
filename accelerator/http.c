@@ -1,6 +1,8 @@
+#include <arpa/inet.h>
 #include <microhttpd.h>
 #include <regex.h>
 #include <string.h>
+#include <time.h>
 
 #include "accelerator/http.h"
 #include "cJSON.h"
@@ -221,9 +223,19 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *k
   return MHD_YES;
 }
 
-  int ret = MHD_NO;
+static int request_log(void *cls, const struct sockaddr *addr, socklen_t addrlen) {
+  char buf[30];
+  struct sockaddr_in *addr_ip = (struct sockaddr_in *)addr;
+  char *ip = inet_ntoa(addr_ip->sin_addr);
+  time_t rawtime = time(NULL);
+  strftime(buf, 30, "%c", localtime(&rawtime));
+  printf("%s  - -  [%s]", ip, buf);
+  return MHD_YES;
+}
+
 static int ta_http_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
                            const char *version, const char *upload_data, size_t *upload_data_size, void **ptr) {
+  int ret = MHD_NO, req_ret = MHD_HTTP_OK;
   int post = 0, options = 0;
   ta_http_t *api = (ta_http_t *)cls;
   ta_http_request_t *http_req = *ptr;
@@ -278,7 +290,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   }
 
   /* decide which API function should be called */
-  ret = ta_http_process_request(api, url, http_req->request, &response_buf, options);
+  req_ret = ta_http_process_request(api, url, http_req->request, &response_buf, options);
 
   response = MHD_create_response_from_buffer(strlen(response_buf), response_buf, MHD_RESPMEM_MUST_COPY);
   // Set response header
@@ -292,10 +304,13 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json");
   }
 
-  ret = MHD_queue_response(connection, ret, response);
+  ret = MHD_queue_response(connection, req_ret, response);
   MHD_destroy_response(response);
 
 cleanup:
+  // Log of incoming request
+  printf(" \"%s %s\" %d\n", method, url, req_ret);
+
   free(response_buf);
   if (http_req) {
     if (http_req->request) {
@@ -324,7 +339,7 @@ status_t ta_http_start(ta_http_t *const http) {
 
   http->daemon =
       MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG, atoi(http->core->info.port),
-                       NULL, NULL, ta_http_handler, http, MHD_OPTION_END);
+                       request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
     return SC_HTTP_OOM;
   }
