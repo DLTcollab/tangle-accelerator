@@ -10,8 +10,7 @@ typedef struct ta_http_request_s {
   char *request;
 } ta_http_request_t;
 
-static status_t ta_http_url_matcher(char const *const url,
-                                    char *const regex_rule) {
+static status_t ta_http_url_matcher(char const *const url, char *const regex_rule) {
   if (regex_rule == NULL) {
     return SC_HTTP_NULL;
   }
@@ -31,8 +30,7 @@ static status_t ta_http_url_matcher(char const *const url,
   return ret;
 }
 
-static status_t ta_get_url_parameter(char const *const url, int index,
-                                     char **param) {
+static status_t ta_get_url_parameter(char const *const url, int index, char **param) {
   if (param == NULL) {
     return SC_HTTP_NULL;
   }
@@ -92,16 +90,13 @@ static int set_response_content(status_t ret, char **json_result) {
   return http_ret;
 }
 
-static inline int process_generate_address_request(ta_http_t *const http,
-                                                   char **const out) {
+static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
   status_t ret = SC_OK;
   ret = api_generate_address(&http->core->tangle, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txn_by_tag_request(ta_http_t *const http,
-                                                  char const *const url,
-                                                  char **const out) {
+static inline int process_find_txn_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
   status_t ret = SC_OK;
   char *tag = NULL;
   ret = ta_get_url_parameter(url, 1, &tag);
@@ -111,9 +106,7 @@ static inline int process_find_txn_by_tag_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txn_obj_by_tag_request(ta_http_t *const http,
-                                                      char const *const url,
-                                                      char **const out) {
+static inline int process_find_txn_obj_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
   status_t ret = SC_OK;
   char *tag = NULL;
   ret = ta_get_url_parameter(url, 1, &tag);
@@ -123,9 +116,7 @@ static inline int process_find_txn_obj_by_tag_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
-static inline int process_get_txn_obj_request(ta_http_t *const http,
-                                              char const *const url,
-                                              char **const out) {
+static inline int process_get_txn_obj_request(ta_http_t *const http, char const *const url, char **const out) {
   status_t ret = SC_OK;
   char *hash = NULL;
   ret = ta_get_url_parameter(url, 1, &hash);
@@ -135,32 +126,25 @@ static inline int process_get_txn_obj_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
-static inline int process_get_tips_pair_request(ta_http_t *const http,
-                                                char **const out) {
+static inline int process_get_tips_pair_request(ta_http_t *const http, char **const out) {
   status_t ret = SC_OK;
   ret = api_get_tips_pair(&http->core->tangle, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_get_tips_request(ta_http_t *const http,
-                                           char **const out) {
+static inline int process_get_tips_request(ta_http_t *const http, char **const out) {
   status_t ret = SC_OK;
   ret = api_get_tips(&http->core->service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_send_transfer_request(ta_http_t *const http,
-                                                char const *const payload,
-                                                char **const out) {
+static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret = api_send_transfer(&http->core->tangle, &http->core->service, payload,
-                          out);
+  ret = api_send_transfer(&http->core->tangle, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_recv_mam_msg_request(ta_http_t *const http,
-                                               char const *const url,
-                                               char **const out) {
+static inline int process_recv_mam_msg_request(ta_http_t *const http, char const *const url, char **const out) {
   status_t ret = SC_OK;
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
@@ -170,21 +154,15 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
-static inline int process_mam_send_msg_request(ta_http_t *const http,
-                                               char const *const payload,
-                                               char **const out) {
+static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret = api_mam_send_message(&http->core->tangle, &http->core->service, payload,
-                             out);
+  ret = api_mam_send_message(&http->core->tangle, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_send_trytes_request(ta_http_t *const http,
-                                              char const *const payload,
-                                              char **const out) {
+static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret =
-      api_send_trytes(&http->core->tangle, &http->core->service, payload, out);
+  ret = api_send_trytes(&http->core->tangle, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -202,9 +180,8 @@ static inline int process_options_request(char **const out) {
   return MHD_HTTP_OK;
 }
 
-static int ta_http_process_request(ta_http_t *const http, char const *const url,
-                                   char const *const payload, char **const out,
-                                   int options) {
+static int ta_http_process_request(ta_http_t *const http, char const *const url, char const *const payload,
+                                   char **const out, int options) {
   if (options) {
     return process_options_request(out);
   }
@@ -235,8 +212,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   return MHD_HTTP_OK;
 }
 
-static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind,
-                               const char *key, const char *value) {
+static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
   ta_http_request_t *header = cls;
 
   if (0 == strcmp(MHD_HTTP_HEADER_CONTENT_TYPE, key)) {
@@ -245,11 +221,9 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind,
   return MHD_YES;
 }
 
-static int ta_http_handler(void *cls, struct MHD_Connection *connection,
-                           const char *url, const char *method,
-                           const char *version, const char *upload_data,
-                           size_t *upload_data_size, void **ptr) {
   int ret = MHD_NO;
+static int ta_http_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
+                           const char *version, const char *upload_data, size_t *upload_data_size, void **ptr) {
   int post = 0, options = 0;
   ta_http_t *api = (ta_http_t *)cls;
   ta_http_request_t *http_req = *ptr;
@@ -272,8 +246,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
 
     // Only POST request needs to get header information
     if (post) {
-      MHD_get_connection_values(connection, MHD_HEADER_KIND,
-                                ta_http_header_iter, http_req);
+      MHD_get_connection_values(connection, MHD_HEADER_KIND, ta_http_header_iter, http_req);
     }
     return MHD_YES;
   }
@@ -305,24 +278,18 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection,
   }
 
   /* decide which API function should be called */
-  ret = ta_http_process_request(api, url, http_req->request, &response_buf,
-                                options);
+  ret = ta_http_process_request(api, url, http_req->request, &response_buf, options);
 
-  response = MHD_create_response_from_buffer(strlen(response_buf), response_buf,
-                                             MHD_RESPMEM_MUST_COPY);
+  response = MHD_create_response_from_buffer(strlen(response_buf), response_buf, MHD_RESPMEM_MUST_COPY);
   // Set response header
-  MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN,
-                          "*");
+  MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
   if (options) {
     // header information for OPTIONS request
-    MHD_add_response_header(response, "Access-Control-Allow-Methods",
-                            "GET, POST, OPTIONS");
-    MHD_add_response_header(response, "Access-Control-Allow-Headers",
-                            "Origin, Content-Type, Accept");
+    MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    MHD_add_response_header(response, "Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
     MHD_add_response_header(response, "Access-Control-Max-Age", "86400");
   } else {
-    MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE,
-                            "application/json");
+    MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json");
   }
 
   ret = MHD_queue_response(connection, ret, response);
@@ -355,10 +322,9 @@ status_t ta_http_start(ta_http_t *const http) {
     return SC_HTTP_NULL;
   }
 
-  http->daemon = MHD_start_daemon(
-      MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
-      atoi(http->core->info.port), NULL, NULL, ta_http_handler, http,
-      MHD_OPTION_END);
+  http->daemon =
+      MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG, atoi(http->core->info.port),
+                       NULL, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
     return SC_HTTP_OOM;
   }
