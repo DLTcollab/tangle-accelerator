@@ -67,6 +67,8 @@ status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle, ta
     case SEED_CLI:
       tangle->seed = value;
       break;
+    case CACHE:
+      cache->cache_state = !(strncmp(value, "T", 1));
   }
   return SC_OK;
 }
@@ -91,6 +93,7 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ta
   log_info(logger_id, "Initializing Redis information\n");
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
+  cache->cache_state = false;
 
   log_info(logger_id, "Initializing IRI configuration\n");
   tangle->milestone_depth = MILESTONE_DEPTH;
@@ -155,8 +158,9 @@ status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const ser
   log_info(logger_id, "Initializing PoW implementation context\n");
   pow_init();
 
-  log_info(logger_id, "Initializing cache connection\n");
-  cache_init(cache->host, cache->port);
+  log_info(logger_id, "Initializing cache state\n");
+  cache_init(cache->cache_state, cache->host, cache->port);
+
   return ret;
 }
 

@@ -36,14 +36,14 @@ typedef struct {
 /**
  * Initiate cache module
  *
+ * @param[in] state if cache server should open
  * @param[in] host cache server host
  * @param[in] port cache server port
- *
  * @return
  * - True on success
  * - False on error
  */
-bool cache_init(const char* host, int port);
+bool cache_init(bool state, const char* host, int port);
 
 /**
  * Stop interacting with cache module

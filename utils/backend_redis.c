@@ -16,14 +16,13 @@ typedef struct {
 #define CONN(c) ((connection_private*)(c.conn))
 
 static cache_t cache;
-
+static bool cache_state;
 /*
  * Private functions
  */
 
 static status_t redis_del(redisContext* c, const char* const key) {
   status_t ret = SC_OK;
-
   if (key == NULL) {
     return SC_CACHE_NULL;
   }
@@ -39,7 +38,6 @@ static status_t redis_del(redisContext* c, const char* const key) {
 
 static status_t redis_get(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
-
   if (key == NULL || res[0] != '\0') {
     return SC_CACHE_NULL;
   }
@@ -57,7 +55,6 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
 
 static status_t redis_set(redisContext* c, const char* const key, const char* const value) {
   status_t ret = SC_OK;
-
   if (key == NULL || value == NULL) {
     return SC_CACHE_NULL;
   }
@@ -75,7 +72,12 @@ static status_t redis_set(redisContext* c, const char* const key, const char* co
  * Public functions
  */
 
-bool cache_init(const char* host, int port) {
+bool cache_init(bool state, const char* host, int port) {
+  cache_state = state;
+  if (!state) {
+    return false;
+  }
+
   cache.conn = (connection_private*)malloc(sizeof(connection_private));
   CONN(cache)->rc = redisConnect(host, port);
   if (CONN(cache)->rc) {
@@ -85,7 +87,7 @@ bool cache_init(const char* host, int port) {
 }
 
 void cache_stop() {
-  if (CONN(cache)->rc) {
+  if (cache_state == true && CONN(cache)->rc) {
     redisFree(CONN(cache)->rc);
 
     if (CONN(cache)) {
@@ -94,8 +96,23 @@ void cache_stop() {
   }
 }
 
-status_t cache_del(const char* const key) { return redis_del(CONN(cache)->rc, key); }
+status_t cache_del(const char* const key) {
+  if (!cache_state) {
+    return SC_CACHE_OFF;
+  }
+  return redis_del(CONN(cache)->rc, key);
+}
 
-status_t cache_get(const char* const key, char* res) { return redis_get(CONN(cache)->rc, key, res); }
+status_t cache_get(const char* const key, char* res) {
+  if (!cache_state) {
+    return SC_CACHE_OFF;
+  }
+  return redis_get(CONN(cache)->rc, key, res);
+}
 
-status_t cache_set(const char* const key, const char* const value) { return redis_set(CONN(cache)->rc, key, value); }
+status_t cache_set(const char* const key, const char* const value) {
+  if (!cache_state) {
+    return SC_CACHE_OFF;
+  }
+  return redis_set(CONN(cache)->rc, key, value);
+}

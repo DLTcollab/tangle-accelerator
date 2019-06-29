@@ -63,8 +63,9 @@ typedef struct ta_config_s {
 
 /** struct type of accelerator cache */
 typedef struct ta_cache_s {
-  char* host;    /**< Binding address of redis server */
-  uint16_t port; /**< Binding port of redis server */
+  bool cache_state; /** set it true to turn on cache server */
+  char* host;       /**< Binding address of redis server */
+  uint16_t port;    /**< Binding port of redis server */
 } ta_cache_t;
 
 /** struct type of accelerator core */

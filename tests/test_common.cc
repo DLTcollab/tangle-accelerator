@@ -11,9 +11,9 @@
 #include "accelerator/common_core.h"
 #include "iota_api_mock.hh"
 
-using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::ElementsAreArray;
+using ::testing::_;
 
 APIMock APIMockObj;
 iota_config_t tangle;
@@ -183,7 +183,7 @@ TEST(SendTrytesTest, SendTrytesTest) {
 
 int main(int argc, char** argv) {
   // GTest manage to cleanup after testing, so only need to initialize here
-  cache_init(REDIS_HOST, REDIS_PORT);
+  cache_init(true, REDIS_HOST, REDIS_PORT);
   ::testing::GTEST_FLAG(throw_on_failure) = true;
   ::testing::InitGoogleMock(&argc, argv);
   return RUN_ALL_TESTS();
