@@ -66,7 +66,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_
     flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
                          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
     ret = cache_set(cache_key, cache_value);
-    if (ret) {
+    if (ret != SC_OK && ret != SC_CACHE_OFF) {
       goto done;
     }
   }
