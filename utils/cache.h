@@ -47,8 +47,6 @@ bool cache_init(const char* host, int port);
 
 /**
  * Stop interacting with cache module
- *
- * @return NULL
  */
 void cache_stop();
 

@@ -40,8 +40,6 @@ ta_find_transaction_objects_req_t* ta_find_transaction_objects_req_new();
  * Free memory of ta_find_transaction_objects_req_t
  *
  * @param req Data type of ta_find_transaction_objects_req_t
- *
- * @return NULL
  */
 void ta_find_transaction_objects_req_free(ta_find_transaction_objects_req_t** req);
 

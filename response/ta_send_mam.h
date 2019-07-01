@@ -74,8 +74,6 @@ status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* chan
  * Free memory of ta_send_mam_res_t
  *
  * @param req Data type of ta_send_mam_res_t
- *
- * @return NULL
  */
 void send_mam_res_free(ta_send_mam_res_t** res);
 
