@@ -39,8 +39,6 @@ ta_generate_address_res_t* ta_generate_address_res_new();
  * Free memory of ta_generate_address_res_t
  *
  * @param res Data type of ta_generate_address_res_t
- *
- * @return NULL
  */
 void ta_generate_address_res_free(ta_generate_address_res_t** res);
 

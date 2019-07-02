@@ -52,8 +52,6 @@ ta_send_transfer_req_t* ta_send_transfer_req_new();
  * Free memory of ta_send_transfer_req_t
  *
  * @param req Data type of ta_send_transfer_req_t
- *
- * @return NULL
  */
 void ta_send_transfer_req_free(ta_send_transfer_req_t** req);
 

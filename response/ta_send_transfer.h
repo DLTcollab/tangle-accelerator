@@ -39,8 +39,6 @@ ta_send_transfer_res_t* ta_send_transfer_res_new();
  * Free memory of ta_send_transfer_res_t
  *
  * @param res Data type of ta_send_transfer_res_t
- *
- * @return NULL
  */
 void ta_send_transfer_res_free(ta_send_transfer_res_t** res);
 

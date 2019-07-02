@@ -34,22 +34,6 @@ TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
   ta_get_tips_res_free(&res);
 }
 
-TEST(FindTxnTest, TxnHashTest) {
-  const char req[NUM_TRYTES_TAG] = {};
-  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-
-  EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _)).Times(AtLeast(1));
-
-  EXPECT_EQ(ta_find_transactions_by_tag(&service, req, res), 0);
-  hash243_queue_entry_t* q_iter = NULL;
-  CDL_FOREACH(res->hashes, q_iter) {
-    EXPECT_FALSE(memcmp(q_iter->hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
-  }
-  ta_find_transactions_res_free(&res);
-}
-
 TEST(GenAdressTest, GetNewAddressTest) {
   tangle.seed = SEED;
   hash243_queue_entry_t* q_iter = NULL;
@@ -67,39 +51,36 @@ TEST(GenAdressTest, GetNewAddressTest) {
 }
 
 TEST(GetTxnObjTest, GetTrytesTest) {
-  const char req[FLEX_TRIT_SIZE_243] = {};
   flex_trit_t* txn_msg = NULL;
-  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561];
-  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
-                         NUM_TRYTES_SIGNATURE);
+  ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
+  transaction_array_t* res = transaction_array_new();
 
-  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
-  EXPECT_EQ(ta_get_transaction_object(&service, req, res), 0);
-  txn_msg = transaction_message(res->txn);
-  EXPECT_FALSE(memcmp(txn_msg, msg_trits, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_6561));
-  ta_get_transaction_object_res_free(&res);
-}
+  flex_trit_t tx_trits[NUM_TRITS_SERIALIZED_TRANSACTION];
+  flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  iota_transaction_t* expected_txn = transaction_deserialize(tx_trits, true);
+  hash243_queue_push(&req->hashes, transaction_hash(expected_txn));
 
-TEST(FindTxnObjTest, TxnObjTest) {
-  const char req[NUM_TRYTES_TAG] = {};
-  const iota_transaction_t* txn = NULL;
-  flex_trit_t* txn_msg = NULL;
-  ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561];
-  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
-                         NUM_TRYTES_SIGNATURE);
+  EXPECT_CALL(APIMockObj, iota_client_get_transaction_objects(_, _, _)).Times(AtLeast(0));
+  EXPECT_EQ(ta_find_transaction_objects(&service, req, res), 0);
 
-  EXPECT_CALL(APIMockObj, iota_client_find_transactions(_, _, _)).Times(AtLeast(1));
-  EXPECT_CALL(APIMockObj, iota_client_get_trytes(_, _, _)).Times(AtLeast(0));
+  iota_transaction_t* txn = transaction_array_at(res, 0);
+  EXPECT_EQ(
+      memcmp(transaction_address(expected_txn), transaction_address(txn), (sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243)),
+      0);
+  EXPECT_EQ(memcmp(transaction_obsolete_tag(expected_txn), transaction_obsolete_tag(txn),
+                   (sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243)),
+            0);
+  EXPECT_EQ(
+      memcmp(transaction_message(expected_txn), transaction_message(txn), (sizeof(flex_trit_t) * FLEX_TRIT_SIZE_6561)),
+      0);
+  EXPECT_EQ(memcmp(transaction_tag(expected_txn), transaction_tag(txn), (sizeof(flex_trit_t) * FLEX_TRIT_SIZE_81)), 0);
+  EXPECT_EQ(transaction_value(expected_txn), transaction_value(txn));
+  EXPECT_EQ(transaction_current_index(expected_txn), transaction_current_index(txn));
 
-  EXPECT_EQ(ta_find_transactions_obj_by_tag(&service, req, res), 0);
-  for (txn = (const iota_transaction_t*)utarray_front(res->txn_obj); txn != NULL;
-       txn = (const iota_transaction_t*)utarray_next(res->txn_obj, txn)) {
-    txn_msg = transaction_message(txn);
-    EXPECT_FALSE(memcmp(txn_msg, msg_trits, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_6561));
-  }
-  ta_find_transactions_obj_res_free(&res);
+  ta_find_transaction_objects_req_free(&req);
+  transaction_array_free(res);
+  transaction_free(expected_txn);
 }
 
 TEST(SendTransferTest, SendTransferTest) {

@@ -27,15 +27,11 @@ extern "C" {
 
 /**
  * Initiate pow module
- *
- * @return NULL
  */
 void pow_init();
 
 /**
  * Stop interacting with pow module
- *
- * @return NULL
  */
 void pow_destroy();
 

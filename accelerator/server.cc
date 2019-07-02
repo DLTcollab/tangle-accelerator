@@ -127,65 +127,60 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {get} /tag/:tag Find transactions by tag
+   * @method {post} /transaction/object Find transaction hash
    *
-   * @param {String} tag Must be 27 trytes long
-   *
-   * @return {String[]} hashes List of transaction hashes
+   * @return {String[]} hash Transaction hash
    */
-  mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
+  mux.handle("/transaction/hash")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
-      .get([&](served::response& res, const served::request& req) {
+      .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_find_transactions(&ta_core.service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
         res << json_result;
       });
 
   /**
-   * @method {get} /transaction/:tx Get transaction object
+   * @method {post} /transaction/object Find transaction object
    *
-   * @param {String} tx Must be 81 trytes long transaction hash
-   *
-   * @return {String[]} object Info of enitre transaction object
+   * @return {String[]} object Info of entire transaction object
    */
-  mux.handle("/transaction/{tx:[A-Z9]{81}}")
+  mux.handle("/transaction/object")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
-      .get([&](served::response& res, const served::request& req) {
+      .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_transaction_object(&ta_core.service, req.params["tx"].c_str(), &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
-        res << json_result;
-      });
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
 
-  /**
-   * @method {get} /tag/:tag Find transaction objects by tag
-   *
-   * @param {String} tag Must be 27 trytes long
-   *
-   * @return {String[]} transactions List of transaction objects
-   */
-  mux.handle("/tag/{tag:[A-Z9]{1,27}}")
-      .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
-      .get([&](served::response& res, const served::request& req) {
-        status_t ret = SC_OK;
-        char* json_result;
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_find_transaction_objects(&ta_core.service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
 
-        ret = api_find_transactions_obj_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
+        set_method_header(res, HTTP_METHOD_POST);
         res << json_result;
       });
 

@@ -9,6 +9,7 @@
 #ifndef REQUEST_REQUEST_H_
 #define REQUEST_REQUEST_H_
 
+#include "request/ta_find_transaction_objects.h"
 #include "request/ta_send_mam.h"
 #include "request/ta_send_transfer.h"
 

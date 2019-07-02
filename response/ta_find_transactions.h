@@ -39,8 +39,6 @@ ta_find_transactions_res_t* ta_find_transactions_res_new();
  * Free memory of ta_find_transactions_res_t
  *
  * @param res Data type of ta_find_transactions_res_t
- *
- * @return NULL
  */
 void ta_find_transactions_res_free(ta_find_transactions_res_t** res);
 

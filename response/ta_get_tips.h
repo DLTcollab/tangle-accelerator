@@ -39,8 +39,6 @@ ta_get_tips_res_t* ta_get_tips_res_new();
  * Free memory of ta_get_tips_res_t
  *
  * @param res Data type of ta_get_tips_res_t
- *
- * @return NULL
  */
 void ta_get_tips_res_free(ta_get_tips_res_t** res);
 

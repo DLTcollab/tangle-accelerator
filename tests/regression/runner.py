@@ -280,8 +280,8 @@ class Regression_Test(unittest.TestCase):
         pass_case = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10]
         for i in range(len(response)):
             if i in pass_case:
-                res_json = json.loads(response[i]["content"])
-
+                res_json_tmp = json.loads(response[i]["content"])
+                res_json = res_json_tmp["transactions"][0]
                 # we only send zero tx at this moment
                 self.assertEqual(0, res_json["value"])
                 self.assertTrue(valid_trytes(res_json["tag"], LEN_TAG))
@@ -321,260 +321,221 @@ class Regression_Test(unittest.TestCase):
 
         eval_stat(time_cost, "send transfer")
 
-    def test_find_transactions_by_tag(self):
+    def test_find_transactions(self):
         logging.debug(
-            "\n================================find transactions by tag================================"
+            "\n================================find transactions================================"
         )
         # cmd
-        #    0. 27 trytes tag
-        #    1. 20 trytes tag
-        #    2. 30 trytes tag
-        #    3. unicode trytes tag
-        #    4. Null trytes tag
-        rand_tag_27 = gen_rand_trytes(27)
-        rand_tag_20 = gen_rand_trytes(20)
-        rand_tag_30 = gen_rand_trytes(30)
-        query_string = [rand_tag_27, rand_tag_20, rand_tag_30, "半導體絆倒你", None]
-
-        rand_msg = gen_rand_trytes(30)
-        rand_addr = gen_rand_trytes(81)
-        transaction_response = []
+        #    0. single address req
+        #    1. multiple addresses req
+        #    2. single bundle req
+        #    3. multiple bundles req
+        #    4. single tag req
+        #    5. multiple tags req
+        #    6. single approvee req
+        #    7. multiple approvees req
+        #    8. addresses, bundles, tags, approvees req
+        query_bundle = []
+        query_addr = []
+        query_tag = []
+        query_approvee = []
         for i in range(3):
-            post_data = {
+            rand_tag = gen_rand_trytes(27)
+            rand_msg = gen_rand_trytes(30)
+            rand_addr = gen_rand_trytes(81)
+            tx_post_data = {
                 "value": 0,
                 "message": rand_msg,
-                "tag": query_string[i],
+                "tag": rand_tag,
                 "address": rand_addr
             }
-            post_data_json = json.dumps(post_data)
-            transaction_response.append(
-                API("/transaction/", post_data=post_data_json))
+            tx_post_data_json = json.dumps(tx_post_data)
+            sent_transaction_obj = API("/transaction/",
+                                       post_data=tx_post_data_json)
 
-        for i in range(len(transaction_response)):
-            logging.debug("find transactions by tag i = " + str(i) +
-                          ", tx_res = " + transaction_response[i]["content"] +
-                          ", status code = " +
-                          transaction_response[i]["status_code"])
+            logging.debug("sent_transaction_obj = " +
+                          repr(sent_transaction_obj))
+            sent_transaction_obj_json = json.loads(
+                sent_transaction_obj["content"])
+            sent_tx = sent_transaction_obj_json["transactions"][0]
 
+            # append the sent transaction information
+            query_bundle.append(sent_tx["bundle_hash"])
+            query_addr.append(rand_addr)
+            query_tag.append(rand_tag)
+            query_approvee.append(sent_tx["trunk_transaction_hash"])
+            query_approvee.append(sent_tx["branch_transaction_hash"])
+
+        query_data = [{
+            "addresses": [query_addr[0]]
+        }, {
+            "addresses": query_addr
+        }, {
+            "bundles": [query_bundle[0]]
+        }, {
+            "bundles": query_bundle
+        }, {
+            "tags": [query_tag[0]]
+        }, {
+            "tags": query_tag
+        }, {
+            "approvees": [query_approvee[0]]
+        }, {
+            "approvees": query_approvee
+        }, {
+            "addresses": query_addr,
+            "bundles": query_bundle,
+            "tags": query_tag,
+            "approvees": query_approvee
+        }]
         response = []
-        for t_case in query_string:
-            logging.debug("testing case = " + repr(t_case))
-            if t_case != None:
-                response.append(API("/tag/", get_data=(t_case + "/hashes")))
-            else:
-                response.append(API("/tag/", get_data="/hashes"))
+        for i in range(len(query_data)):
+            logging.debug("testing case i = " + repr(i))
+            post_data_json = json.dumps(query_data[i])
+            response.append(API("/transaction/hash", post_data=post_data_json))
 
         for i in range(len(response)):
-            logging.debug("find transactions by tag i = " + str(i) +
-                          ", res = " + response[i]["content"] +
-                          ", status code = " + response[i]["status_code"])
-        pass_case = [0, 1]
+            logging.debug("response find transactions i = " + str(i) + ", " +
+                          repr(response[i]))
+
+        pass_case = [0, 1, 2, 3, 4, 5, 6, 7, 8]
         for i in range(len(response)):
             if i in pass_case:
-                expected_tx_json = json.loads(
-                    transaction_response[i]["content"])
                 res_json = json.loads(response[i]["content"])
-
-                self.assertEqual(expected_tx_json["hash"],
-                                 res_json["hashes"][0])
+                res_hashes_list = res_json["hashes"]
+                for tx_hash in res_hashes_list:
+                    self.assertTrue(valid_trytes(tx_hash, LEN_ADDR))
             else:
-                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
+        post_data_json = json.dumps(query_data[0])
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/tag/", get_data=(rand_tag_27 + "/hashes"))
+            API("/transaction/hash", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
-        eval_stat(time_cost, "find transactions by tag")
+        eval_stat(time_cost, "find transactions")
 
     def test_get_transactions_object(self):
         logging.debug(
-            "\n================================get transactions object================================"
+            "\n================================find transaction objects================================"
         )
         # cmd
         #    0. 81 trytes transaction hash
-        #    1. 20 trytes transaction hash
-        #    2. 100 trytes transaction hash
-        #    3. unicode transaction hash
-        #    4. Null transaction hash
-        rand_tag = gen_rand_trytes(27)
-        rand_msg = gen_rand_trytes(30)
-        rand_addr = gen_rand_trytes(81)
-        post_data = {
-            "value": 0,
-            "message": rand_msg,
-            "tag": rand_tag,
-            "address": rand_addr
-        }
-        post_data_json = json.dumps(post_data)
-        sent_transaction_obj = API("/transaction/", post_data=post_data_json)
-
-        logging.debug("sent_transaction_obj = " +
-                      ", sent_transaction_obj[0] = " +
-                      sent_transaction_obj["content"] +
-                      ", sent_transaction_obj[1] = " +
-                      sent_transaction_obj["status_code"])
-        sent_transaction_obj_json = json.loads(sent_transaction_obj["content"])
-        sent_transaction_hash = sent_transaction_obj_json["hash"]
-        query_string = [
-            sent_transaction_hash, sent_transaction_hash[0:19],
-            sent_transaction_hash + gen_rand_trytes(19), "工程師批哩趴啦的生活", ""
-        ]
-
-        response = []
-        for t_case in query_string:
-            logging.debug("testing case = " + repr(t_case))
-            response.append(API("/transaction/", get_data=t_case))
-
-        for i in range(len(response)):
-            logging.debug("get transactions object i = " + str(i) +
-                          ", res = " + repr(response[i]["content"]) +
-                          ", status code = " +
-                          repr(response[i]["status_code"]))
-
-        pass_case = [0]
-        for i in range(len(response)):
-            if i in pass_case:
-                res_json = json.loads(response[i]["content"])
-                self.assertEqual(sent_transaction_hash, res_json["hash"])
-            else:
-                self.assertEqual(STATUS_CODE_405, response[i]["status_code"])
-
-        # Time Statistics
-        time_cost = []
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/transaction/", get_data=sent_transaction_hash)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "get transactions object")
-
-    def test_find_transactions_obj_by_tag(self):
-        logging.debug(
-            "\n================================find transactions object by tag================================"
-        )
-
-        # cmd
-        #    0. 27 trytes tag
-        #    1. 20 trytes tag
-        #    2. multiple transactions share the same 27 trytes tag
-        #    3. 30 trytes tag
-        #    4. unicode trytes tag
-        #    5. Null trytes tag
-        rand_tag_27 = gen_rand_trytes(27)
-        rand_tag_27_multi = gen_rand_trytes(27)
-        rand_tag_20 = gen_rand_trytes(20)
-        rand_tag_30 = gen_rand_trytes(30)
-        query_string = [
-            rand_tag_27, rand_tag_27_multi, rand_tag_20, rand_tag_30, "半導體絆倒你",
-            ""
-        ]
-
-        rand_msg = gen_rand_trytes(30)
-        rand_addr = gen_rand_trytes(81)
-        transaction_response = []
+        #    1. multiple 81 trytes transaction hash
+        #    2. 20 trytes transaction hash
+        #    3. 100 trytes transaction hash
+        #    4. unicode transaction hash
+        #    5. Null transaction hash
+        sent_transaction_tmp = []
         for i in range(3):
-            post_data = {
+            rand_tag = gen_rand_trytes(27)
+            rand_msg = gen_rand_trytes(30)
+            rand_addr = gen_rand_trytes(81)
+            tx_post_data = {
                 "value": 0,
                 "message": rand_msg,
-                "tag": query_string[i],
+                "tag": rand_tag,
                 "address": rand_addr
             }
-            post_data_json = json.dumps(post_data)
+            tx_post_data_json = json.dumps(tx_post_data)
+            sent_transaction_obj = API("/transaction/",
+                                       post_data=tx_post_data_json)
 
-            if i == 2:
-                transaction_response.append([
-                    API("/transaction/", post_data=post_data_json),
-                    API("/transaction/", post_data=post_data_json)
-                ])
-            else:
-                transaction_response.append(
-                    [API("/transaction/", post_data=post_data_json)])
-
-        for i in range(len(transaction_response)):
-            logging.debug("find transactions obj by tag i = " + str(i) +
-                          ", tx_res = " + repr(transaction_response[i]))
+            logging.debug("sent_transaction_obj = " +
+                          repr(sent_transaction_obj))
+            sent_transaction_obj_json = json.loads(
+                sent_transaction_obj["content"])
+            sent_transaction_tmp.append(
+                sent_transaction_obj_json["transactions"][0])
+        sent_transaction = [[sent_transaction_tmp[0]],
+                            [sent_transaction_tmp[1], sent_transaction_tmp[2]]]
+        query_string = [[sent_transaction_tmp[0]["hash"]],
+                        [
+                            sent_transaction_tmp[1]["hash"],
+                            sent_transaction_tmp[2]["hash"]
+                        ],
+                        gen_rand_trytes(19),
+                        gen_rand_trytes(100), "工程師批哩趴啦的生活", ""]
 
         response = []
         for t_case in query_string:
             logging.debug("testing case = " + repr(t_case))
-            response.append(API("/tag/", get_data=t_case))
+            post_data_json = json.dumps({"hashes": t_case})
+            response.append(
+                API("/transaction/object", post_data=post_data_json))
 
         for i in range(len(response)):
-            logging.debug("find transactions obj by tag i = " + str(i) +
-                          ", res = " + repr(response[i]))
-        pass_case = [0, 1, 2]
+            logging.debug("response find transaction objects i = " + str(i) +
+                          ", " + repr(response[i]))
+        pass_case = [0, 1]
+
         for i in range(len(response)):
             if i in pass_case:
-                res_tx_json = json.loads(response[i]["content"])
-                res_json = []
-                expected_tx_json = []
-                for j in range(len(transaction_response[i])):
-                    res_json.append(res_tx_json["transactions"][j])
-                    expected_tx_json.append(
-                        json.loads(transaction_response[i][j]["content"]))
+                expect_txs = sent_transaction[i]
+                res_json = json.loads(response[i]["content"])
+                res_txs = res_json["transactions"]
 
-                for j in range(len(expected_tx_json)):
-                    case_examined_equal = False
-                    for k in range(len(res_json)):
-                        if expected_tx_json[j]["hash"] == res_json[k]["hash"]:
+                for j in range(len(expect_txs)):
+                    did_exmine = False
+                    for k in range(len(res_txs)):
+                        if expect_txs[j]["hash"] == res_txs[k]["hash"]:
                             self.assertEqual(
-                                expected_tx_json[j]
+                                expect_txs[j]
                                 ["signature_and_message_fragment"],
-                                res_json[k]["signature_and_message_fragment"])
-                            self.assertEqual(expected_tx_json[j]["address"],
-                                             res_json[k]["address"])
-                            self.assertEqual(expected_tx_json[j]["value"],
-                                             res_json[k]["value"])
+                                res_txs[k]["signature_and_message_fragment"])
+                            self.assertEqual(expect_txs[j]["address"],
+                                             res_txs[k]["address"])
+                            self.assertEqual(expect_txs[j]["value"],
+                                             res_txs[k]["value"])
+                            self.assertEqual(expect_txs[j]["obsolete_tag"],
+                                             res_txs[k]["obsolete_tag"])
+                            self.assertEqual(expect_txs[j]["timestamp"],
+                                             res_txs[k]["timestamp"])
+                            self.assertEqual(expect_txs[j]["last_index"],
+                                             res_txs[k]["last_index"])
+                            self.assertEqual(expect_txs[j]["bundle_hash"],
+                                             res_txs[k]["bundle_hash"])
                             self.assertEqual(
-                                expected_tx_json[j]["obsolete_tag"],
-                                res_json[k]["obsolete_tag"])
-                            self.assertEqual(expected_tx_json[j]["timestamp"],
-                                             res_json[k]["timestamp"])
-                            self.assertEqual(expected_tx_json[j]["last_index"],
-                                             res_json[k]["last_index"])
+                                expect_txs[j]["trunk_transaction_hash"],
+                                res_txs[k]["trunk_transaction_hash"])
                             self.assertEqual(
-                                expected_tx_json[j]["bundle_hash"],
-                                res_json[k]["bundle_hash"])
+                                expect_txs[j]["branch_transaction_hash"],
+                                res_txs[k]["branch_transaction_hash"])
+                            self.assertEqual(expect_txs[j]["tag"],
+                                             res_txs[k]["tag"])
                             self.assertEqual(
-                                expected_tx_json[j]["trunk_transaction_hash"],
-                                res_json[k]["trunk_transaction_hash"])
+                                expect_txs[j]["attachment_timestamp"],
+                                res_txs[k]["attachment_timestamp"])
                             self.assertEqual(
-                                expected_tx_json[j]["branch_transaction_hash"],
-                                res_json[k]["branch_transaction_hash"])
-                            self.assertEqual(expected_tx_json[j]["tag"],
-                                             res_json[k]["tag"])
-                            self.assertEqual(
-                                expected_tx_json[j]["attachment_timestamp"],
-                                res_json[k]["attachment_timestamp"])
-                            self.assertEqual(
-                                expected_tx_json[j]
+                                expect_txs[j]
                                 ["attachment_timestamp_lower_bound"],
-                                res_json[k]
-                                ["attachment_timestamp_lower_bound"])
+                                res_txs[k]["attachment_timestamp_lower_bound"])
                             self.assertEqual(
-                                expected_tx_json[j]
+                                expect_txs[j]
                                 ["attachment_timestamp_upper_bound"],
-                                res_json[k]
-                                ["attachment_timestamp_upper_bound"])
-                            self.assertEqual(expected_tx_json[j]["nonce"],
-                                             res_json[k]["nonce"])
-                            case_examined_equal = True
+                                res_txs[k]["attachment_timestamp_upper_bound"])
+                            self.assertEqual(expect_txs[j]["nonce"],
+                                             res_txs[k]["nonce"])
+                            did_exmine = True
                             break
-                    self.assertTrue(case_examined_equal)
+
+                    self.assertTrue(did_exmine)
+
             else:
-                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
+        post_data_json = json.dumps({"hashes": query_string[0]})
         for i in range(TIMES_TOTAL):
             start_time = time.time()
-            API("/tag/", get_data=rand_tag_27)
+            API("/transaction/object", post_data=post_data_json)
             time_cost.append(time.time() - start_time)
 
-        eval_stat(time_cost, "find transactions obj by tag")
+        eval_stat(time_cost, "find transaction objects")
 
     def test_get_tips(self):
         logging.debug(
