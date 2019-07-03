@@ -80,11 +80,54 @@ void test_write_message(void) {
   mam_api_destroy(&mam);
 }
 
+void test_bundle_read(void) {
+  retcode_t ret;
+  char *payload = NULL;
+  mam_api_t mam;
+  bundle_transactions_t *bundle = NULL;
+  bundle_transactions_new(&bundle);
+
+  ret = mam_api_init(&mam, (tryte_t *)SEED);
+  TEST_ASSERT_EQUAL(RC_OK, ret);
+
+  flex_trit_t chid_trits[NUM_TRITS_HASH];
+  flex_trits_from_trytes(chid_trits, NUM_TRITS_HASH, (const tryte_t *)CHID_BUNDLE, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  mam_api_add_trusted_channel_pk(&mam, chid_trits);
+
+  flex_trit_t hash[NUM_TRITS_SERIALIZED_TRANSACTION];
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t const *)TEST_MAM_TRANSACTION_TRYTES_1,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  iota_transaction_t *txn = transaction_deserialize(hash, false);
+  bundle_transactions_add(bundle, txn);
+  transaction_free(txn);
+
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t const *)TEST_MAM_TRANSACTION_TRYTES_2,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  txn = transaction_deserialize(hash, false);
+  bundle_transactions_add(bundle, txn);
+  transaction_free(txn);
+
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t const *)TEST_MAM_TRANSACTION_TRYTES_3,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  txn = transaction_deserialize(hash, false);
+  bundle_transactions_add(bundle, txn);
+
+  ret = map_api_bundle_read(&mam, bundle, &payload);
+  TEST_ASSERT_EQUAL(RC_OK, ret);
+
+  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, payload);
+  transaction_free(txn);
+  bundle_transactions_free(&bundle);
+  mam_api_destroy(&mam);
+  free(payload);
+}
+
 int main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_channel_create);
   RUN_TEST(test_announce_channel);
   RUN_TEST(test_announce_endpoint);
   RUN_TEST(test_write_message);
+  RUN_TEST(test_bundle_read);
   return UNITY_END();
 }

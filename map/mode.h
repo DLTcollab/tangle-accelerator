@@ -100,6 +100,16 @@ retcode_t map_write_header_on_endpoint(mam_api_t* const api, tryte_t const* cons
 retcode_t map_write_packet(mam_api_t* const api, bundle_transactions_t* const bundle, char const* const payload,
                            trit_t const* const msg_id, bool is_last_packet);
 
+/**
+ * Read the MAM message from a bundle
+ *
+ * @param api - The API [in,out]
+ * @param bundle - The bundle that contains the message [in]
+ * @param payload_out - The output playload in ascii [out]
+ *
+ * @return return code
+ */
+retcode_t map_api_bundle_read(mam_api_t* const api, bundle_transactions_t* bundle, char** payload_out);
 #ifdef __cplusplus
 }
 #endif

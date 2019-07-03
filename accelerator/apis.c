@@ -164,17 +164,13 @@ done:
   return ret;
 }
 
-status_t api_receive_mam_message(const iota_client_service_t* const service, const char* const bundle_hash,
+status_t api_receive_mam_message(const iota_client_service_t* const service, const char* const chid,
                                  char** json_result) {
-  mam_api_t mam;
   status_t ret = SC_OK;
-  tryte_t* payload_trytes = NULL;
-  tryte_t* none_chid_trytes = NULL;
   char* payload = NULL;
-  size_t payload_size = 0;
+  mam_api_t mam;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
-  bool is_last_packet;
 
   // Creating MAM API
   if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
@@ -182,32 +178,16 @@ status_t api_receive_mam_message(const iota_client_service_t* const service, con
     goto done;
   }
 
-  ret = ta_get_bundle(service, (tryte_t*)bundle_hash, bundle);
+  flex_trit_t chid_trits[NUM_TRITS_HASH];
+  flex_trits_from_trytes(chid_trits, NUM_TRITS_HASH, (const tryte_t*)chid, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  mam_api_add_trusted_channel_pk(&mam, chid_trits);
+  ret = ta_get_bundle_by_addr(service, chid_trits, bundle);
   if (ret != SC_OK) {
     goto done;
   }
 
-  // Set first transaction's address as chid, if no `chid` specified
-  iota_transaction_t* curr_tx = (iota_transaction_t*)utarray_eltptr(bundle, 0);
-  none_chid_trytes = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
-  flex_trits_to_trytes(none_chid_trytes, NUM_TRYTES_ADDRESS, transaction_address(curr_tx), NUM_TRITS_ADDRESS,
-                       NUM_TRITS_ADDRESS);
-  mam_api_add_trusted_channel_pk(&mam, none_chid_trytes);
-
-  if (mam_api_bundle_read(&mam, bundle, &payload_trytes, &payload_size, &is_last_packet) == RC_OK) {
-    if (payload_trytes == NULL || payload_size == 0) {
-      ret = SC_MAM_NO_PAYLOAD;
-      goto done;
-    } else {
-      payload = calloc(payload_size * 2 + 1, sizeof(char));
-      if (payload == NULL) {
-        ret = SC_TA_NULL;
-        goto done;
-      }
-      trytes_to_ascii(payload_trytes, payload_size, payload);
-    }
-  } else {
-    ret = SC_MAM_NOT_FOUND;
+  if (map_api_bundle_read(&mam, bundle, &payload) != RC_OK) {
+    ret = SC_MAM_FAILED_RESPONSE;
     goto done;
   }
 
@@ -220,11 +200,8 @@ done:
       ret = SC_MAM_FAILED_DESTROYED;
     }
   }
-  free(none_chid_trytes);
-  free(payload_trytes);
-  free(payload);
   bundle_transactions_free(&bundle);
-
+  free(payload);
   return ret;
 }
 
