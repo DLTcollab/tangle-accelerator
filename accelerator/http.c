@@ -41,9 +41,9 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   }
 
   // Copy url for parsing
-  int url_len = strlen(url);
+  int url_len = strlen(url) + 1;
   char *tmp = NULL;
-  char url_parse[url_len + 1];
+  char url_parse[url_len];
   snprintf(url_parse, url_len, "%s", url);
 
   // Parse URL with '/' and get parameter
