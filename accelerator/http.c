@@ -73,12 +73,14 @@ static int set_response_content(status_t ret, char **json_result) {
   }
 
   cJSON *json_obj = cJSON_CreateObject();
-  switch (ret & SC_ERROR_MASK) {
-    case 0x03:
+  switch (ret) {
+    case SC_CCLIENT_NOT_FOUND:
+    case SC_MAM_NOT_FOUND:
       http_ret = MHD_HTTP_NOT_FOUND;
       cJSON_AddStringToObject(json_obj, "message", "Request not found");
       break;
-    case 0x07:
+    case SC_CCLIENT_JSON_KEY:
+    case SC_MAM_NO_PAYLOAD:
       http_ret = MHD_HTTP_BAD_REQUEST;
       cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
       break;
