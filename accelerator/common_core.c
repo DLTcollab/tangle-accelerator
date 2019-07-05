@@ -349,7 +349,10 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
                            NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
       ret = cache_set(txn_hash, cache_value);
       if (ret != SC_OK) {
-        goto done;
+        if (ret != SC_CACHE_OFF) {
+          goto done;
+        }
+        ret = SC_OK;
       }
 
       iota_transaction_t* append_txn = transaction_deserialize(temp_txn_trits, true);
