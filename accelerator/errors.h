@@ -51,6 +51,7 @@ extern "C" {
 #define SC_MODULE_RES (0x06 << SC_MODULE_SHIFT)
 #define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
 #define SC_MODULE_UTILS (0x08 << SC_MODULE_SHIFT)
+#define SC_MODULE_HTTP (0x09 << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -147,9 +148,22 @@ typedef enum {
   SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
 
+  // UTILS module
   SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   SC_UTILS_WRONG_REQUEST_OBJ = 0x02 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< wrong TA request object */
+
+  // HTTP module
+  SC_HTTP_OOM = 0x01 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
+  /**< Fail to create http object */
+  SC_HTTP_NULL = 0x02 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
+  /**< NULL object in http */
+  SC_HTTP_INVALID_REGEX = 0x03 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< Invalid URL regular expression rule in http */
+  SC_HTTP_URL_NOT_MATCH = 0x04 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< URL doesn't match regular expression rule */
+  SC_HTTP_URL_PARSE_ERROR = 0x05 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< URL parameter parsing error */
 } status_t;
 
 typedef enum {
