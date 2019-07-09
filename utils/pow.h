@@ -26,6 +26,20 @@ extern "C" {
  */
 
 /**
+ * Initialize logger
+ */
+void pow_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int pow_logger_release();
+
+/**
  * Initiate pow module
  */
 void pow_init();

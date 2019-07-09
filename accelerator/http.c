@@ -7,13 +7,30 @@
 #include "accelerator/http.h"
 #include "cJSON.h"
 
+#define HTTP_LOGGER "http"
+
+static logger_id_t http_logger_id;
+
 typedef struct ta_http_request_s {
   bool valid_content_type;
   char *request;
 } ta_http_request_t;
 
+void http_logger_init() { http_logger_id = logger_helper_enable(HTTP_LOGGER, LOGGER_DEBUG, true); }
+
+int http_logger_release() {
+  logger_helper_release(http_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(http_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__, HTTP_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
+
 static status_t ta_http_url_matcher(char const *const url, char *const regex_rule) {
   if (regex_rule == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_NULL");
     return SC_HTTP_NULL;
   }
   regex_t reg;
@@ -21,10 +38,12 @@ static status_t ta_http_url_matcher(char const *const url, char *const regex_rul
   int reg_flag = REG_EXTENDED | REG_NOSUB;
 
   if (regcomp(&reg, regex_rule, reg_flag) != 0) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_INVALID_REGEX");
     return SC_HTTP_INVALID_REGEX;
   }
   if (regexec(&reg, url, 0, NULL, 0) != 0) {
     // Did not match pattern
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_URL_NOT_MATCH");
     ret = SC_HTTP_URL_NOT_MATCH;
   }
 
@@ -34,6 +53,7 @@ static status_t ta_http_url_matcher(char const *const url, char *const regex_rul
 
 static status_t ta_get_url_parameter(char const *const url, int index, char **param) {
   if (param == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_NULL");
     return SC_HTTP_NULL;
   }
   if (index < 0) {
@@ -53,6 +73,7 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
     tmp = strtok(NULL, "/");
   }
   if (tmp == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_URL_PARSE_ERROR");
     return SC_HTTP_URL_PARSE_ERROR;
   }
 
@@ -60,6 +81,7 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   int token_len = strlen(tmp);
   *param = (char *)malloc(token_len * sizeof(char));
   if (param == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_OOM");
     return SC_HTTP_OOM;
   }
   strncpy(*param, tmp, token_len);
@@ -77,15 +99,18 @@ static int set_response_content(status_t ret, char **json_result) {
     case SC_CCLIENT_NOT_FOUND:
     case SC_MAM_NOT_FOUND:
       http_ret = MHD_HTTP_NOT_FOUND;
+      log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_HTTP_NOT_FOUND");
       cJSON_AddStringToObject(json_obj, "message", "Request not found");
       break;
     case SC_CCLIENT_JSON_KEY:
     case SC_MAM_NO_PAYLOAD:
       http_ret = MHD_HTTP_BAD_REQUEST;
+      log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_HTTP_BAD_REQUEST");
       cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
       break;
     default:
       http_ret = MHD_HTTP_INTERNAL_SERVER_ERROR;
+      log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_HTTP_INTERNAL_SERVER_ERROR");
       cJSON_AddStringToObject(json_obj, "message", "Internal service error");
       break;
   }
@@ -275,6 +300,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   // Check request header for post request only
   if (post && !http_req->valid_content_type) {
     ret = MHD_NO;
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_NO");
     goto cleanup;
   }
 
@@ -285,6 +311,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
       strncpy(http_req->request, upload_data, *upload_data_size);
     } else {
       ret = MHD_NO;
+      log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_NO");
       goto cleanup;
     }
 
@@ -295,6 +322,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (post && (http_req->request == NULL)) {
     // POST but no body, so we skip this request
     ret = MHD_NO;
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "MHD_NO");
     goto cleanup;
   }
 
@@ -333,6 +361,7 @@ cleanup:
 
 status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
   if (http == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_NULL");
     return SC_HTTP_NULL;
   }
 
@@ -343,6 +372,7 @@ status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
 
 status_t ta_http_start(ta_http_t *const http) {
   if (http == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_NULL");
     return SC_HTTP_NULL;
   }
 
@@ -350,6 +380,7 @@ status_t ta_http_start(ta_http_t *const http) {
       MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG, atoi(http->core->info.port),
                        request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_OOM");
     return SC_HTTP_OOM;
   }
   http->running = true;
@@ -358,6 +389,7 @@ status_t ta_http_start(ta_http_t *const http) {
 
 status_t ta_http_stop(ta_http_t *const http) {
   if (http == NULL) {
+    log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_NULL");
     return SC_HTTP_NULL;
   }
 

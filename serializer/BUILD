@@ -4,6 +4,7 @@ cc_library(
     name = "serializer",
     srcs = ["serializer.c"],
     hdrs = ["serializer.h"],
+    copts = ["-DLOGGER_ENABLE"],
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator:ta_errors",
@@ -14,6 +15,7 @@ cc_library(
         "@entangled//common/trinary:flex_trit",
         "@entangled//common/trinary:tryte_ascii",
         "@entangled//utils:char_buffer",
+        "@entangled//utils:logger_helper",
         "@entangled//utils/containers/hash:hash_array",
     ],
 )

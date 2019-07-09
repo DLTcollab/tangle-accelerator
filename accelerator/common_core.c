@@ -9,9 +9,26 @@
 #include "common_core.h"
 #include <sys/time.h>
 
+#define CC_LOGGER "common_core"
+
+static logger_id_t cc_logger_id;
+
+void cc_logger_init() { cc_logger_id = logger_helper_enable(CC_LOGGER, LOGGER_DEBUG, true); }
+
+int cc_logger_release() {
+  logger_helper_release(cc_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(cc_logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, CC_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
+
 status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, uint8_t const depth,
                                     ta_get_tips_res_t* res) {
   if (res == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
@@ -20,6 +37,7 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, 
   get_transactions_to_approve_res_t* get_txn_res = get_transactions_to_approve_res_new();
   if (get_txn_req == NULL || get_txn_res == NULL) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
   // The depth at which Random Walk starts. Mininal is 3, and max is 15.
@@ -28,17 +46,20 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, 
   ret = iota_client_get_transactions_to_approve(service, get_txn_req, get_txn_res);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
   ret = hash243_stack_push(&res->tips, get_txn_res->branch);
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
     goto done;
   }
   ret = hash243_stack_push(&res->tips, get_txn_res->trunk);
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
   }
 
 done:
@@ -87,6 +108,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_
       tx_trytes = NULL;
     } else {
       ret = SC_CCLIENT_FAILED_RESPONSE;
+      log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
       goto done;
     }
   }
@@ -105,12 +127,14 @@ status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_ser
   attach_to_tangle_res_t* attach_res = attach_to_tangle_res_new();
   if (!tx_approve_req || !tx_approve_res || !attach_req || !attach_res) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
 
   get_transactions_to_approve_req_set_depth(tx_approve_req, tangle->milestone_depth);
   if (iota_client_get_transactions_to_approve(service, tx_approve_req, tx_approve_res)) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -126,6 +150,7 @@ status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_ser
   // store and broadcast
   if (iota_client_store_and_broadcast(service, (store_transactions_req_t*)attach_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -143,6 +168,7 @@ done:
 status_t ta_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
                              ta_generate_address_res_t* res) {
   if (res == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
@@ -156,6 +182,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
 
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
   } else {
     res->addresses = out_address;
   }
@@ -165,6 +192,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
 status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res) {
   if (req == NULL || res == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
@@ -179,6 +207,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
   transfer_array_t* transfers = transfer_array_new();
   if (find_tx_req == NULL || find_tx_res == NULL || transfers == NULL) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
 
@@ -191,6 +220,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
 
   if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) != RC_OK) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
   memcpy(transfer.address, hash243_queue_peek(req->address), FLEX_TRIT_SIZE_243);
@@ -204,6 +234,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
   if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, false, current_timestamp_ms(),
                                     out_bundle) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -211,6 +242,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
     serialized_txn = transaction_serialize(txn);
     if (serialized_txn == NULL) {
       ret = SC_CCLIENT_FAILED_RESPONSE;
+      log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
       goto done;
     }
     hash_array_push(raw_tx, serialized_txn);
@@ -226,12 +258,14 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
   ret = hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
     goto done;
   }
 
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -251,6 +285,7 @@ done:
 status_t ta_find_transactions_by_tag(const iota_client_service_t* const service, const char* const req,
                                      ta_find_transactions_res_t* res) {
   if (req == NULL || res == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
@@ -259,6 +294,7 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
   find_transactions_res_t* find_tx_res = find_transactions_res_new();
   if (find_tx_req == NULL || find_tx_res == NULL) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
 
@@ -267,11 +303,13 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
   ret = hash81_queue_push(&find_tx_req->tags, tag_trits);
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
     goto done;
   }
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -293,6 +331,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   transaction_array_t* uncached_txn_array = transaction_array_new();
   if (req == NULL || res == NULL || req_get_trytes == NULL || uncached_txn_array == NULL) {
     ret = SC_TA_NULL;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     goto done;
   }
   char txn_hash[NUM_TRYTES_HASH + 1] = {0};
@@ -315,6 +354,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
       temp = transaction_deserialize(tx_trits, true);
       if (temp == NULL) {
         ret = SC_CCLIENT_OOM;
+        log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
         goto done;
       }
 
@@ -326,6 +366,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
     } else {
       if (hash243_queue_push(&req_get_trytes->hashes, q_iter->hash) != RC_OK) {
         ret = SC_CCLIENT_HASH;
+        log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
         goto done;
       }
       ret = SC_OK;
@@ -335,6 +376,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   if (req_get_trytes->hashes != NULL) {
     if (iota_client_get_transaction_objects(service, req_get_trytes, uncached_txn_array) != RC_OK) {
       ret = SC_CCLIENT_FAILED_RESPONSE;
+      log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
       goto done;
     }
   }
@@ -360,6 +402,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
       transaction_free(append_txn);
     } else {
       ret = SC_CCLIENT_NOT_FOUND;
+      log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_NOT_FOUND");
       goto done;
     }
     free(temp_txn_trits);
@@ -410,6 +453,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   if (find_tx_req == NULL) {
     ret = SC_CCLIENT_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
   }
 
@@ -419,6 +463,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
   ret = iota_client_find_transaction_objects(service, find_tx_req, tx_objs);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 

@@ -7,6 +7,7 @@ cc_library(
     deps = [
         "//accelerator:ta_errors",
         "@entangled//common/trinary:flex_trit",
+        "@entangled//utils:logger_helper",
         "@hiredis",
     ],
 )
@@ -22,6 +23,7 @@ cc_library(
         "@entangled//common/helpers:digest",
         "@entangled//common/model:bundle",
         "@entangled//common/trinary:flex_trit",
+        "@entangled//utils:logger_helper",
         "@entangled//utils:time",
     ],
 )

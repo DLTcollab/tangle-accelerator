@@ -34,6 +34,20 @@ typedef struct {
 } cache_t;
 
 /**
+ * Initialize logger
+ */
+void br_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int br_logger_release();
+
+/**
  * Initiate cache module
  *
  * @param[in] state if cache server should open

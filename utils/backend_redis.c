@@ -8,6 +8,9 @@
 
 #include <hiredis/hiredis.h>
 #include "cache.h"
+#include "utils/logger_helper.h"
+
+#define BR_LOGGER "backend_redis"
 
 /* private data used by cache_t */
 typedef struct {
@@ -17,19 +20,35 @@ typedef struct {
 
 static cache_t cache;
 static bool cache_state;
+static logger_id_t br_logger_id;
+
 /*
  * Private functions
  */
 
+void br_logger_init() { br_logger_id = logger_helper_enable(BR_LOGGER, LOGGER_DEBUG, true); }
+
+int br_logger_release() {
+  logger_helper_release(br_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(br_logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, BR_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
+
 static status_t redis_del(redisContext* c, const char* const key) {
   status_t ret = SC_OK;
   if (key == NULL) {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "DEL %s", key);
   if (!reply->integer) {
     ret = SC_CACHE_FAILED_RESPONSE;
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
@@ -39,6 +58,7 @@ static status_t redis_del(redisContext* c, const char* const key) {
 static status_t redis_get(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
   if (key == NULL || res[0] != '\0') {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
@@ -47,6 +67,7 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
     strncpy(res, reply->str, FLEX_TRIT_SIZE_8019);
   } else {
     ret = SC_CACHE_FAILED_RESPONSE;
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
@@ -56,12 +77,14 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
 static status_t redis_set(redisContext* c, const char* const key, const char* const value) {
   status_t ret = SC_OK;
   if (key == NULL || value == NULL) {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243, value, FLEX_TRIT_SIZE_8019);
   if (!reply->integer) {
     ret = SC_CACHE_FAILED_RESPONSE;
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
@@ -98,6 +121,7 @@ void cache_stop() {
 
 status_t cache_del(const char* const key) {
   if (!cache_state) {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_del(CONN(cache)->rc, key);
@@ -105,6 +129,7 @@ status_t cache_del(const char* const key) {
 
 status_t cache_get(const char* const key, char* res) {
   if (!cache_state) {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_get(CONN(cache)->rc, key, res);
@@ -112,6 +137,7 @@ status_t cache_get(const char* const key, char* res) {
 
 status_t cache_set(const char* const key, const char* const value) {
   if (!cache_state) {
+    log_error(br_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_set(CONN(cache)->rc, key, value);
