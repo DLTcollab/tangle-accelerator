@@ -193,6 +193,23 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
 status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_service_t* const service,
                         bundle_transactions_t* const bundle);
 
+/**
+ * @brief Get the bundle that contains assigned address
+ *
+ * We can get a bundle with any address in the bundle. Moreover, because the channel ID in MAM is actually the address
+ * of a transaction, we can use this function to search which bundle contains the message transaction we want to fetch.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] addr searched address in flex_trit_t
+ * @param[in] bundle pointer of bundle object that will contain the MAM transacitons
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, flex_trit_t const* const addr,
+                               bundle_transactions_t* bundle);
+
 #ifdef __cplusplus
 }
 #endif

@@ -453,3 +453,45 @@ status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_ser
 
   return SC_OK;
 }
+
+status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, flex_trit_t const* const addr,
+                               bundle_transactions_t* bundle) {
+  status_t ret = SC_OK;
+  tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
+  find_transactions_req_t* txn_req = find_transactions_req_new();
+  find_transactions_res_t* txn_res = find_transactions_res_new();
+  ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
+  transaction_array_t* obj_res = transaction_array_new();
+
+  if (txn_req == NULL || txn_res == NULL || obj_req == NULL || obj_res == NULL) {
+    ret = SC_TA_OOM;
+    goto done;
+  }
+
+  find_transactions_req_address_add(txn_req, addr);
+
+  if (iota_client_find_transactions(service, txn_req, txn_res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+
+  hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+  ret = ta_find_transaction_objects(service, obj_req, obj_res);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  iota_transaction_t* curr_tx = transaction_array_at(obj_res, 0);
+  flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
+  ret = ta_get_bundle(service, bundle_hash, bundle);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+done:
+  find_transactions_req_free(&txn_req);
+  find_transactions_res_free(&txn_res);
+  ta_find_transaction_objects_req_free(&obj_req);
+  transaction_array_free(obj_res);
+  return ret;
+}

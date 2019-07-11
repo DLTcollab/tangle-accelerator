@@ -75,3 +75,27 @@ retcode_t map_write_packet(mam_api_t *const api, bundle_transactions_t *const bu
   free(payload_trytes);
   return ret;
 }
+
+retcode_t map_api_bundle_read(mam_api_t *const api, bundle_transactions_t *bundle, char **payload_out) {
+  retcode_t ret = RC_OK;
+  tryte_t *payload_trytes = NULL;
+  size_t payload_size = 0;
+  bool is_last_packet = false;
+  ret = mam_api_bundle_read(api, bundle, &payload_trytes, &payload_size, &is_last_packet);
+  if (ret == RC_OK) {
+    if (payload_trytes == NULL || payload_size == 0) {
+      ret = RC_MAM_MESSAGE_NOT_FOUND;
+    } else {
+      *payload_out = calloc(payload_size * 2 + 1, sizeof(char));
+      if (*payload_out == NULL) {
+        ret = RC_OOM;
+        goto done;
+      }
+      trytes_to_ascii(payload_trytes, payload_size, *payload_out);
+    }
+  }
+
+done:
+  free(payload_trytes);
+  return ret;
+}

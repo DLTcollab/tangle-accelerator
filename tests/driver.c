@@ -181,7 +181,7 @@ void test_receive_mam_message(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_receive_mam_message(&ta_core.service, (char*)res->bundle_hash, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_receive_mam_message(&ta_core.service, (char*)res->channel_id, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
