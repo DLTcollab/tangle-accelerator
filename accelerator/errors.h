@@ -9,6 +9,8 @@
 #ifndef ACCELERATOR_ERRORS_H_
 #define ACCELERATOR_ERRORS_H_
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,6 +60,8 @@ extern "C" {
 /** @{ */
 #define SC_ERROR_MASK 0x003F
 /** @} */
+
+bool verbose_mode; /**< flag of verbose mode */
 
 /* status code */
 typedef enum {

@@ -37,6 +37,9 @@ typedef enum ta_cli_arg_value_e {
   MWM_CLI,
   SEED_CLI,
   CACHE,
+
+  /** LOGGER */
+  VERBOSE,
 } ta_cli_arg_value_t;
 
 typedef enum ta_cli_arg_requirement_e { NO_ARG, REQUIRED_ARG, OPTIONAL_ARG } ta_cli_arg_requirement_t;
@@ -58,7 +61,8 @@ static struct ta_cli_argument_s {
                           {"milestone_depth", MILESTONE_DEPTH_CLI, "IRI milestone depth", OPTIONAL_ARG},
                           {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
                           {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG},
-                          {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG}};
+                          {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG},
+                          {"verbose", VERBOSE, "Enable logger", NO_ARG}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
 void ta_usage();
