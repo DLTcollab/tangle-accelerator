@@ -42,6 +42,20 @@ extern "C" {
 /** @} */
 
 /**
+ * Initialize logger
+ */
+void serializer_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int serializer_logger_release();
+
+/**
  * @brief Serialze type of ta_generate_address_res_t to JSON string
  *
  * @param[out] obj Address hash in JSON

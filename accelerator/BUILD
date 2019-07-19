@@ -5,6 +5,7 @@ load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 cc_binary(
     name = "accelerator",
     srcs = ["server.cc"],
+    copts = ["-DLOGGER_ENABLE"],
     deps = [
         ":apis",
         ":ta_config",

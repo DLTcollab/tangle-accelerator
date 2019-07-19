@@ -15,10 +15,10 @@
 #include "cJSON.h"
 #include "utils/logger_helper.h"
 
-#define MAIN_LOGGER_ID "main"
+#define SERVER_LOGGER "server"
 
 static ta_core_t ta_core;
-static logger_id_t logger_id;
+static logger_id_t server_logger_id;
 
 void set_method_header(served::response& res, http_method_t method) {
   res.set_header("Server", ta_core.info.version);
@@ -67,10 +67,17 @@ int main(int argc, char* argv[]) {
   served::multiplexer mux;
   mux.use_after(served::plugin::access_log);
 
-  if (logger_helper_init() != RC_OK) {
+  // Initialize logger
+  if (LOGGER_VERSION != logger_version()) {
     return EXIT_FAILURE;
   }
-  logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
+
+  logger_init();
+  logger_color_prefix_enable();
+  logger_color_message_enable();
+  logger_output_register(stdout);
+  logger_output_level_set(stdout, LOGGER_DEBUG);
+  server_logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
   if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service) != SC_OK) {
@@ -83,8 +90,20 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__, __LINE__, MAIN_LOGGER_ID);
+    log_critical(server_logger_id, "[%s:%d] Configure failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
     return EXIT_FAILURE;
+  }
+
+  // Enable other loggers when verbose mode is on
+  if (verbose_mode) {
+    apis_logger_init();
+    cc_logger_init();
+    serializer_logger_init();
+    pow_logger_init();
+  } else {
+    // Destroy logger when verbose mode is off
+    logger_helper_release(server_logger_id);
+    logger_helper_destroy();
   }
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
@@ -325,9 +344,16 @@ int main(int argc, char* argv[]) {
   server.run(ta_core.info.thread_count);
 
   ta_config_destroy(&ta_core.service);
-  logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    return EXIT_FAILURE;
+
+  if (verbose_mode) {
+    apis_logger_release();
+    cc_logger_release();
+    serializer_logger_release();
+    pow_logger_release();
+    logger_helper_release(server_logger_id);
+    if (logger_helper_destroy() != RC_OK) {
+      return EXIT_FAILURE;
+    }
   }
   return 0;
 }

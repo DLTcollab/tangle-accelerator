@@ -29,6 +29,20 @@ extern "C" {
  */
 
 /**
+ * Initialize logger
+ */
+void apis_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int apis_logger_release();
+
+/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means

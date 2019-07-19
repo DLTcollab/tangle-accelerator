@@ -32,6 +32,20 @@ extern "C" {
  */
 
 /**
+ * Initialize logger
+ */
+void cc_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int cc_logger_release();
+
+/**
  * @brief Get trunk and branch transactions
  *
  * Get a tips pair as trunk/branch transactions for transaction construction.

@@ -7,6 +7,23 @@
  */
 
 #include "serializer.h"
+#include "utils/logger_helper.h"
+
+#define SERI_LOGGER "serializer"
+
+static logger_id_t seri_logger_id;
+
+void serializer_logger_init() { seri_logger_id = logger_helper_enable(SERI_LOGGER, LOGGER_DEBUG, true); }
+
+int serializer_logger_release() {
+  logger_helper_release(seri_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(seri_logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, SERI_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
 
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
                                                char const* const obj_name) {
@@ -20,6 +37,7 @@ static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* con
   if (array_count > 0) {
     array_obj = cJSON_CreateArray();
     if (array_obj == NULL) {
+      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
       return SC_SERIALIZER_JSON_CREATE;
     }
     cJSON_AddItemToObject(json_root, obj_name, array_obj);
@@ -30,10 +48,12 @@ static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* con
       if (trits_count != 0) {
         cJSON_AddItemToArray(array_obj, cJSON_CreateString((const char*)trytes_out));
       } else {
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_INVALID_FLEX_TRITS");
         return SC_CCLIENT_INVALID_FLEX_TRITS;
       }
     }
   } else {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_NOT_FOUND");
     return SC_CCLIENT_NOT_FOUND;
   }
   return SC_OK;
@@ -49,6 +69,7 @@ static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* con
   if (array_count > 0) {
     array_obj = cJSON_CreateArray();
     if (array_obj == NULL) {
+      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
       return SC_SERIALIZER_JSON_CREATE;
     }
     cJSON_AddItemToObject(json_root, obj_name, array_obj);
@@ -61,10 +82,12 @@ static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* con
       if (trits_count != 0) {
         cJSON_AddItemToArray(array_obj, cJSON_CreateString((const char*)trytes_out));
       } else {
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_INVALID_FLEX_TRITS");
         return SC_CCLIENT_INVALID_FLEX_TRITS;
       }
     }
   } else {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_NOT_FOUND");
     return SC_CCLIENT_NOT_FOUND;
   }
   return SC_OK;
@@ -76,6 +99,7 @@ static status_t ta_json_array_to_hash8019_array(cJSON const* const obj, char con
   flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
   cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
   if (!cJSON_IsArray(json_item)) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
     return SC_CCLIENT_JSON_PARSE;
   }
 
@@ -83,6 +107,7 @@ static status_t ta_json_array_to_hash8019_array(cJSON const* const obj, char con
   cJSON_ArrayForEach(current_obj, json_item) {
     if (current_obj->valuestring != NULL) {
       if (strlen(current_obj->valuestring) != NUM_TRYTES_SERIALIZED_TRANSACTION) {
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_INVALID_REQ");
         return SC_SERIALIZER_INVALID_REQ;
       }
       flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (tryte_t const*)current_obj->valuestring,
@@ -104,6 +129,7 @@ status_t ta_hash8019_array_to_json_array(hash8019_array_p array, cJSON* const js
   if (array_count > 0) {
     array_obj = cJSON_CreateArray();
     if (array_obj == NULL) {
+      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
       return SC_SERIALIZER_JSON_CREATE;
     }
     cJSON_AddItemToObject(json_root, obj_name, array_obj);
@@ -113,6 +139,7 @@ status_t ta_hash8019_array_to_json_array(hash8019_array_p array, cJSON* const js
                                          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
       trytes_out[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
       if (trits_count == 0) {
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FLEX_TRITS");
         return SC_CCLIENT_FLEX_TRITS;
       }
       cJSON_AddItemToArray(array_obj, cJSON_CreateString((char const*)trytes_out));
@@ -124,17 +151,20 @@ status_t ta_hash8019_array_to_json_array(hash8019_array_p array, cJSON* const js
 static status_t ta_json_get_string(cJSON const* const json_obj, char const* const obj_name, char* const text) {
   status_t ret = SC_OK;
   if (json_obj == NULL || obj_name == NULL || text == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
 
   cJSON* json_value = cJSON_GetObjectItemCaseSensitive(json_obj, obj_name);
   if (json_value == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_KEY");
     return SC_CCLIENT_JSON_KEY;
   }
 
   if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
     strcpy(text, json_value->valuestring);
   } else {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
     return SC_CCLIENT_JSON_PARSE;
   }
 
@@ -143,11 +173,13 @@ static status_t ta_json_get_string(cJSON const* const json_obj, char const* cons
 
 status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJSON** txn_json) {
   if (txn == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_NOT_FOUND");
     return SC_CCLIENT_NOT_FOUND;
   }
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1], tag_trytes[NUM_TRYTES_TAG + 1];
   *txn_json = cJSON_CreateObject();
   if (txn_json == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     return SC_SERIALIZER_JSON_CREATE;
   }
 
@@ -230,6 +262,7 @@ static status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name
   cJSON* array_obj = cJSON_CreateArray();
 
   if (array_obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     return SC_SERIALIZER_JSON_CREATE;
   }
   cJSON_AddItemToObject(json_root, obj_name, array_obj);
@@ -249,6 +282,7 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
   cJSON* json_root = cJSON_CreateObject();
   status_t ret = SC_OK;
   if (json_root == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     return SC_SERIALIZER_JSON_CREATE;
   }
   ret = ta_hash243_queue_to_json_array(res->addresses, json_root, "address");
@@ -258,6 +292,7 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     return SC_SERIALIZER_JSON_PARSE;
   }
   cJSON_Delete(json_root);
@@ -266,6 +301,7 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
 
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req) {
   if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
   cJSON* json_obj = cJSON_Parse(obj);
@@ -277,6 +313,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
 
   if (json_obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
@@ -295,6 +332,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
     for (int i = 0; i < tag_len; i++) {
       if (json_result->valuestring[i] & (unsigned)128) {
         ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE_ASCII");
         goto done;
       }
     }
@@ -318,6 +356,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
   ret = hash81_queue_push(&req->tag, tag_trits);
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
     goto done;
   }
 
@@ -360,6 +399,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
   ret = hash243_queue_push(&req->address, address_trits);
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
     goto done;
   }
 
@@ -370,6 +410,7 @@ done:
 
 status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p out_trytes) {
   if (obj == NULL || out_trytes == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
   status_t ret = SC_OK;
@@ -377,6 +418,7 @@ status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p 
 
   if (json_obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
@@ -392,6 +434,7 @@ done:
 
 status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj) {
   if (trytes == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
 
@@ -405,6 +448,7 @@ status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj)
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     ret = SC_SERIALIZER_JSON_PARSE;
   }
 
@@ -417,16 +461,19 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
                                                      ta_find_transaction_objects_req_t* const req) {
   status_t ret = SC_OK;
   if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
 
   cJSON* json_obj = cJSON_Parse(obj);
   if (json_obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     return SC_SERIALIZER_JSON_PARSE;
   }
 
   if (json_array_to_hash243_queue(json_obj, "hashes", &req->hashes) != RC_OK) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
   }
 
   cJSON_Delete(json_obj);
@@ -437,6 +484,7 @@ status_t ta_find_transaction_objects_res_serialize(char** obj, const transaction
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_CREATE");
     return SC_CCLIENT_JSON_CREATE;
   }
 
@@ -448,6 +496,7 @@ status_t ta_find_transaction_objects_res_serialize(char** obj, const transaction
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
   }
 
 done:
@@ -460,6 +509,7 @@ status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactio
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
@@ -469,6 +519,7 @@ status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactio
   }
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     ret = SC_SERIALIZER_JSON_PARSE;
     goto done;
   }
@@ -483,6 +534,7 @@ status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transa
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
@@ -494,6 +546,7 @@ status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transa
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
@@ -507,6 +560,7 @@ status_t receive_mam_message_serialize(char** obj, char** const res) {
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
@@ -515,6 +569,7 @@ status_t receive_mam_message_serialize(char** obj, char** const res) {
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
@@ -528,6 +583,7 @@ status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res) 
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
@@ -538,6 +594,7 @@ status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res) 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
@@ -548,6 +605,7 @@ done:
 
 status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res) {
   if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
   cJSON* json_obj = cJSON_Parse(obj);
@@ -556,17 +614,20 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
 
   if (json_obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
   if (ta_json_get_string(json_obj, "channel", (char*)addr) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_channel_id(res, addr);
 
   if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_bundle_hash(res, addr);
@@ -578,6 +639,7 @@ done:
 
 status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req) {
   if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
   cJSON* json_obj = cJSON_Parse(obj);
@@ -586,6 +648,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
 
   if (json_obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
@@ -595,6 +658,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
 
     if (prng_size != NUM_TRYTES_HASH) {
       ret = SC_SERIALIZER_INVALID_REQ;
+      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_INVALID_REQ");
       goto done;
     }
     snprintf(req->prng, prng_size + 1, "%s", json_result->valuestring);
@@ -610,6 +674,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
     for (int i = 0; i < payload_size; i++) {
       if (json_result->valuestring[i] & 0x80) {
         ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE_ASCII");
         goto done;
       }
     }
@@ -617,6 +682,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
     snprintf(payload, payload_size + 1, "%s", json_result->valuestring);
     req->payload = payload;
   } else {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
     ret = SC_SERIALIZER_NULL;
   }
 
