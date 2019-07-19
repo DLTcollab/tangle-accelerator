@@ -1,8 +1,16 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #include "client_common.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <time.h>
 
 #ifdef WITH_SOCKS
 static int mosquitto__parse_socks_url(mosq_config_t *cfg, char *url);
@@ -21,19 +29,16 @@ void init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   cfg->socks_config = (mosq_socks_config_t *)malloc(sizeof(mosq_socks_config_t));
 #endif
 
-  if (client_type == client_pub || client_type == client_duplex) {
+  if ((client_type == client_pub) || (client_type == client_duplex)) {
     cfg->pub_config = (mosq_pub_config_t *)malloc(sizeof(mosq_pub_config_t));
-    cfg->pub_config->repeat_delay.tv_sec = 0;
-    cfg->pub_config->repeat_delay.tv_usec = 0;
     cfg->pub_config->first_publish = true;
-    cfg->pub_config->disconnect_sent = false;
-    cfg->pub_config->ready_for_repeat = false;
   }
-  if (client_type = client_sub || client_type == client_duplex) {
+  if ((client_type == client_sub) || (client_type == client_duplex)) {
     cfg->sub_config = (mosq_sub_config_t *)malloc(sizeof(mosq_sub_config_t));
   }
 
   cfg->general_config->port = -1;
+  cfg->general_config->qos = 1;
   cfg->general_config->max_inflight = 20;
   cfg->general_config->keepalive = 60;
   cfg->general_config->clean_session = true;
@@ -41,24 +46,18 @@ void init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   cfg->general_config->client_type = client_type;
 }
 
-void mosq_config_cleanup(mosq_config_t *cfg) {
+void mosq_config_free(mosq_config_t *cfg) {
   if (cfg->general_config->client_type == client_pub || cfg->general_config->client_type == client_duplex) {
     free(cfg->pub_config->message);
     free(cfg->pub_config->topic);
     free(cfg->pub_config->response_topic);
   }
-  if (cfg->general_config->client_type = client_sub || cfg->general_config->client_type == client_duplex) {
+  if ((cfg->general_config->client_type == client_sub) || (cfg->general_config->client_type == client_duplex)) {
     if (cfg->sub_config->topics) {
       for (int i = 0; i < cfg->sub_config->topic_count; i++) {
         free(cfg->sub_config->topics[i]);
       }
       free(cfg->sub_config->topics);
-    }
-    if (cfg->sub_config->filter_outs) {
-      for (int i = 0; i < cfg->sub_config->filter_out_count; i++) {
-        free(cfg->sub_config->filter_outs[i]);
-      }
-      free(cfg->sub_config->filter_outs);
     }
     if (cfg->sub_config->unsub_topics) {
       for (int i = 0; i < cfg->sub_config->unsub_topic_count; i++) {
@@ -68,9 +67,8 @@ void mosq_config_cleanup(mosq_config_t *cfg) {
     }
   }
   free(cfg->general_config->id);
-  free(cfg->general_config->id_prefix);
   free(cfg->general_config->host);
-  free(cfg->general_config->bind_address);
+  // free(cfg->general_config->bind_address);
   free(cfg->general_config->username);
   free(cfg->general_config->password);
   free(cfg->general_config->will_topic);
@@ -106,40 +104,44 @@ void mosq_config_cleanup(mosq_config_t *cfg) {
   mosquitto_property_free_all(&cfg->property_config->will_props);
 }
 
-rc_mosq_retcode_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topic) {
+status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topic) {
+  if (cfg == NULL) {
+    return SC_MQTT_NULL;
+  }
+
   if (mosquitto_validate_utf8(topic, strlen(topic))) {
     fprintf(stderr, "Error: Malformed UTF-8 in topic argument.\n\n");
-    return RC_MOS_ADD_TOPIC;
+    return SC_MQTT_TOPIC_SET;
   }
   if (client_type == client_pub || client_type == client_duplex) {
     if (mosquitto_pub_topic_check(topic) == MOSQ_ERR_INVAL) {
       fprintf(stderr, "Error: Invalid publish topic '%s', does it contain '+' or '#'?\n", topic);
-      return RC_MOS_ADD_TOPIC;
+      return SC_MQTT_TOPIC_SET;
     }
     cfg->pub_config->topic = strdup(topic);
   } else if (client_type == client_duplex) {
     if (mosquitto_pub_topic_check(topic) == MOSQ_ERR_INVAL) {
       fprintf(stderr, "Error: Invalid response topic '%s', does it contain '+' or '#'?\n", topic);
-      return RC_MOS_ADD_TOPIC;
+      return SC_MQTT_TOPIC_SET;
     }
     cfg->pub_config->response_topic = strdup(topic);
   } else {
     if (mosquitto_sub_topic_check(topic) == MOSQ_ERR_INVAL) {
       fprintf(stderr, "Error: Invalid subscription topic '%s', are all '+' and '#' wildcards correct?\n", topic);
-      return RC_MOS_ADD_TOPIC;
+      return SC_MQTT_TOPIC_SET;
     }
     cfg->sub_config->topic_count++;
     cfg->sub_config->topics = realloc(cfg->sub_config->topics, cfg->sub_config->topic_count * sizeof(char *));
     if (!cfg->sub_config->topics) {
       fprintf(stderr, "Error: Out of memory.\n");
-      return RC_MOS_ADD_TOPIC;
+      return SC_MQTT_TOPIC_SET;
     }
     cfg->sub_config->topics[cfg->sub_config->topic_count - 1] = strdup(topic);
   }
-  return RC_MOS_OK;
+  return SC_OK;
 }
 
-rc_mosq_retcode_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
+status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
 #if defined(WITH_TLS) || defined(WITH_SOCKS)
   mosq_retcode_t ret;
 #endif
@@ -152,7 +154,7 @@ rc_mosq_retcode_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
                             cfg->general_config->will_retain, cfg->property_config->will_props)) {
     fprintf(stderr, "Error: Problem setting will.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
   cfg->property_config->will_props = NULL;
 
@@ -160,7 +162,7 @@ rc_mosq_retcode_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
       mosquitto_username_pw_set(mosq, cfg->general_config->username, cfg->general_config->password)) {
     fprintf(stderr, "Error: Problem setting username and password.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
 #ifdef WITH_TLS
   if (cfg->tls_config->cafile || cfg->tls_config->capath) {
@@ -179,41 +181,41 @@ rc_mosq_retcode_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
   if (cfg->tls_config->insecure && mosquitto_tls_insecure_set(mosq, true)) {
     fprintf(stderr, "Error: Problem setting TLS insecure option.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_engine && mosquitto_string_option(mosq, MOSQ_OPT_TLS_ENGINE, cfg->tls_config->tls_engine)) {
     fprintf(stderr, "Error: Problem setting TLS engine, is %s a valid engine?\n", cfg->tls_config->tls_engine);
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->keyform && mosquitto_string_option(mosq, MOSQ_OPT_TLS_KEYFORM, cfg->tls_config->keyform)) {
     fprintf(stderr, "Error: Problem setting key form, it must be one of 'pem' or 'engine'.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_engine_kpass_sha1 &&
       mosquitto_string_option(mosq, MOSQ_OPT_TLS_ENGINE_KPASS_SHA1, cfg->tls_config->tls_engine_kpass_sha1)) {
     fprintf(stderr, "Error: Problem setting TLS engine key pass sha, is it a 40 character hex string?\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_alpn && mosquitto_string_option(mosq, MOSQ_OPT_TLS_ALPN, cfg->tls_config->tls_alpn)) {
     fprintf(stderr, "Error: Problem setting TLS ALPN protocol.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
 #ifdef FINAL_WITH_TLS_PSK
   if (cfg->tls_config->psk && mosquitto_tls_psk_set(mosq, cfg->tls_config->psk, cfg->tls_config->psk_identity, NULL)) {
     fprintf(stderr, "Error: Problem setting TLS-PSK options.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
 #endif
   if ((cfg->tls_config->tls_version || cfg->tls_config->ciphers) &&
       mosquitto_tls_opts_set(mosq, 1, cfg->tls_config->tls_version, cfg->tls_config->ciphers)) {
     fprintf(stderr, "Error: Problem setting TLS options, check the options are valid.\n");
     mosquitto_lib_cleanup();
-    return RC_MOS_OPT_SET;
+    return SC_MQTT_OPT_SET;
   }
 #endif
   mosquitto_max_inflight_messages_set(mosq, cfg->general_config->max_inflight);
@@ -227,26 +229,32 @@ rc_mosq_retcode_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
     }
   }
 #endif
-  return RC_MOS_OK;
+  return SC_OK;
 }
 
-rc_mosq_retcode_t generate_client_id(mosq_config_t *cfg) {
-  if (cfg->general_config->id_prefix) {
-    cfg->general_config->id = malloc(strlen(cfg->general_config->id_prefix) + 10);
-    if (!cfg->general_config->id) {
-      fprintf(stderr, "Error: Out of memory.\n");
-      mosquitto_lib_cleanup();
-      return RC_MOS_GEN_ID;
-    }
-    snprintf(cfg->general_config->id, strlen(cfg->general_config->id_prefix) + 10, "%s%d",
-             cfg->general_config->id_prefix, getpid());
+status_t generate_client_id(mosq_config_t *cfg) {
+  srand(time(NULL));
+  char id_alphabet[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+  char id[ID_LEN];
+
+  for (int i = 0; i < ID_LEN; i++) {
+    id[i] = id_alphabet[rand() % 36];
   }
-  return RC_MOS_OK;
+  cfg->general_config->id = (char *)malloc(sizeof(char) * ID_LEN);
+  if (!cfg->general_config->id) {
+    fprintf(stderr, "Error: Out of memory.\n");
+    mosquitto_lib_cleanup();
+    return SC_MQTT_OOM;
+  }
+
+  strncpy(cfg->general_config->id, id, sizeof(char) * ID_LEN);
+
+  return SC_OK;
 }
 
-rc_mosq_retcode_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
+status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
+  mosq_retcode_t ret;
   char *err;
-  rc_mosq_retcode_t ret = MOSQ_ERR_SUCCESS;
   int port;
 
   if (cfg->general_config->port < 0) {
@@ -275,8 +283,8 @@ rc_mosq_retcode_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg
                                     cfg->general_config->bind_address, cfg->property_config->connect_props);
   }
 #else
-  ret = mosquitto_connect_bind_v5(mosq, cfg->general_config->host, port, cfg->general_config->keepalive,
-                                  cfg->general_config->bind_address, cfg->property_config->connect_props);
+  ret = mosquitto_connect_bind_v5(mosq, cfg->general_config->host, port, cfg->general_config->keepalive, NULL,
+                                  cfg->property_config->connect_props);
 #endif
   if (ret > 0) {
     {
@@ -288,9 +296,9 @@ rc_mosq_retcode_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg
       }
     }
     mosquitto_lib_cleanup();
-    ret = RC_CLIENT_CONNTECT;
+    return SC_CLIENT_CONNTECT;
   }
-  return ret;
+  return SC_OK;
 }
 
 #ifdef WITH_SOCKS

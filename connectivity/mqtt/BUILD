@@ -9,7 +9,10 @@ cc_library(
         "duplex_utils.h",
     ],
     visibility = ["//visibility:public"],
-    deps = [":mqtt_common"],
+    deps = [
+        ":mqtt_common",
+        "//accelerator:ta_errors",
+    ],
 )
 
 cc_library(
@@ -24,5 +27,9 @@ cc_library(
         "pub_utils.h",
         "sub_utils.h",
     ],
-    deps = ["//third_party:mosquitto"],
+    deps = [
+        "//accelerator:ta_config",
+        "//accelerator:ta_errors",
+        "//third_party:mosquitto",
+    ],
 )
