@@ -8,3 +8,13 @@ cc_import(
     ],
     shared_library = "dcurl/build/libdcurl.so",
 )
+
+cc_import(
+    name = "mosquitto",
+    hdrs = [
+        "mosquitto/config.h",
+        "mosquitto/lib/mosquitto.h",
+        "mosquitto/lib/mqtt_protocol.h",
+    ],
+    shared_library = "mosquitto/lib/libmosquitto.so",
+)
