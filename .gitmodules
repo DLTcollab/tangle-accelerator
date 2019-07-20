@@ -4,3 +4,6 @@
 [submodule "third_party/hiredis"]
 	path = third_party/hiredis
 	url = https://github.com/redis/hiredis.git
+[submodule "third_party/mosquitto"]
+	path = third_party/mosquitto
+	url = https://github.com/eclipse/mosquitto.git
