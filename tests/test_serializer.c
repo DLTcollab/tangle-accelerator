@@ -10,7 +10,7 @@
 #include "test_define.h"
 
 void test_serialize_ta_generate_address(void) {
-  const char* json = "{\"address\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
+  const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
   char* json_result;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
@@ -51,7 +51,7 @@ void test_deserialize_ta_send_transfer(void) {
 
 void test_serialize_ta_find_transaction_objects(void) {
   const char* json =
-      "{\"transactions\":[{\"hash\":\"" TRYTES_81_1 "\","
+      "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
       "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
@@ -63,7 +63,7 @@ void test_serialize_ta_find_transaction_objects(void) {
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
-      "\"nonce\":\"" NONCE "\"}]}";
+      "\"nonce\":\"" NONCE "\"}]";
   char* json_result;
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81], hash_trits_1[FLEX_TRIT_SIZE_243],
       hash_trits_2[FLEX_TRIT_SIZE_243];
@@ -124,7 +124,7 @@ void test_serialize_ta_find_transaction_objects(void) {
 }
 
 void test_serialize_ta_find_transactions_by_tag(void) {
-  const char* json = "{\"hashes\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
+  const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
   char* json_result;
   ta_find_transactions_res_t* res = ta_find_transactions_res_new();
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
@@ -143,7 +143,7 @@ void test_serialize_ta_find_transactions_by_tag(void) {
 
 void test_serialize_ta_find_transactions_obj_by_tag(void) {
   const char* json =
-      "{\"transactions\":[{\"hash\":\"" TRYTES_81_1 "\","
+      "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
       "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
@@ -155,7 +155,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
-      "\"nonce\":\"" NONCE "\"}]}";
+      "\"nonce\":\"" NONCE "\"}]";
   char* json_result;
   iota_transaction_t* txn = transaction_new();
   flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81], hash1[FLEX_TRIT_SIZE_243],

@@ -25,28 +25,19 @@ int serializer_logger_release() {
   return 0;
 }
 
-static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* const json_root,
-                                               char const* const obj_name) {
+static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* json_root) {
   size_t array_count = 0;
-  cJSON* array_obj = NULL;
   hash243_stack_entry_t* s_iter = NULL;
   tryte_t trytes_out[NUM_TRYTES_HASH + 1];
   size_t trits_count = 0;
 
   array_count = hash243_stack_count(stack);
   if (array_count > 0) {
-    array_obj = cJSON_CreateArray();
-    if (array_obj == NULL) {
-      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
-      return SC_SERIALIZER_JSON_CREATE;
-    }
-    cJSON_AddItemToObject(json_root, obj_name, array_obj);
-
     LL_FOREACH(stack, s_iter) {
       trits_count = flex_trits_to_trytes(trytes_out, NUM_TRYTES_HASH, s_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
       trytes_out[NUM_TRYTES_HASH] = '\0';
       if (trits_count != 0) {
-        cJSON_AddItemToArray(array_obj, cJSON_CreateString((const char*)trytes_out));
+        cJSON_AddItemToArray(json_root, cJSON_CreateString((const char*)trytes_out));
       } else {
         log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_INVALID_FLEX_TRITS");
         return SC_CCLIENT_INVALID_FLEX_TRITS;
@@ -59,28 +50,19 @@ static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* con
   return SC_OK;
 }
 
-static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json_root,
-                                               char const* const obj_name) {
+static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json_root) {
   size_t array_count;
-  cJSON* array_obj = NULL;
   hash243_queue_entry_t* q_iter = NULL;
 
   array_count = hash243_queue_count(queue);
   if (array_count > 0) {
-    array_obj = cJSON_CreateArray();
-    if (array_obj == NULL) {
-      log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
-      return SC_SERIALIZER_JSON_CREATE;
-    }
-    cJSON_AddItemToObject(json_root, obj_name, array_obj);
-
     CDL_FOREACH(queue, q_iter) {
       tryte_t trytes_out[NUM_TRYTES_HASH + 1];
       size_t trits_count =
           flex_trits_to_trytes(trytes_out, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
       trytes_out[NUM_TRYTES_HASH] = '\0';
       if (trits_count != 0) {
-        cJSON_AddItemToArray(array_obj, cJSON_CreateString((const char*)trytes_out));
+        cJSON_AddItemToArray(json_root, cJSON_CreateString((const char*)trytes_out));
       } else {
         log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_INVALID_FLEX_TRITS");
         return SC_CCLIENT_INVALID_FLEX_TRITS;
@@ -254,18 +236,10 @@ status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJ
   return SC_OK;
 }
 
-static status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name,
-                                                const transaction_array_t* const txn_array) {
+static status_t transaction_array_to_json_array(cJSON* json_root, const transaction_array_t* const txn_array) {
   status_t ret = SC_OK;
   iota_transaction_t* txn = NULL;
   cJSON* txn_obj = NULL;
-  cJSON* array_obj = cJSON_CreateArray();
-
-  if (array_obj == NULL) {
-    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
-    return SC_SERIALIZER_JSON_CREATE;
-  }
-  cJSON_AddItemToObject(json_root, obj_name, array_obj);
 
   TX_OBJS_FOREACH(txn_array, txn) {
     txn_obj = NULL;
@@ -273,19 +247,19 @@ static status_t transaction_array_to_json_array(cJSON* json_root, char* obj_name
     if (ret != SC_OK) {
       return ret;
     }
-    cJSON_AddItemToArray(array_obj, txn_obj);
+    cJSON_AddItemToArray(json_root, txn_obj);
   }
   return ret;
 }
 
 status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res) {
-  cJSON* json_root = cJSON_CreateObject();
+  cJSON* json_root = cJSON_CreateArray();
   status_t ret = SC_OK;
   if (json_root == NULL) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     return SC_SERIALIZER_JSON_CREATE;
   }
-  ret = ta_hash243_queue_to_json_array(res->addresses, json_root, "address");
+  ret = ta_hash243_queue_to_json_array(res->addresses, json_root);
   if (ret) {
     return ret;
   }
@@ -482,13 +456,13 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
 
 status_t ta_find_transaction_objects_res_serialize(char** obj, const transaction_array_t* const res) {
   status_t ret = SC_OK;
-  cJSON* json_root = cJSON_CreateObject();
+  cJSON* json_root = cJSON_CreateArray();
   if (json_root == NULL) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_CREATE");
     return SC_CCLIENT_JSON_CREATE;
   }
 
-  ret = transaction_array_to_json_array(json_root, "transactions", res);
+  ret = transaction_array_to_json_array(json_root, res);
   if (ret != SC_OK) {
     goto done;
   }
@@ -506,14 +480,14 @@ done:
 
 status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactions_res_t* const res) {
   status_t ret = SC_OK;
-  cJSON* json_root = cJSON_CreateObject();
+  cJSON* json_root = cJSON_CreateArray();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
-  ret = ta_hash243_queue_to_json_array(res->hashes, json_root, "hashes");
+  ret = ta_hash243_queue_to_json_array(res->hashes, json_root);
   if (ret) {
     goto done;
   }
@@ -531,14 +505,14 @@ done:
 
 status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transactions_obj_res_t* const res) {
   status_t ret = SC_OK;
-  cJSON* json_root = cJSON_CreateObject();
+  cJSON* json_root = cJSON_CreateArray();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
-  ret = transaction_array_to_json_array(json_root, "transactions", res->txn_obj);
+  ret = transaction_array_to_json_array(json_root, res->txn_obj);
   if (ret != SC_OK) {
     goto done;
   }
