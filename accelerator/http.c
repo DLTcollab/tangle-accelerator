@@ -377,8 +377,8 @@ status_t ta_http_start(ta_http_t *const http) {
   }
 
   http->daemon =
-      MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG, atoi(http->core->info.port),
-                       request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
+      MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
+                       atoi(http->core->info.port), request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
     log_error(http_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_HTTP_OOM");
     return SC_HTTP_OOM;
