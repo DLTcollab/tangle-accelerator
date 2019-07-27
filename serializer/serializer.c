@@ -50,6 +50,35 @@ static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* jso
   return SC_OK;
 }
 
+static status_t ta_json_array_to_hash243_queue(cJSON const* const obj, char const* const obj_name,
+                                               hash243_queue_t* queue) {
+  status_t ret_code = SC_OK;
+  flex_trit_t hash[FLEX_TRIT_SIZE_243] = {};
+  cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
+  if (!json_item) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+
+  if (cJSON_IsArray(json_item)) {
+    cJSON* current_obj = NULL;
+    cJSON_ArrayForEach(current_obj, json_item) {
+      if (current_obj->valuestring != NULL) {
+        flex_trits_from_trytes(hash, NUM_TRITS_HASH, (tryte_t const*)current_obj->valuestring, NUM_TRYTES_HASH,
+                               NUM_TRYTES_HASH);
+        if (hash243_queue_push(queue, hash) != RC_OK) {
+          log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+          return SC_SERIALIZER_JSON_PARSE;
+        }
+      }
+    }
+  } else {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    return SC_SERIALIZER_JSON_PARSE;
+  }
+  return ret_code;
+}
+
 static status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json_root) {
   size_t array_count;
   hash243_queue_entry_t* q_iter = NULL;
@@ -242,7 +271,6 @@ static status_t transaction_array_to_json_array(cJSON* json_root, const transact
   cJSON* txn_obj = NULL;
 
   TX_OBJS_FOREACH(txn_array, txn) {
-    txn_obj = NULL;
     ret = iota_transaction_to_json_object(txn, &txn_obj);
     if (ret != SC_OK) {
       return ret;
@@ -445,8 +473,8 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
     return SC_SERIALIZER_JSON_PARSE;
   }
 
-  if (json_array_to_hash243_queue(json_obj, "hashes", &req->hashes) != RC_OK) {
-    ret = SC_SERIALIZER_JSON_PARSE;
+  ret = ta_json_array_to_hash243_queue(json_obj, "hashes", &req->hashes);
+  if (ret != SC_OK) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
   }
 

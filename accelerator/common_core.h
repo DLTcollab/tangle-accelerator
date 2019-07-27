@@ -143,16 +143,16 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
  * transaction objects in ta_find_transactions_obj_res_t.
  *
  * @param[in] service IRI node end point service
- * @param[in] req tag in trytes
- * @param[out] res Result containing list of transaction object in
- *                 ta_find_transactions_obj_res_t
+ * @param[in] req find_transactions_req_t object which contains tags
+ * @param[out] res Result containing list of transaction objects in
+ *                 transaction_array_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const req,
-                                         ta_find_transactions_obj_res_t* res);
+status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
+                                         const find_transactions_req_t* const req, transaction_array_t* res);
 
 /**
  * @brief Return transaction object with given transaction hashes.
