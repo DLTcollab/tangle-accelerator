@@ -293,7 +293,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
   find_transactions_res_t* txn_res = find_transactions_res_new();
   ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
   if (txn_res == NULL || obj_req == NULL) {
-    ret = SC_TA_OOM;
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
     goto done;
   }
 

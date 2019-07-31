@@ -301,6 +301,31 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
   return ret;
 }
 
+status_t ta_get_tips_res_serialize(char** obj, const get_tips_res_t* const res) {
+  status_t ret = SC_OK;
+
+  cJSON* json_root = cJSON_CreateArray();
+  if (json_root == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
+    return RC_CCLIENT_JSON_CREATE;
+  }
+
+  ret = ta_hash243_stack_to_json_array(res->hashes, json_root);
+  if (ret) {
+    goto err;
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    return SC_SERIALIZER_JSON_PARSE;
+  }
+
+err:
+  cJSON_Delete(json_root);
+  return ret;
+}
+
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req) {
   if (obj == NULL) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
@@ -479,6 +504,30 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
   }
 
   cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t ta_find_transaction_object_single_res_serialize(char** obj, transaction_array_t* res) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_CREATE");
+    return SC_CCLIENT_JSON_CREATE;
+  }
+
+  ret = iota_transaction_to_json_object(transaction_array_at(res, 0), &json_root);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+  }
+
+done:
+  cJSON_Delete(json_root);
   return ret;
 }
 

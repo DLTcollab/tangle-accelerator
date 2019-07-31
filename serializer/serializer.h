@@ -10,6 +10,7 @@
 #define SERIALIZER_SERIALIZER_H_
 
 #include "cJSON.h"
+#include "cclient/response/responses.h"
 #include "common/trinary/tryte_ascii.h"
 #include "request/request.h"
 #include "response/response.h"
@@ -68,6 +69,18 @@ int serializer_logger_release();
 status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res);
 
 /**
+ * @brief Serialze object `get_tips_res_t` into JSON
+ *
+ * @param[in] res Result `get_tips_res_t` object with tips inside
+ * @param[out] obj Output tips in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_tips_res_serialize(char** obj, const get_tips_res_t* const res);
+
+/**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
  *
  * @param[in] obj Input values in JSON
@@ -103,6 +116,18 @@ status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p 
  * - non-zero on error
  */
 status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj);
+
+/**
+ * @brief Serialze response of api_transaction_object_single into JSON
+ *
+ * @param[in] res Transaction object array, but we take only the first one
+ * @param[out] obj Result of serialization in JSON format.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_find_transaction_object_single_res_serialize(char** obj, transaction_array_t* res);
 
 /**
  * @brief Deserialze type of ta_find_transaction_objects_req_t from JSON string
