@@ -4,10 +4,30 @@
 #include "connectivity/mqtt/duplex_utils.h"
 #include "errors.h"
 
+#define MQTT_INTERFACE_LOGGER "mqtt-interface"
+
+static logger_id_t mqtt_logger_id;
+
 int main(int argc, char *argv[]) {
   status_t ret;
   mosq_config_t cfg;
   struct mosquitto *mosq = NULL;
+
+  // Initialize logger
+  logger_helper_init(LOGGER_DEBUG);
+  mqtt_logger_id = logger_helper_enable(MQTT_INTERFACE_LOGGER, LOGGER_DEBUG, true);
+
+  if (verbose_mode) {
+    mqtt_utils_logger_init();
+    mqtt_common_logger_init();
+    mqtt_callback_logger_init();
+    mqtt_pub_logger_init();
+    mqtt_sub_logger_init();
+  } else {
+    // Destroy logger when verbose mode is off
+    logger_helper_release(mqtt_logger_id);
+    logger_helper_destroy();
+  }
 
   // Initialize `mosq` and `cfg`
   // if we want to opertate this program under multi-threading, see https://github.com/eclipse/mosquitto/issues/450
@@ -43,5 +63,17 @@ done:
   mosquitto_destroy(mosq);
   mosquitto_lib_cleanup();
   mosq_config_free(&cfg);
+
+  if (verbose_mode) {
+    mqtt_utils_logger_release();
+    mqtt_common_logger_release();
+    mqtt_callback_logger_release();
+    mqtt_pub_logger_release();
+    mqtt_sub_logger_release();
+    logger_helper_release(mqtt_logger_id);
+    if (logger_helper_destroy() != RC_OK) {
+      return EXIT_FAILURE;
+    }
+  }
   return ret;
 }

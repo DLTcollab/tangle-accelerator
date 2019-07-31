@@ -16,6 +16,24 @@ extern "C" {
 #endif
 
 /**
+ * @file connectivity/mqtt/duplex_callbacks.h
+ */
+
+/**
+ * @brief Initialize logger
+ */
+void mqtt_callback_logger_init();
+
+/**
+ * @brief Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_callback_logger_release();
+
+/**
  * @file connectivity/mqtt/duplex_callback.h
  */
 
@@ -23,8 +41,12 @@ extern "C" {
  * @brief Interface for functions setting callback functions.
  *
  * @param[in] mosq `struct mosquitto` object
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
-void duplex_callback_func_set(struct mosquitto *mosq);
+status_t duplex_callback_func_set(struct mosquitto *mosq);
 
 #ifdef __cplusplus
 }

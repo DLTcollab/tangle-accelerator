@@ -7,6 +7,26 @@
  */
 
 #include "duplex_callback.h"
+#include <stdlib.h>
+#include "utils/logger_helper.h"
+
+#define MQTT_CALLBACK_LOGGER "mqtt-callback"
+static logger_id_t mqtt_callback_logger_id;
+
+void mqtt_callback_logger_init() {
+  mqtt_callback_logger_id = logger_helper_enable(MQTT_CALLBACK_LOGGER, LOGGER_DEBUG, true);
+}
+
+int mqtt_callback_logger_release() {
+  logger_helper_release(mqtt_callback_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(mqtt_callback_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__,
+                 MQTT_CALLBACK_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
 
 static status_t mqtt_request_handler(mosq_config_t *cfg, char *sub_topic, char *req) {
   status_t ret = SC_OK;
@@ -68,10 +88,15 @@ static void subscribe_callback_duplex_func(struct mosquitto *mosq, void *obj, in
 }
 
 static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int level, const char *str) {
-  printf("log: %s\n", str);
+  log_error(mqtt_callback_logger_id, "log: %s\n", str);
 }
 
-void duplex_callback_func_set(struct mosquitto *mosq) {
+status_t duplex_callback_func_set(struct mosquitto *mosq) {
+  if (mosq == NULL) {
+    log_error(mqtt_callback_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    return SC_MQTT_NULL;
+  }
+
   mosquitto_log_callback_set(mosq, log_callback_duplex_func);
   mosquitto_subscribe_callback_set(mosq, subscribe_callback_duplex_func);
   mosquitto_connect_v5_callback_set(mosq, connect_callback_duplex_func);

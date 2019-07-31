@@ -30,7 +30,7 @@ extern "C" {
 #define TA_HOST "localhost"
 #ifdef ENABLE_MQTT
 #define MQTT_HOST "localhost"
-#define TOPIC_ROOT "NB/root/topics"
+#define TOPIC_ROOT "root/topics"
 #endif
 #define TA_PORT "8000"
 #define TA_THREAD_COUNT 10

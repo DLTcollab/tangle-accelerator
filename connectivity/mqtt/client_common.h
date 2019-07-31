@@ -38,9 +38,6 @@ typedef struct mosq_general_config_s {
   int last_mid;
   bool retain;
   client_type_t client_type;
-#ifdef WITH_SRV
-  bool use_srv;
-#endif
   unsigned int max_inflight;
   char *username;
   char *password;
@@ -49,7 +46,6 @@ typedef struct mosq_general_config_s {
   long will_payloadlen;
   int will_qos;
   bool will_retain;
-  // char *bind_address;
   bool clean_session;
 } mosq_general_config_t;
 
@@ -126,6 +122,20 @@ typedef struct mosq_config_s {
 } mosq_config_t;
 
 /**
+ * @brief Initialize logger
+ */
+void mqtt_common_logger_init();
+
+/**
+ * @brief Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_common_logger_release();
+
+/**
  * @brief Initialize `mosq_config_t` object
  *
  * @param[in] cfg `mosq_config_t` object
@@ -135,24 +145,24 @@ typedef struct mosq_config_s {
  * - SC_OK on success
  * - non-zero on error
  */
-void init_mosq_config(mosq_config_t *cfg, client_type_t client_type);
+status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type);
 
 /**
  * @brief Free `mosq_config_t` object.
  *
  * @param[in] cfg `mosq_config_t` object
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
  */
-void mosq_config_free(mosq_config_t *cfg);
+status_t mosq_config_free(mosq_config_t *cfg);
 
 /**
  * @brief Set `struct mosquitto` object options with values of `mosq_config_t` object.
  *
  * @param[in] mosq `struct mosquitto` object
  * @param[in] cfg `mosq_config_t` object
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  *
  * @return
  * - SC_OK on success

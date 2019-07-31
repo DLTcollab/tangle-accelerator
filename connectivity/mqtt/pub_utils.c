@@ -7,11 +7,33 @@
  */
 
 #include "pub_utils.h"
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "utils/logger_helper.h"
+
+#define MQTT_PUB_LOGGER "mqtt-pub"
+static logger_id_t mqtt_pub_logger_id;
+
+void mqtt_pub_logger_init() { mqtt_pub_logger_id = logger_helper_enable(MQTT_PUB_LOGGER, LOGGER_DEBUG, true); }
+
+int mqtt_pub_logger_release() {
+  logger_helper_release(mqtt_pub_logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    log_critical(mqtt_pub_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__, MQTT_PUB_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
 
 mosq_retcode_t publish_message(struct mosquitto *mosq, mosq_config_t *cfg, int *mid, const char *topic, int payloadlen,
                                void *payload, int qos, bool retain) {
+  if (mosq == NULL || cfg == NULL) {
+    log_error(mqtt_pub_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    return SC_MQTT_NULL;
+  }
+
   if (cfg->general_config->protocol_version == MQTT_PROTOCOL_V5 && cfg->pub_config->first_publish == false) {
     return mosquitto_publish_v5(mosq, mid, NULL, payloadlen, payload, qos, retain, cfg->property_config->publish_props);
   } else {
@@ -35,22 +57,27 @@ void connect_callback_pub_func(struct mosquitto *mosq, void *obj, int result, in
       {
         switch (ret) {
           case MOSQ_ERR_INVAL:
-            fprintf(stderr, "Error: Invalid input. Does your topic contain '+' or '#'?\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__,
+                      "Error: Invalid input. Does your topic contain '+' or '#'?");
             break;
           case MOSQ_ERR_NOMEM:
-            fprintf(stderr, "Error: Out of memory when trying to publish message.\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__,
+                      "Error: Out of memory when trying to publish message.");
             break;
           case MOSQ_ERR_NO_CONN:
-            fprintf(stderr, "Error: Client not connected when trying to publish.\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__,
+                      "Error: Client not connected when trying to publish.");
             break;
           case MOSQ_ERR_PROTOCOL:
-            fprintf(stderr, "Error: Protocol error when communicating with broker.\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__,
+                      "Error: Protocol error when communicating with broker.");
             break;
           case MOSQ_ERR_PAYLOAD_SIZE:
-            fprintf(stderr, "Error: Message payload is too large.\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__, "Error: Message payload is too large.");
             break;
           case MOSQ_ERR_QOS_NOT_SUPPORTED:
-            fprintf(stderr, "Error: Message QoS not supported on broker, try a lower QoS.\n");
+            log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__,
+                      "Error: Message QoS not supported on broker, try a lower QoS.");
             break;
           default:
             break;
@@ -61,9 +88,9 @@ void connect_callback_pub_func(struct mosquitto *mosq, void *obj, int result, in
   } else {
     if (result) {
       if (cfg->general_config->protocol_version == MQTT_PROTOCOL_V5) {
-        fprintf(stderr, "%s\n", mosquitto_reason_string(result));
+        log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__, mosquitto_reason_string(result));
       } else {
-        fprintf(stderr, "%s\n", mosquitto_connack_string(result));
+        log_error(mqtt_pub_logger_id, "[%s:%d]:%s.\n", __func__, __LINE__, mosquitto_connack_string(result));
       }
     }
   }
@@ -75,81 +102,96 @@ void publish_callback_pub_func(struct mosquitto *mosq, void *obj, int mid, int r
   UNUSED(properties);
 
   if (reason_code > 127) {
-    fprintf(stderr, "Warning: Publish %d failed: %s.\n", mid, mosquitto_reason_string(reason_code));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Warning: Publish %d failed: %s.\n", __func__, __LINE__, mid,
+              mosquitto_reason_string(reason_code));
   }
 
   mosquitto_disconnect_v5(mosq, 0, cfg->property_config->disconnect_props);
 }
 
-mosq_retcode_t publish_loop(struct mosquitto *mosq, mosq_config_t *cfg) {
+status_t publish_loop(struct mosquitto *mosq) {
+  if (mosq == NULL) {
+    log_error(mqtt_pub_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MQTT_NULL");
+    return SC_MQTT_NULL;
+  }
   mosq_retcode_t ret = MOSQ_ERR_SUCCESS;
 
   do {
     ret = mosquitto_loop(mosq, 0, 1);
   } while (ret == MOSQ_ERR_SUCCESS);
-  return MOSQ_ERR_SUCCESS;
+  return SC_OK;
 }
 
 status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
+  if (cfg == NULL) {
+    log_error(mqtt_pub_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    return SC_MQTT_NULL;
+  }
   status_t ret = SC_OK;
 
   if (cfg->general_config->will_payload && !cfg->general_config->will_topic) {
-    fprintf(stderr, "Error: Will payload given, but no will topic given.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
+              "Error: Will payload given, but no will topic given.");
     return SC_MQTT_INIT;
   }
   if (cfg->general_config->will_retain && !cfg->general_config->will_topic) {
-    fprintf(stderr, "Error: Will retain given, but no will topic given.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: Will retain given, but no will topic given.\n", __func__, __LINE__);
     return SC_MQTT_INIT;
   }
   if (cfg->general_config->password && !cfg->general_config->username) {
-    fprintf(stderr, "Warning: Not using password since username not set.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Warning: Not using password since username not set.\n", __func__, __LINE__);
   }
 
   if (cfg->general_config->will_payload && !cfg->general_config->will_topic) {
-    fprintf(stderr, "Error: Will payload given, but no will topic given.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: Will payload given, but no will topic given.\n", __func__, __LINE__);
     return SC_MQTT_INIT;
   }
   if (cfg->general_config->will_retain && !cfg->general_config->will_topic) {
-    fprintf(stderr, "Error: Will retain given, but no will topic given.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: Will retain given, but no will topic given.\n", __func__, __LINE__);
     return SC_MQTT_INIT;
   }
   if (cfg->general_config->password && !cfg->general_config->username) {
-    fprintf(stderr, "Warning: Not using password since username not set.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Warning: Not using password since username not set.\n", __func__, __LINE__);
   }
 #ifdef WITH_TLS
   if ((cfg->tls_config->certfile && !cfg->tls_config->keyfile) ||
       (cfg->tls_config->keyfile && !cfg->tls_config->certfile)) {
-    fprintf(stderr, "Error: Both certfile and keyfile must be provided if one of them is set.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: Both certfile and keyfile must be provided if one of them is set.\n",
+              __func__, __LINE__);
     return SC_MQTT_INIT;
   }
   if ((cfg->tls_config->keyform && !cfg->tls_config->keyfile)) {
-    fprintf(stderr, "Error: If keyform is set, keyfile must be also specified.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: If keyform is set, keyfile must be also specified\n", __func__,
+              __LINE__);
     return SC_MQTT_INIT;
   }
   if ((cfg->tls_config->tls_engine_kpass_sha1 && (!cfg->tls_config->keyform || !cfg->tls_config->tls_engine))) {
-    fprintf(stderr, "Error: when using tls-engine-kpass-sha1, both tls-engine and keyform must also be provided.\n");
+    log_error(mqtt_pub_logger_id,
+              "[%s:%d]Error: when using tls-engine-kpass-sha1, both tls-engine and keyform must also be provided\n",
+              __func__, __LINE__);
     return SC_MQTT_INIT;
   }
 #endif
 #ifdef FINAL_WITH_TLS_PSK
   if ((cfg->tls_config->cafile || cfg->tls_config->capath) && cfg->tls_config->psk) {
-    fprintf(stderr, "Error: Only one of --psk or --cafile/--capath may be used at once.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: Only one of --psk or --cafile/--capath may be used at once.\n",
+              __func__, __LINE__);
     return SC_MQTT_INIT;
   }
   if (cfg->tls_config->psk && !cfg->tls_config->psk_identity) {
-    fprintf(stderr, "Error: --psk-identity required if --psk used.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: --psk-identity required if --psk used\n", __func__, __LINE__);
     return SC_MQTT_INIT;
   }
 #endif
 
   if (cfg->general_config->clean_session == false && !cfg->general_config->id) {
-    fprintf(stderr, "Error: You must provide a client id if you are using the -c option.\n");
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error: You must provide a client id\n", __func__, __LINE__);
     return SC_MQTT_INIT;
   }
 
   if (client_type == client_sub) {
     if (cfg->sub_config->topic_count == 0) {
-      fprintf(stderr, "Error: You must specify a topic to subscribe to.\n");
+      log_error(mqtt_pub_logger_id, "[%s:%d]Error: You must specify a topic to subscribe to\n", __func__, __LINE__);
       return SC_MQTT_INIT;
     }
   }
@@ -157,39 +199,44 @@ status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
   if (!cfg->general_config->host) {
     cfg->general_config->host = strdup("localhost");
     if (!cfg->general_config->host) {
-      fprintf(stderr, "Error: Out of memory.\n");
-      return SC_MQTT_INIT;
+      log_error(mqtt_pub_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MQTT_OOM");
+      return SC_MQTT_OOM;
     }
   }
 
   ret = mosquitto_property_check_all(CMD_CONNECT, cfg->property_config->connect_props);
   if (ret) {
-    fprintf(stderr, "Error in CONNECT properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in CONNECT properties: %s\n", __func__, __LINE__,
+              mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
   ret = mosquitto_property_check_all(CMD_PUBLISH, cfg->property_config->publish_props);
   if (ret) {
-    fprintf(stderr, "Error in PUBLISH properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in PUBLISH properties: %s\n", __func__, __LINE__,
+              mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
   ret = mosquitto_property_check_all(CMD_SUBSCRIBE, cfg->property_config->subscribe_props);
   if (ret) {
-    fprintf(stderr, "Error in SUBSCRIBE properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in SUBSCRIBE properties: %s\n", __func__, __LINE__,
+              mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
   ret = mosquitto_property_check_all(CMD_UNSUBSCRIBE, cfg->property_config->unsubscribe_props);
   if (ret) {
-    fprintf(stderr, "Error in UNSUBSCRIBE properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in UNSUBSCRIBE properties: %s\n", __func__, __LINE__,
+              mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
   ret = mosquitto_property_check_all(CMD_DISCONNECT, cfg->property_config->disconnect_props);
   if (ret) {
-    fprintf(stderr, "Error in DISCONNECT properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in DISCONNECT properties: %s\n", __func__, __LINE__,
+              mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
   ret = mosquitto_property_check_all(CMD_WILL, cfg->property_config->will_props);
   if (ret) {
-    fprintf(stderr, "Error in Will properties: %s\n", mosquitto_strerror(ret));
+    log_error(mqtt_pub_logger_id, "[%s:%d]Error in Will properties: %s\n", __func__, __LINE__, mosquitto_strerror(ret));
     return SC_MQTT_INIT;
   }
 
