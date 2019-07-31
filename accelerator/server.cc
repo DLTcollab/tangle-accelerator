@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {post} /transaction/object Find transaction hash
+   * @method {post} /transaction/hash Find transaction hash
    *
    * @return {String[]} hash Transaction hash
    */
@@ -171,6 +171,26 @@ int main(int argc, char* argv[]) {
         }
 
         set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /transaction/<transaction hash> Find transaction object with get request
+   *
+   * @return {String[]} hash Transaction object
+   */
+  mux.handle("/transaction/{hash:[A-Z9]{81}}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
+      .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        ret = api_find_transaction_object_single(&ta_core.service, req.params["hash"].c_str(), &json_result);
+        ret = set_response_content(ret, &json_result);
+
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -244,7 +264,7 @@ int main(int argc, char* argv[]) {
   /**
    * @method {get} /address Generate an unused address
    *
-   * @return {String} hash of address hashes
+   * @return {String} address hashes
    */
   mux.handle("/address")
       .method(served::method::OPTIONS,
@@ -254,6 +274,46 @@ int main(int argc, char* argv[]) {
         char* json_result;
 
         ret = api_generate_address(&ta_core.tangle, &ta_core.service, &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /tag/<transaction tag>/hashes Find transaction hash with tag
+   *
+   * @return {String} address hashes
+   */
+  mux.handle("/tag/{tag:[A-Z9]{27}}/hashes")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
+      .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
+
+        ret = api_find_transactions_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /tag/:tag Find transaction objects by tag
+   *
+   * @param {String} tag Must be 27 trytes long
+   *
+   * @return {String[]} transactions List of transaction objects
+   */
+  mux.handle("/tag/{tag:[A-Z9]{27}}")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
+      .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
+
+        ret = api_find_transactions_obj_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);

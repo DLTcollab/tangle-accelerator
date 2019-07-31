@@ -282,43 +282,39 @@ done:
   return ret;
 }
 
-status_t ta_find_transactions_by_tag(const iota_client_service_t* const service, const char* const req,
-                                     ta_find_transactions_res_t* res) {
+status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
+                                         const find_transactions_req_t* const req, transaction_array_t* res) {
   if (req == NULL || res == NULL) {
-    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    log_error(cc_logger_id, "[%s:%d]\n", __func__, __LINE__);
     return SC_TA_NULL;
   }
 
   status_t ret = SC_OK;
-  find_transactions_req_t* find_tx_req = find_transactions_req_new();
-  find_transactions_res_t* find_tx_res = find_transactions_res_new();
-  if (find_tx_req == NULL || find_tx_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
+  find_transactions_res_t* txn_res = find_transactions_res_new();
+  ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
+  if (txn_res == NULL || obj_req == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
     goto done;
   }
 
-  flex_trit_t tag_trits[NUM_TRITS_TAG];
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)req, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  ret = hash81_queue_push(&find_tx_req->tags, tag_trits);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_HASH");
-    goto done;
-  }
-  ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
-  if (ret) {
+  // get transaction hash
+  if (iota_client_find_transactions(service, req, txn_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
+    log_error(cc_logger_id, "[%s:%d]\n", __func__, __LINE__);
     goto done;
   }
 
-  res->hashes = find_tx_res->hashes;
-  find_tx_res->hashes = NULL;
+  hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
+
+  ret = ta_find_transaction_objects(service, obj_req, res);
+  if (ret) {
+    log_error(cc_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
 
 done:
-  find_transactions_req_free(&find_tx_req);
-  find_transactions_res_free(&find_tx_res);
+  find_transactions_res_free(&txn_res);
+  ta_find_transaction_objects_req_free(&obj_req);
   return ret;
 }
 

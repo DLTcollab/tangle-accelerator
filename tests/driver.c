@@ -157,6 +157,34 @@ void test_find_transaction_objects(void) {
   printf("Average time of find_transaction_objects: %lf\n", sum / TEST_COUNT);
 }
 
+void test_find_transactions_by_tag(void) {
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.service, driver_tag_msg, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of find_transactions_by_tag: %lf\n", sum / TEST_COUNT);
+}
+
+void test_find_transactions_obj_by_tag(void) {
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.service, driver_tag_msg, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
+}
+
 void test_send_mam_message(void) {
   double sum = 0;
   const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
@@ -206,6 +234,8 @@ int main(void) {
   RUN_TEST(test_find_transactions);
   RUN_TEST(test_send_mam_message);
   RUN_TEST(test_receive_mam_message);
+  RUN_TEST(test_find_transactions_by_tag);
+  RUN_TEST(test_find_transactions_obj_by_tag);
   ta_config_destroy(&ta_core.service);
   return UNITY_END();
 }

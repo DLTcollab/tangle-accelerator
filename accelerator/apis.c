@@ -28,9 +28,8 @@ int apis_logger_release() {
 status_t api_get_tips(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
   get_tips_res_t* res = get_tips_res_new();
-  char_buffer_t* res_buff = char_buffer_new();
 
-  if (res == NULL || res_buff == NULL) {
+  if (res == NULL) {
     ret = SC_CCLIENT_OOM;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
     goto done;
@@ -42,23 +41,15 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
     goto done;
   }
 
-  if (service->serializer.vtable.get_tips_serialize_response(res, res_buff) != RC_OK) {
+  ret = ta_get_tips_res_serialize(json_result, res);
+  if (ret != SC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
-
-  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
-  if (*json_result == NULL) {
-    ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
-    goto done;
-  }
-  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
 
 done:
   get_tips_res_free(&res);
-  char_buffer_free(res_buff);
   return ret;
 }
 
@@ -168,6 +159,35 @@ done:
   return ret;
 }
 
+status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
+                                            char** json_result) {
+  status_t ret = SC_OK;
+  flex_trit_t txn_hash[NUM_FLEX_TRITS_HASH];
+  ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
+  transaction_array_t* res = transaction_array_new();
+  if (req == NULL || res == NULL) {
+    ret = SC_TA_OOM;
+    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    goto done;
+  }
+
+  flex_trits_from_trytes(txn_hash, NUM_TRITS_HASH, (const tryte_t*)obj, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  hash243_queue_push(&req->hashes, txn_hash);
+
+  ret = ta_find_transaction_objects(service, req, res);
+  if (ret) {
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  ret = ta_find_transaction_object_single_res_serialize(json_result, res);
+
+done:
+  ta_find_transaction_objects_req_free(&req);
+  transaction_array_free(res);
+  return ret;
+}
+
 status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
                                       char** json_result) {
   status_t ret = SC_OK;
@@ -181,11 +201,13 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
 
   ret = ta_find_transaction_objects_req_deserialize(obj, req);
   if (ret != SC_OK) {
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
     goto done;
   }
 
   ret = ta_find_transaction_objects(service, req, res);
   if (ret) {
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
     goto done;
   }
 
@@ -193,6 +215,72 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
 
 done:
   ta_find_transaction_objects_req_free(&req);
+  transaction_array_free(res);
+  return ret;
+}
+
+status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result) {
+  status_t ret = SC_OK;
+  flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
+  find_transactions_req_t* req = find_transactions_req_new();
+  find_transactions_res_t* res = find_transactions_res_new();
+  if (req == NULL || res == NULL) {
+    ret = SC_TA_OOM;
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
+    ret = SC_CCLIENT_INVALID_FLEX_TRITS;
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  if (iota_client_find_transactions(service, req, res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  ret = ta_find_transactions_res_serialize(json_result, (ta_find_transactions_res_t*)res);
+
+done:
+  find_transactions_req_free(&req);
+  find_transactions_res_free(&res);
+  return ret;
+}
+
+status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                          char** json_result) {
+  status_t ret = SC_OK;
+  flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
+  find_transactions_req_t* req = find_transactions_req_new();
+  transaction_array_t* res = transaction_array_new();
+  if (req == NULL || res == NULL) {
+    ret = SC_TA_OOM;
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
+    ret = SC_CCLIENT_INVALID_FLEX_TRITS;
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  ret = ta_find_transactions_obj_by_tag(service, req, res);
+  if (ret) {
+    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    goto done;
+  }
+
+  ret = ta_find_transaction_objects_res_serialize(json_result, res);
+
+done:
+  find_transactions_req_free(&req);
   transaction_array_free(res);
   return ret;
 }
