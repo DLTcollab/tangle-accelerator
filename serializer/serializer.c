@@ -188,7 +188,7 @@ status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJ
     return SC_CCLIENT_NOT_FOUND;
   }
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1], tag_trytes[NUM_TRYTES_TAG + 1];
-  *txn_json = cJSON_CreateObject();
+
   if (txn_json == NULL) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     return SC_SERIALIZER_JSON_CREATE;
@@ -268,9 +268,10 @@ status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJ
 static status_t transaction_array_to_json_array(cJSON* json_root, const transaction_array_t* const txn_array) {
   status_t ret = SC_OK;
   iota_transaction_t* txn = NULL;
-  cJSON* txn_obj = NULL;
 
   TX_OBJS_FOREACH(txn_array, txn) {
+    cJSON* txn_obj = cJSON_CreateObject();
+
     ret = iota_transaction_to_json_object(txn, &txn_obj);
     if (ret != SC_OK) {
       return ret;
@@ -396,15 +397,26 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
   if (json_result != NULL && json_result->valuestring != NULL) {
+    msg_len = strlen(json_result->valuestring);
+
+    // In case the payload is unicode, char more than 128 will result to an
+    // error status_t code
+    for (int i = 0; i < msg_len; i++) {
+      if (json_result->valuestring[i] & 0x80) {
+        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE_ASCII");
+        goto done;
+      }
+    }
+
     if (raw_message) {
-      msg_len = strlen(json_result->valuestring) * 2;
+      msg_len = msg_len * 2;
       req->msg_len = msg_len * 3;
       tryte_t trytes_buffer[msg_len];
 
       ascii_to_trytes(json_result->valuestring, trytes_buffer);
       flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len, msg_len);
     } else {
-      msg_len = strlen(json_result->valuestring);
       req->msg_len = msg_len * 3;
       flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
     }
@@ -572,6 +584,32 @@ status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactio
   if (*obj == NULL) {
     log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
     ret = SC_SERIALIZER_JSON_PARSE;
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t ta_send_transfer_res_serialize(char** obj, const transaction_array_t* const res) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
+    goto done;
+  }
+
+  ret = iota_transaction_to_json_object(transaction_array_at(res, 0), &json_root);
+  if (ret != SC_OK) {
+    goto done;
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
     goto done;
   }
 
