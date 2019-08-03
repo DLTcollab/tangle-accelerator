@@ -66,7 +66,7 @@ int serializer_logger_release();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res);
+status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj);
 
 /**
  * @brief Serialze object `get_tips_res_t` into JSON
@@ -78,7 +78,7 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_tips_res_serialize(char** obj, const get_tips_res_t* const res);
+status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
@@ -102,7 +102,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer_res_serialize(char** obj, const transaction_array_t* const res);
+status_t ta_send_transfer_res_serialize(transaction_array_t* res, char** obj);
 
 /**
  * @brief Deserialze JSON string to hash8019_array_p
@@ -139,7 +139,7 @@ status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj)
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transaction_object_single_res_serialize(char** obj, transaction_array_t* res);
+status_t ta_find_transaction_object_single_res_serialize(transaction_array_t* res, char** obj);
 
 /**
  * @brief Deserialze type of ta_find_transaction_objects_req_t from JSON string
@@ -164,55 +164,43 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transaction_objects_res_serialize(char** obj, const transaction_array_t* const res);
+status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* const res, char** obj);
 
 /**
- * @brief Serialze type of ta_find_transactions_res_t to JSON string
+ * @brief Serialze type of ta_find_transactions_by_tag_res_t to JSON string
  *
  * @param[out] obj List of transaction hash in JSON
- * @param[in] res Response data in type of ta_find_transactions_res_t
+ * @param[in] res Response data in type of ta_find_transactions_by_tag_res_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactions_res_t* const res);
+status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj);
 
 /**
- * @brief Serialze type of ta_find_transactions_obj_res_t to JSON string
- *
- * @param[out] obj List of transaction object in JSON
- * @param[in] res Response data in type of ta_find_transactions_obj_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transactions_obj_res_t* const res);
-
-/**
- * @brief Serialize mam message
+ * @brief Serialize response of mam message
  *
  * @param[out] obj message formed in JSON
- * @param[in] res Response of payload message
+ * @param[in] message Response of payload message
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t receive_mam_message_serialize(char** obj, char** const res);
+status_t receive_mam_message_res_serialize(char* const message, char** obj);
 
 /**
- * @brief Serialze type of ta_send_mam_res_t to JSON string
+ * @brief Deserialze JSON string to type of ta_send_mam_req_t
  *
- * @param[out] obj send mam response object in JSON
- * @param[in] res Response data in type of ta_send_mam_res_t
+ * @param[in] obj Input values in JSON
+ * @param[out] req Request data in type of ta_send_mam_req_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res);
+status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_mam_res_t
@@ -227,16 +215,16 @@ status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res);
 status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
 
 /**
- * @brief Deserialze JSON string to type of ta_send_mam_req_t
+ * @brief Serialze type of ta_send_mam_res_t to JSON string
  *
- * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of ta_send_mam_req_t
+ * @param[out] obj send mam response object in JSON
+ * @param[in] res Response data in type of ta_send_mam_res_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
+status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
 #ifdef __cplusplus
 }

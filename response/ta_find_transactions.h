@@ -20,27 +20,27 @@ extern "C" {
  * @file response/ta_find_transactions.h
  */
 
-/** struct of ta_find_transactions_res_t */
+/** struct of ta_find_transactions_by_tag_res_t */
 typedef struct ta_find_transactions_res {
   /** Transaction hashes is a 243 long flex trits hash queue. */
   hash243_queue_t hashes;
-} ta_find_transactions_res_t;
+} ta_find_transactions_by_tag_res_t;
 
 /**
- * Allocate memory of ta_find_transactions_res_t
+ * Allocate memory of ta_find_transactions_by_tag_res_t
  *
  * @return
- * - struct of ta_find_transactions_res_t on success
+ * - struct of ta_find_transactions_by_tag_res_t on success
  * - NULL on error
  */
-ta_find_transactions_res_t* ta_find_transactions_res_new();
+ta_find_transactions_by_tag_res_t* ta_find_transactions_res_new();
 
 /**
- * Free memory of ta_find_transactions_res_t
+ * Free memory of ta_find_transactions_by_tag_res_t
  *
- * @param res Data type of ta_find_transactions_res_t
+ * @param res Data type of ta_find_transactions_by_tag_res_t
  */
-void ta_find_transactions_res_free(ta_find_transactions_res_t** res);
+void ta_find_transactions_res_free(ta_find_transactions_by_tag_res_t** res);
 
 #ifdef __cplusplus
 }

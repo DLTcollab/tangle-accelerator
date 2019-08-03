@@ -281,7 +281,7 @@ static status_t transaction_array_to_json_array(cJSON* json_root, const transact
   return ret;
 }
 
-status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address_res_t* const res) {
+status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj) {
   cJSON* json_root = cJSON_CreateArray();
   status_t ret = SC_OK;
   if (json_root == NULL) {
@@ -302,7 +302,7 @@ status_t ta_generate_address_res_serialize(char** obj, const ta_generate_address
   return ret;
 }
 
-status_t ta_get_tips_res_serialize(char** obj, const get_tips_res_t* const res) {
+status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj) {
   status_t ret = SC_OK;
 
   cJSON* json_root = cJSON_CreateArray();
@@ -519,7 +519,7 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
   return ret;
 }
 
-status_t ta_find_transaction_object_single_res_serialize(char** obj, transaction_array_t* res) {
+status_t ta_find_transaction_object_single_res_serialize(transaction_array_t* res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -543,7 +543,7 @@ done:
   return ret;
 }
 
-status_t ta_find_transaction_objects_res_serialize(char** obj, const transaction_array_t* const res) {
+status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* const res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateArray();
   if (json_root == NULL) {
@@ -567,7 +567,7 @@ done:
   return ret;
 }
 
-status_t ta_find_transactions_res_serialize(char** obj, const ta_find_transactions_res_t* const res) {
+status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateArray();
   if (json_root == NULL) {
@@ -592,7 +592,7 @@ done:
   return ret;
 }
 
-status_t ta_send_transfer_res_serialize(char** obj, const transaction_array_t* const res) {
+status_t ta_send_transfer_res_serialize(transaction_array_t* res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -618,33 +618,7 @@ done:
   return ret;
 }
 
-status_t ta_find_transactions_obj_res_serialize(char** obj, const ta_find_transactions_obj_res_t* const res) {
-  status_t ret = SC_OK;
-  cJSON* json_root = cJSON_CreateArray();
-  if (json_root == NULL) {
-    ret = SC_SERIALIZER_JSON_CREATE;
-    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
-    goto done;
-  }
-
-  ret = transaction_array_to_json_array(json_root, res->txn_obj);
-  if (ret != SC_OK) {
-    goto done;
-  }
-
-  *obj = cJSON_PrintUnformatted(json_root);
-  if (*obj == NULL) {
-    ret = SC_SERIALIZER_JSON_PARSE;
-    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
-    goto done;
-  }
-
-done:
-  cJSON_Delete(json_root);
-  return ret;
-}
-
-status_t receive_mam_message_serialize(char** obj, char** const res) {
+status_t receive_mam_message_res_serialize(char* const message, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -653,7 +627,7 @@ status_t receive_mam_message_serialize(char** obj, char** const res) {
     goto done;
   }
 
-  cJSON_AddStringToObject(json_root, "message", *res);
+  cJSON_AddStringToObject(json_root, "message", message);
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
@@ -667,7 +641,7 @@ done:
   return ret;
 }
 
-status_t send_mam_res_serialize(char** obj, const ta_send_mam_res_t* const res) {
+status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
