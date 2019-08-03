@@ -93,6 +93,18 @@ status_t ta_get_tips_res_serialize(char** obj, const get_tips_res_t* const res);
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req);
 
 /**
+ * @brief Serialze the response of api_send_transfer()
+ *
+ * @param[in] res Response data in type of transaction_array_t
+ * @param[out] obj Input values in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_send_transfer_res_serialize(char** obj, const transaction_array_t* const res);
+
+/**
  * @brief Deserialze JSON string to hash8019_array_p
  *
  * @param[in] obj Input values in JSON

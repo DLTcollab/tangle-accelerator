@@ -446,7 +446,7 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
     goto done;
   }
 
-  ret = ta_find_transaction_objects_res_serialize(json_result, res_txn_array);
+  ret = ta_send_transfer_res_serialize(json_result, res_txn_array);
 
 done:
   ta_send_transfer_req_free(&req);
