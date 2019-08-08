@@ -8,15 +8,16 @@
 
 #include "ta_find_transactions.h"
 
-ta_find_transactions_res_t* ta_find_transactions_res_new() {
-  ta_find_transactions_res_t* res = (ta_find_transactions_res_t*)malloc(sizeof(ta_find_transactions_res_t));
+ta_find_transactions_by_tag_res_t* ta_find_transactions_res_new() {
+  ta_find_transactions_by_tag_res_t* res =
+      (ta_find_transactions_by_tag_res_t*)malloc(sizeof(ta_find_transactions_by_tag_res_t));
   if (res) {
     res->hashes = NULL;
   }
   return res;
 }
 
-void ta_find_transactions_res_free(ta_find_transactions_res_t** res) {
+void ta_find_transactions_res_free(ta_find_transactions_by_tag_res_t** res) {
   if (!res || !(*res)) {
     return;
   }

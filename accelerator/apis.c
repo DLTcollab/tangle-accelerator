@@ -41,7 +41,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
     goto done;
   }
 
-  ret = ta_get_tips_res_serialize(json_result, res);
+  ret = ta_get_tips_res_serialize(res, json_result);
   if (ret != SC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
@@ -109,7 +109,7 @@ status_t api_generate_address(const iota_config_t* const tangle, const iota_clie
     goto done;
   }
 
-  ret = ta_generate_address_res_serialize(json_result, res);
+  ret = ta_generate_address_res_serialize(res, json_result);
 
 done:
   ta_generate_address_res_free(&res);
@@ -180,7 +180,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
     goto done;
   }
 
-  ret = ta_find_transaction_object_single_res_serialize(json_result, res);
+  ret = ta_find_transaction_object_single_res_serialize(res, json_result);
 
 done:
   ta_find_transaction_objects_req_free(&req);
@@ -211,7 +211,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
     goto done;
   }
 
-  ret = ta_find_transaction_objects_res_serialize(json_result, res);
+  ret = ta_find_transaction_objects_res_serialize(res, json_result);
 
 done:
   ta_find_transaction_objects_req_free(&req);
@@ -244,7 +244,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
     goto done;
   }
 
-  ret = ta_find_transactions_res_serialize(json_result, (ta_find_transactions_res_t*)res);
+  ret = ta_find_transactions_by_tag_res_serialize((ta_find_transactions_by_tag_res_t*)res, json_result);
 
 done:
   find_transactions_req_free(&req);
@@ -277,7 +277,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
     goto done;
   }
 
-  ret = ta_find_transaction_objects_res_serialize(json_result, res);
+  ret = ta_find_transaction_objects_res_serialize(res, json_result);
 
 done:
   find_transactions_req_free(&req);
@@ -314,7 +314,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service, con
     goto done;
   }
 
-  ret = receive_mam_message_serialize(json_result, &payload);
+  ret = receive_mam_message_res_serialize(payload, json_result);
 
 done:
   // Destroying MAM API
@@ -398,7 +398,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   }
   send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
 
-  ret = send_mam_res_serialize(json_result, res);
+  ret = send_mam_res_serialize(res, json_result);
 
 done:
   // Destroying MAM API
@@ -446,7 +446,7 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
     goto done;
   }
 
-  ret = ta_send_transfer_res_serialize(json_result, res_txn_array);
+  ret = ta_send_transfer_res_serialize(res_txn_array, json_result);
 
 done:
   ta_send_transfer_req_free(&req);

@@ -122,19 +122,19 @@ status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_ser
  * @brief Return list of transaction hash with given tag.
  *
  * Retreive all transactions that have same given tag. The result is a list of
- * transaction hash in ta_find_transactions_res_t.
+ * transaction hash in ta_find_transactions_by_tag_res_t.
  *
  * @param[in] service IRI node end point service
  * @param[in] req tag in trytes
  * @param[out] res Result containing a list of transaction hash in
- *             ta_find_transactions_res_t
+ *             ta_find_transactions_by_tag_res_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t ta_find_transactions_by_tag(const iota_client_service_t* const service, const char* const req,
-                                     ta_find_transactions_res_t* const res);
+                                     ta_find_transactions_by_tag_res_t* const res);
 
 /**
  * @brief Return list of transaction object with given tag.

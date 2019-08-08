@@ -19,7 +19,7 @@ void test_serialize_ta_generate_address(void) {
   hash243_queue_push(&res->addresses, hash_trits_1);
   hash243_queue_push(&res->addresses, hash_trits_2);
 
-  ta_generate_address_res_serialize(&json_result, res);
+  ta_generate_address_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_generate_address_res_free(&res);
   free(json_result);
@@ -115,7 +115,7 @@ void test_serialize_ta_find_transaction_objects(void) {
   transaction_set_nonce(txn, tag_trits);
   transaction_array_push_back(res, txn);
 
-  ta_find_transaction_objects_res_serialize(&json_result, res);
+  ta_find_transaction_objects_res_serialize(res, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   transaction_array_free(res);
@@ -126,7 +126,7 @@ void test_serialize_ta_find_transaction_objects(void) {
 void test_serialize_ta_find_transactions_by_tag(void) {
   const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
   char* json_result;
-  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
+  ta_find_transactions_by_tag_res_t* res = ta_find_transactions_res_new();
   flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
@@ -134,7 +134,7 @@ void test_serialize_ta_find_transactions_by_tag(void) {
   hash243_queue_push(&res->hashes, hash_trits_1);
   hash243_queue_push(&res->hashes, hash_trits_2);
 
-  ta_find_transactions_res_serialize(&json_result, res);
+  ta_find_transactions_by_tag_res_serialize(res, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_find_transactions_res_free(&res);
@@ -206,7 +206,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_set_nonce(txn, tag_trits);
 
   utarray_push_back(res->txn_obj, txn);
-  ta_find_transactions_obj_res_serialize(&json_result, res);
+  ta_find_transaction_objects_res_serialize(res->txn_obj, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_find_transactions_obj_res_free(&res);
@@ -224,7 +224,7 @@ void test_serialize_send_mam_message(void) {
   send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
   send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
 
-  send_mam_res_serialize(&json_result, res);
+  send_mam_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
