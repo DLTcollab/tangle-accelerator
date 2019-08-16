@@ -1,6 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
+load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 cc_binary(
     name = "accelerator",
@@ -27,8 +28,17 @@ cc_binary(
 )
 
 cc_image(
-    name = "ta_image",
+    name = "docker",
     binary = ":accelerator",
+)
+
+container_push(
+    name = "push_docker",
+    image = ":docker",
+    format = "Docker",
+    registry = "index.docker.io",
+    repository = "dltcollab/tangle-accelerator",
+    tag = "latest",
 )
 
 cc_library(

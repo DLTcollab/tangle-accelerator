@@ -85,6 +85,37 @@ There's also an easier option to pull image from docker hub then simply run with
 $ docker run -d --net=host --name tangle-accelerator wusyong/tangel-accelerator:latest
 ```
 
+### Optional: Build and Push Docker Image to Docker Hub
+
+Before pushing the docker image to Docker Hub, you need to log in the docker registry:
+
+```
+$ docker login
+```
+
+Then you could push the docker image with the following command:
+
+```
+$ make && bazel run //accelerator:push_docker
+```
+
+If you get the following error message:
+
+```
+SyntaxError: invalid syntax
+----------------
+Note: The failure of target @containerregistry//:digester (with exit code 1) may have been caused by the fact that it is running under Python 3 instead of Python 2. Examine the error to determine if that appears to be the problem. Since this target is built in the host configuration, the only way to change its version is to set --host_force_python=PY2, which affects the entire build.
+
+If this error started occurring in Bazel 0.27 and later, it may be because the Python toolchain now enforces that targets analyzed as PY2 and PY3 run under a Python 2 and Python 3 interpreter, respectively. See https://github.com/bazelbuild/bazel/issues/7899 for more information.
+------------
+```
+
+Use the `--host_force_python=PY2` parameter to force the Bazel to use the Python2 in entire build.
+
+```
+$ make && bazel run //accelerator:push_docker --host_force_python=PY2
+```
+
 ## Developing
 
 The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html):
