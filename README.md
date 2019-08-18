@@ -43,6 +43,11 @@ both footprint and startup time are behaved pretty well.
 
 ```
 
+## Connectivity
+
+`Tangle-accelerator`, at this moment, supports two communication protocols. One is `http`, and the other one is `MQTT`. `http` can be used in the normal internet service.
+ `MQTT` is a lightweight communication protocol which can be used in the IoT scenarios. `Tangle-accelerator`'s support to `MQTT` allows embedded devices to write data on IOTA internet with relative low quality hardware devices. We hope this accelerates the process blockchain technology steps into our daily lives.
+
 ## Documentation
 
 This page contains basic instructions for setting up tangle-accelerator, You can generate full documentation and API reference via Doxygen. The documentation is under `docs/` after generated:

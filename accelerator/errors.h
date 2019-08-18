@@ -54,6 +54,7 @@ extern "C" {
 #define SC_MODULE_CONF (0x07 << SC_MODULE_SHIFT)
 #define SC_MODULE_UTILS (0x08 << SC_MODULE_SHIFT)
 #define SC_MODULE_HTTP (0x09 << SC_MODULE_SHIFT)
+#define SC_MODULE_MQTT (0x0A << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -168,6 +169,28 @@ typedef enum {
   /**< URL doesn't match regular expression rule */
   SC_HTTP_URL_PARSE_ERROR = 0x05 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
   /**< URL parameter parsing error */
+
+  // MQTT module
+  SC_MQTT_OOM = 0x01 | SC_MODULE_MQTT | SC_SEVERITY_FATAL,
+  /**< Fail to create MQTT object */
+  SC_MQTT_NULL = 0x02 | SC_MODULE_MQTT | SC_SEVERITY_FATAL,
+  /**< NULL object in MQTT */
+  SC_MQTT_INVALID_REGEX = 0x03 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Invalid URL regular expression rule in MQTT */
+  SC_MQTT_TOPIC_NOT_MATCH = 0x04 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Topic doesn't match regular expression rule */
+  SC_MQTT_URL_PARSE_ERROR = 0x05 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Topic parameter parsing error */
+  SC_MQTT_INIT = 0x06 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error during initialization*/
+  SC_MOSQ_OBJ_INIT_ERROR = 0x07 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error in initializing mosquitto object */
+  SC_MQTT_TOPIC_SET = 0x08 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error in setting topic */
+  SC_MQTT_OPT_SET = 0x09 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error in setting options of `struct mosquitto` object */
+  SC_CLIENT_CONNTECT = 0x0A | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error in connecting to broker */
 } status_t;
 
 typedef enum {

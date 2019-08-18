@@ -26,6 +26,21 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "accelerator_mqtt",
+    srcs = ["mqtt_interface.c"],
+    copts = [
+        "-DLOGGER_ENABLE",
+        "-DENABLE_MQTT",
+    ],
+    deps = [
+        ":ta_config",
+        ":ta_errors",
+        "//connectivity/mqtt:mqtt_utils",
+        "@entangled//utils/handles:signal",
+    ],
+)
+
 cc_image(
     name = "ta_image",
     binary = ":accelerator",
