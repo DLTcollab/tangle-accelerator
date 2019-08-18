@@ -795,3 +795,75 @@ done:
   cJSON_Delete(json_obj);
   return ret;
 }
+
+status_t mqtt_device_id_deserialize(const char* const obj, char* device_id) {
+  if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  ret = ta_json_get_string(json_obj, "device_id", device_id);
+  if (ret != SC_OK) {
+    log_error(seri_logger_id, "[%s:%d]\n", __func__, __LINE__);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t mqtt_tag_req_deserialize(const char* const obj, char* tag) {
+  if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  ret = ta_json_get_string(json_obj, "tag", tag);
+  if (ret != SC_OK) {
+    log_error(seri_logger_id, "[%s:%d]\n", __func__, __LINE__);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash) {
+  if (obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  ret = ta_json_get_string(json_obj, "hash", hash);
+  if (ret != SC_OK) {
+    log_error(seri_logger_id, "[%s:%d]\n", __func__, __LINE__);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}

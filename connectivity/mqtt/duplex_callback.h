@@ -9,7 +9,12 @@
 #ifndef DUPLEX_CALLBACK_H
 #define DUPLEX_CALLBACK_H
 
+#include "accelerator/apis.h"
+#include "accelerator/common_core.h"
+#include "common/model/transaction.h"
 #include "duplex_utils.h"
+#include "serializer/serializer.h"
+#include "utils/logger_helper.h"
 
 #ifdef __cplusplus
 extern "C" {

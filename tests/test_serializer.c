@@ -297,6 +297,31 @@ void test_serialize_ta_send_trytes_res(void) {
   free(json_result);
 }
 
+void test_mqtt_device_id_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  const int id_len = 32;
+  char device_id[id_len + 1];
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_device_id_deserialize(json, device_id));
+
+  TEST_ASSERT_EQUAL_STRING(device_id, DEVICE_ID);
+}
+
+void test_mqtt_tag_req_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TAG_MSG "\"}";
+  char tag[NUM_TRYTES_TAG + 1];
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_tag_req_deserialize(json, tag));
+
+  TEST_ASSERT_EQUAL_STRING(tag, TAG_MSG);
+}
+
+void test_mqtt_transaction_hash_req_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"hash\":\"" TRYTES_81_1 "\"}";
+  char hash[NUM_TRYTES_HASH + 1];
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_transaction_hash_req_deserialize(json, hash));
+
+  TEST_ASSERT_EQUAL_STRING(hash, TRYTES_81_1);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -310,5 +335,8 @@ int main(void) {
   RUN_TEST(test_deserialize_send_mam_message);
   RUN_TEST(test_deserialize_ta_send_trytes_req);
   RUN_TEST(test_serialize_ta_send_trytes_res);
+  RUN_TEST(test_mqtt_device_id_deserialize);
+  RUN_TEST(test_mqtt_tag_req_deserialize);
+  RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
   return UNITY_END();
 }

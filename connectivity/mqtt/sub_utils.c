@@ -105,7 +105,7 @@ void subscribe_callback_sub_func(struct mosquitto *mosq, void *obj, int mid, int
     snprintf(qos_digit, 4, ", %d", granted_qos[i]);
     strcat(qos_str, qos_digit);
   }
-  log_error(mqtt_sub_logger_id, "Subscribed (mid: %d): %d%s\n", mid, granted_qos[0], qos_str);
+  log_info(mqtt_sub_logger_id, "Subscribed (mid: %d): %d%s\n", mid, granted_qos[0], qos_str);
 
   free(qos_str);
 }

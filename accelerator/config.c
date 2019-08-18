@@ -91,7 +91,10 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   info->host = TA_HOST;
   info->port = TA_PORT;
   info->thread_count = TA_THREAD_COUNT;
-
+#ifdef ENABLE_MQTT
+  info->mqtt_host = MQTT_HOST;
+  info->mqtt_topic_root = TOPIC_ROOT;
+#endif
   log_info(config_logger_id, "Initializing Redis information\n");
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;

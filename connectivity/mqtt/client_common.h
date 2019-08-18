@@ -22,7 +22,7 @@ extern "C" {
  */
 
 #define ID_LEN 32
-#define API_NUM 9
+#define API_NUM 7
 
 typedef enum client_type_s { client_pub, client_sub, client_duplex } client_type_t;
 
