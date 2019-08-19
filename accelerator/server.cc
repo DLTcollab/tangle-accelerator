@@ -89,6 +89,12 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  // Initialize apis cJSON lock
+  if (apis_lock_init() != SC_OK) {
+    log_critical(server_logger_id, "[%s:%d] Lock initialization failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
+    return EXIT_FAILURE;
+  }
+
   // Enable other loggers when verbose mode is on
   if (verbose_mode) {
     apis_logger_init();
@@ -417,6 +423,10 @@ int main(int argc, char* argv[]) {
   served::net::server server(ta_core.info.host, ta_core.info.port, mux);
   server.run(ta_core.info.thread_count);
 
+  if (apis_lock_destroy() != SC_OK) {
+    log_critical(server_logger_id, "[%s:%d] Destroying api lock failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
+    return EXIT_FAILURE;
+  }
   ta_config_destroy(&ta_core.service);
 
   if (verbose_mode) {

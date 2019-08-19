@@ -152,6 +152,10 @@ typedef enum {
   /**< No argument in CLI */
   SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
+  SC_CONF_LOCK_INIT = 0x04 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< fail to init lock */
+  SC_CONF_LOCK_DESTROY = 0x05 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< fail to destroy lock */
 
   // UTILS module
   SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,

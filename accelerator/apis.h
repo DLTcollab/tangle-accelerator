@@ -59,6 +59,24 @@ status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_confi
                          ta_cache_t* const cache, iota_client_service_t* const service);
 
 /**
+ * Initialize lock
+ *
+ * @return
+ * - zero on success
+ * - SC_CONF_LOCK_INIT on error
+ */
+status_t apis_lock_init();
+
+/**
+ * Destroy lock
+ *
+ * @return
+ * - zero on success
+ * - SC_CONF_LOCK_DESTROY on error
+ */
+status_t apis_lock_destroy();
+
+/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means
