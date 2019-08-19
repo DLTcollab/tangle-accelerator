@@ -37,11 +37,12 @@ extern "C" {
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
 #define MILESTONE_DEPTH 3
-#define FSIZE 11
 #define MWM 14
 #define SEED                                                                   \
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
+#define MAM_FILE_DIR "/tmp"
+#define MAM_FILE_PREFIX "mam_bin_"
 
 /** @name Redis connection config */
 /** @{ */
@@ -63,6 +64,7 @@ typedef struct ta_config_s {
   uint8_t mwm;             /**< Minimum weight magnitude of API argument */
   /** Seed to generate address. This does not do any signature yet. */
   const char* seed;
+  const char* mam_file_path; /**< The MAM file which records the mam config */
 } iota_config_t;
 
 /** struct type of accelerator cache */
@@ -76,7 +78,7 @@ typedef struct ta_cache_s {
 typedef struct ta_core_s {
   ta_config_t info;              /**< accelerator configiuration structure */
   ta_cache_t cache;              /**< redis configiuration structure */
-  iota_config_t tangle;          /**< iota configuration structure */
+  iota_config_t iconf;           /**< iota configuration structure */
   iota_client_service_t service; /**< iota connection structure */
 } ta_core_t;
 

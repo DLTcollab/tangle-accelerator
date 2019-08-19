@@ -686,6 +686,8 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) 
 
   cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
 
+  cJSON_AddNumberToObject(json_root, "channel_ord", res->channel_ord);
+
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;

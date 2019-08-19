@@ -27,7 +27,7 @@ extern "C" {
 typedef struct send_mam_req_s {
   tryte_t prng[NUM_TRYTES_ADDRESS + 1];
   char* payload;
-  uint8_t channel_ord;
+  int32_t channel_ord;
 } ta_send_mam_req_t;
 
 /**

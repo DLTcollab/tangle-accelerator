@@ -27,6 +27,8 @@ typedef struct send_mam_res_s {
   char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
   char channel_id[NUM_TRYTES_HASH + 1];
+  /** channel ordinal which is the number of channel we generated */
+  int32_t channel_ord;
 } ta_send_mam_res_t;
 
 /**

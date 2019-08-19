@@ -11,12 +11,9 @@
 #include "mam/mam/mam_channel_t_set.h"
 
 retcode_t map_channel_create(mam_api_t *const api, tryte_t *const channel_id, const size_t depth) {
-  if (mam_channel_t_set_size(api->channels) == 0) {
-    mam_api_channel_create(api, depth, channel_id);
-  } else {
-    mam_channel_t *channel = &api->channels->value;
-    trits_to_trytes(trits_begin(mam_channel_id(channel)), channel_id, NUM_TRITS_ADDRESS);
-  }
+  // Since the current scheme to publish MAM message in our scenario we only needs to send one message per channel, so
+  // we can create a channel every time we need to send a MAM message
+  mam_api_channel_create(api, depth, channel_id);
 
   return RC_OK;
 }

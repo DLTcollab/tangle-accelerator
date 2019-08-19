@@ -118,7 +118,7 @@ done:
   return ret;
 }
 
-status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
   status_t ret = SC_OK;
   get_transactions_to_approve_req_t* tx_approve_req = get_transactions_to_approve_req_new();
@@ -131,7 +131,7 @@ status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_ser
     goto done;
   }
 
-  get_transactions_to_approve_req_set_depth(tx_approve_req, tangle->milestone_depth);
+  get_transactions_to_approve_req_set_depth(tx_approve_req, iconf->milestone_depth);
   if (iota_client_get_transactions_to_approve(service, tx_approve_req, tx_approve_res)) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
     log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
@@ -142,7 +142,7 @@ status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_ser
   flex_trit_t* elt = NULL;
   HASH_ARRAY_FOREACH(trytes, elt) { attach_to_tangle_req_trytes_add(attach_req, elt); }
   attach_to_tangle_req_init(attach_req, get_transactions_to_approve_res_trunk(tx_approve_res),
-                            get_transactions_to_approve_res_branch(tx_approve_res), tangle->mwm);
+                            get_transactions_to_approve_res_branch(tx_approve_res), iconf->mwm);
   if (ta_attach_to_tangle(attach_req, attach_res) != SC_OK) {
     goto done;
   }
@@ -165,7 +165,7 @@ done:
   return ret;
 }
 
-status_t ta_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
                              ta_generate_address_res_t* res) {
   if (res == NULL) {
     log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
@@ -175,7 +175,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
   status_t ret = SC_OK;
   hash243_queue_t out_address = NULL;
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)tangle->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   address_opt_t opt = {.security = 3, .start = 0, .total = 0};
 
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
@@ -189,7 +189,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
   return ret;
 }
 
-status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res) {
   if (req == NULL || res == NULL) {
     log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
@@ -230,7 +230,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
   // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
   // future and declare `security` field in `iota_config_t`
   flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
-  flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)tangle->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, false, current_timestamp_ms(),
                                     out_bundle) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
@@ -249,7 +249,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(tangle, service, raw_tx);
+  ret = ta_send_trytes(iconf, service, raw_tx);
   if (ret) {
     goto done;
   }
@@ -472,7 +472,7 @@ done:
   return ret;
 }
 
-status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         bundle_transactions_t* const bundle) {
   Kerl kerl;
   kerl_init(&kerl);
@@ -487,7 +487,7 @@ status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_ser
     hash_array_push(raw_trytes, trits_8019);
   }
 
-  ta_send_trytes(tangle, service, raw_trytes);
+  ta_send_trytes(iconf, service, raw_trytes);
 
   hash_array_free(raw_trytes);
   transaction_array_free(out_tx_objs);

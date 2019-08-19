@@ -24,9 +24,9 @@ struct option* cli_build_options() {
   return long_options;
 }
 
-status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
+status_t cli_config_set(ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
                         iota_client_service_t* const service, int key, char* const value) {
-  if (value == NULL || info == NULL || tangle == NULL || cache == NULL || service == NULL) {
+  if (value == NULL || info == NULL || iconf == NULL || cache == NULL || service == NULL) {
     log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -58,15 +58,15 @@ status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle, ta
       cache->port = atoi(value);
       break;
 
-    // Tangle configuration
+    // iconf IOTA configuration
     case MILESTONE_DEPTH_CLI:
-      tangle->milestone_depth = atoi(value);
+      iconf->milestone_depth = atoi(value);
       break;
     case MWM_CLI:
-      tangle->mwm = atoi(value);
+      iconf->mwm = atoi(value);
       break;
     case SEED_CLI:
-      tangle->seed = value;
+      iconf->seed = value;
       break;
     case CACHE:
       cache->cache_state = !(strncmp(value, "T", 1));
@@ -74,15 +74,14 @@ status_t cli_config_set(ta_config_t* const info, iota_config_t* const tangle, ta
   return SC_OK;
 }
 
-status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
+status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
                                 iota_client_service_t* const service) {
   status_t ret = SC_OK;
-  char mss_tmp[] = "/tmp/XXXXXX";
 
   config_logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
   log_info(config_logger_id, "[%s:%d] enable logger %s.\n", __func__, __LINE__, CONFIG_LOGGER);
 
-  if (info == NULL || tangle == NULL || cache == NULL || service == NULL) {
+  if (info == NULL || iconf == NULL || cache == NULL || service == NULL) {
     log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
     return SC_TA_NULL;
   }
@@ -99,9 +98,10 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ta
   cache->cache_state = false;
 
   log_info(config_logger_id, "Initializing IRI configuration\n");
-  tangle->milestone_depth = MILESTONE_DEPTH;
-  tangle->mwm = MWM;
-  tangle->seed = SEED;
+  iconf->milestone_depth = MILESTONE_DEPTH;
+  iconf->mwm = MWM;
+  iconf->seed = SEED;
+  iconf->mam_file_path = tempnam(MAM_FILE_DIR, MAM_FILE_PREFIX);
 
   log_info(config_logger_id, "Initializing IRI connection\n");
   service->http.path = "/";
@@ -145,7 +145,7 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
         br_logger_init();
         break;
       default:
-        ret = cli_config_set(&conf->info, &conf->tangle, &conf->cache, &conf->service, key, optarg);
+        ret = cli_config_set(&conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
         break;
     }
     if (ret != SC_OK) {
