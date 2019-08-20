@@ -87,7 +87,7 @@ $ make && bazel run //accelerator:ta_image
 There's also an easier option to pull image from docker hub then simply run with default configs. Please do remember a redis-server is still required in this way.
 
 ```
-$ docker run -d --net=host --name tangle-accelerator wusyong/tangel-accelerator:latest
+$ docker run -d --net=host --name tangle-accelerator dltcollab/tangle-accelerator
 ```
 
 ## Developing
