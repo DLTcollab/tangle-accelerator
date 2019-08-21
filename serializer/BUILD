@@ -7,6 +7,7 @@ cc_library(
     copts = ["-DLOGGER_ENABLE"],
     visibility = ["//visibility:public"],
     deps = [
+        "//accelerator:ta_config",
         "//accelerator:ta_errors",
         "//request",
         "//response",

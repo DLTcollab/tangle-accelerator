@@ -25,6 +25,19 @@ int apis_logger_release() {
   return 0;
 }
 
+status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_config_t* const tangle,
+                         ta_cache_t* const cache, iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+
+  ret = ta_get_info_serialize(json_result, info, tangle, cache, service);
+  if (ret != SC_OK) {
+    ret = SC_TA_OOM;
+    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+  }
+
+  return ret;
+}
+
 status_t api_get_tips(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
   get_tips_res_t* res = get_tips_res_new();
