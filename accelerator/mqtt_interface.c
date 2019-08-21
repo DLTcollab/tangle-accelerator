@@ -14,7 +14,10 @@ int main(int argc, char *argv[]) {
   struct mosquitto *mosq = NULL;
 
   // Initialize logger
-  logger_helper_init(LOGGER_DEBUG);
+  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+
   mqtt_logger_id = logger_helper_enable(MQTT_INTERFACE_LOGGER, LOGGER_DEBUG, true);
 
   if (verbose_mode) {
