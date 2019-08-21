@@ -21,16 +21,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Initialize logger
-  if (LOGGER_VERSION != logger_version()) {
-    return EXIT_FAILURE;
-  }
-
-  logger_init();
-  logger_color_prefix_enable();
-  logger_color_message_enable();
-  logger_output_register(stdout);
-  logger_output_level_set(stdout, LOGGER_DEBUG);
-
+  logger_helper_init(LOGGER_DEBUG);
   logger_id = logger_helper_enable(MAIN_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
