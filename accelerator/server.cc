@@ -98,6 +98,39 @@ int main(int argc, char* argv[]) {
     logger_helper_destroy();
   }
 
+  /**
+   * @method {get} / Show the information about a running accelerator
+   *
+   * @return {String[]} object Info of a running accelerator
+   */
+  mux.handle("/")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
+      .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        cJSON* json_obj = cJSON_CreateObject();
+        cJSON_AddStringToObject(json_obj, "name", "tangle-accelerator");
+        cJSON_AddStringToObject(json_obj, "host", TA_HOST);
+        cJSON_AddStringToObject(json_obj, "version", TA_VERSION);
+        cJSON_AddStringToObject(json_obj, "port", TA_PORT);
+        cJSON_AddNumberToObject(json_obj, "thread", TA_THREAD_COUNT);
+        cJSON_AddStringToObject(json_obj, "iri_host", IRI_HOST);
+        cJSON_AddNumberToObject(json_obj, "iri_port", IRI_PORT);
+        cJSON_AddStringToObject(json_obj, "redis_host", REDIS_HOST);
+        cJSON_AddNumberToObject(json_obj, "redis_port", REDIS_PORT);
+        cJSON_AddNumberToObject(json_obj, "milestone_depth", MILESTONE_DEPTH);
+        cJSON_AddNumberToObject(json_obj, "mwm", MWM);
+        cJSON_AddBoolToObject(json_obj, "verbose", verbose_mode);
+        json_result = cJSON_Print(json_obj);
+        cJSON_Delete(json_obj);
+
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
