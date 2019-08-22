@@ -49,8 +49,8 @@ cc_image(
 
 container_push(
     name = "push_docker",
-    image = ":docker",
     format = "Docker",
+    image = ":docker",
     registry = "index.docker.io",
     repository = "dltcollab/tangle-accelerator",
     tag = "latest",
