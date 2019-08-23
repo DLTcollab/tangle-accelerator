@@ -12,6 +12,12 @@ coverage --instrumentation_filter="-/tests[/:]"
 
 test --copt='-ggdb3'
 
+# enforce using python2
+# see also: https://github.com/bazelbuild/rules_docker#known-issues
+build --host_force_python=PY2
+test --host_force_python=PY2
+run --host_force_python=PY2
+
 # --config asan: Address sanitizer
 build:asan --strip=never
 build:asan --copt -DADDRESS_SANITIZER
