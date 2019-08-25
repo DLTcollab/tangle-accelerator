@@ -43,6 +43,22 @@ void apis_logger_init();
 int apis_logger_release();
 
 /**
+ * @brief Dump tangle accelerator information.
+ *
+ * @param[out] json_result Result containing tangle accelerator information in json format
+ * @param info[in] Tangle-accelerator configuration variables
+ * @param tangle[in] iota configuration variables
+ * @param cache[in] redis configuration variables
+ * @param service[in] IRI connection configuration variables
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_config_t* const tangle,
+                         ta_cache_t* const cache, iota_client_service_t* const service);
+
+/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means

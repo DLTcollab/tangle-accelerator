@@ -394,6 +394,25 @@ int main(int argc, char* argv[]) {
         cJSON_Delete(json_obj);
       });
 
+  /**
+   * @method {get} / Dump information about a running accelerator
+   *
+   * @return {String[]} object Info of a running accelerator
+   */
+  mux.handle("/")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) { set_method_header(res, HTTP_METHOD_OPTIONS); })
+      .get([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        ret = api_get_ta_info(&json_result, &ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service);
+
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
   std::cout << "Starting..." << std::endl;
   served::net::server server(ta_core.info.host, ta_core.info.port, mux);
   server.run(ta_core.info.thread_count);

@@ -9,6 +9,7 @@
 #ifndef SERIALIZER_SERIALIZER_H_
 #define SERIALIZER_SERIALIZER_H_
 
+#include "accelerator/config.h"
 #include "cJSON.h"
 #include "cclient/response/responses.h"
 #include "common/trinary/tryte_ascii.h"
@@ -55,6 +56,22 @@ void serializer_logger_init();
  * - EXIT_FAILURE on error
  */
 int serializer_logger_release();
+
+/**
+ * @brief Serialze tangle accelerator info into JSON
+ *
+ * @param[out] obj Tangle-accelerator info in JSON
+ * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] tangle IOTA configuration variables
+ * @param[in] cache Redis configuration variables
+ * @param[in] service IRI connection configuration variables
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_info_serialize(char** obj, ta_config_t* const info, iota_config_t* const tangle,
+                               ta_cache_t* const cache, iota_client_service_t* const service);
 
 /**
  * @brief Serialze type of ta_generate_address_res_t to JSON string

@@ -25,6 +25,38 @@ int serializer_logger_release() {
   return 0;
 }
 
+status_t ta_get_info_serialize(char** obj, ta_config_t* const info, iota_config_t* const tangle,
+                               ta_cache_t* const cache, iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_CREATE");
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+
+  cJSON_AddStringToObject(json_root, "name", "tangle-accelerator");
+  cJSON_AddStringToObject(json_root, "host", info->host);
+  cJSON_AddStringToObject(json_root, "version", info->version);
+  cJSON_AddStringToObject(json_root, "port", info->port);
+  cJSON_AddNumberToObject(json_root, "thread", info->thread_count);
+  cJSON_AddStringToObject(json_root, "iri_host", service->http.host);
+  cJSON_AddNumberToObject(json_root, "iri_port", service->http.port);
+  cJSON_AddStringToObject(json_root, "redis_host", cache->host);
+  cJSON_AddNumberToObject(json_root, "redis_port", cache->port);
+  cJSON_AddNumberToObject(json_root, "milestone_depth", tangle->milestone_depth);
+  cJSON_AddNumberToObject(json_root, "mwm", tangle->mwm);
+  cJSON_AddBoolToObject(json_root, "verbose", verbose_mode);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE");
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+
+  cJSON_Delete(json_root);
+  return ret;
+}
+
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* json_root) {
   size_t array_count = 0;
   hash243_stack_entry_t* s_iter = NULL;
