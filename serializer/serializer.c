@@ -781,7 +781,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
     ret = SC_SERIALIZER_NULL;
   }
 
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "order");
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "channel_ord");
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->channel_ord = json_result->valueint;
   } else {

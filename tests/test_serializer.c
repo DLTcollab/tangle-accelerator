@@ -246,7 +246,7 @@ void test_deserialize_send_mam_message_response(void) {
 }
 
 void test_deserialize_send_mam_message(void) {
-  const char* json = "{\"prng\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD "\",\"order\":2}";
+  const char* json = "{\"prng\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD "\",\"channel_ord\":2}";
   ta_send_mam_req_t* req = send_mam_req_new();
 
   send_mam_req_deserialize(json, req);
