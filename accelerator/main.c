@@ -42,6 +42,12 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  // Initialize apis cJSON lock
+  if (apis_lock_init() != SC_OK) {
+    log_critical(logger_id, "[%s:%d] Lock initialization failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    return EXIT_FAILURE;
+  }
+
   // Enable other loggers when verbose mode is on
   if (verbose_mode) {
     http_logger_init();
@@ -67,6 +73,11 @@ int main(int argc, char* argv[]) {
   }
 
 cleanup:
+  log_warning(logger_id, "Destroying API lock\n");
+  if (apis_lock_destroy() != SC_OK) {
+    log_critical(logger_id, "[%s:%d] Destroying api lock failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    return EXIT_FAILURE;
+  }
   log_warning(logger_id, "Destroying TA configurations\n");
   ta_config_destroy(&ta_core.service);
 
