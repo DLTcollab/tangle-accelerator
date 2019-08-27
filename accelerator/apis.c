@@ -359,10 +359,8 @@ status_t api_receive_mam_message(const iota_client_service_t* const service, con
     goto done;
   }
 
-  flex_trit_t chid_trits[NUM_TRITS_HASH];
-  flex_trits_from_trytes(chid_trits, NUM_TRITS_HASH, (const tryte_t*)chid, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  mam_api_add_trusted_channel_pk(&mam, chid_trits);
-  ret = ta_get_bundle_by_addr(service, chid_trits, bundle);
+  mam_api_add_trusted_channel_pk(&mam, chid);
+  ret = ta_get_bundle_by_addr(service, chid, bundle);
   if (ret != SC_OK) {
     goto done;
   }
