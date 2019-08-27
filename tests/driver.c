@@ -232,8 +232,8 @@ int main(void) {
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
   RUN_TEST(test_find_transactions);
-  RUN_TEST(test_send_mam_message);
-  RUN_TEST(test_receive_mam_message);
+  // RUN_TEST(test_send_mam_message);
+  // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
   ta_config_destroy(&ta_core.service);
