@@ -138,6 +138,8 @@ typedef enum {
   /**< No payload or no chid */
   SC_MAM_FAILED_WRITE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to write */
+  SC_MAM_FILE_SAVE = 0x09 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to save MAM file */
 
   // response module
   SC_RES_OOM = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,

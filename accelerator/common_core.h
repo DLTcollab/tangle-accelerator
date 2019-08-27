@@ -68,7 +68,7 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, 
  * Generate and return an unused address from the seed. An unused address means
  * the address does not have any transaction with it yet.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] res Result containing an unused address in
  * ta_generate_address_res_t
@@ -77,7 +77,7 @@ status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, 
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
                              ta_generate_address_res_t* res);
 
 /**
@@ -87,7 +87,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
@@ -97,7 +97,7 @@ status_t ta_generate_address(const iota_config_t* const tangle, const iota_clien
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                           const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res);
 
 /**
@@ -107,7 +107,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
  * bundle and do PoW in `ta_attach_to_tangle` and store and broadcast
  * transaction to tangle.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] trytes Trytes that will be attached to tangle
  *
@@ -115,7 +115,7 @@ status_t ta_send_transfer(const iota_config_t* const tangle, const iota_client_s
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         hash8019_array_p trytes);
 
 /**
@@ -204,7 +204,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         bundle_transactions_t* const bundle);
 
 /**

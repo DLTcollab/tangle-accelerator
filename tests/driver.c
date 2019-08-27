@@ -59,7 +59,7 @@ void test_generate_address(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.tangle, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iconf, &ta_core.service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -72,7 +72,7 @@ void test_get_tips_pair(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -108,7 +108,7 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.tangle, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.iconf, &ta_core.service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -122,7 +122,7 @@ void test_send_trytes(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.tangle, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.iconf, &ta_core.service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -193,7 +193,7 @@ void test_send_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_mam_send_message(&ta_core.tangle, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result));
     send_mam_res_deserialize(json_result, res);
 
     test_time_end(&start_time, &end_time, &sum);
@@ -209,7 +209,8 @@ void test_receive_mam_message(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_receive_mam_message(&ta_core.service, (char*)res->channel_id, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->channel_id, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -221,7 +222,7 @@ int main(void) {
 
   UNITY_BEGIN();
 
-  ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service);
+  ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
   ta_config_set(&ta_core.cache, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);

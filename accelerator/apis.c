@@ -85,7 +85,7 @@ done:
   return ret;
 }
 
-status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_service_t* const service,
                            char** json_result) {
   status_t ret = SC_OK;
   get_transactions_to_approve_req_t* req = get_transactions_to_approve_req_new();
@@ -98,7 +98,7 @@ status_t api_get_tips_pair(const iota_config_t* const tangle, const iota_client_
     goto done;
   }
 
-  get_transactions_to_approve_req_set_depth(req, tangle->milestone_depth);
+  get_transactions_to_approve_req_set_depth(req, iconf->milestone_depth);
   lock_handle_lock(&cjson_lock);
   if (iota_client_get_transactions_to_approve(service, req, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
@@ -129,7 +129,7 @@ done:
   return ret;
 }
 
-status_t api_generate_address(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
                               char** json_result) {
   status_t ret = SC_OK;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
@@ -140,7 +140,7 @@ status_t api_generate_address(const iota_config_t* const tangle, const iota_clie
   }
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_generate_address(tangle, service, res);
+  ret = ta_generate_address(iconf, service, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     goto done;
@@ -344,16 +344,24 @@ done:
   return ret;
 }
 
-status_t api_receive_mam_message(const iota_client_service_t* const service, const char* const chid,
-                                 char** json_result) {
+status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                                 const char* const chid, char** json_result) {
   status_t ret = SC_OK;
   char* payload = NULL;
   mam_api_t mam;
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
 
+  // TODO We may need to use encryption here
   // Creating MAM API
-  if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
+  retcode_t rc = mam_api_load(iconf->mam_file_path, &mam, NULL, 0);
+  if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
+    if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
+      ret = SC_MAM_FAILED_INIT;
+      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+      goto done;
+    }
+  } else if (rc != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
     goto done;
@@ -376,6 +384,9 @@ status_t api_receive_mam_message(const iota_client_service_t* const service, con
 done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
+    if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FILE_SAVE");
+    }
     if (mam_api_destroy(&mam) != RC_OK) {
       ret = SC_MAM_FAILED_DESTROYED;
       log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_DESTROYED");
@@ -386,7 +397,7 @@ done:
   return ret;
 }
 
-status_t api_mam_send_message(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t api_mam_send_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
   mam_api_t mam;
@@ -409,8 +420,15 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   lock_handle_unlock(&cjson_lock);
 
   // Creating MAM API
-  prng = (req->prng[0]) ? req->prng : SEED;
-  if (mam_api_init(&mam, prng) != RC_OK) {
+  prng = (req->prng[0]) ? req->prng : (tryte_t*)SEED;
+  retcode_t rc = mam_api_load(iconf->mam_file_path, &mam, NULL, 0);
+  if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
+    if (mam_api_init(&mam, prng) != RC_OK) {
+      ret = SC_MAM_FAILED_INIT;
+      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+      goto done;
+    }
+  } else if (rc != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
     goto done;
@@ -428,7 +446,14 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
   } else if (payload_size > (NUM_TRYTES_SIGNATURE / 2)) {
     payload_depth = 2;
   }
-  mam.channel_ord = req->channel_ord;
+
+  // TODO We needs to examine if this channel has been used or not with API `find_transactions`.
+  // In order to avoid wasting address (channel), even when user's request assigns a much bigger channel_ord than mam
+  // file, after sending this current MAM message, we need to iterate the next unused channel.
+  if (req->channel_ord > mam.channel_ord) {
+    mam.channel_ord = req->channel_ord;
+  }
+
   if (map_channel_create(&mam, channel_id, payload_depth)) {
     ret = SC_MAM_NULL;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_NULL");
@@ -452,20 +477,33 @@ status_t api_mam_send_message(const iota_config_t* const tangle, const iota_clie
 
   // Sending bundle
   lock_handle_lock(&cjson_lock);
-  if (ta_send_bundle(tangle, service, bundle) != SC_OK) {
+  if (ta_send_bundle(iconf, service, bundle) != SC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_MAM_FAILED_RESPONSE;
     log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-  send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
-
+  ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+  if (ret != SC_OK) {
+    log_error(apis_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    goto done;
+  }
+  res->channel_ord = mam.channel_ord;
   ret = send_mam_res_serialize(res, json_result);
+  if (ret != SC_OK) {
+    log_error(apis_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    goto done;
+  }
+
+  // TODO Find the unused channel with the smallest channel_ord here.
 
 done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
+    if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FILE_SAVE");
+    }
     if (mam_api_destroy(&mam)) {
       ret = SC_MAM_FAILED_DESTROYED;
       log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_DESTROYED");
@@ -477,7 +515,7 @@ done:
   return ret;
 }
 
-status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
@@ -498,7 +536,7 @@ status_t api_send_transfer(const iota_config_t* const tangle, const iota_client_
     goto done;
   }
 
-  ret = ta_send_transfer(tangle, service, req, res);
+  ret = ta_send_transfer(iconf, service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     goto done;
@@ -526,7 +564,7 @@ done:
   return ret;
 }
 
-status_t api_send_trytes(const iota_config_t* const tangle, const iota_client_service_t* const service,
+status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                          const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   hash8019_array_p trytes = hash8019_array_new();
@@ -544,7 +582,7 @@ status_t api_send_trytes(const iota_config_t* const tangle, const iota_client_se
     goto done;
   }
 
-  ret = ta_send_trytes(tangle, service, trytes);
+  ret = ta_send_trytes(iconf, service, trytes);
   if (ret != SC_OK) {
     lock_handle_unlock(&cjson_lock);
     goto done;

@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
   server_logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_receive_mam_message(&ta_core.service, req.params["bundle"].c_str(), &json_result);
+        ret = api_receive_mam_message(&ta_core.iconf, &ta_core.service, req.params["bundle"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_mam_send_message(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_mam_send_message(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
+        ret = api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_generate_address(&ta_core.tangle, &ta_core.service, &json_result);
+        ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -370,7 +370,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_trytes(&ta_core.tangle, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_send_trytes(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_get_ta_info(&json_result, &ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service);
+        ret = api_get_ta_info(&json_result, &ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
 
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);

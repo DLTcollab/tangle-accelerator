@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
   logger_id = logger_helper_enable(MAIN_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
     return EXIT_FAILURE;
   }
 

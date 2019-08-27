@@ -686,6 +686,8 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) 
 
   cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
 
+  cJSON_AddNumberToObject(json_root, "channel_ord", res->channel_ord);
+
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
@@ -781,7 +783,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
     ret = SC_SERIALIZER_NULL;
   }
 
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "order");
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "channel_ord");
   if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
     req->channel_ord = json_result->valueint;
   } else {

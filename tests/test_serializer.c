@@ -217,12 +217,13 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
 void test_serialize_send_mam_message(void) {
   const char* json = "{\"channel\":\"" TRYTES_81_1
                      "\","
-                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
+                     "\"bundle_hash\":\"" TRYTES_81_2 "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) "}";
   char* json_result;
   ta_send_mam_res_t* res = send_mam_res_new();
 
   send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
   send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
+  res->channel_ord = TEST_CHANNEL_ORD;
 
   send_mam_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
@@ -246,7 +247,7 @@ void test_deserialize_send_mam_message_response(void) {
 }
 
 void test_deserialize_send_mam_message(void) {
-  const char* json = "{\"prng\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD "\",\"order\":2}";
+  const char* json = "{\"prng\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD "\",\"channel_ord\":2}";
   ta_send_mam_req_t* req = send_mam_req_new();
 
   send_mam_req_deserialize(json, req);

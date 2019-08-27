@@ -121,7 +121,7 @@ static int set_response_content(status_t ret, char **json_result) {
 
 static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
   status_t ret = SC_OK;
-  ret = api_generate_address(&http->core->tangle, &http->core->service, out);
+  ret = api_generate_address(&http->core->iconf, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
@@ -139,7 +139,7 @@ static inline int process_find_txn_obj_request(ta_http_t *const http, char const
 
 static inline int process_get_tips_pair_request(ta_http_t *const http, char **const out) {
   status_t ret = SC_OK;
-  ret = api_get_tips_pair(&http->core->tangle, &http->core->service, out);
+  ret = api_get_tips_pair(&http->core->iconf, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
@@ -151,7 +151,7 @@ static inline int process_get_tips_request(ta_http_t *const http, char **const o
 
 static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret = api_send_transfer(&http->core->tangle, &http->core->service, payload, out);
+  ret = api_send_transfer(&http->core->iconf, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -160,20 +160,20 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
   if (ret == SC_OK) {
-    ret = api_receive_mam_message(&http->core->service, bundle, out);
+    ret = api_receive_mam_message(&http->core->iconf, &http->core->service, bundle, out);
   }
   return set_response_content(ret, out);
 }
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret = api_mam_send_message(&http->core->tangle, &http->core->service, payload, out);
+  ret = api_mam_send_message(&http->core->iconf, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret = SC_OK;
-  ret = api_send_trytes(&http->core->tangle, &http->core->service, payload, out);
+  ret = api_send_trytes(&http->core->iconf, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
