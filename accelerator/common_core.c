@@ -495,7 +495,7 @@ status_t ta_send_bundle(const iota_config_t* const tangle, const iota_client_ser
   return SC_OK;
 }
 
-status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, flex_trit_t const* const addr,
+status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
                                bundle_transactions_t* bundle) {
   status_t ret = SC_OK;
   tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
@@ -509,7 +509,9 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, flex_
     goto done;
   }
 
-  find_transactions_req_address_add(txn_req, addr);
+  flex_trit_t addr_trits[NUM_TRITS_HASH];
+  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH, (const tryte_t*)addr, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  find_transactions_req_address_add(txn_req, addr_trits);
 
   if (iota_client_find_transactions(service, txn_req, txn_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
