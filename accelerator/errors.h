@@ -158,6 +158,10 @@ typedef enum {
   /**< fail to init lock */
   SC_CONF_LOCK_DESTROY = 0x05 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< fail to destroy lock */
+  SC_CONF_PARSER_ERROR = 0x06 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< fail to initialize yaml parser */
+  SC_CONF_FOPEN_ERROR = 0x07 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
+  /**< fail to open file */
 
   // UTILS module
   SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,

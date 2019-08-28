@@ -123,6 +123,7 @@ cc_library(
         "//utils:cache",
         "//utils:pow",
         "@entangled//cclient/api",
+        "@yaml",
     ],
 )
 

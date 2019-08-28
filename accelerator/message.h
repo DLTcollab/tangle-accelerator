@@ -37,6 +37,7 @@ typedef enum ta_cli_arg_value_e {
   MWM_CLI,
   SEED_CLI,
   CACHE,
+  CONF_CLI,
 
   /** LOGGER */
   VERBOSE,
@@ -62,6 +63,7 @@ static struct ta_cli_argument_s {
                           {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
                           {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG},
                           {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG},
+                          {"config", CONF_CLI, "Read configuration file", REQUIRED_ARG},
                           {"verbose", VERBOSE, "Enable logger", NO_ARG}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);

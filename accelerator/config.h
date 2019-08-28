@@ -9,6 +9,7 @@
 #ifndef ACCELERATOR_CONFIG_H_
 #define ACCELERATOR_CONFIG_H_
 
+#include <ctype.h>
 #include <getopt.h>
 
 #include "accelerator/message.h"
@@ -16,6 +17,8 @@
 #include "cclient/api/extended/extended_api.h"
 #include "utils/cache.h"
 #include "utils/pow.h"
+
+#define FILE_PATH_SIZE 128
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,15 +85,28 @@ typedef struct ta_cache_s {
 
 /** struct type of accelerator core */
 typedef struct ta_core_s {
-  ta_config_t info;              /**< accelerator configiuration structure */
-  ta_cache_t cache;              /**< redis configiuration structure */
-  iota_config_t iconf;           /**< iota configuration structure */
-  iota_client_service_t service; /**< iota connection structure */
+  ta_config_t info;               /**< accelerator configiuration structure */
+  ta_cache_t cache;               /**< redis configiuration structure */
+  iota_config_t iconf;            /**< iota configuration structure */
+  iota_client_service_t service;  /**< iota connection structure */
+  char conf_file[FILE_PATH_SIZE]; /**< path to the configuration file */
 } ta_core_t;
 
 /**
+ * @brief Get corresponding key-value pair in ta_cli_arguments_g structure
+ * key : correspond to "name" in ta_cli_arguments_g structure
+ * value : correspond to "val" in ta_cli_arguments_g structure
+ *
+ * @param key[in] Key of the key-value pair in yaml file
+ *
+ * @return
+ * - ZERO on Parsing unknown key
+ * - non-zero Corresponding value of key
+ */
+int get_conf_key(char const* const key);
+
+/**
  * Initializes configurations with default values
- * Should be called first
  *
  * @param info[in] Tangle-accelerator configuration variables
  * @param tangle[in] iota configuration variables
@@ -105,11 +121,23 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ta
                                 iota_client_service_t* const service);
 
 /**
- * Initializes configurations with CLI values
- * Should be called third
+ * Initializes configurations with configuration file
  *
  * @param ta_conf[in] All configuration variables
- * @param argc[in] Number of argumentof CLI
+ * @param argc[in] Number of argument of CLI
+ * @param argv[in] Argument of CLI
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_config_file_init(ta_core_t* const ta_conf, int argc, char** argv);
+
+/**
+ * Initializes configurations with CLI values
+ *
+ * @param ta_conf[in] All configuration variables
+ * @param argc[in] Number of argument of CLI
  * @param argv[in] Argument of CLI
  *
  * @return
