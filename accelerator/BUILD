@@ -29,15 +29,23 @@ cc_binary(
 
 cc_binary(
     name = "accelerator_mqtt",
-    srcs = ["mqtt_interface.c"],
+    srcs = [
+        "config.c",
+        "config.h",
+        "conn_mqtt.c",
+    ],
     copts = [
         "-DLOGGER_ENABLE",
         "-DENABLE_MQTT",
     ],
     deps = [
+        ":message",
         ":ta_config",
         ":ta_errors",
         "//connectivity/mqtt:mqtt_utils",
+        "//utils:cache",
+        "//utils:pow",
+        "@entangled//cclient/api",
         "@entangled//utils/handles:signal",
     ],
 )

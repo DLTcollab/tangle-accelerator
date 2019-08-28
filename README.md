@@ -121,6 +121,16 @@ Use the `--host_force_python=PY2` parameter to force the Bazel to use the Python
 $ make && bazel run //accelerator:push_docker --host_force_python=PY2
 ```
 
+### Optional: Enable MQTT connectivity
+MQTT connectivity is an optional feature allowing IoT endpoint devices to collaborate with `Tangle-Accelerator`.
+
+```
+make && bazel run //accelerator_mqtt
+```
+
+Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker.
+For more information for MQTT connectivity of `tangle-accelerator`, you could read `connectivity/mqtt/usage.md`.
+
 ## Developing
 
 The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html):

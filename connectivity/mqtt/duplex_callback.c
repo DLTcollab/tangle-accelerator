@@ -8,10 +8,12 @@
 
 #include "duplex_callback.h"
 #include <stdlib.h>
-#include "utils/logger_helper.h"
+#include <string.h>
 
 #define MQTT_CALLBACK_LOGGER "mqtt-callback"
 static logger_id_t mqtt_callback_logger_id;
+
+extern ta_core_t ta_core;
 
 void mqtt_callback_logger_init() {
   mqtt_callback_logger_id = logger_helper_enable(MQTT_CALLBACK_LOGGER, LOGGER_DEBUG, true);
@@ -28,18 +30,74 @@ int mqtt_callback_logger_release() {
   return 0;
 }
 
-static status_t mqtt_request_handler(mosq_config_t *cfg, char *sub_topic, char *req) {
+static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, char *req) {
+  if (cfg == NULL || subscribe_topic == NULL || req == NULL) {
+    return SC_MQTT_NULL;
+  }
+
   status_t ret = SC_OK;
-  // TODO: process MQTT requests here. Deserialize the request and process it against corresponding api_* functions
+  char *json_result = NULL;
+  char device_id[ID_LEN];
 
-  // after finishing processing the request, set the response message with the following functions
+  // get the Device ID.
+  ret = mqtt_device_id_deserialize(req, device_id);
+  if (ret != SC_OK) {
+    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    goto done;
+  }
 
-  // 1. Set response publishing topic with the topic we got message and the Device ID (client ID) we got in the message/
-  // gossip_channel_set()
+  char *api_sub_topic = subscribe_topic + strlen(ta_core.info.mqtt_topic_root);
+  char *p;
+  if (!strncmp(api_sub_topic, "address", 7)) {
+    ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
+  } else if (p = strstr(api_sub_topic, "tag")) {
+    if (!strncmp(p + 4, "hashes", 6)) {
+      char tag[NUM_TRYTES_TAG + 1];
+      mqtt_tag_req_deserialize(req, tag);
+      ret = api_find_transactions_by_tag(&ta_core.service, tag, &json_result);
+    } else if (!strncmp(p + 4, "object", 6)) {
+      char tag[NUM_TRYTES_TAG + 1];
+      mqtt_tag_req_deserialize(req, tag);
+      ret = api_find_transactions_obj_by_tag(&ta_core.service, tag, &json_result);
+    }
+  } else if (p = strstr(api_sub_topic, "transaction")) {
+    if (!strncmp(p + 12, "object", 6)) {
+      char hash[NUM_TRYTES_HASH + 1];
+      mqtt_transaction_hash_req_deserialize(req, hash);
+      ret = api_find_transaction_object_single(&ta_core.service, hash, &json_result);
+    } else if (!strncmp(p + 12, "send", 4)) {
+      ret = api_send_transfer(&ta_core.iconf, &ta_core.service, req, &json_result);
+    }
+  } else if (p = strstr(api_sub_topic, "tips")) {
+    if (!strncmp(p + 5, "all", 3)) {
+      ret = api_get_tips(&ta_core.service, &json_result);
+    } else if (!strncmp(p + 5, "pair", 4)) {
+      ret = api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result);
+    }
+  }
+  if (ret != SC_OK) {
+    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    goto done;
+  }
 
-  // 2. Set recv_message as publishing message
-  // gossip_message_set(cfg, cfg->sub_config->recv_message);
+  // Set response publishing topic with the topic we got message and the Device ID (client ID) we got in the message
+  int res_topic_len = strlen(subscribe_topic) + 1 + ID_LEN + 1;
+  char *res_topic = (char *)malloc(res_topic_len);
+  snprintf(res_topic, res_topic_len, "%s/%s", subscribe_topic, device_id);
+  ret = gossip_channel_set(cfg, NULL, NULL, res_topic);
+  if (ret != SC_OK) {
+    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    goto done;
+  }
 
+  // Set recv_message as publishing message
+  ret = gossip_message_set(cfg, json_result);
+  if (ret != SC_OK) {
+    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+  }
+
+done:
+  free(json_result);
   return ret;
 }
 
@@ -56,11 +114,6 @@ static void message_callback_duplex_func(struct mosquitto *mosq, void *obj, cons
 
   // Process received requests
   mqtt_request_handler(cfg, message->topic, cfg->sub_config->recv_message);
-
-  // After running `message_callback_duplex_func()`, the message will be sent by the `publish_loop()` in
-  // `duplex_client_start()`
-  // printf("listening: %s \n", message->topic);
-  // printf("recv msg: %s \n", cfg->sub_config->recv_message);
 
   // The following one line is used for testing if this server work fine with requests with given topics.
   // Uncomment it if it is necessitated
@@ -88,7 +141,7 @@ static void subscribe_callback_duplex_func(struct mosquitto *mosq, void *obj, in
 }
 
 static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int level, const char *str) {
-  log_error(mqtt_callback_logger_id, "log: %s\n", str);
+  log_info(mqtt_callback_logger_id, "log: %s\n", str);
 }
 
 status_t duplex_callback_func_set(struct mosquitto *mosq) {
@@ -103,4 +156,6 @@ status_t duplex_callback_func_set(struct mosquitto *mosq) {
   mosquitto_disconnect_v5_callback_set(mosq, disconnect_callback_duplex_func);
   mosquitto_publish_v5_callback_set(mosq, publish_callback_duplex_func);
   mosquitto_message_v5_callback_set(mosq, message_callback_duplex_func);
+
+  return SC_OK;
 }

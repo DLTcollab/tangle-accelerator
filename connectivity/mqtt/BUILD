@@ -8,10 +8,14 @@ cc_library(
         "duplex_callback.h",
         "duplex_utils.h",
     ],
+    copts = ["-DENABLE_MQTT"],
     visibility = ["//visibility:public"],
     deps = [
         ":mqtt_common",
+        "//accelerator:apis",
+        "//accelerator:common_core",
         "//accelerator:ta_errors",
+        "@entangled//common/model:transaction",
     ],
 )
 
@@ -27,6 +31,7 @@ cc_library(
         "pub_utils.h",
         "sub_utils.h",
     ],
+    copts = ["-DENABLE_MQTT"],
     deps = [
         "//accelerator:ta_config",
         "//accelerator:ta_errors",

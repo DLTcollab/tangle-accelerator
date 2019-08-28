@@ -243,6 +243,42 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
  */
 status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
+/**
+ * @brief Deserialze device ID from MQTT JSON request.
+ *
+ * @param[in] obj Input request in JSON with device ID
+ * @param[out] device_id Device ID in string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t mqtt_device_id_deserialize(const char* const obj, char* device_id);
+
+/**
+ * @brief Deserialze tag in string from MQTT JSON request.
+ *
+ * @param[in] obj Input request in JSON with tag field
+ * @param[out] tag Tag in string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t mqtt_tag_req_deserialize(const char* const obj, char* tag);
+
+/**
+ * @brief Deserialze transaction hash in string from MQTT JSON request.
+ *
+ * @param[in] obj Input request in JSON with hash field
+ * @param[out] hash Transaction hash in string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash);
+
 #ifdef __cplusplus
 }
 #endif
