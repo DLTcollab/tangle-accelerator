@@ -758,7 +758,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
       log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_INVALID_REQ");
       goto done;
     }
-    snprintf(req->prng, prng_size + 1, "%s", json_result->valuestring);
+    snprintf((char*)req->prng, prng_size + 1, "%s", json_result->valuestring);
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
@@ -768,7 +768,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
 
     // In case the payload is unicode, char more than 128 will result to an
     // error status_t code
-    for (int i = 0; i < payload_size; i++) {
+    for (size_t i = 0; i < payload_size; i++) {
       if (json_result->valuestring[i] & 0x80) {
         ret = SC_SERIALIZER_JSON_PARSE_ASCII;
         log_error(seri_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_SERIALIZER_JSON_PARSE_ASCII");

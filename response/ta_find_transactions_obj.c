@@ -8,7 +8,7 @@
 
 #include "ta_find_transactions_obj.h"
 
-static UT_icd txn_icd = {sizeof(iota_transaction_t), 0, 0};
+static UT_icd txn_icd = {sizeof(iota_transaction_t), 0, 0, 0};
 
 ta_find_transactions_obj_res_t* ta_find_transactions_obj_res_new() {
   ta_find_transactions_obj_res_t* res = (ta_find_transactions_obj_res_t*)malloc(sizeof(ta_find_transactions_obj_res_t));

@@ -8,6 +8,7 @@
 
 #include "config.h"
 #include "utils/logger_helper.h"
+#include "utils/macros.h"
 
 #define CONFIG_LOGGER "TA"
 

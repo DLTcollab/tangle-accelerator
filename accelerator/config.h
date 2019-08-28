@@ -47,7 +47,7 @@ extern "C" {
 /** @name Redis connection config */
 /** @{ */
 #define REDIS_HOST "localhost" /**< Address of Redis server */
-#define REDIS_PORT 6379        /**< poer of Redis server */
+#define REDIS_PORT 6379        /**< port of Redis server */
 /** @} */
 
 /** struct type of accelerator configuration */
