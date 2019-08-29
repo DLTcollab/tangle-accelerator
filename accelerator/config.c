@@ -9,10 +9,21 @@
 #include "config.h"
 #include "utils/logger_helper.h"
 #include "utils/macros.h"
+#include "yaml.h"
 
 #define CONFIG_LOGGER "TA"
 
 static logger_id_t config_logger_id;
+
+int get_conf_key(char const* const key) {
+  for (int i = 0; i < cli_cmd_num; ++i) {
+    if (!strcmp(ta_cli_arguments_g[i].name, key)) {
+      return ta_cli_arguments_g[i].val;
+    }
+  }
+
+  return 0;
+}
 
 struct option* cli_build_options() {
   struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
@@ -25,12 +36,13 @@ struct option* cli_build_options() {
   return long_options;
 }
 
-status_t cli_config_set(ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
+status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
                         iota_client_service_t* const service, int key, char* const value) {
   if (value == NULL || info == NULL || iconf == NULL || cache == NULL || service == NULL) {
     log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
+
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
@@ -70,7 +82,21 @@ status_t cli_config_set(ta_config_t* const info, iota_config_t* const iconf, ta_
       iconf->seed = value;
       break;
     case CACHE:
-      cache->cache_state = !(strncmp(value, "T", 1));
+      cache->cache_state = (toupper(value[0]) == 'T');
+      break;
+
+    // Verbose configuration
+    case VERBOSE:
+      verbose_mode = (toupper(value[0]) == 'T');
+      break;
+
+    // File configuration
+    case CONF_CLI: {
+      size_t arg_len = strlen(value);
+      strncpy(conf_file, value, arg_len);
+      conf_file[arg_len] = '\0';
+      break;
+    }
   }
   return SC_OK;
 }
@@ -122,6 +148,108 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   return ret;
 }
 
+status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
+  int key = 0;
+  status_t ret = SC_OK;
+  struct option* long_options = cli_build_options();
+  yaml_parser_t parser;
+  yaml_token_t token;
+  FILE* file = NULL;
+  char* arg = NULL;
+  int state = 0;
+
+  // Initialize default configuration file path with '\0'
+  conf->conf_file[0] = '\0';
+
+  if (!yaml_parser_initialize(&parser)) {
+    ret = SC_CONF_PARSER_ERROR;
+    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_PARSER_ERROR");
+    goto done;
+  }
+
+  // Loop through the CLI arguments for first time to find the configuration file path
+  while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
+    switch (key) {
+      case ':':
+        ret = SC_CONF_MISSING_ARGUMENT;
+        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_MISSING_ARGUMENT");
+        break;
+      case '?':
+        ret = SC_CONF_UNKNOWN_OPTION;
+        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_UNKNOWN_OPTION");
+        break;
+      case CONF_CLI:
+        ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
+        break;
+      default:
+        break;
+    }
+    if (ret != SC_OK) {
+      break;
+    }
+  }
+
+  // Reset the CLI option index for the second loop where they are actually analyzed
+  optind = 1;
+
+  if (strlen(conf->conf_file) == 0) {
+    /* No configuration file specified */
+    ret = SC_OK;
+    goto done;
+  }
+
+  if ((file = fopen(conf->conf_file, "r")) == NULL) {
+    /* The specified configuration file does not exist */
+    ret = SC_CONF_FOPEN_ERROR;
+    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_FOPEN_ERROR");
+    goto done;
+  }
+
+  yaml_parser_set_input_file(&parser, file);
+
+  do { /* start reading tokens */
+    if (!yaml_parser_scan(&parser, &token)) {
+      ret = SC_CONF_PARSER_ERROR;
+      log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_PARSER_ERROR");
+      goto done;
+    }
+    switch (token.type) {
+      case YAML_KEY_TOKEN:
+        state = 0;
+        break;
+      case YAML_VALUE_TOKEN:
+        state = 1;
+        break;
+      case YAML_SCALAR_TOKEN:
+        arg = (char*)token.data.scalar.value;
+        if (state == 0) {  // Key
+          key = get_conf_key(arg);
+        } else {  // Value
+          if ((ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key,
+                                    strdup(arg))) != SC_OK) {
+            goto done;
+          }
+        }
+        break;
+      default:
+        break;
+    }
+    if (token.type != YAML_STREAM_END_TOKEN) {
+      yaml_token_delete(&token);
+    }
+  } while (token.type != YAML_STREAM_END_TOKEN);
+
+done:
+  yaml_token_delete(&token);
+  yaml_parser_delete(&parser);
+  if (file) {
+    fclose(file);
+  }
+  free(long_options);
+
+  return ret;
+}
+
 status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
   int key = 0;
   status_t ret = SC_OK;
@@ -131,9 +259,11 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;
+        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_MISSING_ARGUMENT");
         break;
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
+        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_UNKNOWN_OPTION");
         break;
       case 'h':
         ta_usage();
@@ -148,8 +278,11 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
         // Enable backend_redis logger
         br_logger_init();
         break;
+      case CONF_CLI:
+        /* Already processed in ta_config_file_init() */
+        break;
       default:
-        ret = cli_config_set(&conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
+        ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
         break;
     }
     if (ret != SC_OK) {
