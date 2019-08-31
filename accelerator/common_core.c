@@ -518,7 +518,15 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
     goto done;
   }
 
-  hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+  // In case the requested transction hashes is an empty one
+  if (hash243_queue_count(txn_res->hashes) > 0) {
+    hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+  } else {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_NOT_FOUND");
+    ret = SC_MAM_NOT_FOUND;
+    goto done;
+  }
+
   ret = ta_find_transaction_objects(service, obj_req, obj_res);
   if (ret != SC_OK) {
     goto done;
