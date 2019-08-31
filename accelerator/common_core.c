@@ -505,6 +505,7 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
   transaction_array_t* obj_res = transaction_array_new();
 
   if (txn_req == NULL || txn_res == NULL || obj_req == NULL || obj_res == NULL) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
     ret = SC_TA_OOM;
     goto done;
   }
@@ -514,6 +515,7 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
   find_transactions_req_address_add(txn_req, addr_trits);
 
   if (iota_client_find_transactions(service, txn_req, txn_res) != RC_OK) {
+    log_error(cc_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
     ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
@@ -529,6 +531,7 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
 
   ret = ta_find_transaction_objects(service, obj_req, obj_res);
   if (ret != SC_OK) {
+    log_error(cc_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
     goto done;
   }
 
@@ -536,6 +539,7 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
   flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
   ret = ta_get_bundle(service, bundle_hash, bundle);
   if (ret != SC_OK) {
+    log_error(cc_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
     goto done;
   }
 
