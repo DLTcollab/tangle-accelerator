@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
    *
    * @return {String} address hashes
    */
-  mux.handle("/tag/{tag:[A-Z9]{27}}/hashes")
+  mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
                 UNUSED(req);
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
    *
    * @return {String[]} transactions List of transaction objects
    */
-  mux.handle("/tag/{tag:[A-Z9]{27}}")
+  mux.handle("/tag/{tag:[A-Z9]{1,27}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
                 UNUSED(req);

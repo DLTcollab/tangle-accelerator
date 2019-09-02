@@ -284,7 +284,18 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
     goto done;
   }
 
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
+  if (strnlen(obj, NUM_TRYTES_TAG) < NUM_TRYTES_TAG) {
+    char new_tag[NUM_TRYTES_TAG + 1];
+    // Fill in '9' to get valid tag (27 trytes)
+    fill_nines(new_tag, obj, NUM_TRYTES_TAG);
+    new_tag[NUM_TRYTES_TAG] = '\0';
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  } else {
+    // Valid tag from request, use it directly
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  }
+
   if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
     ret = SC_CCLIENT_INVALID_FLEX_TRITS;
     log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
@@ -320,7 +331,18 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
     goto done;
   }
 
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  // If 'tag' is less than 27 trytes (NUM_TRYTES_TAG), expands it
+  if (strnlen(obj, NUM_TRYTES_TAG) < NUM_TRYTES_TAG) {
+    char new_tag[NUM_TRYTES_TAG + 1];
+    // Fill in '9' to get valid tag (27 trytes)
+    fill_nines(new_tag, obj, NUM_TRYTES_TAG);
+    new_tag[NUM_TRYTES_TAG] = '\0';
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)new_tag, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  } else {
+    // Valid tag from request, use it directly
+    flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)obj, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  }
+
   if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
     ret = SC_CCLIENT_INVALID_FLEX_TRITS;
     log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
