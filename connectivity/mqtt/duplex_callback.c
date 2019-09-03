@@ -11,19 +11,16 @@
 #include <string.h>
 
 #define MQTT_CALLBACK_LOGGER "mqtt-callback"
-static logger_id_t mqtt_callback_logger_id;
+static logger_id_t logger_id;
 
 extern ta_core_t ta_core;
 
-void mqtt_callback_logger_init() {
-  mqtt_callback_logger_id = logger_helper_enable(MQTT_CALLBACK_LOGGER, LOGGER_DEBUG, true);
-}
+void mqtt_callback_logger_init() { logger_id = logger_helper_enable(MQTT_CALLBACK_LOGGER, LOGGER_DEBUG, true); }
 
 int mqtt_callback_logger_release() {
-  logger_helper_release(mqtt_callback_logger_id);
+  logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    log_critical(mqtt_callback_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__,
-                 MQTT_CALLBACK_LOGGER);
+    ta_log_critical("Destroying logger failed %s.\n", MQTT_CALLBACK_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -42,7 +39,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   // get the Device ID.
   ret = mqtt_device_id_deserialize(req, device_id);
   if (ret != SC_OK) {
-    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
@@ -76,7 +73,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     }
   }
   if (ret != SC_OK) {
-    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
@@ -86,14 +83,14 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   snprintf(res_topic, res_topic_len, "%s/%s", subscribe_topic, device_id);
   ret = gossip_channel_set(cfg, NULL, NULL, res_topic);
   if (ret != SC_OK) {
-    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
   // Set recv_message as publishing message
   ret = gossip_message_set(cfg, json_result);
   if (ret != SC_OK) {
-    log_error(mqtt_callback_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
   }
 
 done:
@@ -141,12 +138,12 @@ static void subscribe_callback_duplex_func(struct mosquitto *mosq, void *obj, in
 }
 
 static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int level, const char *str) {
-  log_info(mqtt_callback_logger_id, "log: %s\n", str);
+  log_info(logger_id, "log: %s\n", str);
 }
 
 status_t duplex_callback_func_set(struct mosquitto *mosq) {
   if (mosq == NULL) {
-    log_error(mqtt_callback_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 

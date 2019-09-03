@@ -12,15 +12,15 @@
 
 #define APIS_LOGGER "apis"
 
-static logger_id_t apis_logger_id;
+static logger_id_t logger_id;
 lock_handle_t cjson_lock;
 
-void apis_logger_init() { apis_logger_id = logger_helper_enable(APIS_LOGGER, LOGGER_DEBUG, true); }
+void apis_logger_init() { logger_id = logger_helper_enable(APIS_LOGGER, LOGGER_DEBUG, true); }
 
 int apis_logger_release() {
-  logger_helper_release(apis_logger_id);
+  logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    log_critical(apis_logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, APIS_LOGGER);
+    ta_log_critical("Destroying logger failed %s.\n", APIS_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -34,7 +34,7 @@ status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_confi
   ret = ta_get_info_serialize(json_result, info, tangle, cache, service);
   if (ret != SC_OK) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
   }
 
   return ret;
@@ -60,7 +60,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
 
   if (res == NULL) {
     ret = SC_CCLIENT_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_OOM");
+    ta_log_error("%s\n", "SC_CCLIENT_OOM");
     goto done;
   }
 
@@ -68,7 +68,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
   if (iota_client_get_tips(service, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -76,7 +76,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
   ret = ta_get_tips_res_serialize(res, json_result);
   if (ret != SC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
 
@@ -94,7 +94,7 @@ status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_s
 
   if (req == NULL || res == NULL || res_buff == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -103,21 +103,21 @@ status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_s
   if (iota_client_get_transactions_to_approve(service, req, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.get_transactions_to_approve_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
 
   *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
@@ -135,7 +135,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
   ta_generate_address_res_t* res = ta_generate_address_res_new();
   if (res == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -161,14 +161,14 @@ status_t api_find_transactions(const iota_client_service_t* const service, const
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
   lock_handle_lock(&cjson_lock);
   if (service->serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -177,21 +177,21 @@ status_t api_find_transactions(const iota_client_service_t* const service, const
   if (iota_client_find_transactions(service, req, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_FAILED_RESPONSE");
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
 
   *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     ret = SC_CCLIENT_JSON_PARSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_JSON_PARSE");
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
@@ -211,7 +211,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -222,7 +222,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
   ret = ta_find_transaction_objects(service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%d\n", ret);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -242,7 +242,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -250,7 +250,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
   ret = ta_find_transaction_objects_req_deserialize(obj, req);
   if (ret != SC_OK) {
     lock_handle_unlock(&cjson_lock);
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%d\n", ret);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -259,7 +259,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
   ret = ta_find_transaction_objects(service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%d\n", ret);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -280,7 +280,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
   find_transactions_res_t* res = find_transactions_res_new();
   if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -298,7 +298,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
 
   if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
     ret = SC_CCLIENT_INVALID_FLEX_TRITS;
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
     goto done;
   }
 
@@ -306,7 +306,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
   if (iota_client_find_transactions(service, req, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -327,7 +327,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -345,7 +345,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
 
   if (find_transactions_req_tag_add(req, tag_trits) != RC_OK) {
     ret = SC_CCLIENT_INVALID_FLEX_TRITS;
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
     goto done;
   }
 
@@ -353,7 +353,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
   ret = ta_find_transactions_obj_by_tag(service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
-    log_error(apis_logger_id, "[%s:%d]\n", __func__, __LINE__);
+    ta_log_error("%d\n", ret);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -380,12 +380,12 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
   if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
     if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
       ret = SC_MAM_FAILED_INIT;
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
       goto done;
     }
   } else if (rc != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+    ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
   }
 
@@ -397,7 +397,7 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
 
   if (map_api_bundle_read(&mam, bundle, &payload) != RC_OK) {
     ret = SC_MAM_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_RESPONSE");
+    ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
     goto done;
   }
 
@@ -407,11 +407,11 @@ done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
     if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FILE_SAVE");
+      ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam) != RC_OK) {
       ret = SC_MAM_FAILED_DESTROYED;
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_DESTROYED");
+      ta_log_error("%s\n", "SC_MAM_FAILED_DESTROYED");
     }
   }
   bundle_transactions_free(&bundle);
@@ -436,7 +436,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
   if (send_mam_req_deserialize(payload, req)) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_MAM_FAILED_INIT;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+    ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -447,12 +447,12 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
   if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
     if (mam_api_init(&mam, prng) != RC_OK) {
       ret = SC_MAM_FAILED_INIT;
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
       goto done;
     }
   } else if (rc != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_INIT");
+    ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
   }
 
@@ -463,7 +463,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
   size_t payload_depth = 1;
   if (payload_size > (NUM_TRYTES_SIGNATURE / 2) * 3) {
     ret = SC_MAM_NO_PAYLOAD;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_NO_PAYLOAD");
+    ta_log_error("%s\n", "SC_MAM_NO_PAYLOAD");
     goto done;
   } else if (payload_size > (NUM_TRYTES_SIGNATURE / 2)) {
     payload_depth = 2;
@@ -478,21 +478,21 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
 
   if (map_channel_create(&mam, channel_id, payload_depth)) {
     ret = SC_MAM_NULL;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_NULL");
+    ta_log_error("%s\n", "SC_MAM_NULL");
     goto done;
   }
 
   // Writing header to bundle
   if (map_write_header_on_channel(&mam, channel_id, bundle, msg_id)) {
     ret = SC_MAM_FAILED_WRITE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_WRITE");
+    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
     goto done;
   }
 
   // Writing packet to bundle
   if (map_write_packet(&mam, bundle, req->payload, msg_id, last_packet)) {
     ret = SC_MAM_FAILED_WRITE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_WRITE");
+    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
     goto done;
   }
   send_mam_res_set_channel_id(res, channel_id);
@@ -502,19 +502,19 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
   if (ta_send_bundle(iconf, service, bundle) != SC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_MAM_FAILED_RESPONSE;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_RESPONSE");
+    ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
   ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
   if (ret != SC_OK) {
-    log_error(apis_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
   res->channel_ord = mam.channel_ord;
   ret = send_mam_res_serialize(res, json_result);
   if (ret != SC_OK) {
-    log_error(apis_logger_id, "[%s:%d:%d]\n", __func__, __LINE__, ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
@@ -524,11 +524,11 @@ done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
     if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FILE_SAVE");
+      ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam)) {
       ret = SC_MAM_FAILED_DESTROYED;
-      log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MAM_FAILED_DESTROYED");
+      ta_log_error("%s\n", "SC_MAM_FAILED_DESTROYED");
     }
   }
   bundle_transactions_free(&bundle);
@@ -547,7 +547,7 @@ status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_s
 
   if (req == NULL || res == NULL || txn_obj_req == NULL || res_txn_array == NULL) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
@@ -593,7 +593,7 @@ status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_ser
 
   if (!trytes) {
     ret = SC_TA_OOM;
-    log_error(apis_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 

@@ -11,9 +11,9 @@
 #include "utils/macros.h"
 #include "yaml.h"
 
-#define CONFIG_LOGGER "TA"
+#define CONFIG_LOGGER "config"
 
-static logger_id_t config_logger_id;
+static logger_id_t logger_id;
 
 int get_conf_key(char const* const key) {
   for (int i = 0; i < cli_cmd_num; ++i) {
@@ -39,7 +39,7 @@ struct option* cli_build_options() {
 status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
                         iota_client_service_t* const service, int key, char* const value) {
   if (value == NULL || info == NULL || iconf == NULL || cache == NULL || service == NULL) {
-    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_NULL");
+    ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
 
@@ -105,15 +105,15 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
                                 iota_client_service_t* const service) {
   status_t ret = SC_OK;
 
-  config_logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
-  log_info(config_logger_id, "[%s:%d] enable logger %s.\n", __func__, __LINE__, CONFIG_LOGGER);
+  logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
+  ta_log_info("enable logger %s.\n", CONFIG_LOGGER);
 
   if (info == NULL || iconf == NULL || cache == NULL || service == NULL) {
-    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
-  log_info(config_logger_id, "Initializing TA information\n");
+  ta_log_info("Initializing TA information\n");
   info->version = TA_VERSION;
   info->host = TA_HOST;
   info->port = TA_PORT;
@@ -122,18 +122,18 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   info->mqtt_host = MQTT_HOST;
   info->mqtt_topic_root = TOPIC_ROOT;
 #endif
-  log_info(config_logger_id, "Initializing Redis information\n");
+  ta_log_info("Initializing Redis information\n");
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
   cache->cache_state = false;
 
-  log_info(config_logger_id, "Initializing IRI configuration\n");
+  ta_log_info("Initializing IRI configuration\n");
   iconf->milestone_depth = MILESTONE_DEPTH;
   iconf->mwm = MWM;
   iconf->seed = SEED;
   iconf->mam_file_path = tempnam(MAM_FILE_DIR, MAM_FILE_PREFIX);
 
-  log_info(config_logger_id, "Initializing IRI connection\n");
+  ta_log_info("Initializing IRI connection\n");
   service->http.path = "/";
   service->http.content_type = "application/json";
   service->http.accept = "application/json";
@@ -163,7 +163,7 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
 
   if (!yaml_parser_initialize(&parser)) {
     ret = SC_CONF_PARSER_ERROR;
-    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_PARSER_ERROR");
+    ta_log_error("%s\n", "SC_CONF_PARSER_ERROR");
     goto done;
   }
 
@@ -172,11 +172,11 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;
-        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_MISSING_ARGUMENT");
+        ta_log_error("%s\n", "SC_CONF_MISSING_ARGUMENT");
         break;
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
-        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_UNKNOWN_OPTION");
+        ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
         break;
       case CONF_CLI:
         ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
@@ -201,7 +201,7 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
   if ((file = fopen(conf->conf_file, "r")) == NULL) {
     /* The specified configuration file does not exist */
     ret = SC_CONF_FOPEN_ERROR;
-    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_FOPEN_ERROR");
+    ta_log_error("%s\n", "SC_CONF_FOPEN_ERROR");
     goto done;
   }
 
@@ -210,7 +210,7 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
   do { /* start reading tokens */
     if (!yaml_parser_scan(&parser, &token)) {
       ret = SC_CONF_PARSER_ERROR;
-      log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_PARSER_ERROR");
+      ta_log_error("%s\n", "SC_CONF_PARSER_ERROR");
       goto done;
     }
     switch (token.type) {
@@ -259,11 +259,11 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;
-        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_MISSING_ARGUMENT");
+        ta_log_error("%s\n", "SC_CONF_MISSING_ARGUMENT");
         break;
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
-        log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CONF_UNKNOWN_OPTION");
+        ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
         break;
       case 'h':
         ta_usage();
@@ -297,32 +297,32 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
 status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const service) {
   status_t ret = SC_OK;
   if (cache == NULL || service == NULL) {
-    log_error(config_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
   if (iota_client_core_init(service)) {
-    log_critical(config_logger_id, "Initializing IRI connection failed!\n");
+    ta_log_critical("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
   }
   iota_client_extended_init();
 
-  log_info(config_logger_id, "Initializing PoW implementation context\n");
+  ta_log_info("Initializing PoW implementation context\n");
   pow_init();
 
-  log_info(config_logger_id, "Initializing cache state\n");
+  ta_log_info("Initializing cache state\n");
   cache_init(cache->cache_state, cache->host, cache->port);
 
   return ret;
 }
 
 void ta_config_destroy(iota_client_service_t* const service) {
-  log_info(config_logger_id, "Destroying IRI connection\n");
+  ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
   iota_client_core_destroy(service);
 
   pow_destroy();
   cache_stop();
-  logger_helper_release(config_logger_id);
+  logger_helper_release(logger_id);
   br_logger_release();
 }
