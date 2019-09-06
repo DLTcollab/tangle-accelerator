@@ -56,9 +56,17 @@ void test_pow_bundle(void) {
 
 int main(void) {
   UNITY_BEGIN();
+
+  // Initialize logger
+  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  pow_logger_init();
   pow_init();
   RUN_TEST(test_pow_flex);
   RUN_TEST(test_pow_bundle);
   pow_destroy();
+  pow_logger_release();
   return UNITY_END();
 }

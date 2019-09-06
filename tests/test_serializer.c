@@ -325,6 +325,12 @@ void test_mqtt_transaction_hash_req_deserialize(void) {
 int main(void) {
   UNITY_BEGIN();
 
+  // Initialize logger
+  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  serializer_logger_init();
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
   RUN_TEST(test_serialize_ta_find_transaction_objects);
@@ -338,5 +344,6 @@ int main(void) {
   RUN_TEST(test_mqtt_device_id_deserialize);
   RUN_TEST(test_mqtt_tag_req_deserialize);
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
+  serializer_logger_release();
   return UNITY_END();
 }
