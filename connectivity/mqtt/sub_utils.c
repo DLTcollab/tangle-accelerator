@@ -13,14 +13,14 @@
 #include "utils/logger_helper.h"
 
 #define MQTT_SUB_LOGGER "mqtt-sub"
-static logger_id_t mqtt_sub_logger_id;
+static logger_id_t logger_id;
 
-void mqtt_sub_logger_init() { mqtt_sub_logger_id = logger_helper_enable(MQTT_SUB_LOGGER, LOGGER_DEBUG, true); }
+void mqtt_sub_logger_init() { logger_id = logger_helper_enable(MQTT_SUB_LOGGER, LOGGER_DEBUG, true); }
 
 int mqtt_sub_logger_release() {
-  logger_helper_release(mqtt_sub_logger_id);
+  logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    log_critical(mqtt_sub_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__, MQTT_SUB_LOGGER);
+    ta_log_critical("Destroying logger failed %s.\n", MQTT_SUB_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -29,7 +29,7 @@ int mqtt_sub_logger_release() {
 
 static status_t dump_message(mosq_config_t *cfg, const struct mosquitto_message *message) {
   if (cfg == NULL || message == NULL || message->payload == NULL || message->payloadlen == 0) {
-    log_error(mqtt_sub_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
@@ -89,9 +89,9 @@ void connect_callback_sub_func(struct mosquitto *mosq, void *obj, int result, in
   } else {
     if (result) {
       if (cfg->general_config->protocol_version == MQTT_PROTOCOL_V5) {
-        log_error(mqtt_sub_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, mosquitto_reason_string(result));
+        ta_log_error(":%s\n", mosquitto_reason_string(result));
       } else {
-        log_error(mqtt_sub_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, mosquitto_connack_string(result));
+        ta_log_error(":%s\n", mosquitto_connack_string(result));
       }
     }
     mosquitto_disconnect_v5(mosq, 0, cfg->property_config->disconnect_props);
@@ -105,7 +105,7 @@ void subscribe_callback_sub_func(struct mosquitto *mosq, void *obj, int mid, int
     snprintf(qos_digit, 4, ", %d", granted_qos[i]);
     strcat(qos_str, qos_digit);
   }
-  log_info(mqtt_sub_logger_id, "Subscribed (mid: %d): %d%s\n", mid, granted_qos[0], qos_str);
+  log_info(logger_id, "Subscribed (mid: %d): %d%s\n", mid, granted_qos[0], qos_str);
 
   free(qos_str);
 }

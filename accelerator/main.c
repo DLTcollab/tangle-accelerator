@@ -43,13 +43,13 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    ta_log_critical("Configure failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Lock initialization failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    ta_log_critical("Lock initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -63,12 +63,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] HTTP initialization failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    ta_log_critical("HTTP initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
   if (ta_http_start(&ta_http) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Starting TA failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    ta_log_critical("Starting TA failed %s.\n", MAIN_LOGGER);
     goto cleanup;
   }
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 cleanup:
   log_warning(logger_id, "Destroying API lock\n");
   if (apis_lock_destroy() != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Destroying api lock failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+    ta_log_critical("Destroying api lock failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
   log_warning(logger_id, "Destroying TA configurations\n");
@@ -90,7 +90,7 @@ cleanup:
     http_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
-      log_critical(logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, MAIN_LOGGER);
+      ta_log_critical("Destroying logger failed %s.\n", MAIN_LOGGER);
       return EXIT_FAILURE;
     }
   }

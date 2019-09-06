@@ -19,7 +19,7 @@
 #define SERVER_LOGGER "server"
 
 static ta_core_t ta_core;
-static logger_id_t server_logger_id;
+static logger_id_t logger_id;
 
 void set_method_header(served::response& res, http_method_t method) {
   res.set_header("Server", ta_core.info.version);
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  server_logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
+  logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
   if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
@@ -91,13 +91,13 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    log_critical(server_logger_id, "[%s:%d] Configure failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
+    ta_log_critical("Configure failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
 
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {
-    log_critical(server_logger_id, "[%s:%d] Lock initialization failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
+    ta_log_critical("Lock initialization failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     pow_logger_init();
   } else {
     // Destroy logger when verbose mode is off
-    logger_helper_release(server_logger_id);
+    logger_helper_release(logger_id);
     logger_helper_destroy();
   }
 
@@ -476,7 +476,7 @@ int main(int argc, char* argv[]) {
   server.run(ta_core.info.thread_count);
 
   if (apis_lock_destroy() != SC_OK) {
-    log_critical(server_logger_id, "[%s:%d] Destroying api lock failed %s.\n", __func__, __LINE__, SERVER_LOGGER);
+    ta_log_critical("Destroying api lock failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
   ta_config_destroy(&ta_core.service);
@@ -486,7 +486,7 @@ int main(int argc, char* argv[]) {
     cc_logger_release();
     serializer_logger_release();
     pow_logger_release();
-    logger_helper_release(server_logger_id);
+    logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       return EXIT_FAILURE;
     }

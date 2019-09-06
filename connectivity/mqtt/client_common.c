@@ -14,15 +14,14 @@
 #include "utils/logger_helper.h"
 
 #define MQTT_COMMON_LOGGER "mqtt-common"
-static logger_id_t mqtt_common_logger_id;
+static logger_id_t logger_id;
 
-void mqtt_common_logger_init() { mqtt_common_logger_id = logger_helper_enable(MQTT_COMMON_LOGGER, LOGGER_DEBUG, true); }
+void mqtt_common_logger_init() { logger_id = logger_helper_enable(MQTT_COMMON_LOGGER, LOGGER_DEBUG, true); }
 
 int mqtt_common_logger_release() {
-  logger_helper_release(mqtt_common_logger_id);
+  logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    log_critical(mqtt_common_logger_id, "[%s:%s] Destroying logger failed %s.\n", __func__, __LINE__,
-                 MQTT_COMMON_LOGGER);
+    ta_log_critical("Destroying logger failed %s.\n", MQTT_COMMON_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -36,7 +35,7 @@ static int mosquitto__parse_socks_url(mosq_config_t *cfg, char *url);
 status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   status_t ret = SC_OK;
   if (cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
@@ -45,7 +44,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   cfg->general_config = (mosq_general_config_t *)malloc(sizeof(mosq_general_config_t));
   cfg->property_config = (mosq_property_config_t *)malloc(sizeof(mosq_property_config_t));
   if (cfg->general_config == NULL || cfg->property_config == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     ret = SC_MQTT_OOM;
     goto oom_err;
   }
@@ -55,7 +54,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
 #ifdef WITH_TLS
   cfg->tls_config = (mosq_tls_config_t *)malloc(sizeof(mosq_tls_config_t));
   if (cfg->tls_config == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     ret = SC_MQTT_OOM;
     goto oom_err;
   }
@@ -65,7 +64,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
 #ifdef WITH_SOCKS
   cfg->socks_config = (mosq_socks_config_t *)malloc(sizeof(mosq_socks_config_t));
   if (cfg->socks_config == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     ret = SC_MQTT_OOM;
     goto oom_err;
   }
@@ -75,7 +74,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   if ((client_type == client_pub) || (client_type == client_duplex)) {
     cfg->pub_config = (mosq_pub_config_t *)malloc(sizeof(mosq_pub_config_t));
     if (cfg->pub_config == NULL) {
-      log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+      ta_log_error("%s\n", "SC_TA_OOM");
       ret = SC_MQTT_OOM;
       goto oom_err;
     }
@@ -85,7 +84,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   if ((client_type == client_sub) || (client_type == client_duplex)) {
     cfg->sub_config = (mosq_sub_config_t *)malloc(sizeof(mosq_sub_config_t));
     if (cfg->sub_config == NULL) {
-      log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+      ta_log_error("%s\n", "SC_TA_OOM");
       ret = SC_MQTT_OOM;
       goto oom_err;
     }
@@ -119,7 +118,7 @@ oom_err:
 
 status_t mosq_config_free(mosq_config_t *cfg) {
   if (cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
@@ -183,18 +182,17 @@ status_t mosq_config_free(mosq_config_t *cfg) {
 
 status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topic) {
   if (cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
   if (mosquitto_validate_utf8(topic, strlen(topic))) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Malformed UTF-8 in topic argument.");
+    ta_log_error(":%s\n", "Error: Malformed UTF-8 in topic argument.");
     return SC_MQTT_TOPIC_SET;
   }
 
   if (mosquitto_pub_topic_check(topic) == MOSQ_ERR_INVAL) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-              "Error: Invalid topic, does it contain '+' or '#'?");
+    ta_log_error(":%s\n", "Error: Invalid topic, does it contain '+' or '#'?");
     return SC_MQTT_TOPIC_SET;
   }
 
@@ -206,7 +204,7 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
     cfg->sub_config->topic_count++;
     cfg->sub_config->topics = realloc(cfg->sub_config->topics, cfg->sub_config->topic_count * sizeof(char *));
     if (!cfg->sub_config->topics) {
-      log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+      ta_log_error("%s\n", "SC_TA_OOM");
       return SC_TA_OOM;
     }
     cfg->sub_config->topics[cfg->sub_config->topic_count - 1] = strdup(topic);
@@ -216,7 +214,7 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
 
 status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
   if (mosq == NULL || cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_MQTT_NULL");
+    ta_log_error("%s\n", "SC_MQTT_NULL");
     return SC_MQTT_NULL;
   }
 #if defined(WITH_TLS) || defined(WITH_SOCKS)
@@ -229,7 +227,7 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
       mosquitto_will_set_v5(mosq, cfg->general_config->will_topic, cfg->general_config->will_payloadlen,
                             cfg->general_config->will_payload, cfg->general_config->will_qos,
                             cfg->general_config->will_retain, cfg->property_config->will_props)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting will.");
+    ta_log_error(":%s\n", "Error: Problem setting will.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
@@ -237,8 +235,7 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
 
   if (cfg->general_config->username &&
       mosquitto_username_pw_set(mosq, cfg->general_config->username, cfg->general_config->password)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-              "Error: Problem setting username and password.");
+    ta_log_error(":%s\n", "Error: Problem setting username and password.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
@@ -248,54 +245,50 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
                             cfg->tls_config->keyfile, NULL);
     if (ret) {
       if (ret == MOSQ_ERR_INVAL) {
-        log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-                  "Error: Problem setting TLS options: File not found.");
+        ta_log_error(":%s\n", "Error: Problem setting TLS options: File not found.");
       } else {
-        log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting TLS options: %s.");
+        ta_log_error(":Error: Problem setting TLS options: %s.\n", mosquitto_strerror(ret));
       }
       mosquitto_lib_cleanup();
       return ret;
     }
   }
   if (cfg->tls_config->insecure && mosquitto_tls_insecure_set(mosq, true)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting TLS insecure option.");
+    ta_log_error(":%s\n", "Error: Problem setting TLS insecure option.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_engine && mosquitto_string_option(mosq, MOSQ_OPT_TLS_ENGINE, cfg->tls_config->tls_engine)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting TLS engine.");
+    ta_log_error(":%s\n", "Error: Problem setting TLS engine.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->keyform && mosquitto_string_option(mosq, MOSQ_OPT_TLS_KEYFORM, cfg->tls_config->keyform)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-              "Error: Problem setting key form, it must be one of 'pem' or 'engine.");
+    ta_log_error(":%s\n", "Error: Problem setting key form, it must be one of 'pem' or 'engine.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_engine_kpass_sha1 &&
       mosquitto_string_option(mosq, MOSQ_OPT_TLS_ENGINE_KPASS_SHA1, cfg->tls_config->tls_engine_kpass_sha1)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-              "Error: Problem setting TLS engine key pass sha, is it a 40 character hex string?");
+    ta_log_error(":%s\n", "Error: Problem setting TLS engine key pass sha, is it a 40 character hex string?");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
   if (cfg->tls_config->tls_alpn && mosquitto_string_option(mosq, MOSQ_OPT_TLS_ALPN, cfg->tls_config->tls_alpn)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting TLS ALPN protocol.");
+    ta_log_error(":%s\n", "Error: Problem setting TLS ALPN protocol.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
 #ifdef FINAL_WITH_TLS_PSK
   if (cfg->tls_config->psk && mosquitto_tls_psk_set(mosq, cfg->tls_config->psk, cfg->tls_config->psk_identity, NULL)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, "Error: Problem setting TLS-PSK options.");
+    ta_log_error(":%s\n", "Error: Problem setting TLS-PSK options.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
 #endif
   if ((cfg->tls_config->tls_version || cfg->tls_config->ciphers) &&
       mosquitto_tls_opts_set(mosq, 1, cfg->tls_config->tls_version, cfg->tls_config->ciphers)) {
-    log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__,
-              "Error: Problem setting TLS options, check the options are valid.");
+    ta_log_error(":%s\n", "Error: Problem setting TLS options, check the options are valid.");
     mosquitto_lib_cleanup();
     return SC_MQTT_OPT_SET;
   }
@@ -306,7 +299,7 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
     ret = mosquitto_socks5_set(mosq, cfg->socks_config->socks5_host, cfg->socks_config->socks5_port,
                                cfg->socks_config->socks5_username, cfg->socks_config->socks5_password);
     if (ret) {
-      log_error(mqtt_common_logger_id, "[%s:%d:%X]\n", __func__, __LINE__, ret);
+      ta_log_error("%X\n", ret);
       mosquitto_lib_cleanup();
       return ret;
     }
@@ -317,7 +310,7 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
 
 status_t generate_client_id(mosq_config_t *cfg) {
   if (cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
@@ -330,7 +323,7 @@ status_t generate_client_id(mosq_config_t *cfg) {
   }
   cfg->general_config->id = (char *)malloc(sizeof(char) * ID_LEN);
   if (!cfg->general_config->id) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+    ta_log_error("%s\n", "SC_TA_OOM");
     mosquitto_lib_cleanup();
     return SC_MQTT_OOM;
   }
@@ -342,7 +335,7 @@ status_t generate_client_id(mosq_config_t *cfg) {
 
 status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
   if (mosq == NULL || cfg == NULL) {
-    log_error(mqtt_common_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_MQTT_NULL;
   }
 
@@ -383,9 +376,9 @@ status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
     {
       if (ret == MOSQ_ERR_ERRNO) {
         err = strerror(errno);
-        log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, err);
+        ta_log_error(":%s\n", err);
       } else {
-        log_error(mqtt_common_logger_id, "[%s:%d]:%s\n", __func__, __LINE__, mosquitto_strerror(ret));
+        ta_log_error(":%s\n", mosquitto_strerror(ret));
       }
     }
     mosquitto_lib_cleanup();

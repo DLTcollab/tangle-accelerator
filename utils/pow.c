@@ -14,14 +14,14 @@
 
 #define POW_LOGGER "pow"
 
-static logger_id_t pow_logger_id;
+static logger_id_t logger_id;
 
-void pow_logger_init() { pow_logger_id = logger_helper_enable(POW_LOGGER, LOGGER_DEBUG, true); }
+void pow_logger_init() { logger_id = logger_helper_enable(POW_LOGGER, LOGGER_DEBUG, true); }
 
 int pow_logger_release() {
-  logger_helper_release(pow_logger_id);
+  logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    log_critical(pow_logger_id, "[%s:%d] Destroying logger failed %s.\n", __func__, __LINE__, POW_LOGGER);
+    ta_log_critical("Destroying logger failed %s.\n", POW_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -65,7 +65,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
   tx = (iota_transaction_t*)utarray_back(bundle);
   if (tx == NULL) {
     ret = SC_TA_NULL;
-    log_error(pow_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_NULL");
+    ta_log_error("%s\n", "SC_TA_NULL");
     goto done;
   }
   cur_idx = transaction_last_index(tx) + 1;
@@ -83,7 +83,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     transaction_serialize_on_flex_trits(tx, tx_trits);
     if (tx_trits == NULL) {
       ret = SC_CCLIENT_INVALID_FLEX_TRITS;
-      log_error(pow_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_CCLIENT_INVALID_FLEX_TRITS");
+      ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
       goto done;
     }
 
@@ -91,7 +91,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
       ret = SC_TA_OOM;
-      log_error(pow_logger_id, "[%s:%d:%s]\n", __func__, __LINE__, "SC_TA_OOM");
+      ta_log_error("%s\n", "SC_TA_OOM");
       goto done;
     }
     transaction_set_nonce(tx, nonce);
