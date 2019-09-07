@@ -222,6 +222,11 @@ int main(void) {
 
   UNITY_BEGIN();
 
+  // Initialize logger
+  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+
   ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
   ta_config_set(&ta_core.cache, &ta_core.service);
 
