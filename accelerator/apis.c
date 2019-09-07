@@ -389,8 +389,8 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
     goto done;
   }
 
-  mam_api_add_trusted_channel_pk(&mam, chid);
-  ret = ta_get_bundle_by_addr(service, chid, bundle);
+  mam_api_add_trusted_channel_pk(&mam, (tryte_t*)chid);
+  ret = ta_get_bundle_by_addr(service, (tryte_t*)chid, bundle);
   if (ret != SC_OK) {
     goto done;
   }
