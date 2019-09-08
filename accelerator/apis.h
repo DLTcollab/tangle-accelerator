@@ -180,22 +180,6 @@ status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_s
                            const char* const obj, char** json_result);
 
 /**
- * @brief Return transaction hashes with given information such as bundle hashes, addresses, tags, or approvees.
- *
- * Explore transaction hash with given transaction related information. This would
- * return a list of transaction hashes in json format.
- *
- * @param[in] service IRI node end point service
- * @param[in] obj bundle hashes, addresses, tags, or approvees.
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result);
-
-/**
  * @brief Return transaction object with given single transaction hash.
  *
  * Explore transaction hash information with given single transaction hash. This would

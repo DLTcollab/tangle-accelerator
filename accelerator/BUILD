@@ -9,6 +9,7 @@ cc_binary(
     copts = ["-DLOGGER_ENABLE"],
     deps = [
         ":apis",
+        ":proxy_apis",
         ":ta_config",
         ":ta_errors",
         "@served",
@@ -81,12 +82,27 @@ cc_library(
 )
 
 cc_library(
+    name = "proxy_apis",
+    srcs = ["proxy_apis.c"],
+    hdrs = ["proxy_apis.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ta_errors",
+        "@entangled//cclient/api",
+        "@entangled//cclient/request:requests",
+        "@entangled//cclient/response:responses",
+        "@entangled//utils:logger_helper",
+    ],
+)
+
+cc_library(
     name = "http",
     srcs = ["http.c"],
     hdrs = ["http.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":apis",
+        ":proxy_apis",
         ":ta_config",
         ":ta_errors",
         "@libmicrohttpd",
