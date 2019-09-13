@@ -8,6 +8,7 @@
 
 #include <time.h>
 #include "accelerator/apis.h"
+#include "accelerator/proxy_apis.h"
 #include "test_define.h"
 
 static ta_core_t ta_core;
@@ -15,6 +16,38 @@ struct timespec start_time, end_time;
 
 char driver_tag_msg[NUM_TRYTES_TAG];
 ta_send_mam_res_t* res;
+
+/**
+ * TODO: Since there are two kinds of formats to call IRI Proxy API,
+ * so here are two formats of function pointer. Once the number of
+ * parameters of existing APIs is varied, the function pointer must
+ * be updated as well.
+ **/
+typedef status_t (*Proxy_apis)(const iota_client_service_t* const service, const char* const obj, char** json_result);
+typedef status_t (*Proxy_apis_without_args)(const iota_client_service_t* const service, char** json_result);
+
+static struct proxy_apis_s {
+  Proxy_apis api;                            // function pointer of IRI Proxy API with args
+  Proxy_apis_without_args api_without_args;  // function pointer of IRI Proxy API without args
+  const char* name;
+  const char* json;  // args which are passed to IRI API
+} proxy_apis_g[] = {{api_check_consistency, NULL, "check_consistency",
+                     "{\"command\":\"checkConsistency\","
+                     "\"tails\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
+                    {api_get_balances, NULL, "get_balances",
+                     "{\"command\":\"getBalances\","
+                     "\"addresses\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
+                     "\"threshold\":" STR(THRESHOLD) "}"},
+                    {api_get_inclusion_states, NULL, "get_inclusion_states",
+                     "{\"command\":\"getInclusionStates\","
+                     "\"transactions\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
+                     "\"tips\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
+                    {NULL, api_get_node_info, "get_node_info", NULL},
+                    {api_get_trytes, NULL, "get_trytes",
+                     "{\"command\":\"getTrytes\","
+                     "\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"}};
+
+static const int proxy_apis_num = sizeof(proxy_apis_g) / sizeof(struct proxy_apis_s);
 
 #if defined(ENABLE_STAT)
 #define TEST_COUNT 100
@@ -217,6 +250,25 @@ void test_receive_mam_message(void) {
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
+void test_proxy_apis() {
+  for (int i = 0; i < proxy_apis_num; i++) {
+    char* json_result;
+    double sum = 0;
+
+    for (size_t count = 0; count < TEST_COUNT; count++) {
+      test_time_start(&start_time);
+      if (proxy_apis_g[i].json != NULL) {
+        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api(&ta_core.service, proxy_apis_g[i].json, &json_result));
+      } else {
+        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api_without_args(&ta_core.service, &json_result));
+      }
+      test_time_end(&start_time, &end_time, &sum);
+      free(json_result);
+    }
+    printf("Average time of %s: %lf\n", proxy_apis_g[i].name, sum / TEST_COUNT);
+  }
+}
+
 int main(void) {
   srand(time(NULL));
 
@@ -242,6 +294,7 @@ int main(void) {
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
+  RUN_TEST(test_proxy_apis);
   ta_config_destroy(&ta_core.service);
   return UNITY_END();
 }

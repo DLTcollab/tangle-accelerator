@@ -33,6 +33,7 @@ cc_test(
     deps = [
         ":test_define",
         "//accelerator:apis",
+        "//accelerator:proxy_apis",
     ],
 )
 
@@ -45,6 +46,7 @@ cc_binary(
     deps = [
         ":test_define",
         "//accelerator:apis",
+        "//accelerator:proxy_apis",
     ],
 )
 
