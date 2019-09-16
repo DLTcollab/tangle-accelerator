@@ -45,8 +45,15 @@ both footprint and startup time are behaved pretty well.
 
 ## Connectivity
 
-`Tangle-accelerator`, at this moment, supports two communication protocols. One is `http`, and the other one is `MQTT`. `http` can be used in the normal internet service.
- `MQTT` is a lightweight communication protocol which can be used in the IoT scenarios. `Tangle-accelerator`'s support to `MQTT` allows embedded devices to write data on IOTA internet with relative low quality hardware devices. We hope this accelerates the process blockchain technology steps into our daily lives.
+`Tangle-accelerator`, at this moment, supports the following TCP/IP derived protocols:
+* `HTTP`
+* `MQTT` 
+
+### HTTP
+`HTTP` can be used in the normal internet service. User can use RESTful APIs to interact with `tangle-accelerator`.
+
+### MQTT
+`MQTT` is a lightweight communication protocol which can be used in the IoT scenarios. `Tangle-accelerator`'s support to `MQTT` allows embedded devices to write data on IOTA internet with relative low quality hardware devices. We hope this will speed up DLT into our daily life.
 
 ## Documentation
 
@@ -157,7 +164,7 @@ Buildifier can be installed with `bazel` or `go`
 2. change directory to `buildtools`
 3. build it with bazel command, `$ bazel build //buildifier`
    The executable file will be located under `path/to/buildtools/bazel-bin`
-4. make a soft link
+4. make a soft link or move the executable file under `/usr/bin` 
 
 ### clang-format
 clang-format can be installed by command:
