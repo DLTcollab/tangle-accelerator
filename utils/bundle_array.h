@@ -47,7 +47,6 @@ static inline void bundle_array_free(bundle_array_t **const bundle_array) {
   // TODO set dtor and use utarray_free() instead.
   if (bundle_array && *bundle_array) {
     bundle_transactions_t *bundle = NULL;
-    iota_transaction_t *tx = NULL;
     BUNDLE_ARRAY_FOREACH(*bundle_array, bundle) { bundle_transactions_free(&bundle); }
     free(*bundle_array);
   }

@@ -140,6 +140,7 @@ cc_library(
         ":ta_errors",
         "//request",
         "//response",
+        "//utils:bundle_array",
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",
         "@entangled//cclient/serialization:serializer",

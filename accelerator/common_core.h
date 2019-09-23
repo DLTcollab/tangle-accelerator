@@ -13,6 +13,7 @@
 #include "common/model/transfer.h"
 #include "request/request.h"
 #include "response/response.h"
+#include "utils/bundle_array.h"
 #include "utils/time.h"
 
 #ifdef __cplusplus
@@ -198,14 +199,14 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
  *
  * @param[in] service IRI node end point service
  * @param[in] addr searched address in tryte_t
- * @param[in] bundle pointer of bundle object that will contain the MAM transacitons
+ * @param[in] bundle_array a bundle array object that will contain the MAM transacitons
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
-                               bundle_transactions_t* bundle);
+status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
+                                bundle_array_t* bundle_array);
 
 #ifdef __cplusplus
 }

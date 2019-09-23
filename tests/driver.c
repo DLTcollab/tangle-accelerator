@@ -220,18 +220,31 @@ void test_find_transactions_obj_by_tag(void) {
 
 void test_send_mam_message(void) {
   double sum = 0;
-  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
-  char* json_result;
+  const char* json =
+      "{\"seed\":\"" TRYTES_81_1
+      "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) ",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(
+          TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(TEST_EP_DEPTH) ",\"ntru_pk\":\"" TEST_NTRU_PK
+                                                                 "\",\"psk\":\"" TRYTES_81_2 "\"}";
+  char* json_result = NULL;
   res = send_mam_res_new();
+  status_t ret = SC_OK;
+  bool result = false;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result));
+    ret = api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result);
+    if (ret == SC_OK || ret == SC_MAM_ALL_MSS_KEYS_USED) {
+      result = true;
+    }
+    TEST_ASSERT_TRUE(result);
+
     send_mam_res_deserialize(json_result, res);
 
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
+    json_result = NULL;
   }
+  free(json_result);
   printf("Average time of send_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
@@ -241,9 +254,8 @@ void test_receive_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->channel_id, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK,
+                            api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->chid, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -290,7 +302,7 @@ int main(void) {
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
   RUN_TEST(test_find_transactions);
-  // RUN_TEST(test_send_mam_message);
+  RUN_TEST(test_send_mam_message);
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);

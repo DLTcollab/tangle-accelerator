@@ -18,7 +18,7 @@ void serializer_logger_init() { logger_id = logger_helper_enable(SERI_LOGGER, LO
 int serializer_logger_release() {
   logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    ta_log_critical("Destroying logger failed %s.\n", SERI_LOGGER);
+    ta_log_error("Destroying logger failed %s.\n", SERI_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -446,7 +446,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
       req->msg_len = msg_len * 3;
       tryte_t trytes_buffer[msg_len];
 
-      ASCII_to_trytes(json_result->valuestring, trytes_buffer);
+      ascii_to_trytes(json_result->valuestring, trytes_buffer);
       flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len, msg_len);
     } else {
       req->msg_len = msg_len * 3;

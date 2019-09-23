@@ -282,6 +282,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   iota_transaction_t* temp = NULL;
   get_trytes_req_t* req_get_trytes = get_trytes_req_new();
   transaction_array_t* uncached_txn_array = transaction_array_new();
+  flex_trit_t* temp_txn_trits = NULL;
   if (req == NULL || res == NULL || req_get_trytes == NULL || uncached_txn_array == NULL) {
     ret = SC_TA_NULL;
     ta_log_error("%s\n", "SC_TA_NULL");
@@ -335,7 +336,6 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   }
 
   // append response of `iota_client_find_transaction_objects` into cache
-  flex_trit_t* temp_txn_trits = NULL;
   TX_OBJS_FOREACH(uncached_txn_array, temp) {
     temp_txn_trits = transaction_serialize(temp);
     if (!flex_trits_are_null(temp_txn_trits, FLEX_TRIT_SIZE_8019)) {
@@ -452,8 +452,8 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
   return SC_OK;
 }
 
-status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
-                               bundle_transactions_t* bundle) {
+status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
+                                bundle_array_t* bundle_array) {
   status_t ret = SC_OK;
   tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
   find_transactions_req_t* txn_req = find_transactions_req_new();
@@ -492,12 +492,23 @@ status_t ta_get_bundle_by_addr(const iota_client_service_t* const service, tryte
     goto done;
   }
 
-  iota_transaction_t* curr_tx = transaction_array_at(obj_res, 0);
-  flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
-  ret = ta_get_bundle(service, bundle_hash, bundle);
-  if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
-    goto done;
+  iota_transaction_t* curr_tx = NULL;
+  TX_OBJS_FOREACH(obj_res, curr_tx) {
+    flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
+                         NUM_TRITS_BUNDLE);
+
+    bundle_transactions_t* bundle = NULL;
+    bundle_transactions_new(&bundle);
+    ret = ta_get_bundle(service, bundle_hash, bundle);
+    if (ret != SC_OK) {
+      ta_log_error("%d\n", ret);
+      goto done;
+    }
+
+    // TODO We need to check out if the current bundle is already in bundle_array
+    utarray_push_back(bundle_array, bundle);
+
+    bundle_transactions_free(&bundle);
   }
 
 done:

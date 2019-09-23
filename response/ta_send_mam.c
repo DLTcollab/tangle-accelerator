@@ -10,7 +10,8 @@
 
 ta_send_mam_res_t* send_mam_res_new() {
   ta_send_mam_res_t* res = (ta_send_mam_res_t*)malloc(sizeof(ta_send_mam_res_t));
-
+  res->announcement_bundle_hash[0] = 0;
+  res->chid1[0] = 0;
   return res;
 }
 
@@ -70,7 +71,7 @@ status_t send_mam_res_set_chid1(ta_send_mam_res_t* res, const tryte_t* chid1) {
   }
 
   memcpy(res->chid1, chid1, NUM_TRYTES_HASH);
-  res->chid[NUM_TRYTES_HASH] = '\0';
+  res->chid1[NUM_TRYTES_HASH] = '\0';
   return SC_OK;
 }
 
