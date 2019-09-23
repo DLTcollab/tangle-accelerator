@@ -37,3 +37,12 @@ cc_library(
         "@entangled//common/model:transaction",
     ],
 )
+
+cc_library(
+    name = "bundle_array",
+    srcs = ["bundle_array.h"],
+    deps = [
+        "@com_github_uthash//:uthash",
+        "@entangled//common/model:bundle",
+    ],
+)
