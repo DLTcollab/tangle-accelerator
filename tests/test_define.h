@@ -331,7 +331,6 @@ extern "C" {
 #define MESSAGE_5 "MESSAGE5"
 #define MESSAGE_6 "MESSAGE6"
 
-
 #ifdef __cplusplus
 }
 #endif
