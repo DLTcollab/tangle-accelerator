@@ -101,3 +101,14 @@ cc_library(
         "@unity",
     ],
 )
+
+cc_test(
+    name = "test_scylla",
+    srcs = [
+        "test_scylla.c",
+    ],
+    deps = [
+        ":test_define",
+        "//storage",
+    ],
+)
