@@ -55,6 +55,7 @@ extern "C" {
 #define SC_MODULE_UTILS (0x08 << SC_MODULE_SHIFT)
 #define SC_MODULE_HTTP (0x09 << SC_MODULE_SHIFT)
 #define SC_MODULE_MQTT (0x0A << SC_MODULE_SHIFT)
+#define SC_MODULE_STORAGE (0x0B << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -211,6 +212,19 @@ typedef enum {
   /**< Error in setting options of `struct mosquitto` object */
   SC_CLIENT_CONNTECT = 0x0A | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
   /**< Error in connecting to broker */
+
+  // STORAGE module
+  SC_STORAGE_OOM = 0x01 | SC_MODULE_STORAGE | SC_SEVERITY_FATAL,
+  /**< Fail to malloc space for transactions */
+  SC_STORAGE_CONNECT_FAIL = 0x02 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Fail to connect scylla node */
+  SC_STORAGE_INVAILD_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< invaild input parameter, e.g., null pointer or   */
+  SC_STORAGE_CASSANDRA_QUREY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Fail to execute Cassandra query   */
+  SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< ZeroMQ process error   */
+
 } status_t;
 
 typedef enum {

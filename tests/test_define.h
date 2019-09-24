@@ -263,6 +263,75 @@ extern "C" {
 #define TEST_CHANNEL_ORD 5
 #define DEVICE_ID "cb692268436743c9bbe17c1721741db1"
 
+#define BUNDLE_1                                                               \
+  "BUNDLE100000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZTA"
+#define BUNDLE_2                                                               \
+  "BUNDLE200000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZTA"
+#define BUNDLE_3                                                               \
+  "BUNDLE300000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZTA"
+
+#define ADDRESS_1                                                               \
+  "ADDRESS100000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+#define ADDRESS_2                                                               \
+  "ADDRESS200000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+#define ADDRESS_3                                                               \
+  "ADDRESS300000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+#define ADDRESS_4                                                               \
+  "ADDRESS400000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+#define ADDRESS_5                                                               \
+  "ADDRESS500000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+#define ADDRESS_6                                                               \
+  "ADDRESS600000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OORVZT"
+
+#define TRANSACTION_1                                                               \
+  "TRANSACTION100000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_2                                                               \
+  "TRANSACTION200000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_3                                                               \
+  "TRANSACTION300000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_4                                                               \
+  "TRANSACTION400000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_5                                                               \
+  "TRANSACTION500000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_6                                                               \
+  "TRANSACTION600000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_7                                                               \
+  "TRANSACTION700000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_8                                                               \
+  "TRANSACTION800000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+#define TRANSACTION_9                                                               \
+  "TRANSACTION900000LIKCEJTTIQOTTAWSQCCQQ9A9VOKIWRBWVPXMCGUENWVVMQAMPEIVHEQ9JXLCNZ" \
+  "OO"
+
+#define TIMESTAMP_1 1
+#define TIMESTAMP_2 2
+#define TIMESTAMP_3 3
+
+#define MESSAGE_1 "MESSAGE1"
+#define MESSAGE_2 "MESSAGE2"
+#define MESSAGE_3 "MESSAGE3"
+#define MESSAGE_4 "MESSAGE4"
+#define MESSAGE_5 "MESSAGE5"
+#define MESSAGE_6 "MESSAGE6"
+
+
 #ifdef __cplusplus
 }
 #endif
