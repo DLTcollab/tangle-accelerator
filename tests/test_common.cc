@@ -19,21 +19,6 @@ APIMock APIMockObj;
 iota_config_t tangle;
 iota_client_service_t service;
 
-TEST(GetTxnToApproveTest, TrunkBranchHashTest) {
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-
-  EXPECT_CALL(APIMockObj, iota_client_get_transactions_to_approve(_, _, _)).Times(AtLeast(1));
-
-  EXPECT_EQ(cclient_get_txn_to_approve(&service, 3, res), 0);
-  EXPECT_FALSE(memcmp(res->tips->hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
-  hash243_stack_pop(&res->tips);
-  EXPECT_FALSE(memcmp(res->tips->hash, hash_trits_2, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
-  ta_get_tips_res_free(&res);
-}
-
 TEST(GenAdressTest, GetNewAddressTest) {
   tangle.seed = SEED;
   hash243_queue_entry_t* q_iter = NULL;

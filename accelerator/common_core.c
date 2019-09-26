@@ -25,49 +25,6 @@ int cc_logger_release() {
   return 0;
 }
 
-status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, uint8_t const depth,
-                                    ta_get_tips_res_t* res) {
-  if (res == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  get_transactions_to_approve_req_t* get_txn_req = get_transactions_to_approve_req_new();
-  get_transactions_to_approve_res_t* get_txn_res = get_transactions_to_approve_res_new();
-  if (get_txn_req == NULL || get_txn_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    ta_log_error("%s\n", "SC_CCLIENT_OOM");
-    goto done;
-  }
-  // The depth at which Random Walk starts. Mininal is 3, and max is 15.
-  get_transactions_to_approve_req_set_depth(get_txn_req, depth);
-
-  ret = iota_client_get_transactions_to_approve(service, get_txn_req, get_txn_res);
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-
-  ret = hash243_stack_push(&res->tips, get_txn_res->branch);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    ta_log_error("%s\n", "SC_CCLIENT_HASH");
-    goto done;
-  }
-  ret = hash243_stack_push(&res->tips, get_txn_res->trunk);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    ta_log_error("%s\n", "SC_CCLIENT_HASH");
-  }
-
-done:
-  get_transactions_to_approve_res_free(&get_txn_res);
-  get_transactions_to_approve_req_free(&get_txn_req);
-  return ret;
-}
-
 status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_tangle_res_t* res) {
   status_t ret = SC_OK;
   bundle_transactions_t* bundle = NULL;
