@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include "accelerator/errors.h"
 #include "accelerator/http.h"
 #include "utils/handles/signal.h"
@@ -73,8 +75,14 @@ int main(int argc, char* argv[]) {
   }
 
   log_warning(logger_id, "Tangle-accelerator starts running\n");
-  while (ta_http.running) {
-    ;
+
+  /* pause() cause TA to sleep until it catch a signal,
+   * also the return value and errno should be -1 and EINTR on success.
+   */
+  int sig_ret = pause();
+  if (sig_ret == -1 && errno != EINTR) {
+    ta_log_error("Signal caught failed %s.\n", MAIN_LOGGER);
+    return EXIT_FAILURE;
   }
 
 cleanup:

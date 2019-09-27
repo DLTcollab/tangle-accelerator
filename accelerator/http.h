@@ -12,7 +12,6 @@ extern "C" {
 #endif
 
 typedef struct ta_http_s {
-  bool running;
   void *daemon;
   ta_core_t *core;
 } ta_http_t;
