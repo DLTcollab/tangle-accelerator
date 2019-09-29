@@ -184,7 +184,7 @@ void test_find_transactions_obj_by_tag(void) {
   }
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
 }
-
+/*
 void test_send_mam_message(void) {
   double sum = 0;
   const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
@@ -216,7 +216,7 @@ void test_receive_mam_message(void) {
   }
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
 }
-
+*/
 int main(void) {
   srand(time(NULL));
 

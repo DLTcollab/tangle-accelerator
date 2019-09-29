@@ -12,6 +12,7 @@
 #include "accelerator/errors.h"
 #include "common/model/transaction.h"
 #include "common/trinary/tryte.h"
+#include "mam/mam/message.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,14 +22,18 @@ extern "C" {
  * @file response/ta_send_mam.h
  */
 
+#define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
+
 /** struct of ta_send_mam_res_t */
 typedef struct send_mam_res_s {
   /** ascii string bundle hash */
   char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
-  char channel_id[NUM_TRYTES_HASH + 1];
+  char chid[NUM_TRYTES_HASH + 1];
+  /** ascii string endpoint id */
+  char epid[NUM_TRYTES_HASH + 1];
   /** channel ordinal which is the number of channel we generated */
-  int32_t channel_ord;
+  char msg_id[NUM_TRYTES_MAM_MSG_ID + 1];
 } ta_send_mam_res_t;
 
 /**
@@ -71,6 +76,30 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bun
  * - non-zero on error
  */
 status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id);
+
+/**
+ * @brief Set the endpoint_id field of send_mam_res object.
+ *
+ * @param[in] res ta_send_mam_res_t struct object
+ * @param[in] endpoint_id endpoint id decoded in trytes string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_set_endpoint_id(ta_send_mam_res_t* res, const tryte_t* endpoint_id);
+
+/**
+ * @brief Set the msgl_id field of send_mam_res object.
+ *
+ * @param[in] res ta_send_mam_res_t struct object
+ * @param[in] msg_id Message id decoded in trytes string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_set_msg_id(ta_send_mam_res_t* res, const tryte_t* msg_id);
 
 /**
  * Free memory of ta_send_mam_res_t

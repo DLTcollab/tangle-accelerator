@@ -29,8 +29,28 @@ status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* chan
     return SC_RES_NULL;
   }
 
-  memcpy(res->channel_id, channel_id, NUM_TRYTES_HASH);
-  res->channel_id[NUM_TRYTES_HASH] = '\0';
+  memcpy(res->chid, channel_id, NUM_TRYTES_HASH);
+  res->chid[NUM_TRYTES_HASH] = '\0';
+  return SC_OK;
+}
+
+status_t send_mam_res_set_endpoint_id(ta_send_mam_res_t* res, const tryte_t* endpoint_id) {
+  if (!endpoint_id || !res) {
+    return SC_RES_NULL;
+  }
+
+  memcpy(res->epid, endpoint_id, NUM_TRYTES_HASH);
+  res->epid[NUM_TRYTES_HASH] = '\0';
+  return SC_OK;
+}
+
+status_t send_mam_res_set_msg_id(ta_send_mam_res_t* res, const tryte_t* msg_id) {
+  if (!msg_id || !res) {
+    return SC_RES_NULL;
+  }
+
+  memcpy(res->msg_id, msg_id, NUM_TRYTES_MAM_MSG_ID);
+  res->msg_id[NUM_TRYTES_MAM_MSG_ID] = '\0';
   return SC_OK;
 }
 

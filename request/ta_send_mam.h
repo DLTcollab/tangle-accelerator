@@ -25,9 +25,20 @@ extern "C" {
 
 /** struct of ta_send_transfer_req_t */
 typedef struct send_mam_req_s {
-  tryte_t prng[NUM_TRYTES_ADDRESS + 1];
-  char* payload;
+  /** Optional. MAM channel seed */
+  tryte_t* seed;
+  /** Optional. The channel ordinal. */
   int32_t channel_ord;
+  /** Required. The message will be append to the channel. */
+  char* message;
+  /** Optional. The depth of channel merkle tree. */
+  int32_t ch_mss_depth;
+  /** Optional. The depth of endpoint merkle tree. */
+  int32_t ep_mss_depth;
+  /** Optional. The pre-shared key to encrypt the message. Length: 81 trytes. Default: NULL. */
+  tryte_t* psk;
+  /** Optional. The NTRU public key to encrypt the message. Length: 1024 trytes. Default: NULL. */
+  tryte_t* ntru_pk;
 } ta_send_mam_req_t;
 
 /**

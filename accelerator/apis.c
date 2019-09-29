@@ -419,6 +419,7 @@ done:
   return ret;
 }
 
+/*
 status_t api_mam_send_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
@@ -536,7 +537,7 @@ done:
   send_mam_res_free(&res);
   return ret;
 }
-
+*/
 status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;

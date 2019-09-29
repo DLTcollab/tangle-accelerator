@@ -673,6 +673,102 @@ done:
   return ret;
 }
 
+status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req) {
+  if (obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_result = NULL;
+  status_t ret = SC_OK;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "seed");
+  if (json_result != NULL) {
+    size_t seed_size = strlen(json_result->valuestring);
+
+    if (seed_size != NUM_TRYTES_HASH) {
+      ret = SC_SERIALIZER_INVALID_REQ;
+      ta_log_error("%s\n", "SC_SERIALIZER_INVALID_REQ");
+      goto done;
+    }
+    req->seed = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_ADDRESS);
+    snprintf((char*)req->seed, seed_size + 1, "%s", json_result->valuestring);
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "channel_ord");
+  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
+    req->channel_ord = json_result->valueint;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
+  if (json_result != NULL) {
+    size_t payload_size = strlen(json_result->valuestring);
+    char* payload = (char*)malloc((payload_size + 1) * sizeof(char));
+
+    // In case the payload is unicode, char more than 128 will result to an
+    // error status_t code
+    for (size_t i = 0; i < payload_size; i++) {
+      if (json_result->valuestring[i] & 0x80) {
+        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE_ASCII");
+        goto done;
+      }
+    }
+
+    snprintf(payload, payload_size + 1, "%s", json_result->valuestring);
+    req->message = payload;
+  } else {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    ret = SC_SERIALIZER_NULL;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "ch_mss_depth");
+  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
+    req->ch_mss_depth = json_result->valueint;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "ep_mss_depth");
+  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
+    req->ep_mss_depth = json_result->valueint;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "ntru_pk");
+  if (json_result != NULL) {
+    size_t prng_size = strlen(json_result->valuestring);
+
+    if (prng_size != MAM_NTRU_PK_SIZE / 3) {
+      ret = SC_SERIALIZER_INVALID_REQ;
+      ta_log_error("%s\n", "SC_SERIALIZER_INVALID_REQ");
+      goto done;
+    }
+    req->ntru_pk = (tryte_t*)malloc(sizeof(tryte_t) * (MAM_NTRU_PK_SIZE / 3));
+    snprintf((char*)req->ntru_pk, prng_size, "%s", json_result->valuestring);
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "psk");
+  if (json_result != NULL) {
+    size_t psk_size = strlen(json_result->valuestring);
+
+    if (psk_size != MAM_PSK_KEY_SIZE / 3) {
+      ret = SC_SERIALIZER_INVALID_REQ;
+      ta_log_error("%s\n", "SC_SERIALIZER_INVALID_REQ");
+      goto done;
+    }
+    req->psk = (tryte_t*)malloc(sizeof(tryte_t) * (MAM_PSK_KEY_SIZE / 3));
+    snprintf((char*)req->psk, psk_size, "%s", json_result->valuestring);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
 status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
@@ -682,11 +778,13 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) 
     goto done;
   }
 
-  cJSON_AddStringToObject(json_root, "channel", res->channel_id);
-
   cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
 
-  cJSON_AddNumberToObject(json_root, "channel_ord", res->channel_ord);
+  cJSON_AddStringToObject(json_root, "chid", res->chid);
+
+  cJSON_AddStringToObject(json_root, "epid", res->epid);
+
+  cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
@@ -715,7 +813,7 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
     goto done;
   }
 
-  if (ta_json_get_string(json_obj, "channel", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "chid", (char*)addr) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
@@ -728,68 +826,6 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
     goto done;
   }
   send_mam_res_set_bundle_hash(res, addr);
-
-done:
-  cJSON_Delete(json_obj);
-  return ret;
-}
-
-status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req) {
-  if (obj == NULL) {
-    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
-    return SC_SERIALIZER_NULL;
-  }
-  cJSON* json_obj = cJSON_Parse(obj);
-  cJSON* json_result = NULL;
-  status_t ret = SC_OK;
-
-  if (json_obj == NULL) {
-    ret = SC_SERIALIZER_JSON_PARSE;
-    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
-    goto done;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "prng");
-  if (json_result != NULL) {
-    size_t prng_size = strlen(json_result->valuestring);
-
-    if (prng_size != NUM_TRYTES_HASH) {
-      ret = SC_SERIALIZER_INVALID_REQ;
-      ta_log_error("%s\n", "SC_SERIALIZER_INVALID_REQ");
-      goto done;
-    }
-    snprintf((char*)req->prng, prng_size + 1, "%s", json_result->valuestring);
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  if (json_result != NULL) {
-    size_t payload_size = strlen(json_result->valuestring);
-    char* payload = (char*)malloc((payload_size + 1) * sizeof(char));
-
-    // In case the payload is unicode, char more than 128 will result to an
-    // error status_t code
-    for (size_t i = 0; i < payload_size; i++) {
-      if (json_result->valuestring[i] & 0x80) {
-        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
-        ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE_ASCII");
-        goto done;
-      }
-    }
-
-    snprintf(payload, payload_size + 1, "%s", json_result->valuestring);
-    req->payload = payload;
-  } else {
-    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
-    ret = SC_SERIALIZER_NULL;
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "channel_ord");
-  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
-    req->channel_ord = json_result->valueint;
-  } else {
-    // 'value' does not exist or invalid, set to 0
-    req->channel_ord = 0;
-  }
 
 done:
   cJSON_Delete(json_obj);

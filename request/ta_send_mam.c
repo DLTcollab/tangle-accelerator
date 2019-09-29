@@ -11,9 +11,13 @@
 ta_send_mam_req_t* send_mam_req_new() {
   ta_send_mam_req_t* req = (ta_send_mam_req_t*)malloc(sizeof(ta_send_mam_req_t));
   if (req) {
-    req->prng[0] = 0;
-    req->payload = NULL;
+    req->seed = NULL;
+    req->message = NULL;
     req->channel_ord = 0;
+    req->ch_mss_depth = 6;
+    req->ep_mss_depth = 6;
+    req->psk = NULL;
+    req->ntru_pk = NULL;
   }
 
   return req;
@@ -24,9 +28,24 @@ void send_mam_req_free(ta_send_mam_req_t** req) {
     return;
   }
 
-  if ((*req)->payload) {
-    free((*req)->payload);
-    (*req)->payload = NULL;
+  if ((*req)->seed) {
+    free((*req)->seed);
+    (*req)->seed = NULL;
+  }
+
+  if ((*req)->message) {
+    free((*req)->message);
+    (*req)->message = NULL;
+  }
+
+  if ((*req)->ntru_pk) {
+    free((*req)->ntru_pk);
+    (*req)->ntru_pk = NULL;
+  }
+
+  if ((*req)->psk) {
+    free((*req)->psk);
+    (*req)->psk = NULL;
   }
 
   free(*req);
