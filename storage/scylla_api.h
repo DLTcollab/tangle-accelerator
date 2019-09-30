@@ -240,12 +240,14 @@ int scylla_api_logger_release();
  * @param[out] session Scylla cluster session
  * @param[in] hosts Scylla node ip
  * @param[in] is_need_create_table true : create, false : not to create
+ * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table);
+status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+                     const char* keyspace_name);
 
 /**
  * @brief insert transactions into bundle table

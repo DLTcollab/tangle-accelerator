@@ -221,8 +221,7 @@ int64_t ret_transaction_timestamp(scylla_iota_transaction_t* obj) {
 }
 
 static const select_query_t select_query[NUM_OF_SELECT_METHODS] = {
-    {"SELECT * FROM permanent.bundleTable WHERE bundle = ?"},
-    {"SELECT * FROM permanent.bundleTable WHERE bundle = ? AND address = ?"}};
+    {"SELECT * FROM bundleTable WHERE bundle = ?"}, {"SELECT * FROM bundleTable WHERE bundle = ? AND address = ?"}};
 
 static void print_error(CassFuture* future) {
   const char* message;
@@ -315,34 +314,56 @@ static status_t get_blob(const CassRow* row, cass_byte_t* target, const char* co
   return ret;
 }
 
-static status_t create_permanent_keyspace(CassSession* session) {
-  status_t ret = SC_OK;
-  if (execute_query(session, "DROP KEYSPACE IF EXISTS permanent;") != CASS_OK) {
-    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+static status_t make_query(char** result, const char* head_desc, const char* position, const char* left_desc) {
+  if (head_desc == NULL || position == NULL || left_desc == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
+    return SC_TA_NULL;
   }
-  if (execute_query(session,
-                    "CREATE KEYSPACE IF NOT EXISTS permanent WITH replication = {"
-                    "'class': 'SimpleStrategy', 'replication_factor': '2' };") != CASS_OK) {
+  size_t head_len = strlen(head_desc);
+  size_t pos_len = strlen(position);
+  size_t left_len = strlen(left_desc);
+  size_t result_len = head_len + pos_len + left_len + 1;
+  *result = malloc(result_len * sizeof(char));
+  if (*result == NULL) {
+    ta_log_error("%s\n", "SC_STORAGE_OOM");
+    return SC_STORAGE_OOM;
+  }
+  memcpy(*result, head_desc, head_len);
+  memcpy(*result + head_len, position, pos_len);
+  memcpy(*result + head_len + pos_len, left_desc, left_len);
+  (*result)[result_len - 1] = 0;
+
+  return SC_OK;
+}
+
+static status_t create_permanent_keyspace(CassSession* session, const char* keyspace_name) {
+  status_t ret = SC_OK;
+  char* create_query = NULL;
+  ret = make_query(&create_query, "CREATE KEYSPACE IF NOT EXISTS ", keyspace_name,
+                   " WITH replication = {"
+                   "'class': 'SimpleStrategy', 'replication_factor': '2'};");
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", "make Create keyspace query fail");
+    return ret;
+  }
+  if (execute_query(session, create_query) != CASS_OK) {
     ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
   }
 
-exit:
+  free(create_query);
   return ret;
 }
 
 static status_t create_bundle_table(CassSession* session) {
   status_t ret = SC_OK;
-  if (execute_query(session, "DROP TABLE IF EXISTS permanent.bundleTable;") != CASS_OK) {
+  if (execute_query(session, "DROP TABLE IF EXISTS bundleTable;") != CASS_OK) {
     ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
   if (execute_query(session,
-                    "CREATE TABLE IF NOT EXISTS permanent.bundleTable ("
+                    "CREATE TABLE IF NOT EXISTS bundleTable ("
                     "bundle blob,"
                     "address blob,"
                     "hash blob,"
@@ -356,20 +377,19 @@ static status_t create_bundle_table(CassSession* session) {
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
-
 exit:
   return ret;
 }
 
 static status_t create_edge_table(CassSession* session) {
   status_t ret = SC_OK;
-  if (execute_query(session, "DROP TABLE IF EXISTS permanent.edgeTable;") != CASS_OK) {
+  if (execute_query(session, "DROP TABLE IF EXISTS edgeTable;") != CASS_OK) {
     ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
   if (execute_query(session,
-                    "CREATE TABLE IF NOT EXISTS permanent.edgeTable("
+                    "CREATE TABLE IF NOT EXISTS edgeTable("
                     "edge blob,"
                     "bundle blob,"
                     "address blob,"
@@ -383,8 +403,15 @@ static status_t create_edge_table(CassSession* session) {
 exit:
   return ret;
 }
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table) {
+status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+                     const char* keyspace_name) {
+  if (hosts == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
+    return SC_TA_NULL;
+  }
   status_t ret = SC_OK;
+  CassStatement* use_statement = NULL;
+  char* use_query = NULL;
   /* Add contact points */
   *cluster = create_cluster(hosts);
   if (connect_session(session, *cluster) != CASS_OK) {
@@ -392,11 +419,23 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, b
     ret = SC_STORAGE_CONNECT_FAIL;
     goto exit;
   }
+  if ((ret = create_permanent_keyspace(session, keyspace_name)) != SC_OK) {
+    ta_log_error("%s\n", "create permanent keyspace fail");
+    goto exit;
+  }
+  ret = make_query(&use_query, "USE ", keyspace_name, "");
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", "make USE keyspace query fail");
+    goto exit;
+  }
+  use_statement = cass_statement_new(use_query, 0);
+  if (execute_statement(session, use_statement) != CASS_OK) {
+    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+
   if (is_need_create_table == true) {
-    if ((ret = create_permanent_keyspace(session)) != SC_OK) {
-      ta_log_error("%s\n", "create permanent keyspace fail");
-      goto exit;
-    }
     if ((ret = create_bundle_table(session)) != SC_OK) {
       ta_log_error("%s\n", "create bundle table fail");
       goto exit;
@@ -408,6 +447,7 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, b
   }
 
 exit:
+  free(use_query);
   return ret;
 }
 static CassStatement* ret_insert_bundle_statement(const CassPrepared* prepared,
@@ -455,7 +495,7 @@ status_t insert_transaction_into_bundleTable(CassSession* session, scylla_iota_t
   const CassPrepared* insert_prepared = NULL;
   CassStatement* statement = NULL;
   const char* insert_query =
-      "INSERT INTO permanent.bundleTable (bundle, address, hash, message, value, timestamp, trunk, branch)"
+      "INSERT INTO bundleTable (bundle, address, hash, message, value, timestamp, trunk, branch)"
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
   if (session == NULL || transaction == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
@@ -469,6 +509,7 @@ status_t insert_transaction_into_bundleTable(CassSession* session, scylla_iota_t
   for (size_t i = 0; i < trans_num; i++) {
     statement = ret_insert_bundle_statement(insert_prepared, transaction + i);
     if (execute_statement(session, statement) != CASS_OK) {
+      ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
       ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
       goto exit;
     }
@@ -485,7 +526,7 @@ status_t insert_transaction_into_edgeTable(CassSession* session, scylla_iota_tra
   const CassPrepared* insert_prepared = NULL;
   CassStatement* statement = NULL;
   const char* insert_query =
-      "INSERT INTO permanent.edgeTable (edge, bundle, address, hash)"
+      "INSERT INTO edgeTable (edge, bundle, address, hash)"
       "VALUES (?, ?, ?, ?);";
 
   if (transaction == NULL) {
@@ -693,7 +734,7 @@ static status_t get_column_from_bundleTable(CassSession* session, hash243_queue_
 status_t get_column_from_edgeTable(CassSession* session, hash243_queue_t* res_queue, cass_byte_t* edge,
                                    const char* column_name) {
   status_t ret = SC_OK;
-  static const char* query = "SELECT * FROM permanent.edgeTable WHERE edge = ?";
+  static const char* query = "SELECT * FROM edgeTable WHERE edge = ?";
   CassStatement* statement = NULL;
   const CassPrepared* select_prepared = NULL;
 

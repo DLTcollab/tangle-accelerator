@@ -10,7 +10,7 @@
 #include "test_define.h"
 
 static char* host;
-
+static char* keyspace_name;
 void test_get_column_from_edgeTable(CassSession* session) {
   char expected_result[][FLEX_TRIT_SIZE_243] = {
       {BUNDLE_1},       // address_2
@@ -123,7 +123,7 @@ void test_scylla(void) {
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
   TEST_ASSERT_NOT_EQUAL(host, NULL);
-  TEST_ASSERT_EQUAL_INT(init_scylla(&cluster, session, host, true), SC_OK);
+  TEST_ASSERT_EQUAL_INT(init_scylla(&cluster, session, host, true, keyspace_name), SC_OK);
   new_scylla_iota_transaction(&transaction);
 
   for (size_t i = 0; i < tx_num; i++) {
@@ -153,10 +153,11 @@ void test_scylla(void) {
 int main(int argc, char** argv) {
   int cmdOpt;
   int optIdx;
-  const struct option longOpt[] = {{"host", required_argument, NULL, 'h'}, {NULL, 0, NULL, 0}};
+  const struct option longOpt[] = {
+      {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
   host = NULL;
-
+  keyspace_name = "default_space";
   /* Parse the command line options */
   /* TODO: Support macOS since getopt_long() is GNU extension */
   while (1) {
@@ -168,6 +169,9 @@ int main(int argc, char** argv) {
 
     if (cmdOpt == 'h') {
       host = optarg;
+    }
+    if (cmdOpt == 'k') {
+      keyspace_name = optarg;
     }
   }
   UNITY_BEGIN();
