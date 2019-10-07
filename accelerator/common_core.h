@@ -46,23 +46,6 @@ void cc_logger_init();
 int cc_logger_release();
 
 /**
- * @brief Get trunk and branch transactions
- *
- * Get a tips pair as trunk/branch transactions for transaction construction.
- * The result is a 243 long flex trits hash stack.
- *
- * @param[in] service IRI node end point service
- * @param[in] depth Depth of get transaction to approve
- * @param[out] res Result containing a tips pair in ta_get_tips_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t cclient_get_txn_to_approve(const iota_client_service_t* const service, uint8_t const depth,
-                                    ta_get_tips_res_t* res);
-
-/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means
