@@ -255,6 +255,8 @@ typedef enum {
   /**< Fail to execute Cassandra query   */
   SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< ZeroMQ process error   */
+  SC_STORAGE_OPEN_ERROR = 0x06 | SC_MODULE_STORAGE | SC_SEVERITY_FATAL,
+  /**< fail to open file */
 
 } status_t;
 

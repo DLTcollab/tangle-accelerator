@@ -15,3 +15,22 @@ cc_library(
         "//accelerator:ta_errors",
     ],
 )
+
+cc_binary(
+    name = "listener",
+    srcs = ["scylla_listener.c"],
+    linkopts = [
+        "-lzmq",
+    ],
+    deps = [
+        ":storage",
+    ],
+)
+
+cc_binary(
+    name = "importer",
+    srcs = ["scylla_importer.c"],
+    deps = [
+        ":storage",
+    ],
+)
