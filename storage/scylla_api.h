@@ -238,7 +238,8 @@ int scylla_api_logger_release();
  *
  * @param[out] cluster Scylla node cluster
  * @param[out] session Scylla cluster session
- * @param[in] hosts Scylla node ip
+ * @param[in] hosts Scylla cluster entry ip
+ * @param[in] port scylla cluster entry port, set <= 0 as default
  * @param[in] is_need_create_table true : create, false : not to create
  * @param[in] keyspace_name keyspace name the session should use
  *
@@ -246,7 +247,7 @@ int scylla_api_logger_release();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, int port, bool is_need_create_table,
                      const char* keyspace_name);
 
 /**

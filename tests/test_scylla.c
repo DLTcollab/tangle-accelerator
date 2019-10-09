@@ -123,7 +123,7 @@ void test_scylla(void) {
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
   TEST_ASSERT_NOT_EQUAL(host, NULL);
-  TEST_ASSERT_EQUAL_INT(init_scylla(&cluster, session, host, true, keyspace_name), SC_OK);
+  TEST_ASSERT_EQUAL_INT(init_scylla(&cluster, session, host, 0, true, keyspace_name), SC_OK);
   new_scylla_iota_transaction(&transaction);
 
   for (size_t i = 0; i < tx_num; i++) {

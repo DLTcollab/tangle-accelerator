@@ -84,6 +84,7 @@ int main(int argc, char* argv[]) {
   CassCluster* cluster = NULL;
   CassSession* session = cass_session_new();
   char* scylla_host = NULL;
+  int scylla_port = 0;
   char* iri_host = IRI_HOST;
   uint16_t iri_port = IRI_PORT;
   char* zmq_server = NULL;
@@ -94,15 +95,14 @@ int main(int argc, char* argv[]) {
   char tx_buffer[NUM_FLEX_TRITS_HASH + 1];
   int cmdOpt;
   int optIdx;
-  const struct option longOpt[] = {{"scylla_host", required_argument, NULL, 's'},
-                                   {"zmq_server", required_argument, NULL, 'z'},
-                                   {"iri_host", required_argument, NULL, 'i'},
-                                   {"iri_port", required_argument, NULL, 'p'},
-                                   {NULL, 0, NULL, 0}};
+  const struct option longOpt[] = {
+      {"scylla_host", required_argument, NULL, 's'}, {"scylla_port", required_argument, NULL, 'x'},
+      {"zmq_server", required_argument, NULL, 'z'},  {"iri_host", required_argument, NULL, 'i'},
+      {"iri_port", required_argument, NULL, 'p'},    {NULL, 0, NULL, 0}};
 
   /* Parse the command line options */
   while (1) {
-    cmdOpt = getopt_long(argc, argv, "sizp:", longOpt, &optIdx);
+    cmdOpt = getopt_long(argc, argv, "sizpx:", longOpt, &optIdx);
     if (cmdOpt == -1) break;
 
     /* Invalid option */
@@ -110,6 +110,9 @@ int main(int argc, char* argv[]) {
 
     if (cmdOpt == 's') {
       scylla_host = optarg;
+    }
+    if (cmdOpt == 'x') {
+      scylla_port = atoi(optarg);
     }
     if (cmdOpt == 'i') {
       iri_host = optarg;
@@ -139,7 +142,7 @@ int main(int argc, char* argv[]) {
   init_iri_client_service(&iri_serv, iri_host, iri_port);
 
   /* setting Scylla */
-  init_scylla(&cluster, session, scylla_host, true, "zmq_table");
+  init_scylla(&cluster, session, scylla_host, scylla_port, true, "zmq_table");
 
   /* setting ZeroMQ */
   void* context = zmq_ctx_new();

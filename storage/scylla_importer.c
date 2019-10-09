@@ -23,10 +23,8 @@ int scylla_importer_logger_release() {
 }
 
 static status_t import_historical_data(CassSession* session, char* file_path) {
-  /* The format of each line in dump files is HASH,MessageAddressTagBundleTrunkBranchNonce */
-#define BUFFER_SIZE                                                                                  \
-  (NUM_FLEX_TRITS_HASH + 1 + NUM_FLEX_TRITS_MESSAGE + NUM_FLEX_TRITS_ADDRESS + NUM_FLEX_TRITS_HASH + \
-   NUM_FLEX_TRITS_BUNDLE + NUM_FLEX_TRITS_TRUNK + NUM_FLEX_TRITS_BRANCH + FLEX_TRIT_SIZE_243 + 2)
+  /* The format of each line in dump files is HASH,TRYTES,snapshot_index */
+#define BUFFER_SIZE (NUM_FLEX_TRITS_HASH + 1 + NUM_TRYTES_SERIALIZED_TRANSACTION + 12)  // 12 is for snapshot_index
   status_t ret = SC_OK;
   FILE* file = NULL;
   char* input_buffer = malloc(BUFFER_SIZE * sizeof(char));
@@ -52,7 +50,6 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
   }
 
   while (fgets(input_buffer, BUFFER_SIZE, file) != NULL) {
-    puts(input_buffer);
     if (input_buffer[strlen(input_buffer) - 1] != '\n') {
       ret = SC_STORAGE_INVAILD_INPUT;
       ta_log_error("%s\n", "historical dump file format error");
@@ -88,11 +85,14 @@ int main(int argc, char* argv[]) {
   CassCluster* cluster = NULL;
   CassSession* session = cass_session_new();
   char* scylla_host = NULL;
+  int scylla_port = 0;
   int cmdOpt;
   int optIdx;
   char* file_path = NULL;
-  const struct option longOpt[] = {
-      {"scylla_host", required_argument, NULL, 's'}, {"file", required_argument, NULL, 'f'}, {NULL, 0, NULL, 0}};
+  const struct option longOpt[] = {{"scylla_host", required_argument, NULL, 's'},
+                                   {"scylla_port", required_argument, NULL, 'p'},
+                                   {"file", required_argument, NULL, 'f'},
+                                   {NULL, 0, NULL, 0}};
 
   /* Parse the command line options */
   while (1) {
@@ -104,6 +104,9 @@ int main(int argc, char* argv[]) {
 
     if (cmdOpt == 's') {
       scylla_host = optarg;
+    }
+    if (cmdOpt == 'p') {
+      scylla_port = atoi(optarg);
     }
     if (cmdOpt == 'f') {
       file_path = optarg;
@@ -120,7 +123,7 @@ int main(int argc, char* argv[]) {
   scylla_importer_logger_init();
 
   /* setting Scylla */
-  init_scylla(&cluster, session, scylla_host, false, "zmq_table");
+  init_scylla(&cluster, session, scylla_host, scylla_port, false, "zmq_table");
   import_historical_data(session, file_path);
 
   cass_cluster_free(cluster);

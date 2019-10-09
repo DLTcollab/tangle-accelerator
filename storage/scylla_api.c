@@ -229,10 +229,13 @@ static void print_error(CassFuture* future) {
   cass_future_error_message(future, &message, &message_length);
   ta_log_error("Error: %.*s\n", (int)message_length, message);
 }
-
-static CassCluster* create_cluster(const char* hosts) {
+/* set port <= 0 to use default port */
+static CassCluster* create_cluster(const char* hosts, int port) {
   CassCluster* cluster = cass_cluster_new();
   cass_cluster_set_contact_points(cluster, hosts);
+  if (port > 0) {
+    cass_cluster_set_port(cluster, port);
+  }
   return cluster;
 }
 
@@ -403,7 +406,7 @@ static status_t create_edge_table(CassSession* session) {
 exit:
   return ret;
 }
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, int port, bool is_need_create_table,
                      const char* keyspace_name) {
   if (hosts == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
@@ -413,7 +416,7 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, b
   CassStatement* use_statement = NULL;
   char* use_query = NULL;
   /* Add contact points */
-  *cluster = create_cluster(hosts);
+  *cluster = create_cluster(hosts, port);
   if (connect_session(session, *cluster) != CASS_OK) {
     ta_log_error("%s\n", "connect Scylla cluster fail");
     ret = SC_STORAGE_CONNECT_FAIL;
