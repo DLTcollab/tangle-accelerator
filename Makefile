@@ -2,7 +2,7 @@ DCURL_DIR := third_party/dcurl
 DCURL_LIB := $(DCURL_DIR)/build/libdcurl.so
 MOSQITTO_DIR := third_party/mosquitto
 MOSQITTO_LIB := $(MOSQITTO_DIR)/lib/libmosquitto.so.1
-DEPS += $(DCURL_LIB) $(MOSQITTO_LIB)
+DEPS += $(DCURL_LIB)
 
 all: $(DEPS)
 
@@ -15,6 +15,7 @@ $(DCURL_LIB): $(DCURL_DIR)
 	$(info Modify $^/build/local.mk for your environments.)
 	$(MAKE) -C $^ all
 
+MQTT: $(DCURL_LIB) $(MOSQITTO_LIB)
 $(MOSQITTO_LIB): $(MOSQITTO_DIR)
 	git submodule update --init $^
 	@echo
@@ -22,6 +23,7 @@ $(MOSQITTO_LIB): $(MOSQITTO_DIR)
 
 clean:
 	$(MAKE) -C $(DCURL_DIR) clean
+	$(MAKE) -C $(MOSQITTO_LIB) clean
 
 distclean: clean
 	$(RM) -r $(DCURL_DIR)
