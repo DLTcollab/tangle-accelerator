@@ -34,7 +34,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
 
   status_t ret = SC_OK;
   char *json_result = NULL;
-  char device_id[ID_LEN];
+  char device_id[ID_LEN] = {0};
 
   // get the Device ID.
   ret = mqtt_device_id_deserialize(req, device_id);
@@ -49,11 +49,11 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
   } else if ((p = strstr(api_sub_topic, "tag"))) {
     if (!strncmp(p + 4, "hashes", 6)) {
-      char tag[NUM_TRYTES_TAG + 1];
+      char tag[NUM_TRYTES_TAG + 1] = {0};
       mqtt_tag_req_deserialize(req, tag);
       ret = api_find_transactions_by_tag(&ta_core.service, tag, &json_result);
     } else if (!strncmp(p + 4, "object", 6)) {
-      char tag[NUM_TRYTES_TAG + 1];
+      char tag[NUM_TRYTES_TAG + 1] = {0};
       mqtt_tag_req_deserialize(req, tag);
       ret = api_find_transactions_obj_by_tag(&ta_core.service, tag, &json_result);
     }

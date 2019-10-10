@@ -9,6 +9,7 @@ cc_library(
     deps = [
         "//accelerator:ta_config",
         "//accelerator:ta_errors",
+        "//connectivity/mqtt:mqtt_common",
         "//request",
         "//response",
         "//utils:fill_nines",

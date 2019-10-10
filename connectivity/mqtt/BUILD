@@ -32,6 +32,7 @@ cc_library(
         "sub_utils.h",
     ],
     copts = ["-DENABLE_MQTT"],
+    visibility = ["//serializer:__pkg__"],
     deps = [
         "//accelerator:ta_config",
         "//accelerator:ta_errors",
