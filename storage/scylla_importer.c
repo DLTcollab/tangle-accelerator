@@ -26,12 +26,13 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
   /* The format of each line in dump files is HASH,TRYTES,snapshot_index */
 #define BUFFER_SIZE (NUM_FLEX_TRITS_HASH + 1 + NUM_TRYTES_SERIALIZED_TRANSACTION + 12)  // 12 is for snapshot_index
   status_t ret = SC_OK;
+  FILE* list_file = NULL;
   FILE* file = NULL;
-  char* input_buffer = malloc(BUFFER_SIZE * sizeof(char));
+  char input_buffer[BUFFER_SIZE];
+  char file_name_buffer[256];
   scylla_iota_transaction_t* transaction;
 
   int buf_idx;
-
   if (input_buffer == NULL) {
     ta_log_error("%s\n", "SC_STORAGE_OOM");
     ret = SC_STORAGE_OOM;
@@ -42,42 +43,61 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
     ret = SC_STORAGE_OOM;
     goto exit;
   }
-  if ((file = fopen(file_path, "r")) == NULL) {
+  if ((list_file = fopen(file_path, "r")) == NULL) {
     /* The specified configuration file does not exist */
     ret = SC_STORAGE_OPEN_ERROR;
     ta_log_error("%s\n", "SC_STORAGE_OPEN_ERROR");
     goto exit;
   }
 
-  while (fgets(input_buffer, BUFFER_SIZE, file) != NULL) {
-    if (input_buffer[strlen(input_buffer) - 1] != '\n') {
-      ret = SC_STORAGE_INVAILD_INPUT;
-      ta_log_error("%s\n", "historical dump file format error");
+  while (fgets(file_name_buffer, 256, list_file) != NULL) {
+    int name_len = strlen(file_name_buffer);
+    if (name_len > 0) {
+      file_name_buffer[name_len - 1] = 0;
+    }
+
+    if ((file = fopen(file_name_buffer, "r")) == NULL) {
+      /* The specified configuration file does not exist */
+      ret = SC_STORAGE_OPEN_ERROR;
+      ta_log_error("open file %s fail\n", file_name_buffer);
       goto exit;
     }
-    buf_idx = 0;
-    set_transaction_hash(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_HASH);
-    buf_idx += NUM_FLEX_TRITS_HASH + 1;
-    set_transaction_message(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_MESSAGE);
-    buf_idx += NUM_FLEX_TRITS_MESSAGE;
-    set_transaction_address(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_ADDRESS);
-    buf_idx += NUM_FLEX_TRITS_ADDRESS;
-    /* skip tag */
-    buf_idx += NUM_FLEX_TRITS_HASH;
-    set_transaction_bundle(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BUNDLE);
-    buf_idx += NUM_FLEX_TRITS_BUNDLE;
-    set_transaction_trunk(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_TRUNK);
-    buf_idx += NUM_FLEX_TRITS_TRUNK;
-    set_transaction_branch(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BRANCH);
-    set_transaction_timestamp(transaction, 0);
-    set_transaction_value(transaction, 0);
 
-    insert_transaction_into_bundleTable(session, transaction, 1);
-    insert_transaction_into_edgeTable(session, transaction, 1);
+    ta_log_notice("%s %s\n", "starting import file : ", file_name_buffer);
+
+    while (fgets(input_buffer, BUFFER_SIZE, file) != NULL) {
+      if (input_buffer[strlen(input_buffer) - 1] != '\n') {
+        ret = SC_STORAGE_INVAILD_INPUT;
+        ta_log_error("%s\n", "historical dump file format error");
+        goto exit;
+      }
+
+      buf_idx = 0;
+      set_transaction_hash(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_HASH);
+      buf_idx += NUM_FLEX_TRITS_HASH + 1;
+      set_transaction_message(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_MESSAGE);
+      buf_idx += NUM_FLEX_TRITS_MESSAGE;
+      set_transaction_address(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_ADDRESS);
+      buf_idx += NUM_FLEX_TRITS_ADDRESS;
+      /* skip tag */
+      buf_idx += NUM_FLEX_TRITS_HASH;
+      set_transaction_bundle(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BUNDLE);
+      buf_idx += NUM_FLEX_TRITS_BUNDLE;
+      set_transaction_trunk(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_TRUNK);
+      buf_idx += NUM_FLEX_TRITS_TRUNK;
+      set_transaction_branch(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BRANCH);
+      set_transaction_timestamp(transaction, 0);
+      set_transaction_value(transaction, 0);
+
+      insert_transaction_into_bundleTable(session, transaction, 1);
+      insert_transaction_into_edgeTable(session, transaction, 1);
+    }
+    ta_log_notice("%s %s\n", "successfully import file : ", file_name_buffer);
   }
-
 exit:
-  free(input_buffer);
+  if (ret == SC_OK) {
+    ta_log_info("%s %s\n", "successfully import file : ", "file_path");
+  }
   return ret;
 }
 
@@ -116,7 +136,7 @@ int main(int argc, char* argv[]) {
     ta_log_error("%s\n", "TA_NULL");
     return 0;
   }
-  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
     return 0;
   }
   scylla_api_logger_init();

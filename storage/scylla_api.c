@@ -358,12 +358,14 @@ static status_t create_permanent_keyspace(CassSession* session, const char* keys
   return ret;
 }
 
-static status_t create_bundle_table(CassSession* session) {
+static status_t create_bundle_table(CassSession* session, bool is_need_drop_table) {
   status_t ret = SC_OK;
-  if (execute_query(session, "DROP TABLE IF EXISTS bundleTable;") != CASS_OK) {
-    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+  if (is_need_drop_table == true) {
+    if (execute_query(session, "DROP TABLE IF EXISTS bundleTable;") != CASS_OK) {
+      ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
+      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+      goto exit;
+    }
   }
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS bundleTable ("
@@ -384,12 +386,14 @@ exit:
   return ret;
 }
 
-static status_t create_edge_table(CassSession* session) {
+static status_t create_edge_table(CassSession* session, bool is_need_drop_table) {
   status_t ret = SC_OK;
-  if (execute_query(session, "DROP TABLE IF EXISTS edgeTable;") != CASS_OK) {
-    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+  if (is_need_drop_table == true) {
+    if (execute_query(session, "DROP TABLE IF EXISTS edgeTable;") != CASS_OK) {
+      ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
+      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+      goto exit;
+    }
   }
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS edgeTable("
@@ -406,7 +410,7 @@ static status_t create_edge_table(CassSession* session) {
 exit:
   return ret;
 }
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, int port, bool is_need_create_table,
+status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, int port, bool is_need_drop_table,
                      const char* keyspace_name) {
   if (hosts == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
@@ -438,15 +442,13 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, i
     goto exit;
   }
 
-  if (is_need_create_table == true) {
-    if ((ret = create_bundle_table(session)) != SC_OK) {
-      ta_log_error("%s\n", "create bundle table fail");
-      goto exit;
-    }
-    if ((ret = create_edge_table(session)) != SC_OK) {
-      ta_log_error("%s\n", "create edge table fail");
-      goto exit;
-    }
+  if ((ret = create_bundle_table(session, is_need_drop_table)) != SC_OK) {
+    ta_log_error("%s\n", "create bundle table fail");
+    goto exit;
+  }
+  if ((ret = create_edge_table(session, is_need_drop_table)) != SC_OK) {
+    ta_log_error("%s\n", "create edge table fail");
+    goto exit;
   }
 
 exit:
