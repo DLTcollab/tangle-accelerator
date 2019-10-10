@@ -10,6 +10,8 @@
 #define PUB_UTILS_H
 
 #include "client_common.h"
+#undef uthash_free
+#undef uthash_malloc
 #include "third_party/mosquitto/config.h"
 #include "third_party/mosquitto/lib/mqtt_protocol.h"
 

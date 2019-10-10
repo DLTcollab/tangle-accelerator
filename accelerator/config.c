@@ -131,7 +131,9 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   iconf->milestone_depth = MILESTONE_DEPTH;
   iconf->mwm = MWM;
   iconf->seed = SEED;
-  iconf->mam_file_path = tempnam(MAM_FILE_DIR, MAM_FILE_PREFIX);
+  char mam_file_path[] = MAM_FILE_PREFIX;
+  mkstemp(mam_file_path);
+  iconf->mam_file_path = mam_file_path;
 
   ta_log_info("Initializing IRI connection\n");
   service->http.path = "/";
