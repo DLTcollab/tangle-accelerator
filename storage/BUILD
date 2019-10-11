@@ -11,7 +11,7 @@ cc_library(
         "-lcassandra",
     ],
     deps = [
-        "//accelerator:common_core",
+        "//accelerator:core",
         "//accelerator:ta_errors",
     ],
 )

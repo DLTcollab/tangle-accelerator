@@ -7,7 +7,7 @@ cc_test(
     ],
     deps = [
         ":iota_api_mock",
-        "//accelerator:common_core",
+        "//accelerator:core",
     ],
 )
 
@@ -19,7 +19,7 @@ cc_library(
     hdrs = ["iota_api_mock.hh"],
     deps = [
         ":test_define",
-        "//accelerator:common_core",
+        "//accelerator:core",
         "@com_google_googletest//:gtest_main",
         "@entangled//cclient/api",
     ],

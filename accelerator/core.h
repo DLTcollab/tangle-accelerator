@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @file common_core.h
+ * @file core.h
  * @brief General tangle-accelerator core functions
  *
  * tangle-accelerator core functions provide major IOTA usage with

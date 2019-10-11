@@ -71,7 +71,7 @@ cc_library(
     hdrs = ["apis.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":common_core",
+        ":core",
         ":ta_errors",
         "//map:mode",
         "//serializer",
@@ -110,9 +110,9 @@ cc_library(
 )
 
 cc_library(
-    name = "common_core",
-    srcs = ["common_core.c"],
-    hdrs = ["common_core.h"],
+    name = "core",
+    srcs = ["core.c"],
+    hdrs = ["core.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",

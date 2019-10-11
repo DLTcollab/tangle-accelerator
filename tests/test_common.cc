@@ -8,7 +8,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "accelerator/common_core.h"
+#include "accelerator/core.h"
 #include "iota_api_mock.hh"
 
 using ::testing::AtLeast;

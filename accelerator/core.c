@@ -6,10 +6,10 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "common_core.h"
+#include "core.h"
 #include <sys/time.h>
 
-#define CC_LOGGER "common_core"
+#define CC_LOGGER "core"
 
 static logger_id_t logger_id;
 

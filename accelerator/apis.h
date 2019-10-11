@@ -9,7 +9,7 @@
 #ifndef ACCELERATOR_APIS_H_
 #define ACCELERATOR_APIS_H_
 
-#include "accelerator/common_core.h"
+#include "accelerator/core.h"
 #include "common/trinary/trit_tryte.h"
 #include "mam/api/api.h"
 #include "mam/mam/mam_channel_t_set.h"

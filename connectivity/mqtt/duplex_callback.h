@@ -10,7 +10,7 @@
 #define DUPLEX_CALLBACK_H
 
 #include "accelerator/apis.h"
-#include "accelerator/common_core.h"
+#include "accelerator/core.h"
 #include "common/model/transaction.h"
 #include "duplex_utils.h"
 #include "serializer/serializer.h"
