@@ -47,7 +47,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   char *p;
   if (!strncmp(api_sub_topic, "address", 7)) {
     ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
-  } else if (p = strstr(api_sub_topic, "tag")) {
+  } else if ((p = strstr(api_sub_topic, "tag"))) {
     if (!strncmp(p + 4, "hashes", 6)) {
       char tag[NUM_TRYTES_TAG + 1];
       mqtt_tag_req_deserialize(req, tag);
@@ -57,7 +57,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
       mqtt_tag_req_deserialize(req, tag);
       ret = api_find_transactions_obj_by_tag(&ta_core.service, tag, &json_result);
     }
-  } else if (p = strstr(api_sub_topic, "transaction")) {
+  } else if ((p = strstr(api_sub_topic, "transaction"))) {
     if (!strncmp(p + 12, "object", 6)) {
       char hash[NUM_TRYTES_HASH + 1];
       mqtt_transaction_hash_req_deserialize(req, hash);
@@ -65,7 +65,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     } else if (!strncmp(p + 12, "send", 4)) {
       ret = api_send_transfer(&ta_core.iconf, &ta_core.service, req, &json_result);
     }
-  } else if (p = strstr(api_sub_topic, "tips")) {
+  } else if ((p = strstr(api_sub_topic, "tips"))) {
     if (!strncmp(p + 5, "all", 3)) {
       ret = api_get_tips(&ta_core.service, &json_result);
     } else if (!strncmp(p + 5, "pair", 4)) {
@@ -129,6 +129,10 @@ static void connect_callback_duplex_func(struct mosquitto *mosq, void *obj, int 
 
 static void disconnect_callback_duplex_func(struct mosquitto *mosq, void *obj, mosq_retcode_t ret,
                                             const mosquitto_property *properties) {
+  UNUSED(mosq);
+  UNUSED(obj);
+  UNUSED(ret);
+  UNUSED(properties);
   // TODO we may necessitate doing something here after client is disconnected.
 }
 
@@ -138,6 +142,9 @@ static void subscribe_callback_duplex_func(struct mosquitto *mosq, void *obj, in
 }
 
 static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int level, const char *str) {
+  UNUSED(mosq);
+  UNUSED(obj);
+  UNUSED(level);
   log_info(logger_id, "log: %s\n", str);
 }
 

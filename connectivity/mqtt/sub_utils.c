@@ -51,6 +51,7 @@ void publish_callback_sub_func(struct mosquitto *mosq, void *obj, int mid, int r
 void message_callback_sub_func(struct mosquitto *mosq, void *obj, const struct mosquitto_message *message,
                                const mosquitto_property *properties) {
   mosq_config_t *cfg = (mosq_config_t *)obj;
+  UNUSED(properties);
 
   if (cfg->sub_config->remove_retained && message->retain) {
     mosquitto_publish(mosq, &cfg->general_config->last_mid, message->topic, 0, NULL, 1, true);
@@ -99,6 +100,8 @@ void connect_callback_sub_func(struct mosquitto *mosq, void *obj, int result, in
 }
 
 void subscribe_callback_sub_func(struct mosquitto *mosq, void *obj, int mid, int qos_count, const int *granted_qos) {
+  UNUSED(mosq);
+  UNUSED(obj);
   char *qos_str = (char *)calloc(qos_count, 3);
   char qos_digit[4];
   for (int i = 1; i < qos_count; i++) {

@@ -132,7 +132,7 @@ $ make && bazel run //accelerator:push_docker --host_force_python=PY2
 MQTT connectivity is an optional feature allowing IoT endpoint devices to collaborate with `Tangle-Accelerator`.
 
 ```
-make MQTT && bazel run //accelerator_mqtt
+make MQTT && bazel run //accelerator:accelerator_mqtt
 ```
 
 Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker.

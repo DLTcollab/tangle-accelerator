@@ -46,8 +46,7 @@ extern "C" {
 #define SEED                                                                   \
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
-#define MAM_FILE_DIR "/tmp"
-#define MAM_FILE_PREFIX "mam_bin_"
+#define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
 
 /** @name Redis connection config */
 /** @{ */
