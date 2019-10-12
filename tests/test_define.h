@@ -39,6 +39,7 @@ extern "C" {
 #define CURRENT_INDEX 1
 #define LAST_INDEX 2
 #define NONCE "THISTANGLEACCELERATORNONCES"
+#define THRESHOLD 100
 
 #define TRYTES_2673_LEN 2673
 #define TRYTES_2673_1                                                        \

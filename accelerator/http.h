@@ -5,6 +5,7 @@
 #include "accelerator/apis.h"
 #include "accelerator/config.h"
 #include "accelerator/errors.h"
+#include "accelerator/proxy_apis.h"
 
 #ifdef __cplusplus
 extern "C" {

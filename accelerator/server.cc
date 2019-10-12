@@ -12,6 +12,7 @@
 #include "accelerator/apis.h"
 #include "accelerator/config.h"
 #include "accelerator/errors.h"
+#include "accelerator/proxy_apis.h"
 #include "cJSON.h"
 #include "utils/logger_helper.h"
 #include "utils/macros.h"

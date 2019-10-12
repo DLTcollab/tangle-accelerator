@@ -154,55 +154,6 @@ done:
   return ret;
 }
 
-status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result) {
-  status_t ret = SC_OK;
-  find_transactions_req_t* req = find_transactions_req_new();
-  find_transactions_res_t* res = find_transactions_res_new();
-  char_buffer_t* res_buff = char_buffer_new();
-  if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
-    ta_log_error("%s\n", "SC_TA_OOM");
-    goto done;
-  }
-  lock_handle_lock(&cjson_lock);
-  if (service->serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_JSON_PARSE;
-    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
-
-  lock_handle_lock(&cjson_lock);
-  if (iota_client_find_transactions(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
-
-  if (service->serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
-    ret = SC_CCLIENT_JSON_PARSE;
-    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-    goto done;
-  }
-
-  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
-  if (*json_result == NULL) {
-    ret = SC_CCLIENT_JSON_PARSE;
-    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-    goto done;
-  }
-  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
-
-done:
-  find_transactions_req_free(&req);
-  find_transactions_res_free(&res);
-  char_buffer_free(res_buff);
-  return ret;
-}
-
 status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
                                             char** json_result) {
   status_t ret = SC_OK;
