@@ -31,13 +31,9 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
   char input_buffer[BUFFER_SIZE];
   char file_name_buffer[256];
   scylla_iota_transaction_t* transaction;
+  iota_transaction_t tx;
+  int offset;
 
-  int buf_idx;
-  if (input_buffer == NULL) {
-    ta_log_error("%s\n", "SC_STORAGE_OOM");
-    ret = SC_STORAGE_OOM;
-    goto exit;
-  }
   if (new_scylla_iota_transaction(&transaction) != SC_OK) {
     ta_log_error("%s\n", "SC_STORAGE_OOM");
     ret = SC_STORAGE_OOM;
@@ -62,7 +58,6 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
       ta_log_error("open file %s fail\n", file_name_buffer);
       goto exit;
     }
-
     ta_log_notice("%s %s\n", "starting import file : ", file_name_buffer);
 
     while (fgets(input_buffer, BUFFER_SIZE, file) != NULL) {
@@ -72,31 +67,39 @@ static status_t import_historical_data(CassSession* session, char* file_path) {
         goto exit;
       }
 
-      buf_idx = 0;
-      set_transaction_hash(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_HASH);
-      buf_idx += NUM_FLEX_TRITS_HASH + 1;
-      set_transaction_message(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_MESSAGE);
-      buf_idx += NUM_FLEX_TRITS_MESSAGE;
-      set_transaction_address(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_ADDRESS);
-      buf_idx += NUM_FLEX_TRITS_ADDRESS;
-      /* skip tag */
-      buf_idx += NUM_FLEX_TRITS_HASH;
-      set_transaction_bundle(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BUNDLE);
-      buf_idx += NUM_FLEX_TRITS_BUNDLE;
-      set_transaction_trunk(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_TRUNK);
-      buf_idx += NUM_FLEX_TRITS_TRUNK;
-      set_transaction_branch(transaction, (cass_byte_t*)(input_buffer + buf_idx), NUM_FLEX_TRITS_BRANCH);
-      set_transaction_timestamp(transaction, 0);
-      set_transaction_value(transaction, 0);
+      offset = 0;
+      set_transaction_hash(transaction, (cass_byte_t*)(input_buffer + offset), NUM_FLEX_TRITS_HASH);
+      offset += NUM_FLEX_TRITS_HASH + 1;
+      if (transaction_deserialize_from_trits(&tx, (const flex_trit_t* const)(input_buffer + offset), true) == 0) {
+        ta_log_error("deserialize trytes fail\n");
+        continue;
+      }
 
-      insert_transaction_into_bundleTable(session, transaction, 1);
-      insert_transaction_into_edgeTable(session, transaction, 1);
+      set_transaction_message(transaction, (cass_byte_t*)tx.data.signature_or_message, NUM_FLEX_TRITS_MESSAGE);
+      set_transaction_address(transaction, (cass_byte_t*)tx.essence.address, NUM_FLEX_TRITS_ADDRESS);
+      set_transaction_bundle(transaction, (cass_byte_t*)tx.essence.bundle, NUM_FLEX_TRITS_BUNDLE);
+      set_transaction_trunk(transaction, (cass_byte_t*)tx.attachment.trunk, NUM_FLEX_TRITS_TRUNK);
+      set_transaction_branch(transaction, (cass_byte_t*)tx.attachment.branch, NUM_FLEX_TRITS_BRANCH);
+      set_transaction_timestamp(transaction, (int64_t)tx.essence.timestamp);
+      set_transaction_value(transaction, tx.essence.value);
+
+      if (insert_transaction_into_bundleTable(session, transaction, 1) != SC_OK) {
+        ta_log_error("fail to insert transaction %s in %s\n", ret_transaction_hash(transaction), file_name_buffer);
+        continue;
+      }
+      if (insert_transaction_into_edgeTable(session, transaction, 1) != SC_OK) {
+        ta_log_error("fail to insert transaction %s in %s\n", ret_transaction_hash(transaction), file_name_buffer);
+        continue;
+      }
     }
-    ta_log_notice("%s %s\n", "successfully import file : ", file_name_buffer);
+    ta_log_notice("successfully import file : %s\n", file_name_buffer);
   }
+
 exit:
   if (ret == SC_OK) {
-    ta_log_info("%s %s\n", "successfully import file : ", "file_path");
+    ta_log_info("%s %s\n", "successfully import file : ", file_path);
+  } else {
+    ta_log_error("fail to import file : %s\n", file_path);
   }
   return ret;
 }
@@ -113,7 +116,6 @@ int main(int argc, char* argv[]) {
                                    {"scylla_port", required_argument, NULL, 'p'},
                                    {"file", required_argument, NULL, 'f'},
                                    {NULL, 0, NULL, 0}};
-
   /* Parse the command line options */
   while (1) {
     cmdOpt = getopt_long(argc, argv, "sf:", longOpt, &optIdx);
