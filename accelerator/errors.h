@@ -64,15 +64,46 @@ extern "C" {
 /** @} */
 
 /* logger's wrapper (sorted by priority) */
-#define ta_log_debug(fmt, args...) log_debug(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_info(fmt, args...) log_info(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_notice(fmt, args...) log_notice(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_warning(fmt, args...) log_warning(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_error(fmt, args...) log_error(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_critical(fmt, args...) log_critical(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_alert(fmt, args...) log_alert(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-#define ta_log_emergency(fmt, args...) log_emergency(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args)
-
+#define ta_log_debug(args...)                               \
+  do {                                                      \
+    log_debug(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_debug(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_info(args...)                               \
+  do {                                                     \
+    log_info(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_info(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_notice(args...)                               \
+  do {                                                       \
+    log_notice(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_notice(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_warning(args...)                               \
+  do {                                                        \
+    log_warning(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_warning(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_error(args...)                               \
+  do {                                                      \
+    log_error(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_error(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_critical(args...)                               \
+  do {                                                         \
+    log_critical(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_critical(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_alert(args...)                               \
+  do {                                                      \
+    log_alert(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_alert(logger_id, ##args);                           \
+  } while (0)
+#define ta_log_emergency(args...)                               \
+  do {                                                          \
+    log_emergency(logger_id, "[%s : %d] ", __func__, __LINE__); \
+    log_emergency(logger_id, ##args);                           \
+  } while (0)
 bool verbose_mode; /**< flag of verbose mode */
 
 /* status code */
