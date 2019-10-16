@@ -88,10 +88,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_errors",
+        "//utils:ta_logger",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
         "@entangled//cclient/response:responses",
-        "@entangled//utils:logger_helper",
     ],
 )
 
@@ -138,6 +138,7 @@ cc_library(
         ":ta_errors",
         "//utils:cache",
         "//utils:pow",
+        "//utils:ta_logger",
         "@entangled//cclient/api",
         "@yaml",
     ],

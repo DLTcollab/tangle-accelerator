@@ -5,9 +5,9 @@ cc_library(
     srcs = ["backend_redis.c"],
     hdrs = ["cache.h"],
     deps = [
+        ":ta_logger",
         "//accelerator:ta_errors",
         "@entangled//common/trinary:flex_trit",
-        "@entangled//utils:logger_helper",
         "@hiredis",
     ],
 )
@@ -17,13 +17,13 @@ cc_library(
     srcs = ["pow.c"],
     hdrs = ["pow.h"],
     deps = [
+        ":ta_logger",
         "//accelerator:ta_errors",
         "//third_party:dcurl",
         "@com_github_uthash//:uthash",
         "@entangled//common/helpers:digest",
         "@entangled//common/model:bundle",
         "@entangled//common/trinary:flex_trit",
-        "@entangled//utils:logger_helper",
         "@entangled//utils:time",
     ],
 )
@@ -44,5 +44,13 @@ cc_library(
     deps = [
         "@com_github_uthash//:uthash",
         "@entangled//common/model:bundle",
+    ],
+)
+
+cc_library(
+    name = "ta_logger",
+    srcs = ["logger.h"],
+    deps = [
+        "@entangled//utils:logger_helper",
     ],
 )

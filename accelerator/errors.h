@@ -63,40 +63,6 @@ extern "C" {
 #define SC_ERROR_MASK 0x003F
 /** @} */
 
-/* logger's wrapper (sorted by priority)
-   debug : Debug messages only show when debug build and can be usㄍd in development or troubleshooting.
-   info  : Information about programs' progress or useful information to users.
-   warning : Potential problems or failure which users should care about.
-   error : Error events prevent programs to execute normally.
-*/
-
-#define ta_log_debug(args...)                               \
-  do {                                                      \
-    log_debug(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_debug(logger_id, ##args);                           \
-    fflush(stdout);                                         \
-  } while (0)
-#define ta_log_info(args...)                               \
-  do {                                                     \
-    log_info(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_info(logger_id, ##args);                           \
-    fflush(stdout);                                        \
-  } while (0)
-#define ta_log_warning(args...)                               \
-  do {                                                        \
-    log_warning(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_warning(logger_id, ##args);                           \
-    fflush(stdout);                                           \
-  } while (0)
-#define ta_log_error(args...)                               \
-  do {                                                      \
-    log_error(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_error(logger_id, ##args);                           \
-    fflush(stdout);                                         \
-  } while (0)
-
-bool verbose_mode; /**< flag of verbose mode */
-
 /* status code */
 typedef enum {
   SC_OK = 0, /**< No error */

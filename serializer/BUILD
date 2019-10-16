@@ -12,12 +12,12 @@ cc_library(
         "//request",
         "//response",
         "//utils:fill_nines",
+        "//utils:ta_logger",
         "@cJSON",
         "@entangled//cclient/response:responses",
         "@entangled//common/trinary:flex_trit",
         "@entangled//common/trinary:tryte_ascii",
         "@entangled//utils:char_buffer",
-        "@entangled//utils:logger_helper",
         "@entangled//utils/containers/hash:hash_array",
     ],
 )

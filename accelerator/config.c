@@ -7,7 +7,6 @@
  */
 
 #include "config.h"
-#include "utils/logger_helper.h"
 #include "utils/macros.h"
 #include "yaml.h"
 

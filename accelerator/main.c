@@ -1,7 +1,7 @@
 #include "accelerator/errors.h"
 #include "accelerator/http.h"
 #include "utils/handles/signal.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MAIN_LOGGER "main"
 
@@ -21,15 +21,9 @@ int main(int argc, char* argv[]) {
   }
 
   // Initialize logger
-#ifdef DEBUG
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() == false) {
     return EXIT_FAILURE;
   }
-#else
-  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
-    return EXIT_FAILURE;
-  }
-#endif
 
   logger_id = logger_helper_enable(MAIN_LOGGER, LOGGER_DEBUG, true);
 

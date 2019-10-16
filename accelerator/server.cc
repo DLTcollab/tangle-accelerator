@@ -14,7 +14,7 @@
 #include "accelerator/errors.h"
 #include "accelerator/proxy_apis.h"
 #include "cJSON.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 #include "utils/macros.h"
 
 #define SERVER_LOGGER "server"
@@ -70,15 +70,9 @@ int main(int argc, char* argv[]) {
   mux.use_after(served::plugin::access_log);
 
   // Initialize logger
-#ifdef DEBUG
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() == false) {
     return EXIT_FAILURE;
   }
-#else
-  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
-    return EXIT_FAILURE;
-  }
-#endif
 
   logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 

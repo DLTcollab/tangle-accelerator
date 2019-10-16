@@ -15,7 +15,7 @@ extern "C" {
 #include "cassandra.h"
 #include "common/model/transaction.h"
 #include "utils/containers/hash/hash243_queue.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;
 

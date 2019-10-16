@@ -58,15 +58,9 @@ int main(void) {
   UNITY_BEGIN();
 
   // Initialize logger
-#ifdef DEBUG
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() == false) {
     return EXIT_FAILURE;
   }
-#else
-  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
-    return EXIT_FAILURE;
-  }
-#endif
 
   pow_logger_init();
   pow_init();

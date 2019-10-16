@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MQTT_UTILS_LOGGER "mqtt-utils"
 

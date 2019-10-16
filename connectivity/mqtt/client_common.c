@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MQTT_COMMON_LOGGER "mqtt-common"
 static logger_id_t logger_id;

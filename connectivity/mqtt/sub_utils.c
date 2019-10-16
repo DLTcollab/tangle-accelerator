@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MQTT_SUB_LOGGER "mqtt-sub"
 static logger_id_t logger_id;

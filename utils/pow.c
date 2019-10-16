@@ -9,7 +9,7 @@
 #include "pow.h"
 #include "common/helpers/digest.h"
 #include "third_party/dcurl/src/dcurl.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 #include "utils/time.h"
 
 #define POW_LOGGER "pow"

@@ -176,15 +176,9 @@ int main(int argc, char** argv) {
   }
   UNITY_BEGIN();
 
-#ifdef DEBUG
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() == false) {
     return EXIT_FAILURE;
   }
-#else
-  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
-    return EXIT_FAILURE;
-  }
-#endif
   scylla_api_logger_init();
 
   RUN_TEST(test_scylla);

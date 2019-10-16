@@ -7,7 +7,7 @@
  */
 
 #include "serializer.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define SERI_LOGGER "serializer"
 
