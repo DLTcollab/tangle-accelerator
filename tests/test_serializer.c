@@ -326,9 +326,15 @@ int main(void) {
   UNITY_BEGIN();
 
   // Initialize logger
-  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+#ifdef DEBUG
+  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
     return EXIT_FAILURE;
   }
+#else
+  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+#endif
 
   serializer_logger_init();
   RUN_TEST(test_serialize_ta_generate_address);

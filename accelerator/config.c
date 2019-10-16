@@ -304,7 +304,7 @@ status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const ser
   }
 
   if (iota_client_core_init(service)) {
-    ta_log_critical("Initializing IRI connection failed!\n");
+    ta_log_error("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
   }
   iota_client_extended_init();

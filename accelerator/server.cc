@@ -70,9 +70,15 @@ int main(int argc, char* argv[]) {
   mux.use_after(served::plugin::access_log);
 
   // Initialize logger
+#ifdef DEBUG
   if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
     return EXIT_FAILURE;
   }
+#else
+  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
+    return EXIT_FAILURE;
+  }
+#endif
 
   logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
@@ -92,13 +98,13 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    ta_log_critical("Configure failed %s.\n", SERVER_LOGGER);
+    ta_log_error("Configure failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
 
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {
-    ta_log_critical("Lock initialization failed %s.\n", SERVER_LOGGER);
+    ta_log_error("Lock initialization failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -477,7 +483,7 @@ int main(int argc, char* argv[]) {
   server.run(ta_core.info.thread_count);
 
   if (apis_lock_destroy() != SC_OK) {
-    ta_log_critical("Destroying api lock failed %s.\n", SERVER_LOGGER);
+    ta_log_error("Destroying api lock failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
   ta_config_destroy(&ta_core.service);
