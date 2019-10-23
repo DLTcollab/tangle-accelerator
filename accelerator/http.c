@@ -120,43 +120,37 @@ static int set_response_content(status_t ret, char **json_result) {
 }
 
 static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_generate_address(&http->core->iconf, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txn_hash_request(ta_http_t *const http, char const *const payload, char **const out) {
-  status_t ret = SC_OK;
-  ret = api_find_transactions(&http->core->service, payload, out);
-  return set_response_content(ret, out);
-}
-
 static inline int process_find_txn_obj_request(ta_http_t *const http, char const *const payload, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_find_transaction_objects(&http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_get_tips_pair_request(ta_http_t *const http, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_get_tips_pair(&http->core->iconf, &http->core->service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_get_tips_request(ta_http_t *const http, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_get_tips(&http->core->service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_send_transfer(&http->core->iconf, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_recv_mam_msg_request(ta_http_t *const http, char const *const url, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
   if (ret == SC_OK) {
@@ -166,14 +160,26 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
 }
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_mam_send_message(&http->core->iconf, &http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
-  status_t ret = SC_OK;
+  status_t ret;
   ret = api_send_trytes(&http->core->iconf, &http->core->service, payload, out);
+  return set_response_content(ret, out);
+}
+
+static inline int process_get_ta_info_request(ta_http_t *const http, char **const out) {
+  status_t ret;
+  ret = api_get_ta_info(&http->core->info, &http->core->iconf, &http->core->cache, &http->core->service, out);
+  return set_response_content(ret, out);
+}
+
+static inline int process_proxy_api_request(ta_http_t *const http, char const *const payload, char **const out) {
+  status_t ret;
+  ret = api_proxy_apis(&http->core->service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -206,12 +212,6 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
 
   if (ta_http_url_matcher(url, "/address") == SC_OK) {
     return process_generate_address_request(http, out);
-  } else if (ta_http_url_matcher(url, "/transaction/hash") == SC_OK) {
-    if (payload != NULL) {
-      return process_find_txn_hash_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
-    }
   } else if (ta_http_url_matcher(url, "/transaction/object") == SC_OK) {
     if (payload != NULL) {
       return process_find_txn_obj_request(http, payload, out);
@@ -241,6 +241,14 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
       return process_send_trytes_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
+    }
+  } else if (ta_http_url_matcher(url, "/") == SC_OK) {
+    if (payload == NULL) {
+      // GET request
+      return process_get_ta_info_request(http, out);
+    } else {
+      // POST request
+      return process_proxy_api_request(http, payload, out);
     }
   } else {
     return process_invalid_path_request(out);

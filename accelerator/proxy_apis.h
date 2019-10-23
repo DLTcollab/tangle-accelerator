@@ -13,6 +13,7 @@
 #include "cclient/api/core/core_api.h"
 #include "cclient/request/requests.h"
 #include "cclient/response/responses.h"
+#include "serializer/serializer.h"
 #include "utils/logger.h"
 
 #ifdef __cplusplus
@@ -61,98 +62,17 @@ status_t proxy_apis_lock_init();
 status_t proxy_apis_lock_destroy();
 
 /**
- * @brief Proxy API of checkConsistency
+ * @brief Proxy API of IOTA core functionalities
  *
  * @param[in] service IRI node end point service
- * @param[in] obj Transaction hashes to check
- * @param[out] json_result Result containing transaction objects in json format
+ * @param[in] obj IOTA core APIs request body
+ * @param[out] json_result Result of IOTA core APIs
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_check_consistency(const iota_client_service_t* const service, const char* const obj, char** json_result);
-
-/**
- * @brief Return transaction hashes with given information such as bundle hashes, addresses, tags, or approvees.
- *
- * Explore transaction hash with given transaction related information. This would
- * return a list of transaction hashes in json format.
- *
- * @param[in] service IRI node end point service
- * @param[in] obj bundle hashes, addresses, tags, or approvees.
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result);
-
-/**
- * @brief Proxy API of getBalances
- *
- * @param[in] service IRI node end point service
- * @param[in] obj Addresses, threshold or tips
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_balances(const iota_client_service_t* const service, const char* const obj, char** json_result);
-
-/**
- * @brief Proxy API of getInclusionStates
- *
- * @param[in] service IRI node end point service
- * @param[in] obj Transactions or tips
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_inclusion_states(const iota_client_service_t* const service, const char* const obj,
-                                  char** json_result);
-
-/**
- * @brief Proxy API of getNodeInfo
- *
- * @param[in] service IRI node end point service
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_node_info(const iota_client_service_t* const service, char** json_result);
-
-/**
- * @brief Proxy API of getTrytes
- *
- * @param[in] service IRI node end point service
- * @param[in] obj Transaction hashes
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_trytes(const iota_client_service_t* const service, const char* const obj, char** json_result);
-
-/**
- * @brief Proxy API of removeNeighbors
- *
- * @param[in] service IRI node end point service
- * @param[in] obj Strings of neighbor URIs to remove
- * @param[out] json_result Result containing transaction objects in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_remove_neighbors(const iota_client_service_t* const service, const char* const obj, char** json_result);
+status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }

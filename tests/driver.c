@@ -17,33 +17,22 @@ struct timespec start_time, end_time;
 char driver_tag_msg[NUM_TRYTES_TAG];
 ta_send_mam_res_t* res;
 
-/**
- * TODO: Since there are two kinds of formats to call IRI Proxy API,
- * so here are two formats of function pointer. Once the number of
- * parameters of existing APIs is varied, the function pointer must
- * be updated as well.
- **/
-typedef status_t (*Proxy_apis)(const iota_client_service_t* const service, const char* const obj, char** json_result);
-typedef status_t (*Proxy_apis_without_args)(const iota_client_service_t* const service, char** json_result);
-
 static struct proxy_apis_s {
-  Proxy_apis api;                            // function pointer of IRI Proxy API with args
-  Proxy_apis_without_args api_without_args;  // function pointer of IRI Proxy API without args
   const char* name;
   const char* json;  // args which are passed to IRI API
-} proxy_apis_g[] = {{api_check_consistency, NULL, "check_consistency",
+} proxy_apis_g[] = {{"check_consistency",
                      "{\"command\":\"checkConsistency\","
                      "\"tails\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
-                    {api_get_balances, NULL, "get_balances",
+                    {"get_balances",
                      "{\"command\":\"getBalances\","
                      "\"addresses\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
                      "\"threshold\":" STR(THRESHOLD) "}"},
-                    {api_get_inclusion_states, NULL, "get_inclusion_states",
+                    {"get_inclusion_states",
                      "{\"command\":\"getInclusionStates\","
                      "\"transactions\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
                      "\"tips\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
-                    {NULL, api_get_node_info, "get_node_info", NULL},
-                    {api_get_trytes, NULL, "get_trytes",
+                    {"get_node_info", "{\"command\": \"getNodeInfo\"}"},
+                    {"get_trytes",
                      "{\"command\":\"getTrytes\","
                      "\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"}};
 
@@ -162,20 +151,6 @@ void test_send_trytes(void) {
   printf("Average time of send_trytes: %lf\n", sum / TEST_COUNT);
 }
 
-void test_find_transactions(void) {
-  const char* json = "{\"addresses\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}";
-  char* json_result;
-  double sum = 0;
-
-  for (size_t count = 0; count < TEST_COUNT; count++) {
-    test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions(&ta_core.service, json, &json_result));
-    test_time_end(&start_time, &end_time, &sum);
-    free(json_result);
-  }
-  printf("Average time of find_transactions: %lf\n", sum / TEST_COUNT);
-}
-
 void test_find_transaction_objects(void) {
   const char* json = "{\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}";
   char* json_result;
@@ -220,31 +195,18 @@ void test_find_transactions_obj_by_tag(void) {
 
 void test_send_mam_message(void) {
   double sum = 0;
-  const char* json =
-      "{\"seed\":\"" TRYTES_81_1
-      "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) ",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(
-          TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(TEST_EP_DEPTH) ",\"ntru_pk\":\"" TEST_NTRU_PK
-                                                                 "\",\"psk\":\"" TRYTES_81_2 "\"}";
-  char* json_result = NULL;
+  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
+  char* json_result;
   res = send_mam_res_new();
-  status_t ret = SC_OK;
-  bool result = false;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    ret = api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result);
-    if (ret == SC_OK || ret == SC_MAM_ALL_MSS_KEYS_USED) {
-      result = true;
-    }
-    TEST_ASSERT_TRUE(result);
-
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result));
     send_mam_res_deserialize(json_result, res);
 
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
-    json_result = NULL;
   }
-  free(json_result);
   printf("Average time of send_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
@@ -254,8 +216,9 @@ void test_receive_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK,
-                            api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->chid, &json_result));
+
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->channel_id, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -269,11 +232,7 @@ void test_proxy_apis() {
 
     for (size_t count = 0; count < TEST_COUNT; count++) {
       test_time_start(&start_time);
-      if (proxy_apis_g[i].json != NULL) {
-        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api(&ta_core.service, proxy_apis_g[i].json, &json_result));
-      } else {
-        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api_without_args(&ta_core.service, &json_result));
-      }
+      TEST_ASSERT_EQUAL_INT32(SC_OK, api_proxy_apis(&ta_core.service, proxy_apis_g[i].json, &json_result));
       test_time_end(&start_time, &end_time, &sum);
       free(json_result);
     }
@@ -301,7 +260,6 @@ int main(void) {
   RUN_TEST(test_send_transfer);
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
-  RUN_TEST(test_find_transactions);
   RUN_TEST(test_send_mam_message);
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
