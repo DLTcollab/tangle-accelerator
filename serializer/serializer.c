@@ -867,3 +867,27 @@ done:
   cJSON_Delete(json_obj);
   return ret;
 }
+
+status_t proxy_apis_command_req_deserialize(const char* const obj, char* command) {
+  if (obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  ret = ta_json_get_string(json_obj, "command", command);
+  if (ret != SC_OK) {
+    ta_log_error("%d\n", ret);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}

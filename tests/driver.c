@@ -42,7 +42,7 @@ static struct proxy_apis_s {
                      "{\"command\":\"getInclusionStates\","
                      "\"transactions\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
                      "\"tips\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
-                    {NULL, api_get_node_info, "get_node_info", NULL},
+                    {NULL, api_get_node_info, "get_node_info", "{\"command\": \"getNodeInfo\"}"},
                     {api_get_trytes, NULL, "get_trytes",
                      "{\"command\":\"getTrytes\","
                      "\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"}};
@@ -257,11 +257,7 @@ void test_proxy_apis() {
 
     for (size_t count = 0; count < TEST_COUNT; count++) {
       test_time_start(&start_time);
-      if (proxy_apis_g[i].json != NULL) {
-        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api(&ta_core.service, proxy_apis_g[i].json, &json_result));
-      } else {
-        TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_apis_g[i].api_without_args(&ta_core.service, &json_result));
-      }
+      TEST_ASSERT_EQUAL_INT32(SC_OK, api_proxy_apis(&ta_core.service, proxy_apis_g[i].json, &json_result));
       test_time_end(&start_time, &end_time, &sum);
       free(json_result);
     }
@@ -283,6 +279,7 @@ int main(void) {
   ta_config_set(&ta_core.cache, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
+  /*
   RUN_TEST(test_generate_address);
   RUN_TEST(test_get_tips_pair);
   RUN_TEST(test_get_tips);
@@ -294,6 +291,7 @@ int main(void) {
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
+  */
   RUN_TEST(test_proxy_apis);
   ta_config_destroy(&ta_core.service);
   return UNITY_END();

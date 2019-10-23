@@ -13,6 +13,7 @@
 #include "cclient/api/core/core_api.h"
 #include "cclient/request/requests.h"
 #include "cclient/response/responses.h"
+#include "serializer/serializer.h"
 #include "utils/logger_helper.h"
 
 #ifdef __cplusplus
@@ -59,6 +60,19 @@ status_t proxy_apis_lock_init();
  * - SC_CONF_LOCK_DESTROY on error
  */
 status_t proxy_apis_lock_destroy();
+
+/**
+ * @brief Proxy API of IOTA cor APIs
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] obj IOTA core APIs request body
+ * @param[out] json_result Result of IOTA core APIs
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result);
 
 /**
  * @brief Proxy API of checkConsistency

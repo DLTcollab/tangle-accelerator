@@ -465,10 +465,42 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_get_ta_info(&json_result, &ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
+        ret = api_get_ta_info(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {post} / IOTA proxy api
+   *
+   * @return {String} IOTA proxy api response
+   */
+  mux.handle("/")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
+
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_proxy_apis(&ta_core.service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
         res << json_result;
       });
 

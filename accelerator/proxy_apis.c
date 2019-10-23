@@ -49,7 +49,7 @@ status_t proxy_apis_lock_destroy() {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
+static status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
   *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     ta_log_error("%s\n", "SC_TA_OOM");
@@ -58,6 +58,39 @@ status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
   snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
 
   return SC_OK;
+}
+
+status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+  status_t ret = SC_OK;
+  const uint8_t max_cmd_len = 30;
+  char command[max_cmd_len];
+
+  proxy_apis_command_req_deserialize(obj, command);
+  // TODO more proxy APIs should be implemented
+  if (strncmp(command, "checkConsistency", strlen("checkConsistency")) == 0) {
+    ret = api_check_consistency(service, obj, json_result);
+  } else if (strncmp(command, "findTransactions", strlen("findTransactions")) == 0) {
+    ret = api_find_transactions(service, obj, json_result);
+  } else if (strncmp(command, "getBalances", strlen("getBalances")) == 0) {
+    ret = api_get_balances(service, obj, json_result);
+  } else if (strncmp(command, "getInclusionStates", strlen("getInclusionStates")) == 0) {
+    ret = api_get_inclusion_states(service, obj, json_result);
+  } else if (strncmp(command, "getNodeInfo", strlen("getNodeInfo")) == 0) {
+    ret = api_get_node_info(service, json_result);
+  } else if (strncmp(command, "getTrytes", strlen("getTrytes")) == 0) {
+    ret = api_get_trytes(service, obj, json_result);
+  } else {
+    ret = SC_HTTP_URL_NOT_MATCH;
+    ta_log_error("%s\n", "SC_HTTP_URL_NOT_MATCH");
+    goto done;
+  }
+
+  if (ret) {
+    ta_log_error("%d\n", ret);
+  }
+
+done:
+  return ret;
 }
 
 status_t api_check_consistency(const iota_client_service_t* const service, const char* const obj, char** json_result) {

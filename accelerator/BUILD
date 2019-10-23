@@ -88,6 +88,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_errors",
+        "//serializer",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
         "@entangled//cclient/response:responses",

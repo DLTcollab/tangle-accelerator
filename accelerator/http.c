@@ -177,6 +177,18 @@ static inline int process_send_trytes_request(ta_http_t *const http, char const 
   return set_response_content(ret, out);
 }
 
+static inline int process_get_ta_info_request(ta_http_t *const http, char **const out) {
+  status_t ret = SC_OK;
+  ret = api_get_ta_info(&http->core->info, &http->core->iconf, &http->core->cache, &http->core->service, out);
+  return set_response_content(ret, out);
+}
+
+static inline int process_proxy_api_request(ta_http_t *const http, char const *const payload, char **const out) {
+  status_t ret = SC_OK;
+  ret = api_proxy_apis(&http->core->service, payload, out);
+  return set_response_content(ret, out);
+}
+
 static inline int process_invalid_path_request(char **const out) {
   cJSON *json_obj = cJSON_CreateObject();
   cJSON_AddStringToObject(json_obj, "message", "Invalid path");
@@ -241,6 +253,14 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
       return process_send_trytes_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
+    }
+  } else if (ta_http_url_matcher(url, "/") == SC_OK) {
+    if (payload == NULL) {
+      // GET request
+      return process_get_ta_info_request(http, out);
+    } else {
+      // POST request
+      return process_proxy_api_request(http, payload, out);
     }
   } else {
     return process_invalid_path_request(out);
