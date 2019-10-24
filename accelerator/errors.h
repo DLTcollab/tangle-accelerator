@@ -79,6 +79,8 @@ typedef enum {
   /**< NULL TA objects */
   SC_TA_WRONG_REQUEST_OBJ = 0x03 | SC_MODULE_TA | SC_SEVERITY_FATAL,
   /**< wrong TA request object */
+  SC_TA_LOGGER_INIT_FAIL = 0x04 | SC_MODULE_TA | SC_SEVERITY_MAJOR,
+  /**< fail to init ta logger */
 
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,

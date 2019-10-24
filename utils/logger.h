@@ -14,17 +14,23 @@ extern "C" {
 
 #include "utils/logger_helper.h"
 
-static inline bool ta_logger_init() {
 #ifdef NDEBUG
-  if (logger_helper_init(LOGGER_INFO) != RC_OK) {
-    return false;
-  }
+#define TA_LOGGER_LEVEL LOGGER_INFO
 #else
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
-    return false;
-  }
+#define TA_LOGGER_LEVEL LOGGER_DEBUG
 #endif
-  return true;
+
+/**
+ * @brief initialize logger level according to build type.
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+static inline status_t ta_logger_init() {
+  if (logger_helper_init(TA_LOGGER_LEVEL) != RC_OK) {
+    return SC_TA_LOGGER_INIT_FAIL;
+  }
+  return SC_OK;
 }
 
 /*
@@ -60,13 +66,6 @@ static inline bool ta_logger_init() {
   } while (0)
 
 bool verbose_mode; /**< flag of verbose mode */
-/*
-#define ta_logger_declare(module, level) \
-  void module##_logger_init() { logger_id = logger_helper_enable(#module, level, true); } \
-  int module##_logger_release() {
-    logger_helper_release
-  }
-*/
 
 #ifdef __cplusplus
 }

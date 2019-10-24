@@ -326,7 +326,7 @@ int main(void) {
   UNITY_BEGIN();
 
   // Initialize logger
-  if (ta_logger_init() == false) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 

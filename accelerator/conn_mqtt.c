@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   struct mosquitto *mosq = NULL;
 
   // Initialize logger
-  if (ta_logger_init() == false) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 

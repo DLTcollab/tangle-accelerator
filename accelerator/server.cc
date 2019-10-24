@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
   mux.use_after(served::plugin::access_log);
 
   // Initialize logger
-  if (ta_logger_init() == false) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 
