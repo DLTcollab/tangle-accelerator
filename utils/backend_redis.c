@@ -121,7 +121,7 @@ void cache_stop() {
 
 status_t cache_del(const char* const key) {
   if (!cache_state) {
-    ta_log_error("%s\n", "SC_CACHE_OFF");
+    ta_log_info("%s\n", "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_del(CONN(cache)->rc, key);
@@ -129,7 +129,7 @@ status_t cache_del(const char* const key) {
 
 status_t cache_get(const char* const key, char* res) {
   if (!cache_state) {
-    ta_log_error("%s\n", "SC_CACHE_OFF");
+    ta_log_info("%s\n", "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_get(CONN(cache)->rc, key, res);
@@ -137,7 +137,7 @@ status_t cache_get(const char* const key, char* res) {
 
 status_t cache_set(const char* const key, const char* const value) {
   if (!cache_state) {
-    ta_log_error("%s\n", "SC_CACHE_OFF");
+    ta_log_info("%s\n", "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
   return redis_set(CONN(cache)->rc, key, value);
