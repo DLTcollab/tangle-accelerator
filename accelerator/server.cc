@@ -466,7 +466,7 @@ int main(int argc, char* argv[]) {
         char* json_result = NULL;
 
         ret = api_get_ta_info(&json_result, &ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
-
+        ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
         res << json_result;
