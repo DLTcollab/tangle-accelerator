@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MQTT_PUB_LOGGER "mqtt-pub"
 static logger_id_t logger_id;
@@ -20,7 +20,7 @@ void mqtt_pub_logger_init() { logger_id = logger_helper_enable(MQTT_PUB_LOGGER, 
 int mqtt_pub_logger_release() {
   logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    ta_log_critical("Destroying logger failed %s.\n", MQTT_PUB_LOGGER);
+    ta_log_error("Destroying logger failed %s.\n", MQTT_PUB_LOGGER);
     return EXIT_FAILURE;
   }
 

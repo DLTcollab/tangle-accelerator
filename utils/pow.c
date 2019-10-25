@@ -9,7 +9,7 @@
 #include "pow.h"
 #include "common/helpers/digest.h"
 #include "third_party/dcurl/src/dcurl.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 #include "utils/time.h"
 
 #define POW_LOGGER "pow"
@@ -21,7 +21,7 @@ void pow_logger_init() { logger_id = logger_helper_enable(POW_LOGGER, LOGGER_DEB
 int pow_logger_release() {
   logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    ta_log_critical("Destroying logger failed %s.\n", POW_LOGGER);
+    ta_log_error("Destroying logger failed %s.\n", POW_LOGGER);
     return EXIT_FAILURE;
   }
 

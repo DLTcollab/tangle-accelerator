@@ -1,7 +1,7 @@
 #include "accelerator/errors.h"
 #include "accelerator/http.h"
 #include "utils/handles/signal.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define MAIN_LOGGER "main"
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Initialize logger
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -43,13 +43,13 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    ta_log_critical("Configure failed %s.\n", MAIN_LOGGER);
+    ta_log_error("Configure failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {
-    ta_log_critical("Lock initialization failed %s.\n", MAIN_LOGGER);
+    ta_log_error("Lock initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -63,12 +63,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
-    ta_log_critical("HTTP initialization failed %s.\n", MAIN_LOGGER);
+    ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
 
   if (ta_http_start(&ta_http) != SC_OK) {
-    ta_log_critical("Starting TA failed %s.\n", MAIN_LOGGER);
+    ta_log_error("Starting TA failed %s.\n", MAIN_LOGGER);
     goto cleanup;
   }
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 cleanup:
   log_warning(logger_id, "Destroying API lock\n");
   if (apis_lock_destroy() != SC_OK) {
-    ta_log_critical("Destroying api lock failed %s.\n", MAIN_LOGGER);
+    ta_log_error("Destroying api lock failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
   log_warning(logger_id, "Destroying TA configurations\n");
@@ -90,7 +90,7 @@ cleanup:
     http_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
-      ta_log_critical("Destroying logger failed %s.\n", MAIN_LOGGER);
+      ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
       return EXIT_FAILURE;
     }
   }

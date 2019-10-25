@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   struct mosquitto *mosq = NULL;
 
   // Initialize logger
-  if (logger_helper_init(LOGGER_DEBUG) != RC_OK) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    ta_log_critical("Configure failed %s.\n", CONN_MQTT_LOGGER);
+    ta_log_error("Configure failed %s.\n", CONN_MQTT_LOGGER);
     return EXIT_FAILURE;
   }
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   // if we want to opertate this program under multi-threading, see https://github.com/eclipse/mosquitto/issues/450
   ret = duplex_config_init(&mosq, &cfg);
   if (ret != SC_OK) {
-    ta_log_critical("%d\n", ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
   // Set the configures and message for testing
   ret = gossip_api_channels_set(&cfg, ta_core.info.mqtt_host, ta_core.info.mqtt_topic_root);
   if (ret != SC_OK) {
-    ta_log_critical("%d\n", ret);
+    ta_log_error("%d\n", ret);
     goto done;
   }
 

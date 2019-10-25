@@ -7,7 +7,7 @@
  */
 
 #include "serializer.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #define SERI_LOGGER "serializer"
 
@@ -18,7 +18,7 @@ void serializer_logger_init() { logger_id = logger_helper_enable(SERI_LOGGER, LO
 int serializer_logger_release() {
   logger_helper_release(logger_id);
   if (logger_helper_destroy() != RC_OK) {
-    ta_log_critical("Destroying logger failed %s.\n", SERI_LOGGER);
+    ta_log_error("Destroying logger failed %s.\n", SERI_LOGGER);
     return EXIT_FAILURE;
   }
 

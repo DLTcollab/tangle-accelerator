@@ -14,7 +14,7 @@
 #include "common/model/transaction.h"
 #include "duplex_utils.h"
 #include "serializer/serializer.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #ifdef __cplusplus
 extern "C" {

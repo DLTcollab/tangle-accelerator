@@ -58,7 +58,7 @@ int main(void) {
   UNITY_BEGIN();
 
   // Initialize logger
-  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
 

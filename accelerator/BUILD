@@ -6,7 +6,14 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 cc_binary(
     name = "accelerator",
     srcs = ["server.cc"],
-    copts = ["-DLOGGER_ENABLE"],
+    copts = ["-DLOGGER_ENABLE"] + select({
+        ":DEBUG_MODE": ["-g"],
+        ":PROFILING_MODE": [
+            "-DNDEBUG",
+            "-pg",
+        ],
+        "//conditions:default": ["-DNDEBUG"],
+    }),
     deps = [
         ":apis",
         ":proxy_apis",
@@ -19,7 +26,14 @@ cc_binary(
 cc_binary(
     name = "accelerator_microhttpd",
     srcs = ["main.c"],
-    copts = ["-DLOGGER_ENABLE"],
+    copts = ["-DLOGGER_ENABLE"] + select({
+        ":DEBUG_MODE": ["-g"],
+        ":PROFILING_MODE": [
+            "-DNDEBUG",
+            "-pg",
+        ],
+        "//conditions:default": ["-DNDEBUG"],
+    }),
     deps = [
         ":http",
         ":ta_config",
@@ -38,7 +52,14 @@ cc_binary(
     copts = [
         "-DLOGGER_ENABLE",
         "-DENABLE_MQTT",
-    ],
+    ] + select({
+        ":DEBUG_MODE": ["-g"],
+        ":PROFILING_MODE": [
+            "-DNDEBUG",
+            "-pg",
+        ],
+        "//conditions:default": ["-DNDEBUG"],
+    }),
     deps = [
         ":message",
         ":ta_config",
@@ -88,10 +109,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":ta_errors",
+        "//utils:ta_logger",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
         "@entangled//cclient/response:responses",
-        "@entangled//utils:logger_helper",
     ],
 )
 
@@ -138,9 +159,24 @@ cc_library(
         ":ta_errors",
         "//utils:cache",
         "//utils:pow",
+        "//utils:ta_logger",
         "@entangled//cclient/api",
         "@yaml",
     ],
+)
+
+config_setting(
+    name = "DEBUG_MODE",
+    values = {
+        "define": "build_type=debug",
+    },
+)
+
+config_setting(
+    name = "PROFILING_MODE",
+    values = {
+        "define": "build_type=profiling",
+    },
 )
 
 cc_library(

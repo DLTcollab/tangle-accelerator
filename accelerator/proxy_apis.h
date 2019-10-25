@@ -13,7 +13,7 @@
 #include "cclient/api/core/core_api.h"
 #include "cclient/request/requests.h"
 #include "cclient/response/responses.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
 
 #ifdef __cplusplus
 extern "C" {

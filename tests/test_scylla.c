@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
   }
   UNITY_BEGIN();
 
-  if (logger_helper_init(LOGGER_ERR) != RC_OK) {
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
   scylla_api_logger_init();
