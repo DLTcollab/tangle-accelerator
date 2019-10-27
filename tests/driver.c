@@ -137,7 +137,7 @@ void test_send_transfer(void) {
   gen_rand_tag(driver_tag_msg);
   int json_len = strlen(pre_json);
   char json[json_len + NUM_TRYTES_TAG];
-  sprintf(json, pre_json, driver_tag_msg);
+  snprintf(json, json_len + NUM_TRYTES_TAG, pre_json, driver_tag_msg);
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
