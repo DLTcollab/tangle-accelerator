@@ -29,15 +29,7 @@ int apis_logger_release() {
 
 status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_config_t* const tangle,
                          ta_cache_t* const cache, iota_client_service_t* const service) {
-  status_t ret = SC_OK;
-
-  ret = ta_get_info_serialize(json_result, info, tangle, cache, service);
-  if (ret != SC_OK) {
-    ret = SC_TA_OOM;
-    ta_log_error("%s\n", "SC_TA_OOM");
-  }
-
-  return ret;
+  return ta_get_info_serialize(json_result, info, tangle, cache, service);
 }
 
 status_t apis_lock_init() {
