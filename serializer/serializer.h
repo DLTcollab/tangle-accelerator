@@ -279,6 +279,18 @@ status_t mqtt_tag_req_deserialize(const char* const obj, char* tag);
  */
 status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash);
 
+/**
+ * @brief Deserialze proxy api command.
+ *
+ * @param[in] obj Input request in JSON with hash field
+ * @param[out] command Proxy API command name in string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
+
 #ifdef __cplusplus
 }
 #endif

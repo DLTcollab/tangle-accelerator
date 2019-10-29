@@ -364,6 +364,8 @@ extern "C" {
 #define MESSAGE_5 "MESSAGE5"
 #define MESSAGE_6 "MESSAGE6"
 
+#define TEST_PROXY_API(cmd) #cmd
+
 #ifdef __cplusplus
 }
 #endif

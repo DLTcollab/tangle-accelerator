@@ -27,8 +27,8 @@ int apis_logger_release() {
   return 0;
 }
 
-status_t api_get_ta_info(char** json_result, ta_config_t* const info, iota_config_t* const tangle,
-                         ta_cache_t* const cache, iota_client_service_t* const service) {
+status_t api_get_ta_info(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
+                         iota_client_service_t* const service, char** json_result) {
   return ta_get_info_serialize(json_result, info, tangle, cache, service);
 }
 
@@ -481,7 +481,7 @@ done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
     // If `seed` is not assigned, then the local MAM file will be used. Therefore, we need to close the MAM file.
-    if (!req->seed[0] && mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+    if (!req->seed && mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
       ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam)) {

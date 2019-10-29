@@ -353,6 +353,15 @@ void test_mqtt_transaction_hash_req_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(hash, TRYTES_81_1);
 }
 
+void test_proxy_apis_command_req_deserialize(void) {
+  const char* json =
+      "{\"command\": \"" TEST_PROXY_API(addNeighbors) "\",\"uris\": [\"tcp://8.8.8.8:14265\",\"tcp://8.8.8.8:14265\"]}";
+  char command[30];
+  TEST_ASSERT_EQUAL_INT(SC_OK, proxy_apis_command_req_deserialize(json, command));
+
+  TEST_ASSERT_EQUAL_STRING(command, TEST_PROXY_API(addNeighbors));
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -375,6 +384,7 @@ int main(void) {
   RUN_TEST(test_mqtt_device_id_deserialize);
   RUN_TEST(test_mqtt_tag_req_deserialize);
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
+  RUN_TEST(test_proxy_apis_command_req_deserialize);
   serializer_logger_release();
   return UNITY_END();
 }

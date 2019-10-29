@@ -7,8 +7,8 @@
  */
 
 #include "serializer.h"
-#include "utils/logger_helper.h"
-
+#include "connectivity/mqtt/client_common.h"
+#include "utils/logger.h"
 #define SERI_LOGGER "serializer"
 
 static logger_id_t logger_id;
@@ -191,7 +191,8 @@ status_t ta_hash8019_array_to_json_array(hash8019_array_p array, cJSON* const js
   return SC_OK;
 }
 
-static status_t ta_json_get_string(cJSON const* const json_obj, char const* const obj_name, char* const text) {
+static status_t ta_json_get_string(cJSON const* const json_obj, char const* const obj_name, char* const text,
+                                   const size_t size) {
   status_t ret = SC_OK;
   if (json_obj == NULL || obj_name == NULL || text == NULL) {
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
@@ -205,7 +206,7 @@ static status_t ta_json_get_string(cJSON const* const json_obj, char const* cons
   }
 
   if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
-    strcpy(text, json_value->valuestring);
+    strncpy(text, json_value->valuestring, size);
   } else {
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     return SC_CCLIENT_JSON_PARSE;
@@ -821,42 +822,42 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
     goto done;
   }
 
-  if (ta_json_get_string(json_obj, "chid", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "chid", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_channel_id(res, addr);
 
-  if (ta_json_get_string(json_obj, "epid", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "epid", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_endpoint_id(res, addr);
 
-  if (ta_json_get_string(json_obj, "msg_id", (char*)msg_id) != SC_OK) {
+  if (ta_json_get_string(json_obj, "msg_id", (char*)msg_id, MAM_MSG_ID_SIZE / 3 + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_msg_id(res, msg_id);
 
-  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_bundle_hash(res, addr);
 
-  if (ta_json_get_string(json_obj, "chid1", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "chid1", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
   send_mam_res_set_chid1(res, addr);
 
-  if (ta_json_get_string(json_obj, "announcement_bundle_hash", (char*)addr) != SC_OK) {
+  if (ta_json_get_string(json_obj, "announcement_bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
@@ -882,7 +883,7 @@ status_t mqtt_device_id_deserialize(const char* const obj, char* device_id) {
     goto done;
   }
 
-  ret = ta_json_get_string(json_obj, "device_id", device_id);
+  ret = ta_json_get_string(json_obj, "device_id", device_id, ID_LEN + 1);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
   }
@@ -906,7 +907,7 @@ status_t mqtt_tag_req_deserialize(const char* const obj, char* tag) {
     goto done;
   }
 
-  ret = ta_json_get_string(json_obj, "tag", tag);
+  ret = ta_json_get_string(json_obj, "tag", tag, NUM_TRYTES_TAG + 1);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
   }
@@ -930,7 +931,32 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
     goto done;
   }
 
-  ret = ta_json_get_string(json_obj, "hash", hash);
+  ret = ta_json_get_string(json_obj, "hash", hash, NUM_TRYTES_HASH + 1);
+  if (ret != SC_OK) {
+    ta_log_error("%d\n", ret);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t proxy_apis_command_req_deserialize(const char* const obj, char* command) {
+  if (obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  const uint8_t max_cmd_len = 30;
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  ret = ta_json_get_string(json_obj, "command", command, max_cmd_len);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
   }

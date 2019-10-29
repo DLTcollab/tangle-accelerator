@@ -8,6 +8,7 @@
 
 #include "proxy_apis.h"
 #include "utils/handles/lock.h"
+#include "utils/hash_algo_djb2.h"
 
 #define PROXY_APIS_LOGGER "proxy_apis"
 
@@ -49,7 +50,12 @@ status_t proxy_apis_lock_destroy() {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
+static status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
+  if (res_buff == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
+    return SC_TA_NULL;
+  }
+
   *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
   if (*json_result == NULL) {
     ta_log_error("%s\n", "SC_TA_OOM");
@@ -60,7 +66,8 @@ status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
   return SC_OK;
 }
 
-status_t api_check_consistency(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+static status_t api_check_consistency(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result) {
   status_t ret = SC_OK;
   check_consistency_req_t* req = check_consistency_req_new();
   check_consistency_res_t* res = check_consistency_res_new();
@@ -104,7 +111,8 @@ done:
   return ret;
 }
 
-status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+static status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result) {
   status_t ret = SC_OK;
   find_transactions_req_t* req = find_transactions_req_new();
   find_transactions_res_t* res = find_transactions_res_new();
@@ -147,7 +155,8 @@ done:
   return ret;
 }
 
-status_t api_get_balances(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+static status_t api_get_balances(const iota_client_service_t* const service, const char* const obj,
+                                 char** json_result) {
   status_t ret = SC_OK;
   get_balances_req_t* req = get_balances_req_new();
   get_balances_res_t* res = get_balances_res_new();
@@ -191,8 +200,8 @@ done:
   return ret;
 }
 
-status_t api_get_inclusion_states(const iota_client_service_t* const service, const char* const obj,
-                                  char** json_result) {
+static status_t api_get_inclusion_states(const iota_client_service_t* const service, const char* const obj,
+                                         char** json_result) {
   status_t ret = SC_OK;
   get_inclusion_states_req_t* req = get_inclusion_states_req_new();
   get_inclusion_states_res_t* res = get_inclusion_states_res_new();
@@ -236,7 +245,7 @@ done:
   return ret;
 }
 
-status_t api_get_node_info(const iota_client_service_t* const service, char** json_result) {
+static status_t api_get_node_info(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
   get_node_info_res_t* res = get_node_info_res_new();
   char_buffer_t* res_buff = char_buffer_new();
@@ -269,7 +278,7 @@ done:
   return ret;
 }
 
-status_t api_get_trytes(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+static status_t api_get_trytes(const iota_client_service_t* const service, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   get_trytes_req_t* req = get_trytes_req_new();
   get_trytes_res_t* res = get_trytes_res_new();
@@ -313,46 +322,50 @@ done:
   return ret;
 }
 
-status_t api_remove_neighbors(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  remove_neighbors_req_t* req = remove_neighbors_req_new();
-  remove_neighbors_res_t* res = remove_neighbors_res_new();
-  char_buffer_t* res_buff = char_buffer_new();
-  if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
-    ta_log_error("%s\n", "SC_TA_OOM");
-    goto done;
+  const uint8_t max_cmd_len = 30;
+  char command[max_cmd_len];
+
+  proxy_apis_command_req_deserialize(obj, command);
+  // TODO more proxy APIs should be implemented
+  enum {
+    H_checkConsistency = 3512812181U,
+    H_findTransactions = 1314581663U,
+    H_getBalances = 185959358U,
+    H_getInclusionStates = 3627925933U,
+    H_getNodeInfo = 1097192119U,
+    H_getTrytes = 3016694096U
+  };
+
+  // With DJB2 hash function we could reduce the amount of string comparisons and deterministic execution time
+  switch (hash_algo_djb2(command)) {
+    case H_checkConsistency:
+      ret = api_check_consistency(service, obj, json_result);
+      break;
+    case H_findTransactions:
+      ret = api_find_transactions(service, obj, json_result);
+      break;
+    case H_getBalances:
+      ret = api_get_balances(service, obj, json_result);
+      break;
+    case H_getInclusionStates:
+      ret = api_get_inclusion_states(service, obj, json_result);
+      break;
+    case H_getNodeInfo:
+      ret = api_get_node_info(service, json_result);
+      break;
+    case H_getTrytes:
+      ret = api_get_trytes(service, obj, json_result);
+      break;
+
+    default:
+      ta_log_error("%s\n", "SC_HTTP_URL_NOT_MATCH");
+      return SC_HTTP_URL_NOT_MATCH;
   }
 
-  lock_handle_lock(&cjson_lock);
-  if (service->serializer.vtable.remove_neighbors_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_JSON_PARSE;
-    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-    goto done;
+  if (ret) {
+    ta_log_error("%d\n", ret);
   }
-  lock_handle_unlock(&cjson_lock);
-
-  lock_handle_lock(&cjson_lock);
-  if (iota_client_remove_neighbors(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
-
-  if (service->serializer.vtable.remove_neighbors_serialize_response(res, res_buff) != RC_OK) {
-    ret = SC_CCLIENT_JSON_PARSE;
-    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-    goto done;
-  }
-
-  ret = char_buffer_to_str(res_buff, json_result);
-
-done:
-  remove_neighbors_req_free(&req);
-  remove_neighbors_res_free(&res);
-  char_buffer_free(res_buff);
   return ret;
 }

@@ -54,3 +54,8 @@ cc_library(
         "@entangled//utils:logger_helper",
     ],
 )
+
+cc_library(
+    name = "hash_algo_djb2",
+    hdrs = ["hash_algo_djb2.h"],
+)

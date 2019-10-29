@@ -11,9 +11,9 @@
 #include "accelerator/common_core.h"
 #include "iota_api_mock.hh"
 
-using ::testing::_;
 using ::testing::AtLeast;
 using ::testing::ElementsAreArray;
+using ::testing::_;
 
 APIMock APIMockObj;
 iota_config_t tangle;
