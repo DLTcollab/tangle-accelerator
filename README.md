@@ -172,6 +172,20 @@ clang-format can be installed by command:
 - macOS: `$ brew install clang-format`
 
 
+## Usage
+`Tangle-accelerator` currently supports two categories of APIs
+* direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
+* Proxy API to IRI core functionalities
+
+### IRI Porxy API
+`tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help user forward the request to IRI and forward the the response back to user. The followings are currently supporting Proxy APIs:
+* checkConsistency
+* findTransactions
+* getBalances
+* getInclusionStates
+* getNodeInfo
+* getTrytes
+
 ## Licensing
 `Tangle-accelerator` is freely redistributable under the MIT License. Use of this source
 code is governed by a MIT-style license that can be found in the `LICENSE` file.
