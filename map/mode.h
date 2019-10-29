@@ -9,96 +9,85 @@
 #ifndef __MAP_MODE_H__
 #define __MAP_MODE_H__
 
+#include "accelerator/common_core.h"
+#include "accelerator/errors.h"
+#include "common/trinary/flex_trit.h"
+#include "common/trinary/tryte_ascii.h"
 #include "mam/api/api.h"
-
-#define MSS_DEPTH 1
+#include "mam/mam/mam_channel_t_set.h"
+#include "request/request.h"
+#include "response/response.h"
+#include "utarray.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Creates a channel
+ * Initialize a mam_api_t object
  *
  * @param api - The API [in,out]
- * @param channel_id - A known channel ID [out]
- * @param depth - depth of merkle tree going to generate [in]
+ * @param[in] iconf IOTA API parameter configurations[in]
+ * @param seed - MAM channels seed. It is an optional choice[in]
  *
  * @return return code
  */
-retcode_t map_channel_create(mam_api_t* const api, tryte_t* const channel_id, const size_t depth);
+status_t map_mam_init(mam_api_t* const api, const iota_config_t* const iconf, tryte_t const* const seed,
+                      int32_t channel_ord, mam_psk_t_set_t* const psks, mam_ntru_pk_t_set_t* const ntru_pks,
+                      tryte_t const* const psk, tryte_t const* const ntru_pk);
 
 /**
- * Creates and announce a new channel on header
+ * @brief Write payload to bundle on the smallest secret key.
  *
+ * With given channel_depth and endpoint_depth, generate the corresponding Channel ID and Endpoint ID, and write the
+ * payload to a bundle. The payload is signed with secret key which has the smallest ordinal number.
+ *
+ * @param service - IRI node end point service[in]
  * @param api - The API [in,out]
- * @param channel_id - A known channel ID [in]
- * @param bundle - The bundle that the packet will be written into [out]
- * @param msg_id - The msg_id [out]
- * @param new_channel_id - The new channel ID [out]
+ * @param channel_depth - Depth of channel merkle tree[in]
+ * @param endpoint_depth - Depth of endpoint merkle tree[in]
+ * @param psks - Pre-Shared Key set[in]
+ * @param ntru_pks - NTRU public key set[in]
+ * @param payload - The message that is going to send with MAM[in]
+ * @param chid - Channel ID[out]
+ * @param epid - Endpoint ID[out]
+ * @param bundle - The bundle contains the Header and Packets of the current Message[out]
+ * @param msg_id - Unique Message identifier under each channel[out]
+ * @param ch_remain_sk - The number of MSS channel secret keys that haven't been used[out]
+ * @param ep_remain_sk - The number of MSS endpoint secret keys of that haven't been used[out]
  *
  * @return return code
  */
-retcode_t map_announce_channel(mam_api_t* const api, tryte_t const* const channel_id,
-                               bundle_transactions_t* const bundle, trit_t* const msg_id,
-                               tryte_t* const new_channel_id);
+status_t map_written_msg_to_bundle(const iota_client_service_t* const service, mam_api_t* const api,
+                                   const size_t channel_depth, const size_t endpoint_depth, tryte_t* const chid,
+                                   tryte_t* const epid, mam_psk_t_set_t psks, mam_ntru_pk_t_set_t ntru_pks,
+                                   char const* const payload, bundle_transactions_t** bundle, tryte_t* msg_id,
+                                   uint32_t* ch_remain_sk, uint32_t* ep_remain_sk);
 
 /**
- * Creates and announce a new endpoint on header
+ * @brief Write an announcement to bundle.
+ *
+ * Write the announcement of the next Channel ID (chid1) or Endpoint ID (epid1). This function would
+ * automatically determine which one is going to be generated.
  *
  * @param api - The API [in,out]
- * @param channel_id - A known channel ID [in]
- * @param bundle - The bundle that the packet will be written into [out]
- * @param msg_id - The msg_id [out]
- * @param new_endpoint - The new endpoint [out]
+ * @param channel_depth - Depth of channel merkle tree[in]
+ * @param endpoint_depth - Depth of endpoint merkle tree[in]
+ * @param chid - Channel ID[in]
+ * @param ch_remain_sk - The number of MSS channel secret keys that haven't been used[in]
+ * @param ep_remain_sk - The number of MSS endpoint secret keys of that haven't been used[in]
+ * @param psks - Pre-Shared Key set[in]
+ * @param ntru_pks - NTRU public key set[in]
+ * @param chid1 - The next Channel ID[in]
+ * @param bundle - The bundle contains the Header and Packets of the current Message[out]
  *
  * @return return code
  */
-retcode_t map_announce_endpoint(mam_api_t* const api, tryte_t const* const channel_id,
-                                bundle_transactions_t* const bundle, trit_t* const msg_id,
-                                tryte_t* const new_endpoint_id);
-
-/**
- * Writes a header only bundle on a channel
- *
- * @param api - The API [in,out]
- * @param channel_id - A known channel ID [in]
- * @param bundle - The bundle that the packet will be written into [out]
- * @param msg_id - The msg_id [out]
- *
- * @return return code
- */
-retcode_t map_write_header_on_channel(mam_api_t* const api, tryte_t const* const channel_id,
-                                      bundle_transactions_t* const bundle, trit_t* const msg_id);
-
-/**
- * Writes a header only bundle on an endpoint
- *
- * @param api - The API [in,out]
- * @param channel_id - A known channel ID [in]
- * @param endpoint_id - A known endpoint ID [in]
- * @param bundle - The bundle that the packet will be written into [out]
- * @param msg_id - The msg_id [out]
- *
- * @return return code
- */
-retcode_t map_write_header_on_endpoint(mam_api_t* const api, tryte_t const* const channel_id,
-                                       tryte_t const* const endpoint_id, bundle_transactions_t* const bundle,
-                                       trit_t* const msg_id);
-
-/**
- * Writes a packet on a bundle
- *
- * @param api - The API [in,out]
- * @param bundle - The bundle that the packet will be written into [out]
- * @param payload - The payload to write [in]
- * @param msg_id - The msg_id [in]
- * @param is_last_packet - True if this is the last packet to be written [in]
- *
- * @return return code
- */
-retcode_t map_write_packet(mam_api_t* const api, bundle_transactions_t* const bundle, char const* const payload,
-                           trit_t const* const msg_id, bool is_last_packet);
+status_t map_announce_next_mss_private_key_to_bundle(mam_api_t* const api, const size_t channel_depth,
+                                                     const size_t endpoint_depth, tryte_t* const chid,
+                                                     uint32_t* ch_remain_sk, uint32_t* ep_remain_sk,
+                                                     mam_psk_t_set_t psks, mam_ntru_pk_t_set_t ntru_pks,
+                                                     tryte_t* const chid1, bundle_transactions_t** bundle);
 
 /**
  * Read the MAM message from a bundle
@@ -110,6 +99,7 @@ retcode_t map_write_packet(mam_api_t* const api, bundle_transactions_t* const bu
  * @return return code
  */
 retcode_t map_api_bundle_read(mam_api_t* const api, bundle_transactions_t* bundle, char** payload_out);
+
 #ifdef __cplusplus
 }
 #endif

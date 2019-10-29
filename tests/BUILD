@@ -84,6 +84,7 @@ cc_test(
     ],
 )
 
+"""
 cc_test(
     name = "test_map_mode",
     srcs = [
@@ -94,6 +95,7 @@ cc_test(
         "//map:mode",
     ],
 )
+"""
 
 cc_library(
     name = "test_define",

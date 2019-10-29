@@ -215,16 +215,47 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   free(json_result);
 }
 
-void test_serialize_send_mam_message(void) {
-  const char* json = "{\"channel\":\"" TRYTES_81_1
+void test_send_mam_message_request_deserialize(void) {
+  const char* json =
+      "{\"seed\":\"" TRYTES_81_1
+      "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) ",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(
+          TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(TEST_EP_DEPTH) ",\"ntru_pk\":\"" TEST_NTRU_PK
+                                                                 "\",\"psk\":\"" TRYTES_81_2 "\"}";
+  ta_send_mam_req_t* req = send_mam_req_new();
+
+  send_mam_req_deserialize(json, req);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, req->seed, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_INT(TEST_CHANNEL_ORD, req->channel_ord);
+  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, req->message);
+  TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, req->ch_mss_depth);
+  TEST_ASSERT_EQUAL_INT(TEST_EP_DEPTH, req->ep_mss_depth);
+  TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, req->ntru_pk, MAM_NTRU_PK_SIZE / 3);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, req->psk, NUM_TRYTES_HASH);
+
+  send_mam_req_free(&req);
+}
+
+void test_send_mam_message_response_serialize(void) {
+  const char* json = "{\"bundle_hash\":\"" TRYTES_81_1
                      "\","
-                     "\"bundle_hash\":\"" TRYTES_81_2 "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) "}";
+                     "\"chid\":\"" TRYTES_81_2
+                     "\","
+                     "\"epid\":\"" TRYTES_81_3
+                     "\","
+                     "\"msg_id\":\"" TEST_MSG_ID
+                     "\","
+                     "\"announcement_bundle_hash\":\"" ADDRESS_1
+                     "\","
+                     "\"chid1\":\"" ADDRESS_2 "\"}";
   char* json_result;
   ta_send_mam_res_t* res = send_mam_res_new();
 
-  send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
-  send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
-  res->channel_ord = TEST_CHANNEL_ORD;
+  send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_1);
+  send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_2);
+  send_mam_res_set_endpoint_id(res, (tryte_t*)TRYTES_81_3);
+  send_mam_res_set_msg_id(res, (tryte_t*)TEST_MSG_ID);
+  send_mam_res_set_announcement_bundle_hash(res, (tryte_t*)ADDRESS_1);
+  send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
   send_mam_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
@@ -233,30 +264,29 @@ void test_serialize_send_mam_message(void) {
   send_mam_res_free(&res);
 }
 
-void test_deserialize_send_mam_message_response(void) {
-  const char* json = "{\"channel\":\"" TRYTES_81_1
+void test_send_mam_message_response_deserialize(void) {
+  const char* json = "{\"bundle_hash\":\"" TRYTES_81_1
                      "\","
-                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
+                     "\"chid\":\"" TRYTES_81_2
+                     "\","
+                     "\"epid\":\"" TRYTES_81_3
+                     "\","
+                     "\"msg_id\":\"" TEST_MSG_ID
+                     "\","
+                     "\"announcement_bundle_hash\":\"" ADDRESS_1
+                     "\","
+                     "\"chid1\":\"" ADDRESS_2 "\"}";
   ta_send_mam_res_t* res = send_mam_res_new();
 
   send_mam_res_deserialize(json, res);
 
-  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, res->channel_id);
-  TEST_ASSERT_EQUAL_STRING(TRYTES_81_2, res->bundle_hash);
-
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, res->bundle_hash, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, res->chid, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_3, res->epid, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TEST_MSG_ID, res->msg_id, MAM_MSG_ID_SIZE / 3);
+  TEST_ASSERT_EQUAL_MEMORY(ADDRESS_1, res->announcement_bundle_hash, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(ADDRESS_2, res->chid1, NUM_TRYTES_HASH);
   send_mam_res_free(&res);
-}
-
-void test_deserialize_send_mam_message(void) {
-  const char* json = "{\"prng\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD "\",\"channel_ord\":2}";
-  ta_send_mam_req_t* req = send_mam_req_new();
-
-  send_mam_req_deserialize(json, req);
-  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, req->prng);
-  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, req->payload);
-  TEST_ASSERT_EQUAL_INT(2, req->channel_ord);
-
-  send_mam_req_free(&req);
 }
 
 void test_deserialize_ta_send_trytes_req(void) {
@@ -337,9 +367,9 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
-  RUN_TEST(test_serialize_send_mam_message);
-  RUN_TEST(test_deserialize_send_mam_message_response);
-  RUN_TEST(test_deserialize_send_mam_message);
+  RUN_TEST(test_send_mam_message_response_serialize);
+  RUN_TEST(test_send_mam_message_response_deserialize);
+  RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_deserialize_ta_send_trytes_req);
   RUN_TEST(test_serialize_ta_send_trytes_res);
   RUN_TEST(test_mqtt_device_id_deserialize);

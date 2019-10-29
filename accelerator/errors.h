@@ -141,6 +141,12 @@ typedef enum {
   /**< Failed to write */
   SC_MAM_FILE_SAVE = 0x09 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to save MAM file */
+  SC_MAM_ALL_MSS_KEYS_USED = 0x0A | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< All MSS private keys of current given parameters are used */
+  SC_MAM_FAILED_CREATE_OR_GET_ID = 0x0B | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to created/get chid or epid or msg_id */
+  SC_MAM_FAILED_WRITE_HEADER = 0x0C | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to write on header */
 
   // response module
   SC_RES_OOM = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,

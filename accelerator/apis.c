@@ -333,7 +333,7 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
   }
 
   mam_api_add_trusted_channel_pk(&mam, (tryte_t*)chid);
-  ret = ta_get_bundle_by_addr(service, (tryte_t*)chid, bundle);
+  ret = ta_get_bundles_by_addr(service, (tryte_t*)chid, bundle);
   if (ret != SC_OK) {
     goto done;
   }
@@ -366,12 +366,15 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
                               char const* const payload, char** json_result) {
   status_t ret = SC_OK;
   mam_api_t mam;
-  const bool last_packet = true;
+  tryte_t chid[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, epid[MAM_CHANNEL_ID_TRYTE_SIZE] = {},
+          chid1[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, msg_id[NUM_TRYTES_MAM_MSG_ID] = {};
+  uint32_t ch_remain_sk, ep_remain_sk;
+  mam_psk_t_set_t psks = NULL;
+  mam_ntru_pk_t_set_t ntru_pks = NULL;
+
   bundle_transactions_t* bundle = NULL;
   bundle_transactions_new(&bundle);
-  tryte_t* prng = NULL;
-  tryte_t channel_id[MAM_CHANNEL_ID_TRYTE_SIZE];
-  trit_t msg_id[MAM_MSG_ID_SIZE];
+
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
 
@@ -385,60 +388,21 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
   lock_handle_unlock(&cjson_lock);
 
   // Creating MAM API
-  prng = (req->prng[0]) ? req->prng : (tryte_t*)SEED;
-  retcode_t rc = mam_api_load(iconf->mam_file_path, &mam, NULL, 0);
-  if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
-    if (mam_api_init(&mam, prng) != RC_OK) {
-      ret = SC_MAM_FAILED_INIT;
-      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
-      goto done;
-    }
-  } else if (rc != RC_OK) {
-    ret = SC_MAM_FAILED_INIT;
-    ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
+  ret = map_mam_init(&mam, iconf, req->seed, req->channel_ord, &psks, &ntru_pks, (tryte_t*)req->psk,
+                     (tryte_t*)req->ntru_pk);
+  if (ret) {
+    ta_log_error("%d\n", ret);
     goto done;
   }
 
-  // Creating channel
-  // TODO: TA only supports mss depth under 2. Larger than this would result in wasting too much time generate keys.
-  // With depth of 2, user can send a bundle with  3 transaction messages filled (last one is for header).
-  size_t payload_size = strlen(req->payload);
-  size_t payload_depth = 1;
-  if (payload_size > (NUM_TRYTES_SIGNATURE / 2) * 3) {
-    ret = SC_MAM_NO_PAYLOAD;
-    ta_log_error("%s\n", "SC_MAM_NO_PAYLOAD");
-    goto done;
-  } else if (payload_size > (NUM_TRYTES_SIGNATURE / 2)) {
-    payload_depth = 2;
-  }
-
-  // TODO We needs to examine if this channel has been used or not with API `find_transactions`.
-  // In order to avoid wasting address (channel), even when user's request assigns a much bigger channel_ord than mam
-  // file, after sending this current MAM message, we need to iterate the next unused channel.
-  if (req->channel_ord > mam.channel_ord) {
-    mam.channel_ord = req->channel_ord;
-  }
-
-  if (map_channel_create(&mam, channel_id, payload_depth)) {
-    ret = SC_MAM_NULL;
-    ta_log_error("%s\n", "SC_MAM_NULL");
+  // Create epid merkle tree and find the smallest unused secret key.
+  // Write both Header and Pakcet into one single bundle.
+  ret = map_written_msg_to_bundle(service, &mam, req->ch_mss_depth, req->ep_mss_depth, chid, epid, psks, ntru_pks,
+                                  req->message, &bundle, msg_id, &ch_remain_sk, &ep_remain_sk);
+  if (ret) {
+    ta_log_error("%d\n", ret);
     goto done;
   }
-
-  // Writing header to bundle
-  if (map_write_header_on_channel(&mam, channel_id, bundle, msg_id)) {
-    ret = SC_MAM_FAILED_WRITE;
-    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
-    goto done;
-  }
-
-  // Writing packet to bundle
-  if (map_write_packet(&mam, bundle, req->payload, msg_id, last_packet)) {
-    ret = SC_MAM_FAILED_WRITE;
-    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
-    goto done;
-  }
-  send_mam_res_set_channel_id(res, channel_id);
 
   // Sending bundle
   lock_handle_lock(&cjson_lock);
@@ -449,24 +413,75 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-  ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
-  if (ret != SC_OK) {
+
+  ret = send_mam_res_set_channel_id(res, chid);
+  if (ret) {
     ta_log_error("%d\n", ret);
     goto done;
   }
-  res->channel_ord = mam.channel_ord;
+  ret = send_mam_res_set_endpoint_id(res, epid);
+  if (ret) {
+    ta_log_error("%d\n", ret);
+    goto done;
+  }
+  ret = send_mam_res_set_msg_id(res, msg_id);
+  if (ret) {
+    ta_log_error("%d\n", ret);
+    goto done;
+  }
+  ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+  if (ret) {
+    ta_log_error("%d\n", ret);
+    goto done;
+  }
+
+  bundle_transactions_free(&bundle);
+  bundle_transactions_new(&bundle);
+
+  // Sending bundle
+  if (ch_remain_sk == 1 || ep_remain_sk == 1) {
+    // Send announcement for the next endpoint or channel
+    ret = map_announce_next_mss_private_key_to_bundle(&mam, req->ch_mss_depth, req->ep_mss_depth, chid, &ch_remain_sk,
+                                                      &ep_remain_sk, psks, ntru_pks, chid1, &bundle);
+    if (ret) {
+      ta_log_error("%d\n", ret);
+      goto done;
+    }
+
+    lock_handle_lock(&cjson_lock);
+    if (ta_send_bundle(iconf, service, bundle) != SC_OK) {
+      lock_handle_unlock(&cjson_lock);
+      ret = SC_MAM_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
+      goto done;
+    }
+    lock_handle_unlock(&cjson_lock);
+
+    ret =
+        send_mam_res_set_announcement_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+    if (ret) {
+      ta_log_error("%d\n", ret);
+      goto done;
+    }
+
+    ret = send_mam_res_set_chid1(res, chid1);
+    if (ret) {
+      ta_log_error("%d\n", ret);
+      goto done;
+    }
+  }
+
   ret = send_mam_res_serialize(res, json_result);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
     goto done;
   }
 
-  // TODO Find the unused channel with the smallest channel_ord here.
-
 done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
-    if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+    // If `seed` is not assigned, then the local MAM file will be used. Therefore, we need to close the MAM file.
+    if (!req->seed[0] && mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
       ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam)) {
@@ -477,6 +492,8 @@ done:
   bundle_transactions_free(&bundle);
   send_mam_req_free(&req);
   send_mam_res_free(&res);
+  mam_psk_t_set_free(&psks);
+  mam_ntru_pk_t_set_free(&ntru_pks);
   return ret;
 }
 
