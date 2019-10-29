@@ -10,7 +10,7 @@ at once without accessing remote full nodes frequently.
 As an intermediate server accelerateing interactions with the Tangle, it faciliates
 [dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
 on edge devices. In the meanwhile, `Tangle-accelerator` provides shortcuts for certain
-use scenarios such as MAM and [TangleID](https://github.com/TangleID).
+use scenarios such as MAM and [TangleID](https://tangleid.github.io/).
 
 At the moment, it is not feasible to host fully-functioned full nodes on Raspberry Pi class
 Arm devices, but Raspberry Pi 3 is known to be capable to execute `Tangle-accelerator`
