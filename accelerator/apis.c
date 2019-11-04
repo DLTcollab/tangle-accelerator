@@ -7,6 +7,7 @@
  */
 
 #include "apis.h"
+#include <sys/time.h>
 #include "map/mode.h"
 #include "utils/handles/lock.h"
 
@@ -135,6 +136,8 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
   ret = ta_generate_address(iconf, service, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
+    ret = SC_TA_ERROR;
+    ta_log_error("%s\n", "SC_TA_ERROR");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);

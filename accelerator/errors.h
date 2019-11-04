@@ -81,6 +81,7 @@ typedef enum {
   /**< wrong TA request object */
   SC_TA_LOGGER_INIT_FAIL = 0x04 | SC_MODULE_TA | SC_SEVERITY_MAJOR,
   /**< fail to init ta logger */
+  SC_TA_ERROR = 0x05 | SC_MODULE_TA | SC_SEVERITY_MAJOR,
 
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
@@ -173,7 +174,11 @@ typedef enum {
   // UTILS module
   SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   SC_UTILS_WRONG_REQUEST_OBJ = 0x02 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
-  /**< wrong TA request object */
+  /**< Wrong TA request object */
+  SC_UTILS_TIMER_ERROR = 0x03 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  /**< Errors occurred in timer function */
+  SC_UTILS_TIMER_EXPIRED = 0x04 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  /**< Timer expired */
 
   // HTTP module
   SC_HTTP_OOM = 0x01 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,

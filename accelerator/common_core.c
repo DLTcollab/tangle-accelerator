@@ -122,8 +122,8 @@ done:
   return ret;
 }
 
-status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res) {
+static status_t ta_generate_address_helper(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                                           ta_generate_address_res_t* res) {
   if (res == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
@@ -144,6 +144,31 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
     res->addresses = out_address;
   }
   return ret;
+}
+
+static status_t ta_generate_address_thread(void* args) {
+  ta_generate_address_args_t* arg = (ta_generate_address_args_t*)args;
+  return ta_generate_address_helper(arg->iconf, arg->service, arg->res);
+}
+
+status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                             ta_generate_address_res_t* res) {
+  ta_generate_address_args_t args = {.iconf = iconf, .service = service, .res = res};
+  int *rval;
+  const struct itimerspec timeout = {.it_interval = {.tv_sec = 0, .tv_nsec = 0},
+                                     .it_value = {.tv_sec = 50, .tv_nsec = 0}};
+
+  ta_timer_t* timer_id = ta_timer_start(&timeout, ta_generate_address_thread, (void*)&args);
+  if (timer_id != NULL) {
+    if (!ta_timer_stop(timer_id, (void**)&rval)) {
+      ta_log_error("%s\n", "SC_UTILS_TIMER_ERROR");
+    }
+  } else {
+    ta_log_error("%s\n", "SC_TA_OOM");
+    return SC_TA_OOM;
+  }
+
+  return (status_t)rval;
 }
 
 status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,

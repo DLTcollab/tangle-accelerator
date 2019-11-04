@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
     cc_logger_init();
     serializer_logger_init();
     pow_logger_init();
+    timer_logger_init();
   } else {
     // Destroy logger when verbose mode is off
     logger_helper_release(logger_id);
@@ -487,6 +488,7 @@ int main(int argc, char* argv[]) {
     cc_logger_release();
     serializer_logger_release();
     pow_logger_release();
+    timer_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       return EXIT_FAILURE;

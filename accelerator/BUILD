@@ -90,6 +90,7 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
+    linkopts = ["-lpthread"],
     visibility = ["//visibility:public"],
     deps = [
         ":common_core",
@@ -143,6 +144,7 @@ cc_library(
         "//request",
         "//response",
         "//utils:bundle_array",
+        "//utils:timer",
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",
         "@entangled//cclient/serialization:serializer",
