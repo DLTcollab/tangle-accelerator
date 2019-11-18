@@ -23,7 +23,7 @@ extern "C" {
  * @file request/ta_send_mam.h
  */
 
-/** struct of ta_send_transfer_req_t */
+/** struct of ta_send_mam_req_t */
 typedef struct send_mam_req_s {
   /** Optional. MAM channel seed */
   tryte_t* seed;
