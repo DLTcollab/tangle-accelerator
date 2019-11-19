@@ -7,7 +7,7 @@
  */
 #include "scylla_api.h"
 
-#define SCYLLA_API_LOGGER "SCYLLA_API"
+#define SCYLLA_API_LOGGER "scylladb"
 
 static logger_id_t logger_id;
 
@@ -29,9 +29,9 @@ typedef struct select_where_s {
 
 typedef enum { WITH_BUNDLE = 0, WITH_BUNDLE_AND_ADDRESS, NUM_OF_SELECT_METHODS } select_method_t;
 
-typedef struct select_query_s {
+typedef struct query_s {
   const char* query;
-} select_query_t;
+} query_t;
 
 struct scylla_iota_transaction_s {
   cass_byte_t bundle[NUM_FLEX_TRITS_BUNDLE];
@@ -44,6 +44,9 @@ struct scylla_iota_transaction_s {
   cass_byte_t branch[NUM_FLEX_TRITS_BRANCH];
 };
 
+static const query_t select_query[NUM_OF_SELECT_METHODS] = {
+    {"SELECT * FROM bundleTable WHERE bundle = ?"}, {"SELECT * FROM bundleTable WHERE bundle = ? AND address = ?"}};
+
 status_t new_scylla_iota_transaction(scylla_iota_transaction_t** obj) {
   *obj = (scylla_iota_transaction_t*)malloc(sizeof(scylla_iota_transaction_t));
   if (NULL == *obj) {
@@ -55,7 +58,7 @@ status_t new_scylla_iota_transaction(scylla_iota_transaction_t** obj) {
 
 void free_scylla_iota_transaction(scylla_iota_transaction_t** obj) {
   free(*obj);
-  obj = NULL;
+  *obj = NULL;
 }
 
 status_t set_transaction_hash(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length) {
@@ -220,9 +223,6 @@ int64_t ret_transaction_timestamp(scylla_iota_transaction_t* obj) {
   return obj->timestamp;
 }
 
-static const select_query_t select_query[NUM_OF_SELECT_METHODS] = {
-    {"SELECT * FROM bundleTable WHERE bundle = ?"}, {"SELECT * FROM bundleTable WHERE bundle = ? AND address = ?"}};
-
 static void print_error(CassFuture* future) {
   const char* message;
   size_t message_length;
@@ -336,7 +336,7 @@ static status_t make_query(char** result, const char* head_desc, const char* pos
   return SC_OK;
 }
 
-static status_t create_permanent_keyspace(CassSession* session, const char* keyspace_name) {
+static status_t create_keyspace(CassSession* session, const char* keyspace_name) {
   status_t ret = SC_OK;
   char* create_query = NULL;
   ret = make_query(&create_query, "CREATE KEYSPACE IF NOT EXISTS ", keyspace_name,
@@ -403,8 +403,35 @@ static status_t create_edge_table(CassSession* session) {
 exit:
   return ret;
 }
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
-                     const char* keyspace_name) {
+
+static status_t create_identity_table(CassSession* session, bool is_need_drop) {
+  status_t ret = SC_OK;
+  if (is_need_drop) {
+    if (execute_query(session, "DROP TABLE IF EXISTS identity;") != CASS_OK) {
+      ta_log_error("drop identity table fail\n");
+      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+      goto exit;
+    }
+  }
+  if (execute_query(session,
+                    "CREATE TABLE IF NOT EXISTS identity("
+                    "code uuid, hash blob, status tinyint, PRIMARY KEY (code));") != CASS_OK) {
+    ta_log_error("create identity table fail\n");
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+  if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(status);") != CASS_OK) {
+    ta_log_error("create identity table index fail\n");
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+
+exit:
+  return ret;
+}
+
+status_t db_init_identity_keyspace(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_drop,
+                                   const char* keyspace_name) {
   if (hosts == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
@@ -419,7 +446,49 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, b
     ret = SC_STORAGE_CONNECT_FAIL;
     goto exit;
   }
-  if ((ret = create_permanent_keyspace(session, keyspace_name)) != SC_OK) {
+  if ((ret = create_keyspace(session, keyspace_name)) != SC_OK) {
+    ta_log_error("%s\n", "create permanent keyspace fail");
+    goto exit;
+  }
+  ret = make_query(&use_query, "USE ", keyspace_name, "");
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", "make USE keyspace query fail");
+    goto exit;
+  }
+  use_statement = cass_statement_new(use_query, 0);
+  if (execute_statement(session, use_statement) != CASS_OK) {
+    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+
+  if ((ret = create_identity_table(session, is_need_drop)) != SC_OK) {
+    ta_log_error("%s\n", "create identity table fail");
+    goto exit;
+  }
+
+exit:
+  free(use_query);
+  return ret;
+}
+
+status_t db_init_permanent_keyspace(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+                                    const char* keyspace_name) {
+  if (hosts == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
+    return SC_TA_NULL;
+  }
+  status_t ret = SC_OK;
+  CassStatement* use_statement = NULL;
+  char* use_query = NULL;
+  /* Add contact points */
+  *cluster = create_cluster(hosts);
+  if (connect_session(session, *cluster) != CASS_OK) {
+    ta_log_error("%s\n", "connect Scylla cluster fail");
+    ret = SC_STORAGE_CONNECT_FAIL;
+    goto exit;
+  }
+  if ((ret = create_keyspace(session, keyspace_name)) != SC_OK) {
     ta_log_error("%s\n", "create permanent keyspace fail");
     goto exit;
   }
@@ -450,6 +519,110 @@ exit:
   free(use_query);
   return ret;
 }
+
+static CassStatement* ret_insert_identity_statement(const CassPrepared* prepared, const db_identity_t* obj) {
+  CassStatement* statement = NULL;
+  statement = cass_prepared_bind(prepared);
+  cass_statement_bind_uuid_by_name(statement, "code", db_ret_identity_uuid(obj));
+  cass_statement_bind_bytes_by_name(statement, "hash", db_ret_identity_hash(obj), NUM_FLEX_TRITS_HASH);
+  cass_statement_bind_int8_by_name(statement, "status", db_ret_identity_status(obj));
+  return statement;
+}
+
+status_t db_insert_identity_table(CassSession* session, db_identity_t* obj) {
+  status_t ret = SC_OK;
+  const CassPrepared* insert_prepared = NULL;
+  CassStatement* statement = NULL;
+  const char* insert_query =
+      "INSERT INTO identity (code, status, hash)"
+      "VALUES (?, ?, ?);";
+  if (session == NULL || obj == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
+    return SC_TA_NULL;
+  }
+
+  if (prepare_query(session, insert_query, &insert_prepared) != CASS_OK) {
+    ta_log_error("%s\n", "prepare INSERT query fail");
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  statement = ret_insert_identity_statement(insert_prepared, obj);
+  if (execute_statement(session, statement) != CASS_OK) {
+    ta_log_error("%s\n", "SC_STORAGE_CASSANDRA_QUREY_FAIL");
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+
+exit:
+  cass_prepared_free(insert_prepared);
+  return ret;
+}
+
+static status_t db_get_identity_array(CassSession* session, CassStatement* statement,
+                                      db_identity_array_t* identity_array) {
+  status_t ret = SC_OK;
+  CassFuture* future = NULL;
+  const CassResult* result;
+  CassIterator* iterator;
+  db_identity_t* identity;
+  db_new_identity(&identity);
+  future = cass_session_execute(session, statement);
+  cass_future_wait(future);
+  if (cass_future_error_code(future) != CASS_OK) {
+    print_error(future);
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    goto exit;
+  }
+
+  result = cass_future_get_result(future);
+  iterator = cass_iterator_from_result(result);
+
+  while (cass_iterator_next(iterator)) {
+    db_identity_t* itr;
+    const cass_byte_t* hash;
+    cass_int8_t value;
+    CassUuid uuid;
+    size_t len;
+    const CassRow* row = cass_iterator_get_row(iterator);
+
+    utarray_extend_back(identity_array);
+    itr = (db_identity_t*)utarray_back(identity_array);
+
+    cass_value_get_bytes(cass_row_get_column_by_name(row, "hash"), &hash, &len);
+    db_set_identity_hash(itr, hash, NUM_FLEX_TRITS_HASH);
+    cass_value_get_int8(cass_row_get_column_by_name(row, "status"), &value);
+    db_set_identity_status(itr, value);
+    cass_value_get_uuid(cass_row_get_column_by_name(row, "code"), &uuid);
+    db_set_identity_uuid(itr, uuid);
+  }
+
+  cass_result_free(result);
+  cass_iterator_free(iterator);
+
+exit:
+  cass_future_free(future);
+  cass_statement_free(statement);
+
+  return ret;
+}
+
+status_t db_select_identity_table(CassSession* session, cass_int8_t status, db_identity_array_t* identity_array) {
+  status_t ret = SC_OK;
+  CassStatement* statement = NULL;
+  const CassPrepared* select_prepared = NULL;
+  const char* query = "SELECT * FROM identity WHERE status = ?;";
+
+  if (prepare_query(session, query, &select_prepared) != CASS_OK) {
+    ta_log_error("%s\n", "prepare SELECT query fail");
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  statement = cass_prepared_bind(select_prepared);
+  cass_statement_bind_int8_by_name(statement, "status", status);
+  db_get_identity_array(session, statement, identity_array);
+
+  cass_prepared_free(select_prepared);
+  return ret;
+}
+
 static CassStatement* ret_insert_bundle_statement(const CassPrepared* prepared,
                                                   const scylla_iota_transaction_t* transaction) {
   CassStatement* statement = NULL;

@@ -14,6 +14,7 @@ extern "C" {
 #include "accelerator/errors.h"
 #include "cassandra.h"
 #include "common/model/transaction.h"
+#include "scylla_table.h"
 #include "utils/containers/hash/hash243_queue.h"
 #include "utils/logger.h"
 
@@ -246,8 +247,8 @@ int scylla_api_logger_release();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
-                     const char* keyspace_name);
+status_t db_init_permanent_keyspace(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
+                                    const char* keyspace_name);
 
 /**
  * @brief insert transactions into bundle table
@@ -307,6 +308,47 @@ status_t get_column_from_edgeTable(CassSession* session, hash243_queue_t* res_qu
  */
 status_t get_transactions(CassSession* session, hash243_queue_t* res_queue, hash243_queue_t bundles,
                           hash243_queue_t addresses, hash243_queue_t approves);
+
+/**
+ * @brief connect to Scylla cluster and initialize identity keyspace and table
+ *
+ * @param[out] cluster Scylla node cluster
+ * @param[out] session Scylla cluster session
+ * @param[in] hosts Scylla node ip
+ * @param[in] is_need_drop true : drop table, false : keep old table
+ * @param[in] keyspace_name keyspace name the session should use
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_init_identity_keyspace(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_drop,
+                                   const char* keyspace_name);
+
+/**
+ * @brief get db_identity_array_t with selected status from identity table
+ *
+ * @param[in] session Scylla session
+ * @param[in] status selected status TXN status
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_select_identity_table(CassSession* session, cass_int8_t status, db_identity_array_t* db_identity_array);
+
+/**
+ * @brief insert db_identity_t into identity table
+ *
+ * @param[in] session Scylla session
+ * @param[in] obj inserted db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_insert_identity_table(CassSession* session, db_identity_t* obj);
 
 #ifdef __cplusplus
 }

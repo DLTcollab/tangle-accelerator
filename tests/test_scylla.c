@@ -122,8 +122,11 @@ void test_scylla(void) {
 
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
+  TEST_ASSERT_EQUAL_INT(ta_logger_init(), SC_OK);
+  scylla_api_logger_init();
+
   TEST_ASSERT_NOT_EQUAL(host, NULL);
-  TEST_ASSERT_EQUAL_INT(init_scylla(&cluster, session, host, true, keyspace_name), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_init_permanent_keyspace(&cluster, session, host, true, keyspace_name), SC_OK);
   new_scylla_iota_transaction(&transaction);
 
   for (size_t i = 0; i < tx_num; i++) {
@@ -148,8 +151,52 @@ void test_scylla(void) {
   free_scylla_iota_transaction(&transaction);
   cass_cluster_free(cluster);
   cass_session_free(session);
+  scylla_api_logger_release();
 }
 
+void test_db_identity_table(void) {
+  CassUuidGen* uuid_gen = cass_uuid_gen_new();
+  CassCluster* cluster = NULL;
+  CassSession* session = cass_session_new();
+  db_identity_t* identity;
+  db_new_identity(&identity);
+  CassUuid uuid;
+  const char hashes[][NUM_FLEX_TRITS_HASH] = {
+      {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_3},
+  };
+  const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {
+      {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_3}, {TRANSACTION_3},
+  };
+  TEST_ASSERT_EQUAL_INT(ta_logger_init(), SC_OK);
+  scylla_api_logger_init();
+  TEST_ASSERT_NOT_EQUAL(host, NULL);
+  TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&cluster, session, host, true, keyspace_name), SC_OK);
+  for (int i = 0; i < 6; i++) {
+    cass_uuid_gen_time(uuid_gen, &uuid);
+    db_set_identity_uuid(identity, uuid);
+    db_set_identity_hash(identity, (cass_byte_t*)hashes[i], NUM_FLEX_TRITS_HASH);
+    db_set_identity_status(identity, i / 2);
+    db_insert_identity_table(session, identity);
+  }
+
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  db_select_identity_table(session, INSERTING_TXN, db_identity_array);
+  db_select_identity_table(session, PENDING_TXN, db_identity_array);
+  db_select_identity_table(session, CONFIRMED_TXN, db_identity_array);
+  db_identity_t* itr;
+  int idx = 0;
+  IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)expected_select_hashes[idx % 6],
+                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    idx++;
+  }
+  cass_cluster_free(cluster);
+  cass_session_free(session);
+  cass_uuid_gen_free(uuid_gen);
+  db_identity_array_free(&db_identity_array);
+  db_free_identity(&identity);
+  scylla_api_logger_release();
+}
 int main(int argc, char** argv) {
   int cmdOpt;
   int optIdx;
@@ -174,15 +221,10 @@ int main(int argc, char** argv) {
       keyspace_name = optarg;
     }
   }
+
   UNITY_BEGIN();
-
-  if (ta_logger_init() != SC_OK) {
-    return EXIT_FAILURE;
-  }
-  scylla_api_logger_init();
-
+  RUN_TEST(test_db_identity_table);
   RUN_TEST(test_scylla);
-  scylla_api_logger_release();
 
   return UNITY_END();
 }
