@@ -374,7 +374,6 @@ status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
   }
 
   http->core = core;
-  http->running = false;
   return SC_OK;
 }
 
@@ -391,7 +390,6 @@ status_t ta_http_start(ta_http_t *const http) {
     ta_log_error("%s\n", "SC_HTTP_OOM");
     return SC_HTTP_OOM;
   }
-  http->running = true;
   return SC_OK;
 }
 
@@ -402,6 +400,5 @@ status_t ta_http_stop(ta_http_t *const http) {
   }
 
   MHD_stop_daemon(http->daemon);
-  http->running = false;
   return SC_OK;
 }
