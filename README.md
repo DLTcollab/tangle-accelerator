@@ -43,6 +43,16 @@ both footprint and startup time are behaved pretty well.
 
 ```
 
+### Transaction reattachment
+
+`Tangle-accelerator` helps to reattach pending transactions were attached from `Tangle-accelerator`.
+Reattachment increases chances of confirmation and prevents messages being pruned when full nodes perform snapshot.
+Clients should provide a uniqle ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachement. 
+
+`Tangle-accelerator` uses ScyllaDB to store each transaction's ID, hash and status(Pending or confirmed). `Tangle-accelerator` will periodically check the status of pending transactions and reattach transactions which have been pended too long. Confirmed transactions will be stored into permanodes.
+
+Clients can find the transaction alone with wanted message by using the ID to query.
+
 ## Connectivity
 
 `Tangle-accelerator`, at this moment, supports the following TCP/IP derived protocols:

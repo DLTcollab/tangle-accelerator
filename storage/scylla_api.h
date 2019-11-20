@@ -14,10 +14,49 @@ extern "C" {
 #include "accelerator/errors.h"
 #include "cassandra.h"
 #include "common/model/transaction.h"
+#include "scylla_table.h"
 #include "utils/containers/hash/hash243_queue.h"
 #include "utils/logger.h"
 
+typedef struct {
+  CassCluster* cluster;
+  CassSession* session;
+} db_client_service_t;
+
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;
+
+/**
+ * @brief init Scylla client serivce and connect to specific cluster
+ *
+ * @param[out] service Scylla client service
+ * @param[in] hosts Scylla cluster entry point IP address
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_client_service_init(db_client_service_t* service, const char* hosts);
+
+/**
+ * @brief free Scylla client serivce
+ *
+ * @param[in] service Scylla client service
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_client_service_free(db_client_service_t* service);
+
+/**
+ * @brief generate a new db_identity_t obj with specific hash and status
+ *
+ * @param[in] service Scylla client service
+ * @param[in] hash transaction hash to be set
+ * @param[in] status transaction status to be set
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, const char* hash, db_txn_status_t status);
 
 /**
  * @brief malloc memory space to *obj
@@ -236,23 +275,19 @@ int scylla_api_logger_release();
 /**
  * @brief connect to Scylla node and create table
  *
- * @param[out] cluster Scylla node cluster
- * @param[out] session Scylla cluster session
- * @param[in] hosts Scylla node ip
- * @param[in] is_need_create_table true : create, false : not to create
+ * @param[in] service Scylla db client service
+ * @param[in] need_drop true : drop table
  * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, bool is_need_create_table,
-                     const char* keyspace_name);
-
+status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_drop, const char* keyspace_name);
 /**
  * @brief insert transactions into bundle table
  *
- * @param[in] session Scylla cluster session
+ * @param[in] service Scylla client service
  * @param[in] transaction input transactions data
  * @param[in] tran_num input transactions number
  *
@@ -260,13 +295,13 @@ status_t init_scylla(CassCluster** cluster, CassSession* session, char* hosts, b
  * - SC_OK on success
  * - non-zero on error
  */
-status_t insert_transaction_into_bundleTable(CassSession* session, scylla_iota_transaction_t* transaction,
+status_t insert_transaction_into_bundleTable(db_client_service_t* service, scylla_iota_transaction_t* transaction,
                                              size_t trans_num);
 
 /**
  * @brief insert transactions into edge table
  *
- * @param[in] session Scylla cluster session
+ * @param[in] service Scylla client service
  * @param[in] transaction input transactions data
  * @param[in] tran_num input transactions number
  *
@@ -274,13 +309,13 @@ status_t insert_transaction_into_bundleTable(CassSession* session, scylla_iota_t
  * - SC_OK on success
  * - non-zero on error
  */
-status_t insert_transaction_into_edgeTable(CassSession* session, scylla_iota_transaction_t* transaction,
+status_t insert_transaction_into_edgeTable(db_client_service_t* service, scylla_iota_transaction_t* transaction,
                                            size_t trans_num);
 
 /**
  * @brief get bundles from edge table by edge
  *
- * @param[in] session Scylla cluster session
+ * @param[in] service Scylla client service
  * @param[in] edge primary key for select bundles
  * @param[in] column_name the column we want to select
  * @param[out] res_queue response transactions queue
@@ -289,13 +324,13 @@ status_t insert_transaction_into_edgeTable(CassSession* session, scylla_iota_tra
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_column_from_edgeTable(CassSession* session, hash243_queue_t* res_queue, cass_byte_t* edge,
+status_t get_column_from_edgeTable(db_client_service_t* service, hash243_queue_t* res_queue, cass_byte_t* edge,
                                    const char* column_name);
 
 /**
  * @brief get transactions by bundles, addresses or get approves
  *
- * @param[in] session Scylla cluster session
+ * @param[in] service Scylla client service
  * @param[in] bundles query bundles queue
  * @param[in] bundles query addresses queue
  * @param[in] bundles query approves queue
@@ -305,8 +340,49 @@ status_t get_column_from_edgeTable(CassSession* session, hash243_queue_t* res_qu
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_transactions(CassSession* session, hash243_queue_t* res_queue, hash243_queue_t bundles,
+status_t get_transactions(db_client_service_t* service, hash243_queue_t* res_queue, hash243_queue_t bundles,
                           hash243_queue_t addresses, hash243_queue_t approves);
+
+/**
+ * @brief connect to Scylla cluster and initialize identity keyspace and table
+ *
+ * @param[out] cluster Scylla node cluster
+ * @param[out] service Scylla client service
+ * @param[in] hosts Scylla cluster entry point ip
+ * @param[in] need_drop true : drop table, false : keep old table
+ * @param[in] keyspace_name keyspace name the session should use
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+
+/**
+ * @brief get db_identity_array_t with selected status from identity table
+ *
+ * @param[in] session Scylla session
+ * @param[in] status selected status TXN status
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_select_identity_table(db_client_service_t* service, cass_int8_t status,
+                                  db_identity_array_t* db_identity_array);
+
+/**
+ * @brief insert db_identity_t into identity table
+ *
+ * @param[in] session Scylla session
+ * @param[in] obj inserted db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* obj);
 
 #ifdef __cplusplus
 }
