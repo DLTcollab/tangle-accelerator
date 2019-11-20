@@ -17,7 +17,7 @@ extern "C" {
 typedef struct db_identity_s db_identity_t;
 typedef UT_array db_identity_array_t;
 
-typedef enum { PENDING_TXN = 0, INSERTING_TXN, CONFIRMED_TXN, NUM_OF_TXN_STATUS } txn_status_t;
+typedef enum { PENDING_TXN = 0, INSERTING_TXN, CONFIRMED_TXN, NUM_OF_TXN_STATUS } db_txn_status_t;
 
 /**
  * Allocate memory of db_identity_array_t
@@ -50,36 +50,36 @@ static inline void db_identity_array_free(db_identity_array_t** const db_identit
  * - SC_OK on success
  * - SC_STORAGE_OOM on error
  */
-status_t db_new_identity(db_identity_t** obj);
+status_t db_identity_new(db_identity_t** obj);
 
 /**
  * @brief release memory space to *obj
  *
  * @param[in] obj pointer to pointer to db_identity_t to be free
  */
-void db_free_identity(db_identity_t** obj);
+void db_identity_free(db_identity_t** obj);
 
 /**
- * @brief set uuid in db_identity_t
+ * @brief set id in db_identity_t
  *
  * @param[in] obj pointer to db_identity_t
- * @param[in] uuid uuid to be set into db_identity_t
+ * @param[in] id id to be set into db_identity_t
  * @return
  * - SC_OK on success
  * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
  */
-status_t db_set_identity_uuid(db_identity_t* obj, CassUuid uuid);
+status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id);
 
 /**
- * @brief return uuid in db_identity_t
+ * @brief return id in db_identity_t
  *
  * @param[in] obj pointer to db_identity_t
  *
  * @return
- * - uuid on success
- * - NULL on error
+ * - id on success
+ * - INT64_MAX on error
  */
-CassUuid db_ret_identity_uuid(const db_identity_t* obj);
+cass_int64_t db_ret_identity_id(const db_identity_t* obj);
 
 /**
  * @brief set status in db_identity_t

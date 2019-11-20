@@ -23,12 +23,12 @@ int scylla_table_logger_release() {
 }
 
 struct db_identity_s {
-  CassUuid uuid;
+  cass_int64_t id;
   cass_int8_t status;
   cass_byte_t hash[NUM_FLEX_TRITS_BUNDLE];
 };
 
-status_t db_new_identity(db_identity_t** obj) {
+status_t db_identity_new(db_identity_t** obj) {
   *obj = (db_identity_t*)malloc(sizeof(struct db_identity_s));
   if (NULL == *obj) {
     ta_log_error("SC_STORAGE_OOM\n");
@@ -38,33 +38,35 @@ status_t db_new_identity(db_identity_t** obj) {
   return SC_OK;
 }
 
-void db_free_identity(db_identity_t** obj) {
+void db_identity_free(db_identity_t** obj) {
   free(*obj);
   *obj = NULL;
 }
 
-status_t db_set_identity_uuid(db_identity_t* obj, CassUuid uuid) {
+status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id) {
   if (obj == NULL) {
-    ta_log_error("SC_TA_NULL\n");
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return SC_TA_NULL;
   }
-  obj->uuid.clock_seq_and_node = uuid.clock_seq_and_node;
-  obj->uuid.time_and_version = uuid.time_and_version;
+  if (id < 0) {
+    ta_log_error("Invaild input : nagative ID\n");
+    return SC_STORAGE_INVAILD_INPUT;
+  }
+  obj->id = id;
   return SC_OK;
 }
 
-CassUuid db_ret_identity_uuid(const db_identity_t* obj) {
+cass_int64_t db_ret_identity_id(const db_identity_t* obj) {
   if (obj == NULL) {
-    ta_log_error("SC_TA_NULL\n");
-    CassUuid uuid = {0, 0};
-    return uuid;
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
+    return INT64_MAX;
   }
-  return obj->uuid;
+  return obj->id;
 }
 
 status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status) {
   if (obj == NULL) {
-    ta_log_error("SC_TA_NULL\n");
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return SC_TA_NULL;
   }
   if (status < 0 || status >= NUM_OF_TXN_STATUS) {
@@ -77,16 +79,19 @@ status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status) {
 
 cass_int8_t db_ret_identity_status(const db_identity_t* obj) {
   if (obj == NULL) {
-    ta_log_error("SC_TA_NULL\n");
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return 0;
   }
   return obj->status;
 }
 
 status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_t length) {
-  if (obj == NULL || hash == NULL) {
-    ta_log_error("SC_TA_NULL\n");
+  if (obj == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return SC_TA_NULL;
+  }
+  if (hash == NULL) {
+    ta_log_error("NULL pointer to hash to insert into identity table\n");
   }
   if (length != NUM_FLEX_TRITS_HASH) {
     ta_log_error("SC_STORAGE_INVAILD_INPUT\n");
@@ -98,7 +103,7 @@ status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_
 
 const cass_byte_t* db_ret_identity_hash(const db_identity_t* obj) {
   if (obj == NULL) {
-    ta_log_error("SC_TA_NULL\n");
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return NULL;
   }
   return obj->hash;

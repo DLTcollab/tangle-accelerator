@@ -11,7 +11,7 @@
 
 static char* host;
 static char* keyspace_name;
-void test_get_column_from_edgeTable(CassSession* session) {
+void test_get_column_from_edgeTable(db_client_service_t* service) {
   char expected_result[][FLEX_TRIT_SIZE_243] = {
       {BUNDLE_1},       // address_2
       {BUNDLE_2},       // address_2
@@ -24,9 +24,9 @@ void test_get_column_from_edgeTable(CassSession* session) {
   };
   hash243_queue_t res_hash = NULL;
   hash243_queue_entry_t* iter243 = NULL;
-  get_column_from_edgeTable(session, &res_hash, (cass_byte_t*)ADDRESS_2, "bundle");
-  get_column_from_edgeTable(session, &res_hash, (cass_byte_t*)ADDRESS_1, "bundle");
-  get_column_from_edgeTable(session, &res_hash, (cass_byte_t*)TRANSACTION_7, "hash");
+  get_column_from_edgeTable(service, &res_hash, (cass_byte_t*)ADDRESS_2, "bundle");
+  get_column_from_edgeTable(service, &res_hash, (cass_byte_t*)ADDRESS_1, "bundle");
+  get_column_from_edgeTable(service, &res_hash, (cass_byte_t*)TRANSACTION_7, "hash");
   size_t idx = 0;
   CDL_FOREACH(res_hash, iter243) {
     TEST_ASSERT_EQUAL_MEMORY(iter243->hash, (flex_trit_t*)expected_result[idx++],
@@ -36,7 +36,7 @@ void test_get_column_from_edgeTable(CassSession* session) {
   TEST_ASSERT_EQUAL_INT(idx, sizeof(expected_result) / (sizeof(char) * FLEX_TRIT_SIZE_243));
 }
 
-void test_get_transactions(CassSession* session) {
+void test_get_transactions(db_client_service_t* service) {
   char expected_response_transactions[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_1},  // bundle 1
       {TRANSACTION_2},  // bundle 1
@@ -67,7 +67,7 @@ void test_get_transactions(CassSession* session) {
   hash243_queue_push(&approvees, (flex_trit_t const* const)TRANSACTION_6);
   hash243_queue_push(&approvees, (flex_trit_t const* const)TRANSACTION_7);
 
-  get_transactions(session, &transactions, bundles, addresses, approvees);
+  get_transactions(service, &transactions, bundles, addresses, approvees);
 
   size_t idx = 0;
   CDL_FOREACH(transactions, iter243) {
@@ -95,9 +95,7 @@ void test_scylla(void) {
    *    |/    \  /
    *    T7-T8   T9
    */
-
-  CassCluster* cluster = NULL;
-  CassSession* session = cass_session_new();
+  db_client_service_t db_client_service;
   char hashes[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_4}, {TRANSACTION_5}, {TRANSACTION_6},
   };
@@ -122,11 +120,9 @@ void test_scylla(void) {
 
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
-  TEST_ASSERT_EQUAL_INT(ta_logger_init(), SC_OK);
-  scylla_api_logger_init();
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, host), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_permanent_keyspace_init(&db_client_service, true, keyspace_name), SC_OK);
 
-  TEST_ASSERT_NOT_EQUAL(host, NULL);
-  TEST_ASSERT_EQUAL_INT(db_init_permanent_keyspace(&cluster, session, host, true, keyspace_name), SC_OK);
   new_scylla_iota_transaction(&transaction);
 
   for (size_t i = 0; i < tx_num; i++) {
@@ -139,50 +135,39 @@ void test_scylla(void) {
     set_transaction_timestamp(transaction, (int64_t)timestamps[i]);
     set_transaction_value(transaction, (int64_t)i);
     /* insert test input transactions to ScyllyDB */
-    insert_transaction_into_bundleTable(session, transaction, 1);
-    insert_transaction_into_edgeTable(session, transaction, 1);
+    insert_transaction_into_bundleTable(&db_client_service, transaction, 1);
+    insert_transaction_into_edgeTable(&db_client_service, transaction, 1);
   }
 
   /* test select bundles by edge in edge table */
-  test_get_column_from_edgeTable(session);
+  test_get_column_from_edgeTable(&db_client_service);
   /* test find transactions by bundles or addresses */
-  test_get_transactions(session);
+  test_get_transactions(&db_client_service);
 
   free_scylla_iota_transaction(&transaction);
-  cass_cluster_free(cluster);
-  cass_session_free(session);
-  scylla_api_logger_release();
+  db_client_service_free(&db_client_service);
 }
 
 void test_db_identity_table(void) {
-  CassUuidGen* uuid_gen = cass_uuid_gen_new();
-  CassCluster* cluster = NULL;
-  CassSession* session = cass_session_new();
-  db_identity_t* identity;
-  db_new_identity(&identity);
-  CassUuid uuid;
+  db_client_service_t db_client_service;
+
   const char hashes[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_3},
   };
   const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_3}, {TRANSACTION_3},
   };
-  TEST_ASSERT_EQUAL_INT(ta_logger_init(), SC_OK);
-  scylla_api_logger_init();
-  TEST_ASSERT_NOT_EQUAL(host, NULL);
-  TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&cluster, session, host, true, keyspace_name), SC_OK);
+
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, host), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
   for (int i = 0; i < 6; i++) {
-    cass_uuid_gen_time(uuid_gen, &uuid);
-    db_set_identity_uuid(identity, uuid);
-    db_set_identity_hash(identity, (cass_byte_t*)hashes[i], NUM_FLEX_TRITS_HASH);
-    db_set_identity_status(identity, i / 2);
-    db_insert_identity_table(session, identity);
+    db_insert_tx_into_identity(&db_client_service, i, hashes[i], i / 2);
   }
 
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  db_select_identity_table(session, INSERTING_TXN, db_identity_array);
-  db_select_identity_table(session, PENDING_TXN, db_identity_array);
-  db_select_identity_table(session, CONFIRMED_TXN, db_identity_array);
+  db_select_identity_table(&db_client_service, INSERTING_TXN, db_identity_array);
+  db_select_identity_table(&db_client_service, PENDING_TXN, db_identity_array);
+  db_select_identity_table(&db_client_service, CONFIRMED_TXN, db_identity_array);
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
@@ -190,12 +175,8 @@ void test_db_identity_table(void) {
                              sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
     idx++;
   }
-  cass_cluster_free(cluster);
-  cass_session_free(session);
-  cass_uuid_gen_free(uuid_gen);
+  db_client_service_free(&db_client_service);
   db_identity_array_free(&db_identity_array);
-  db_free_identity(&identity);
-  scylla_api_logger_release();
 }
 int main(int argc, char** argv) {
   int cmdOpt;
@@ -204,7 +185,7 @@ int main(int argc, char** argv) {
       {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
   host = NULL;
-  keyspace_name = "default_space";
+  keyspace_name = "test_scylla";
   /* Parse the command line options */
   /* TODO: Support macOS since getopt_long() is GNU extension */
   while (1) {
@@ -223,8 +204,12 @@ int main(int argc, char** argv) {
   }
 
   UNITY_BEGIN();
+  if (ta_logger_init() != SC_OK) {
+    return EXIT_FAILURE;
+  }
+  scylla_api_logger_init();
   RUN_TEST(test_db_identity_table);
   RUN_TEST(test_scylla);
-
+  scylla_api_logger_release();
   return UNITY_END();
 }
