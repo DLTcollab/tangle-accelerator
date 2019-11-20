@@ -1,11 +1,12 @@
 # Tangle-accelerator
 
-[![Build Status](https://badge.buildkite.com/0deb4c46f2f69363e4d326014843b92853733f243f379c70b5.svg)](https://buildkite.com/dltcollab/tangle-accelerator-test) ) [![GitHub release](https://img.shields.io/github/release-pre/DLTcollab/tangle-accelerator.svg)](https://github.com/DLTcollab/tangle-accelerator/releases)
+[![Build Status](https://badge.buildkite.com/0deb4c46f2f69363e4d326014843b92853733f243f379c70b5.svg)](https://buildkite.com/dltcollab/tangle-accelerator-test)  [![GitHub release](https://img.shields.io/github/release-pre/DLTcollab/tangle-accelerator.svg)](https://github.com/DLTcollab/tangle-accelerator/releases)
 
 `Tangle-accelerator` is a caching proxy server for [IOTA](https://www.iota.org/), which
 can cache API requests and rewrite their responses as needed to be routed through full
-nodes. Thus, one instance of `Tangle-accelerator` can serve thousands of Tangle requests
-at once without accessing remote full nodes frequently.
+nodes. In other words, one instance of `Tangle-accelerator` can serve thousands of IOTA
+requests at once without accessing remote full nodes frequently, that improves the
+scalability and usability of [Tangle network](https://www.iota.org/research/meet-the-tangle).
 
 As an intermediate server accelerateing interactions with the Tangle, it faciliates
 [dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
