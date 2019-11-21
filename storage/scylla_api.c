@@ -9,6 +9,8 @@
 
 #define SCYLLA_API_LOGGER "scylladb"
 
+#define MAX_QUERY_RETRY_NUMBER 5
+#define RETRY_DELAY_SECONDS 5
 static logger_id_t logger_id;
 
 void scylla_api_logger_init() { logger_id = logger_helper_enable(SCYLLA_API_LOGGER, LOGGER_DEBUG, true); }
@@ -274,58 +276,61 @@ static CassError connect_session(CassSession* session, const CassCluster* cluste
   return rc;
 }
 
-static CassError execute_query(CassSession* session, const char* query) {
+static CassError execute_statement(CassSession* session, CassStatement* statement) {
   CassError rc = CASS_OK;
-  CassStatement* statement = cass_statement_new(query, 0);
-  CassFuture* future = cass_session_execute(session, statement);
+  int cnt = 0;
+  while (cnt < MAX_QUERY_RETRY_NUMBER) {
+    CassFuture* future = cass_session_execute(session, statement);
+    cass_future_wait(future);
 
-  cass_future_wait(future);
+    rc = cass_future_error_code(future);
+    if (rc != CASS_OK) {
+      ta_log_warning("Scylla request fail %d times\n", cnt + 1);
+      print_error(future);
+    }
+    cass_future_free(future);
+    if (rc == CASS_OK) {
+      break;
+    }
 
-  rc = cass_future_error_code(future);
-  if (rc != CASS_OK) {
-    print_error(future);
+    cnt++;
+    if (cnt < MAX_QUERY_RETRY_NUMBER) {
+      sleep(RETRY_DELAY_SECONDS);
+    }
   }
 
-  cass_future_free(future);
   cass_statement_free(statement);
 
   return rc;
+}
+
+static CassError execute_query(CassSession* session, const char* query) {
+  CassStatement* statement = cass_statement_new(query, 0);
+  return execute_statement(session, statement);
 }
 
 static CassError prepare_query(CassSession* session, const char* query, const CassPrepared** prepared) {
   CassError rc = CASS_OK;
-  CassFuture* future = NULL;
+  int cnt = 0;
+  while (cnt < MAX_QUERY_RETRY_NUMBER) {
+    CassFuture* future = cass_session_prepare(session, query);
+    cass_future_wait(future);
 
-  future = cass_session_prepare(session, query);
-  cass_future_wait(future);
-
-  rc = cass_future_error_code(future);
-  if (rc != CASS_OK) {
-    print_error(future);
-  } else {
-    *prepared = cass_future_get_prepared(future);
+    rc = cass_future_error_code(future);
+    if (rc != CASS_OK) {
+      ta_log_warning("Scylla prepare fail %d times\n", cnt + 1);
+      print_error(future);
+      cass_future_free(future);
+    } else {
+      *prepared = cass_future_get_prepared(future);
+      cass_future_free(future);
+      break;
+    }
+    cnt++;
+    if (cnt < MAX_QUERY_RETRY_NUMBER) {
+      sleep(RETRY_DELAY_SECONDS);
+    }
   }
-
-  cass_future_free(future);
-
-  return rc;
-}
-
-static CassError execute_statement(CassSession* session, CassStatement* statement) {
-  CassError rc = CASS_OK;
-  CassFuture* future = NULL;
-  future = cass_session_execute(session, statement);
-
-  cass_future_wait(future);
-
-  rc = cass_future_error_code(future);
-  if (rc != CASS_OK) {
-    print_error(future);
-  }
-
-  cass_future_free(future);
-  cass_statement_free(statement);
-
   return rc;
 }
 
@@ -512,6 +517,9 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, co
 
 exit:
   db_identity_free(&identity);
+  if (ret != SC_OK) {
+    ta_log_error("insert identity %d fail\n");
+  }
   return ret;
 }
 
