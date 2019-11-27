@@ -9,12 +9,14 @@
 #ifndef ACCELERATOR_COMMON_CORE_H_
 #define ACCELERATOR_COMMON_CORE_H_
 
+#include <sys/time.h>
 #include "accelerator/config.h"
 #include "common/model/transfer.h"
 #include "request/request.h"
 #include "response/response.h"
 #include "utils/bundle_array.h"
 #include "utils/time.h"
+#include "utils/timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +47,12 @@ void cc_logger_init();
  * - EXIT_FAILURE on error
  */
 int cc_logger_release();
+
+typedef struct {
+  const iota_config_t* iconf;
+  const iota_client_service_t* service;
+  ta_generate_address_res_t* res;
+} ta_generate_address_args_t;
 
 /**
  * @brief Generate an unused address.

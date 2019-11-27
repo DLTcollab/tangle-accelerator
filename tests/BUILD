@@ -116,3 +116,14 @@ cc_test(
         "//storage",
     ],
 )
+
+cc_test(
+    name = "test_timer",
+    srcs = [
+        "test_timer.c",
+    ],
+    deps = [
+        ":test_define",
+        "//utils:timer",
+    ],
+)

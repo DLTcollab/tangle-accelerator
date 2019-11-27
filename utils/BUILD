@@ -59,3 +59,17 @@ cc_library(
     name = "hash_algo_djb2",
     hdrs = ["hash_algo_djb2.h"],
 )
+
+cc_library(
+    name = "timer",
+    srcs = ["timer.c"],
+    hdrs = ["timer.h"],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+    ],
+    deps = [
+        ":ta_logger",
+        "//accelerator:ta_errors",
+    ],
+)
