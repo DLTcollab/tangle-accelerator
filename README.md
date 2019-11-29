@@ -8,6 +8,10 @@ nodes. In other words, one instance of `Tangle-accelerator` can serve thousands 
 requests at once without accessing remote full nodes frequently, that improves the
 scalability and usability of [Tangle network](https://www.iota.org/research/meet-the-tangle).
 
+Being at the edge as a key-value store, an edge-caching node powered by `Tangle-accelerator`
+does not have to communicate to typical [IOTA](https://www.iota.org/) full nodes for every API
+calls. Instead, the cached transaction data being sought is available as needed.
+
 As an intermediate server accelerateing interactions with the Tangle, it faciliates
 [dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
 on edge devices. In the meanwhile, `Tangle-accelerator` provides shortcuts for certain
