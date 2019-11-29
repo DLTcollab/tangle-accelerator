@@ -253,7 +253,7 @@ void test_proxy_apis() {
   }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
   srand(time(NULL));
 
   UNITY_BEGIN();
@@ -264,6 +264,7 @@ int main(void) {
   }
 
   ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
+  ta_config_cli_init(&ta_core, argc, argv);
   ta_config_set(&ta_core.cache, &ta_core.service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
