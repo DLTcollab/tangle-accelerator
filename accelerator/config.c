@@ -35,9 +35,9 @@ struct option* cli_build_options() {
   return long_options;
 }
 
-status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
-                        iota_client_service_t* const service, int key, char* const value) {
-  if (value == NULL || info == NULL || iconf == NULL || cache == NULL || service == NULL) {
+status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_config_t* const iota_conf,
+                      ta_cache_t* const cache, iota_client_service_t* const iota_service, int key, char* const value) {
+  if (value == NULL || ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -45,21 +45,21 @@ status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t*
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
-      info->host = value;
+      ta_conf->host = value;
       break;
     case TA_PORT_CLI:
-      info->port = value;
+      ta_conf->port = value;
       break;
     case TA_THREAD_COUNT_CLI:
-      info->thread_count = atoi(value);
+      ta_conf->thread_count = atoi(value);
       break;
 
     // IRI configuration
     case IRI_HOST_CLI:
-      service->http.host = value;
+      iota_service->http.host = value;
       break;
     case IRI_PORT_CLI:
-      service->http.port = atoi(value);
+      iota_service->http.port = atoi(value);
       break;
 
     // Cache configuration
@@ -70,15 +70,15 @@ status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t*
       cache->port = atoi(value);
       break;
 
-    // iconf IOTA configuration
+    // iota_conf IOTA configuration
     case MILESTONE_DEPTH_CLI:
-      iconf->milestone_depth = atoi(value);
+      iota_conf->milestone_depth = atoi(value);
       break;
     case MWM_CLI:
-      iconf->mwm = atoi(value);
+      iota_conf->mwm = atoi(value);
       break;
     case SEED_CLI:
-      iconf->seed = value;
+      iota_conf->seed = value;
       break;
     case CACHE:
       cache->cache_state = (toupper(value[0]) == 'T');
@@ -100,26 +100,26 @@ status_t cli_config_set(char* conf_file, ta_config_t* const info, iota_config_t*
   return SC_OK;
 }
 
-status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const iconf, ta_cache_t* const cache,
-                                iota_client_service_t* const service) {
+status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const iota_conf, ta_cache_t* const cache,
+                              iota_client_service_t* const iota_service) {
   status_t ret = SC_OK;
 
   logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
   ta_log_info("enable logger %s.\n", CONFIG_LOGGER);
 
-  if (info == NULL || iconf == NULL || cache == NULL || service == NULL) {
+  if (ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
   ta_log_info("Initializing TA information\n");
-  info->version = TA_VERSION;
-  info->host = TA_HOST;
-  info->port = TA_PORT;
-  info->thread_count = TA_THREAD_COUNT;
+  ta_conf->version = TA_VERSION;
+  ta_conf->host = TA_HOST;
+  ta_conf->port = TA_PORT;
+  ta_conf->thread_count = TA_THREAD_COUNT;
 #ifdef ENABLE_MQTT
-  info->mqtt_host = MQTT_HOST;
-  info->mqtt_topic_root = TOPIC_ROOT;
+  ta_conf->mqtt_host = MQTT_HOST;
+  ta_conf->mqtt_topic_root = TOPIC_ROOT;
 #endif
   ta_log_info("Initializing Redis information\n");
   cache->host = REDIS_HOST;
@@ -127,21 +127,21 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   cache->cache_state = false;
 
   ta_log_info("Initializing IRI configuration\n");
-  iconf->milestone_depth = MILESTONE_DEPTH;
-  iconf->mwm = MWM;
-  iconf->seed = SEED;
+  iota_conf->milestone_depth = MILESTONE_DEPTH;
+  iota_conf->mwm = MWM;
+  iota_conf->seed = SEED;
   char mam_file_path[] = MAM_FILE_PREFIX;
   mkstemp(mam_file_path);
-  iconf->mam_file_path = mam_file_path;
+  iota_conf->mam_file_path = mam_file_path;
 
   ta_log_info("Initializing IRI connection\n");
-  service->http.path = "/";
-  service->http.content_type = "application/json";
-  service->http.accept = "application/json";
-  service->http.host = IRI_HOST;
-  service->http.port = IRI_PORT;
-  service->http.api_version = 1;
-  service->serializer_type = SR_JSON;
+  iota_service->http.path = "/";
+  iota_service->http.content_type = "application/json";
+  iota_service->http.accept = "application/json";
+  iota_service->http.host = IRI_HOST;
+  iota_service->http.port = IRI_PORT;
+  iota_service->http.api_version = 1;
+  iota_service->serializer_type = SR_JSON;
 
   // Turn off verbose mode default
   verbose_mode = false;
@@ -149,7 +149,7 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ic
   return ret;
 }
 
-status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
+status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
   int key = 0;
   status_t ret = SC_OK;
   struct option* long_options = cli_build_options();
@@ -160,7 +160,7 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
   int state = 0;
 
   // Initialize default configuration file path with '\0'
-  conf->conf_file[0] = '\0';
+  core->conf_file[0] = '\0';
 
   if (!yaml_parser_initialize(&parser)) {
     ret = SC_CONF_PARSER_ERROR;
@@ -180,7 +180,8 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
         break;
       case CONF_CLI:
-        ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
+        ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service, key,
+                           optarg);
         break;
       default:
         break;
@@ -193,13 +194,13 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
   // Reset the CLI option index for the second loop where they are actually analyzed
   optind = 1;
 
-  if (strlen(conf->conf_file) == 0) {
+  if (strlen(core->conf_file) == 0) {
     /* No configuration file specified */
     ret = SC_OK;
     goto done;
   }
 
-  if ((file = fopen(conf->conf_file, "r")) == NULL) {
+  if ((file = fopen(core->conf_file, "r")) == NULL) {
     /* The specified configuration file does not exist */
     ret = SC_CONF_FOPEN_ERROR;
     ta_log_error("%s\n", "SC_CONF_FOPEN_ERROR");
@@ -226,8 +227,8 @@ status_t ta_config_file_init(ta_core_t* const conf, int argc, char** argv) {
         if (state == 0) {  // Key
           key = get_conf_key(arg);
         } else {  // Value
-          if ((ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key,
-                                    strdup(arg))) != SC_OK) {
+          if ((ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service,
+                                  key, strdup(arg))) != SC_OK) {
             goto done;
           }
         }
@@ -251,7 +252,7 @@ done:
   return ret;
 }
 
-status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
+status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
   int key = 0;
   status_t ret = SC_OK;
   struct option* long_options = cli_build_options();
@@ -283,7 +284,8 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
         /* Already processed in ta_config_file_init() */
         break;
       default:
-        ret = cli_config_set(conf->conf_file, &conf->info, &conf->iconf, &conf->cache, &conf->service, key, optarg);
+        ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service, key,
+                           optarg);
         break;
     }
     if (ret != SC_OK) {
@@ -295,14 +297,14 @@ status_t ta_config_cli_init(ta_core_t* const conf, int argc, char** argv) {
   return ret;
 }
 
-status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const service) {
+status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service) {
   status_t ret = SC_OK;
-  if (cache == NULL || service == NULL) {
+  if (cache == NULL || iota_service == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
-  if (iota_client_core_init(service)) {
+  if (iota_client_core_init(iota_service)) {
     ta_log_error("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
   }
@@ -317,10 +319,10 @@ status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const ser
   return ret;
 }
 
-void ta_config_destroy(iota_client_service_t* const service) {
+void ta_core_destroy(iota_client_service_t* const iota_service) {
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
-  iota_client_core_destroy(service);
+  iota_client_core_destroy(iota_service);
 
   pow_destroy();
   cache_stop();

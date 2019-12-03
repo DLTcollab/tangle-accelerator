@@ -56,7 +56,7 @@ extern "C" {
 /** @} */
 
 /** struct type of accelerator configuration */
-typedef struct ta_info_s {
+typedef struct ta_config_s {
   char* version;        /**< Binding version of tangle-accelerator */
   char* host;           /**< Binding address of tangle-accelerator */
   char* port;           /**< Binding port of tangle-accelerator */
@@ -68,7 +68,7 @@ typedef struct ta_info_s {
 } ta_config_t;
 
 /** struct type of iota configuration */
-typedef struct ta_config_s {
+typedef struct iota_config_s {
   uint8_t milestone_depth; /**< Depth of API argument */
   uint8_t mwm;             /**< Minimum weight magnitude of API argument */
   /** Seed to generate address. This does not do any signature yet. */
@@ -85,11 +85,11 @@ typedef struct ta_cache_s {
 
 /** struct type of accelerator core */
 typedef struct ta_core_s {
-  ta_config_t info;               /**< accelerator configiuration structure */
-  ta_cache_t cache;               /**< redis configiuration structure */
-  iota_config_t iconf;            /**< iota configuration structure */
-  iota_client_service_t service;  /**< iota connection structure */
-  char conf_file[FILE_PATH_SIZE]; /**< path to the configuration file */
+  ta_config_t ta_conf;                /**< accelerator configiuration structure */
+  ta_cache_t cache;                   /**< redis configiuration structure */
+  iota_config_t iota_conf;            /**< iota configuration structure */
+  iota_client_service_t iota_service; /**< iota connection structure */
+  char conf_file[FILE_PATH_SIZE];     /**< path to the configuration file */
 } ta_core_t;
 
 /**
@@ -108,22 +108,22 @@ int get_conf_key(char const* const key);
 /**
  * Initializes configurations with default values
  *
- * @param info[in] Tangle-accelerator configuration variables
- * @param tangle[in] iota configuration variables
+ * @param ta_conf[in] Tangle-accelerator configuration variables
+ * @param iota_conf[in] iota configuration variables
  * @param cache[in] redis configuration variables
- * @param service[in] IRI connection configuration variables
+ * @param iota_service[in] IRI connection configuration variables
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
-                                iota_client_service_t* const service);
+status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const iota_conf, ta_cache_t* const cache,
+                              iota_client_service_t* const iota_service);
 
 /**
  * Initializes configurations with configuration file
  *
- * @param ta_conf[in] All configuration variables
+ * @param core[in] Tangle-accelerator core configuration variable
  * @param argc[in] Number of argument of CLI
  * @param argv[in] Argument of CLI
  *
@@ -131,12 +131,12 @@ status_t ta_config_default_init(ta_config_t* const info, iota_config_t* const ta
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_file_init(ta_core_t* const ta_conf, int argc, char** argv);
+status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv);
 
 /**
  * Initializes configurations with CLI values
  *
- * @param ta_conf[in] All configuration variables
+ * @param core[in] Tangle-accelerator core configuration variable
  * @param argc[in] Number of argument of CLI
  * @param argv[in] Argument of CLI
  *
@@ -144,26 +144,26 @@ status_t ta_config_file_init(ta_core_t* const ta_conf, int argc, char** argv);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_cli_init(ta_core_t* const ta_conf, int argc, char** argv);
+status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv);
 
 /**
  * Start services after configurations are set
  *
  * @param cache[in] Redis server configuration variables
- * @param service[in] IRI connection configuration variables
+ * @param iota_service[in] IRI connection configuration variables
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_config_set(ta_cache_t* const cache, iota_client_service_t* const service);
+status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service);
 
 /**
  * Free memory of configuration variables
  *
  * @param service[in] IRI connection configuration variables
  */
-void ta_config_destroy(iota_client_service_t* const service);
+void ta_core_destroy(iota_client_service_t* const iota_service);
 
 #ifdef __cplusplus
 }

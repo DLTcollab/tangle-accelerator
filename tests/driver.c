@@ -81,7 +81,7 @@ void test_generate_address(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iconf, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -94,7 +94,7 @@ void test_get_tips_pair(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -107,7 +107,7 @@ void test_get_tips(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&ta_core.service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&ta_core.iota_service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -130,7 +130,7 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.iconf, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -144,7 +144,7 @@ void test_send_trytes(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.iconf, &ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -158,7 +158,7 @@ void test_find_transaction_objects(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transaction_objects(&ta_core.service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transaction_objects(&ta_core.iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -172,7 +172,7 @@ void test_find_transactions_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.service, driver_tag_msg, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.iota_service, driver_tag_msg, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -186,7 +186,8 @@ void test_find_transactions_obj_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.service, driver_tag_msg, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK,
+                            api_find_transactions_obj_by_tag(&ta_core.iota_service, driver_tag_msg, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -207,7 +208,7 @@ void test_send_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    ret = api_mam_send_message(&ta_core.iconf, &ta_core.service, json, &json_result);
+    ret = api_mam_send_message(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result);
     if (ret == SC_OK || ret == SC_MAM_ALL_MSS_KEYS_USED) {
       result = true;
     }
@@ -230,8 +231,8 @@ void test_receive_mam_message(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK,
-                            api_receive_mam_message(&ta_core.iconf, &ta_core.service, (char*)res->chid, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_receive_mam_message(&ta_core.iota_conf, &ta_core.iota_service, (char*)res->chid, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -245,7 +246,7 @@ void test_proxy_apis() {
 
     for (size_t count = 0; count < TEST_COUNT; count++) {
       test_time_start(&start_time);
-      TEST_ASSERT_EQUAL_INT32(SC_OK, api_proxy_apis(&ta_core.service, proxy_apis_g[i].json, &json_result));
+      TEST_ASSERT_EQUAL_INT32(SC_OK, api_proxy_apis(&ta_core.iota_service, proxy_apis_g[i].json, &json_result));
       test_time_end(&start_time, &end_time, &sum);
       free(json_result);
     }
@@ -253,7 +254,7 @@ void test_proxy_apis() {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   srand(time(NULL));
 
   UNITY_BEGIN();
@@ -263,9 +264,9 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service);
-  ta_config_cli_init(&ta_core, argc, argv);
-  ta_config_set(&ta_core.cache, &ta_core.service);
+  ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service);
+  ta_core_cli_init(&ta_core, argc, argv);
+  ta_core_set(&ta_core.cache, &ta_core.iota_service);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_generate_address);
@@ -279,6 +280,6 @@ int main(int argc, char *argv[]) {
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
   RUN_TEST(test_proxy_apis);
-  ta_config_destroy(&ta_core.service);
+  ta_core_destroy(&ta_core.iota_service);
   return UNITY_END();
 }

@@ -43,33 +43,33 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     goto done;
   }
 
-  char *api_sub_topic = subscribe_topic + strlen(ta_core.info.mqtt_topic_root);
+  char *api_sub_topic = subscribe_topic + strlen(ta_core.ta_conf.mqtt_topic_root);
   char *p;
   if (!strncmp(api_sub_topic, "address", 7)) {
-    ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
+    ret = api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
   } else if ((p = strstr(api_sub_topic, "tag"))) {
     if (!strncmp(p + 4, "hashes", 6)) {
       char tag[NUM_TRYTES_TAG + 1] = {0};
       mqtt_tag_req_deserialize(req, tag);
-      ret = api_find_transactions_by_tag(&ta_core.service, tag, &json_result);
+      ret = api_find_transactions_by_tag(&ta_core.iota_service, tag, &json_result);
     } else if (!strncmp(p + 4, "object", 6)) {
       char tag[NUM_TRYTES_TAG + 1] = {0};
       mqtt_tag_req_deserialize(req, tag);
-      ret = api_find_transactions_obj_by_tag(&ta_core.service, tag, &json_result);
+      ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, tag, &json_result);
     }
   } else if ((p = strstr(api_sub_topic, "transaction"))) {
     if (!strncmp(p + 12, "object", 6)) {
       char hash[NUM_TRYTES_HASH + 1];
       mqtt_transaction_hash_req_deserialize(req, hash);
-      ret = api_find_transaction_object_single(&ta_core.service, hash, &json_result);
+      ret = api_find_transaction_object_single(&ta_core.iota_service, hash, &json_result);
     } else if (!strncmp(p + 12, "send", 4)) {
-      ret = api_send_transfer(&ta_core.iconf, &ta_core.service, req, &json_result);
+      ret = api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, req, &json_result);
     }
   } else if ((p = strstr(api_sub_topic, "tips"))) {
     if (!strncmp(p + 5, "all", 3)) {
-      ret = api_get_tips(&ta_core.service, &json_result);
+      ret = api_get_tips(&ta_core.iota_service, &json_result);
     } else if (!strncmp(p + 5, "pair", 4)) {
-      ret = api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result);
+      ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
     }
   }
   if (ret != SC_OK) {

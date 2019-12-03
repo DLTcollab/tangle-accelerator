@@ -121,31 +121,31 @@ static int set_response_content(status_t ret, char **json_result) {
 
 static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
   status_t ret;
-  ret = api_generate_address(&http->core->iconf, &http->core->service, out);
+  ret = api_generate_address(&http->core->iota_conf, &http->core->iota_service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_find_txn_obj_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_find_transaction_objects(&http->core->service, payload, out);
+  ret = api_find_transaction_objects(&http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_get_tips_pair_request(ta_http_t *const http, char **const out) {
   status_t ret;
-  ret = api_get_tips_pair(&http->core->iconf, &http->core->service, out);
+  ret = api_get_tips_pair(&http->core->iota_conf, &http->core->iota_service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_get_tips_request(ta_http_t *const http, char **const out) {
   status_t ret;
-  ret = api_get_tips(&http->core->service, out);
+  ret = api_get_tips(&http->core->iota_service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_transfer(&http->core->iconf, &http->core->service, payload, out);
+  ret = api_send_transfer(&http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -154,32 +154,33 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
   if (ret == SC_OK) {
-    ret = api_receive_mam_message(&http->core->iconf, &http->core->service, bundle, out);
+    ret = api_receive_mam_message(&http->core->iota_conf, &http->core->iota_service, bundle, out);
   }
   return set_response_content(ret, out);
 }
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_mam_send_message(&http->core->iconf, &http->core->service, payload, out);
+  ret = api_mam_send_message(&http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_trytes(&http->core->iconf, &http->core->service, payload, out);
+  ret = api_send_trytes(&http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_get_ta_info_request(ta_http_t *const http, char **const out) {
   status_t ret;
-  ret = api_get_ta_info(&http->core->info, &http->core->iconf, &http->core->cache, &http->core->service, out);
+  ret =
+      api_get_ta_info(&http->core->ta_conf, &http->core->iota_conf, &http->core->cache, &http->core->iota_service, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_proxy_api_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_proxy_apis(&http->core->service, payload, out);
+  ret = api_proxy_apis(&http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -385,7 +386,7 @@ status_t ta_http_start(ta_http_t *const http) {
 
   http->daemon =
       MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
-                       atoi(http->core->info.port), request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
+                       atoi(http->core->ta_conf.port), request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
     ta_log_error("%s\n", "SC_HTTP_OOM");
     return SC_HTTP_OOM;

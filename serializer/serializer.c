@@ -25,8 +25,8 @@ int serializer_logger_release() {
   return 0;
 }
 
-status_t ta_get_info_serialize(char** obj, ta_config_t* const info, iota_config_t* const tangle,
-                               ta_cache_t* const cache, iota_client_service_t* const service) {
+status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_config_t* const tangle,
+                               ta_cache_t* const cache, iota_client_service_t* const iota_service) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -35,12 +35,12 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const info, iota_config_
   }
 
   cJSON_AddStringToObject(json_root, "name", "tangle-accelerator");
-  cJSON_AddStringToObject(json_root, "host", info->host);
-  cJSON_AddStringToObject(json_root, "version", info->version);
-  cJSON_AddStringToObject(json_root, "port", info->port);
-  cJSON_AddNumberToObject(json_root, "thread", info->thread_count);
-  cJSON_AddStringToObject(json_root, "iri_host", service->http.host);
-  cJSON_AddNumberToObject(json_root, "iri_port", service->http.port);
+  cJSON_AddStringToObject(json_root, "host", ta_config->host);
+  cJSON_AddStringToObject(json_root, "version", ta_config->version);
+  cJSON_AddStringToObject(json_root, "port", ta_config->port);
+  cJSON_AddNumberToObject(json_root, "thread", ta_config->thread_count);
+  cJSON_AddStringToObject(json_root, "iri_host", iota_service->http.host);
+  cJSON_AddNumberToObject(json_root, "iri_port", iota_service->http.port);
   cJSON_AddStringToObject(json_root, "redis_host", cache->host);
   cJSON_AddNumberToObject(json_root, "redis_port", cache->port);
   cJSON_AddNumberToObject(json_root, "milestone_depth", tangle->milestone_depth);

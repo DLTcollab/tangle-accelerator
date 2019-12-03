@@ -23,16 +23,16 @@ int main(int argc, char *argv[]) {
   logger_id = logger_helper_enable(CONN_MQTT_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with CLI value
-  if (ta_config_cli_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_cli_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
-  if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_set(&ta_core.cache, &ta_core.iota_service) != SC_OK) {
     ta_log_error("Configure failed %s.\n", CONN_MQTT_LOGGER);
     return EXIT_FAILURE;
   }
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   // gossip_channel_set(&cfg, MQTT_HOST, "NB/test/room1", "NB/test/room2");
 
   // Set the configures and message for testing
-  ret = gossip_api_channels_set(&cfg, ta_core.info.mqtt_host, ta_core.info.mqtt_topic_root);
+  ret = gossip_api_channels_set(&cfg, ta_core.ta_conf.mqtt_host, ta_core.ta_conf.mqtt_topic_root);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
     goto done;
