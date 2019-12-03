@@ -23,7 +23,7 @@ static ta_core_t ta_core;
 static logger_id_t logger_id;
 
 void set_method_header(served::response& res, http_method_t method) {
-  res.set_header("Server", ta_core.info.version);
+  res.set_header("Server", ta_core.ta_conf.version);
   res.set_header("Access-Control-Allow-Origin", "*");
 
   switch (method) {
@@ -77,21 +77,21 @@ int main(int argc, char* argv[]) {
   logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with file value
-  if (ta_config_file_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_file_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with CLI value
-  if (ta_config_cli_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_cli_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
-  if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_set(&ta_core.cache, &ta_core.iota_service) != SC_OK) {
     ta_log_error("Configure failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_receive_mam_message(&ta_core.iconf, &ta_core.service, req.params["bundle"].c_str(), &json_result);
+        ret = api_receive_mam_message(&ta_core.iota_conf, &ta_core.iota_service, req.params["bundle"].c_str(),
+                                      &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -151,7 +152,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_mam_send_message(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_mam_send_message(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -175,7 +176,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_find_transaction_object_single(&ta_core.service, req.params["hash"].c_str(), &json_result);
+        ret = api_find_transaction_object_single(&ta_core.iota_service, req.params["hash"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -206,7 +207,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_find_transaction_objects(&ta_core.service, req.body().c_str(), &json_result);
+          ret = api_find_transaction_objects(&ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -231,7 +232,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_tips_pair(&ta_core.iconf, &ta_core.service, &json_result);
+        ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -254,7 +255,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_tips(&ta_core.service, &json_result);
+        ret = api_get_tips(&ta_core.iota_service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -277,7 +278,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_generate_address(&ta_core.iconf, &ta_core.service, &json_result);
+        ret = api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -287,7 +288,7 @@ int main(int argc, char* argv[]) {
   /**
    * @method {get} /tag/<transaction tag>/hashes Find transaction hash with tag
    *
-   * @return {String} address hashes
+   * @return {String} Transaction hashes
    */
   mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
       .method(served::method::OPTIONS,
@@ -299,7 +300,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
+        ret = api_find_transactions_by_tag(&ta_core.iota_service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -323,7 +324,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_obj_by_tag(&ta_core.service, req.params["tag"].c_str(), &json_result);
+        ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -353,7 +354,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -385,7 +386,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_trytes(&ta_core.iconf, &ta_core.service, req.body().c_str(), &json_result);
+          ret = api_send_trytes(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -434,7 +435,8 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_get_ta_info(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service, &json_result);
+        ret =
+            api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -464,7 +466,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_proxy_apis(&ta_core.service, req.body().c_str(), &json_result);
+          ret = api_proxy_apis(&ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -474,14 +476,14 @@ int main(int argc, char* argv[]) {
       });
 
   std::cout << "Starting..." << std::endl;
-  served::net::server server(ta_core.info.host, ta_core.info.port, mux);
-  server.run(ta_core.info.thread_count);
+  served::net::server server(ta_core.ta_conf.host, ta_core.ta_conf.port, mux);
+  server.run(ta_core.ta_conf.thread_count);
 
   if (apis_lock_destroy() != SC_OK) {
     ta_log_error("Destroying api lock failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
-  ta_config_destroy(&ta_core.service);
+  ta_core_destroy(&ta_core.iota_service);
 
   if (verbose_mode) {
     apis_logger_release();

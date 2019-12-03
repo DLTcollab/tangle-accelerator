@@ -30,21 +30,21 @@ int main(int argc, char* argv[]) {
   logger_id = logger_helper_enable(MAIN_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.iconf, &ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with file value
-  if (ta_config_file_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_file_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with CLI value
-  if (ta_config_cli_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_cli_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
-  if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
+  if (ta_core_set(&ta_core.cache, &ta_core.iota_service) != SC_OK) {
     ta_log_error("Configure failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
@@ -92,7 +92,7 @@ cleanup:
     return EXIT_FAILURE;
   }
   log_warning(logger_id, "Destroying TA configurations\n");
-  ta_config_destroy(&ta_core.service);
+  ta_core_destroy(&ta_core.iota_service);
 
   if (verbose_mode) {
     http_logger_release();
