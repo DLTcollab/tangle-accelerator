@@ -435,8 +435,7 @@ int main(int argc, char* argv[]) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret =
-            api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service, &json_result);
+        ret = api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
