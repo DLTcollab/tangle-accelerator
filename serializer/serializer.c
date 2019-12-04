@@ -26,7 +26,7 @@ int serializer_logger_release() {
 }
 
 status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_config_t* const tangle,
-                               ta_cache_t* const cache, iota_client_service_t* const iota_service) {
+                               ta_cache_t* const cache) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -39,8 +39,6 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
   cJSON_AddStringToObject(json_root, "version", ta_config->version);
   cJSON_AddStringToObject(json_root, "port", ta_config->port);
   cJSON_AddNumberToObject(json_root, "thread", ta_config->thread_count);
-  cJSON_AddStringToObject(json_root, "iri_host", iota_service->http.host);
-  cJSON_AddNumberToObject(json_root, "iri_port", iota_service->http.port);
   cJSON_AddStringToObject(json_root, "redis_host", cache->host);
   cJSON_AddNumberToObject(json_root, "redis_port", cache->port);
   cJSON_AddNumberToObject(json_root, "milestone_depth", tangle->milestone_depth);

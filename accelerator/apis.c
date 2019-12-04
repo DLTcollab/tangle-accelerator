@@ -29,8 +29,8 @@ int apis_logger_release() {
 }
 
 status_t api_get_ta_info(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
-                         iota_client_service_t* const service, char** json_result) {
-  return ta_get_info_serialize(json_result, info, tangle, cache, service);
+                         char** json_result) {
+  return ta_get_info_serialize(json_result, info, tangle, cache);
 }
 
 status_t apis_lock_init() {

@@ -173,8 +173,7 @@ static inline int process_send_trytes_request(ta_http_t *const http, char const 
 
 static inline int process_get_ta_info_request(ta_http_t *const http, char **const out) {
   status_t ret;
-  ret =
-      api_get_ta_info(&http->core->ta_conf, &http->core->iota_conf, &http->core->cache, &http->core->iota_service, out);
+  ret = api_get_ta_info(&http->core->ta_conf, &http->core->iota_conf, &http->core->cache, out);
   return set_response_content(ret, out);
 }
 

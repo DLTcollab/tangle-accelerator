@@ -71,7 +71,7 @@ int serializer_logger_release();
  * - non-zero on error
  */
 status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_config_t* const tangle,
-                               ta_cache_t* const cache, iota_client_service_t* const iota_service);
+                               ta_cache_t* const cache);
 
 /**
  * @brief Serialze type of ta_generate_address_res_t to JSON string
