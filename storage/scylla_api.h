@@ -21,20 +21,21 @@ extern "C" {
 typedef struct {
   CassCluster* cluster;
   CassSession* session;
+  char* host;
+  bool enabled; /**< switch of db connection */
 } db_client_service_t;
 
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;
 
 /**
- * @brief init Scylla client serivce and connect to specific cluster
+ * @brief init ScyllaDB client serivce and connect to specific cluster
  *
- * @param[out] service Scylla client service
- * @param[in] hosts Scylla cluster entry point IP address
+ * @param[out] service ScyllaDB client service
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_client_service_init(db_client_service_t* service, const char* hosts);
+status_t db_client_service_init(db_client_service_t* service);
 
 /**
  * @brief free Scylla client serivce
@@ -344,11 +345,9 @@ status_t get_transactions(db_client_service_t* service, hash243_queue_t* res_que
                           hash243_queue_t addresses, hash243_queue_t approves);
 
 /**
- * @brief connect to Scylla cluster and initialize identity keyspace and table
+ * @brief connect to ScyllaDB cluster and initialize identity keyspace and table
  *
- * @param[out] cluster Scylla node cluster
- * @param[out] service Scylla client service
- * @param[in] hosts Scylla cluster entry point ip
+ * @param[in] service ScyllaDB client service for connection
  * @param[in] need_drop true : drop table, false : keep old table
  * @param[in] keyspace_name keyspace name the session should use
  *
@@ -361,7 +360,7 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop,
 /**
  * @brief get db_identity_array_t with selected status from identity table
  *
- * @param[in] session Scylla session
+ * @param[in] service ScyllaDB client service for connection
  * @param[in] status selected status TXN status
  * @param[out] db_identity_array UT arrray for db_identity_t
  *
@@ -375,7 +374,7 @@ status_t db_select_identity_table(db_client_service_t* service, cass_int8_t stat
 /**
  * @brief insert db_identity_t into identity table
  *
- * @param[in] session Scylla session
+ * @param[in] service ScyllaDB client service for connection
  * @param[in] obj inserted db_identity_t
  *
  * @return

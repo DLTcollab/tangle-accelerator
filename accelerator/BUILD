@@ -162,6 +162,7 @@ cc_library(
     deps = [
         ":message",
         ":ta_errors",
+        "//storage",
         "//utils:cache",
         "//utils:pow",
         "//utils:ta_logger",

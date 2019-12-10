@@ -32,6 +32,9 @@ typedef enum ta_cli_arg_value_e {
   REDIS_HOST_CLI,
   REDIS_PORT_CLI,
 
+  /** DB */
+  DB_HOST_CLI,
+
   /** CONFIG */
   MILESTONE_DEPTH_CLI,
   MWM_CLI,
@@ -59,6 +62,7 @@ static struct ta_cli_argument_s {
                           {"iri_port", IRI_PORT_CLI, "IRI listening port", REQUIRED_ARG},
                           {"redis_host", REDIS_HOST_CLI, "Redis server listening host", REQUIRED_ARG},
                           {"redis_port", REDIS_PORT_CLI, "Redis server listening port", REQUIRED_ARG},
+                          {"db_host", DB_HOST_CLI, "DB server listening host", REQUIRED_ARG},
                           {"milestone_depth", MILESTONE_DEPTH_CLI, "IRI milestone depth", OPTIONAL_ARG},
                           {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
                           {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG},

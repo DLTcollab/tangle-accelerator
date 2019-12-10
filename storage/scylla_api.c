@@ -458,21 +458,23 @@ exit:
   return ret;
 }
 
-status_t db_client_service_init(db_client_service_t* service, const char* host) {
+status_t db_client_service_init(db_client_service_t* service) {
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
     return SC_TA_NULL;
   }
-  if (host == NULL) {
+  if (service->host == NULL) {
     ta_log_error("NULL pointer to ScyllaDB hostname\n");
     return SC_TA_NULL;
   }
   service->session = cass_session_new();
-  service->cluster = create_cluster(host);
+  service->cluster = create_cluster(service->host);
   if (connect_session(service->session, service->cluster) != CASS_OK) {
-    ta_log_error("%s\n", "connect ScyllaDB cluster fail");
+    ta_log_error("connect ScyllaDB cluster with host : %s failed\n", service->host);
+    service->enabled = false;
     return SC_STORAGE_CONNECT_FAIL;
   }
+  service->enabled = true;
   return SC_OK;
 }
 
@@ -487,6 +489,7 @@ status_t db_client_service_free(db_client_service_t* service) {
   if (service->cluster != NULL) {
     cass_cluster_free(service->cluster);
   }
+  free(service->host);
   return SC_OK;
 }
 
