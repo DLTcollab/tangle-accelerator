@@ -15,6 +15,7 @@
 #include "accelerator/message.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
+#include "storage/scylla_api.h"
 #include "utils/cache.h"
 #include "utils/logger.h"
 #include "utils/pow.h"
@@ -42,6 +43,7 @@ extern "C" {
 #define TA_THREAD_COUNT 10
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
+#define DB_HOST "localhost"
 #define MILESTONE_DEPTH 3
 #define MWM 14
 #define SEED                                                                   \
@@ -89,6 +91,7 @@ typedef struct ta_core_s {
   ta_cache_t cache;                   /**< redis configiuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
+  db_client_service_t db_service;     /**< db connection structure */
   char conf_file[FILE_PATH_SIZE];     /**< path to the configuration file */
 } ta_core_t;
 
@@ -118,7 +121,7 @@ int get_conf_key(char const* const key);
  * - non-zero on error
  */
 status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const iota_conf, ta_cache_t* const cache,
-                              iota_client_service_t* const iota_service);
+                              iota_client_service_t* const iota_service, db_client_service_t* const db_service);
 
 /**
  * Initializes configurations with configuration file
@@ -151,19 +154,23 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv);
  *
  * @param cache[in] Redis server configuration variables
  * @param iota_service[in] IRI connection configuration variables
+ * @param db_service[in] DB connection configuratin variables
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service);
+status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service,
+                     db_client_service_t* const db_service);
 
 /**
  * Free memory of configuration variables
  *
- * @param service[in] IRI connection configuration variables
+ * @param iota_service[in] IRI connection configuration variables
+ * @param db_service[in] DB connection configuratin variables
+ *
  */
-void ta_core_destroy(iota_client_service_t* const iota_service);
+void ta_core_destroy(iota_client_service_t* const iota_service, db_client_service_t* const db_service);
 
 #ifdef __cplusplus
 }

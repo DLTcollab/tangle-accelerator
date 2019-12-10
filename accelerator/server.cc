@@ -77,7 +77,8 @@ int main(int argc, char* argv[]) {
   logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service) != SC_OK) {
+  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service,
+                           &ta_core.db_service) != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -91,7 +92,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (ta_core_set(&ta_core.cache, &ta_core.iota_service) != SC_OK) {
+  if (ta_core_set(&ta_core.cache, &ta_core.iota_service, &ta_core.db_service) != SC_OK) {
     ta_log_error("Configure failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
@@ -482,7 +483,7 @@ int main(int argc, char* argv[]) {
     ta_log_error("Destroying api lock failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
   }
-  ta_core_destroy(&ta_core.iota_service);
+  ta_core_destroy(&ta_core.iota_service, &ta_core.db_service);
 
   if (verbose_mode) {
     apis_logger_release();

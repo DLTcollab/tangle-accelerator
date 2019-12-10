@@ -12,8 +12,8 @@ cc_library(
     ],
     deps = [
         ":scylla_table",
-        "//accelerator:common_core",
         "//accelerator:ta_errors",
+        "@entangled//utils/containers/hash:hash243_queue",
     ],
 )
 
@@ -24,7 +24,9 @@ cc_library(
     copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
-        "//accelerator:common_core",
         "//accelerator:ta_errors",
+        "//utils:ta_logger",
+        "@com_github_uthash//:uthash",
+        "@entangled//common/model:bundle",
     ],
 )

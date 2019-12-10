@@ -9,7 +9,7 @@
 #include "storage/scylla_api.h"
 #include "test_define.h"
 
-static char* host;
+static char* host = "localhost";
 static char* keyspace_name;
 void test_get_column_from_edgeTable(db_client_service_t* service) {
   char expected_result[][FLEX_TRIT_SIZE_243] = {
@@ -120,7 +120,8 @@ void test_scylla(void) {
 
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, host), SC_OK);
+  db_client_service.host = strdup(host);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_permanent_keyspace_init(&db_client_service, true, keyspace_name), SC_OK);
 
   new_scylla_iota_transaction(&transaction);
@@ -135,8 +136,8 @@ void test_scylla(void) {
     set_transaction_timestamp(transaction, (int64_t)timestamps[i]);
     set_transaction_value(transaction, (int64_t)i);
     /* insert test input transactions to ScyllyDB */
-    insert_transaction_into_bundleTable(&db_client_service, transaction, 1);
-    insert_transaction_into_edgeTable(&db_client_service, transaction, 1);
+    TEST_ASSERT_EQUAL_INT(insert_transaction_into_bundleTable(&db_client_service, transaction, 1), SC_OK);
+    TEST_ASSERT_EQUAL_INT(insert_transaction_into_edgeTable(&db_client_service, transaction, 1), SC_OK);
   }
 
   /* test select bundles by edge in edge table */
@@ -157,8 +158,8 @@ void test_db_identity_table(void) {
   const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_3}, {TRANSACTION_3},
   };
-
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, host), SC_OK);
+  db_client_service.host = strdup(host);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
   for (int i = 0; i < 6; i++) {
     db_insert_tx_into_identity(&db_client_service, i, hashes[i], i / 2);
@@ -184,7 +185,6 @@ int main(int argc, char** argv) {
   const struct option longOpt[] = {
       {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
-  host = NULL;
   keyspace_name = "test_scylla";
   /* Parse the command line options */
   /* TODO: Support macOS since getopt_long() is GNU extension */
