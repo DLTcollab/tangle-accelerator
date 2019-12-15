@@ -6,6 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 #include "scylla_api.h"
+#include <time.h>
 
 #define SCYLLA_API_LOGGER "scylladb"
 
@@ -433,29 +434,28 @@ exit:
 }
 
 static status_t create_identity_table(CassSession* session, bool need_drop) {
-  status_t ret = SC_OK;
   if (need_drop) {
     if (execute_query(session, "DROP TABLE IF EXISTS identity;") != CASS_OK) {
       ta_log_error("drop identity table fail\n");
-      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-      goto exit;
+      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
     }
   }
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS identity("
-                    "id bigint, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
+                    "id bigint, ts timestamp, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
     ta_log_error("create identity table fail\n");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
   if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(status);") != CASS_OK) {
     ta_log_error("create identity table index fail\n");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(hash);") != CASS_OK) {
+    ta_log_error("create identity table index fail\n");
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
 
-exit:
-  return ret;
+  return SC_OK;
 }
 
 status_t db_client_service_init(db_client_service_t* service) {
@@ -497,19 +497,30 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, co
                                     db_txn_status_t status) {
   status_t ret = SC_OK;
   db_identity_t* identity = NULL;
+
   if ((ret = db_identity_new(&identity)) != SC_OK) {
+    ta_log_error("db new identity failed\n");
     goto exit;
   }
   if ((ret = db_set_identity_hash(identity, (cass_byte_t*)hash, NUM_FLEX_TRITS_HASH)) != SC_OK) {
+    ta_log_error("db set identity hash failed\n");
     goto exit;
   }
   if ((ret = db_set_identity_id(identity, id)) != SC_OK) {
+    ta_log_error("db set identity id failed\n");
     goto exit;
   }
   if ((ret = db_set_identity_status(identity, status)) != SC_OK) {
+    ta_log_error("db set identity status failed\n");
+    goto exit;
+  }
+
+  if ((ret = db_set_identity_timestamp(identity, (cass_int64_t)time(NULL))) != SC_OK) {
+    ta_log_error("db set identity time failed\n");
     goto exit;
   }
   if ((ret = db_insert_identity_table(service, identity)) != SC_OK) {
+    ta_log_error("db insert identity table failed\n");
     goto exit;
   }
 
@@ -595,6 +606,7 @@ static CassStatement* ret_insert_identity_statement(const CassPrepared* prepared
   CassStatement* statement = NULL;
   statement = cass_prepared_bind(prepared);
   cass_statement_bind_int64_by_name(statement, "id", db_ret_identity_id(obj));
+  cass_statement_bind_int64_by_name(statement, "ts", db_ret_identity_timestamp(obj));
   cass_statement_bind_bytes_by_name(statement, "hash", db_ret_identity_hash(obj), NUM_FLEX_TRITS_HASH);
   cass_statement_bind_int8_by_name(statement, "status", db_ret_identity_status(obj));
   return statement;
@@ -605,8 +617,8 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
   const CassPrepared* insert_prepared = NULL;
   CassStatement* statement = NULL;
   const char* insert_query =
-      "INSERT INTO identity (id, status, hash)"
-      "VALUES (?, ?, ?);";
+      "INSERT INTO identity (id, ts, status, hash)"
+      "VALUES (?, ?, ?, ?);";
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)");
     return SC_TA_NULL;
@@ -658,6 +670,7 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
     const cass_byte_t* hash;
     cass_int8_t value;
     cass_int64_t id;
+    cass_int64_t ts;
     size_t len;
     const CassRow* row = cass_iterator_get_row(iterator);
 
@@ -670,6 +683,8 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
     db_set_identity_status(itr, value);
     cass_value_get_int64(cass_row_get_column_by_name(row, "id"), &id);
     db_set_identity_id(itr, id);
+    cass_value_get_int64(cass_row_get_column_by_name(row, "ts"), &ts);
+    db_set_identity_timestamp(itr, ts);
   }
 
   cass_result_free(result);
@@ -682,8 +697,8 @@ exit:
   return ret;
 }
 
-status_t db_select_identity_table(db_client_service_t* service, cass_int8_t status,
-                                  db_identity_array_t* identity_array) {
+status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_t status,
+                                        db_identity_array_t* identity_array) {
   status_t ret = SC_OK;
   CassStatement* statement = NULL;
   const CassPrepared* select_prepared = NULL;
@@ -695,6 +710,44 @@ status_t db_select_identity_table(db_client_service_t* service, cass_int8_t stat
   }
   statement = cass_prepared_bind(select_prepared);
   cass_statement_bind_int8_by_name(statement, "status", status);
+  get_identity_array(service->session, statement, identity_array);
+
+  cass_prepared_free(select_prepared);
+  return ret;
+}
+
+status_t db_get_identity_objs_by_id(db_client_service_t* service, cass_int64_t id,
+                                    db_identity_array_t* identity_array) {
+  status_t ret = SC_OK;
+  CassStatement* statement = NULL;
+  const CassPrepared* select_prepared = NULL;
+  const char* query = "SELECT * FROM identity WHERE id = ?;";
+
+  if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
+    ta_log_error("%s\n", "prepare SELECT query fail");
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  statement = cass_prepared_bind(select_prepared);
+  cass_statement_bind_int64_by_name(statement, "id", id);
+  get_identity_array(service->session, statement, identity_array);
+
+  cass_prepared_free(select_prepared);
+  return ret;
+}
+
+status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_byte_t* hash,
+                                      db_identity_array_t* identity_array) {
+  status_t ret = SC_OK;
+  CassStatement* statement = NULL;
+  const CassPrepared* select_prepared = NULL;
+  const char* query = "SELECT * FROM identity WHERE hash = ?;";
+
+  if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
+    ta_log_error("%s\n", "prepare SELECT query fail");
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  statement = cass_prepared_bind(select_prepared);
+  cass_statement_bind_bytes_by_name(statement, "hash", hash, NUM_FLEX_TRITS_HASH);
   get_identity_array(service->session, statement, identity_array);
 
   cass_prepared_free(select_prepared);

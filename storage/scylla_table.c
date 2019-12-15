@@ -7,6 +7,7 @@
  */
 #include "scylla_table.h"
 #include "common/model/transaction.h"
+#include "time.h"
 #include "utils/logger.h"
 
 static logger_id_t logger_id;
@@ -24,6 +25,7 @@ int scylla_table_logger_release() {
 
 struct db_identity_s {
   cass_int64_t id;
+  cass_int64_t timestamp;
   cass_int8_t status;
   cass_byte_t hash[NUM_FLEX_TRITS_BUNDLE];
 };
@@ -48,8 +50,8 @@ status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return SC_TA_NULL;
   }
-  if (id < 0) {
-    ta_log_error("Invaild input : nagative ID\n");
+  if (id <= 0) {
+    ta_log_error("Invaild ID\n");
     return SC_STORAGE_INVAILD_INPUT;
   }
   obj->id = id;
@@ -59,7 +61,7 @@ status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id) {
 cass_int64_t db_ret_identity_id(const db_identity_t* obj) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return INT64_MAX;
+    return 0;
   }
   return obj->id;
 }
@@ -83,6 +85,31 @@ cass_int8_t db_ret_identity_status(const db_identity_t* obj) {
     return 0;
   }
   return obj->status;
+}
+
+status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts) {
+  if (obj == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
+    return SC_TA_NULL;
+  }
+  obj->timestamp = ts;
+  return SC_OK;
+}
+
+cass_int64_t db_ret_identity_timestamp(const db_identity_t* obj) {
+  if (obj == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
+    return 0;
+  }
+  return obj->timestamp;
+}
+
+cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj) {
+  if (obj == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB identity object\n");
+    return SC_TA_NULL;
+  }
+  return (cass_int64_t)time(NULL) - obj->timestamp;
 }
 
 status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_t length) {

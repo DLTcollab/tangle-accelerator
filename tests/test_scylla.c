@@ -11,6 +11,9 @@
 
 static char* host = "localhost";
 static char* keyspace_name;
+
+typedef enum { TEST_ID_1 = 1, TEST_ID_2, TEST_ID_3, TEST_ID_4, TEST_ID_5, TEST_ID_6 } TEST_ID;
+
 void test_get_column_from_edgeTable(db_client_service_t* service) {
   char expected_result[][FLEX_TRIT_SIZE_243] = {
       {BUNDLE_1},       // address_2
@@ -149,26 +152,14 @@ void test_scylla(void) {
   db_client_service_free(&db_client_service);
 }
 
-void test_db_identity_table(void) {
-  db_client_service_t db_client_service;
-
-  const char hashes[][NUM_FLEX_TRITS_HASH] = {
-      {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_3},
-  };
+void test_db_get_identity_objs_by_status(db_client_service_t* db_client_service) {
   const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {
       {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_3}, {TRANSACTION_3},
   };
-  db_client_service.host = strdup(host);
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
-  TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
-  for (int i = 0; i < 6; i++) {
-    db_insert_tx_into_identity(&db_client_service, i, hashes[i], i / 2);
-  }
-
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  db_select_identity_table(&db_client_service, INSERTING_TXN, db_identity_array);
-  db_select_identity_table(&db_client_service, PENDING_TXN, db_identity_array);
-  db_select_identity_table(&db_client_service, CONFIRMED_TXN, db_identity_array);
+  db_get_identity_objs_by_status(db_client_service, INSERTING_TXN, db_identity_array);
+  db_get_identity_objs_by_status(db_client_service, PENDING_TXN, db_identity_array);
+  db_get_identity_objs_by_status(db_client_service, CONFIRMED_TXN, db_identity_array);
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
@@ -176,9 +167,61 @@ void test_db_identity_table(void) {
                              sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
     idx++;
   }
-  db_client_service_free(&db_client_service);
   db_identity_array_free(&db_identity_array);
 }
+
+void test_db_get_identity_objs_by_id(db_client_service_t* db_client_service) {
+  const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {{TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_1}};
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  db_get_identity_objs_by_id(db_client_service, TEST_ID_3, db_identity_array);
+  db_get_identity_objs_by_id(db_client_service, TEST_ID_6, db_identity_array);
+  db_get_identity_objs_by_id(db_client_service, TEST_ID_1, db_identity_array);
+  db_identity_t* itr;
+  int idx = 0;
+  IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)expected_select_hashes[idx],
+                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    idx++;
+  }
+  db_identity_array_free(&db_identity_array);
+}
+
+void test_db_get_identity_objs_by_hash(db_client_service_t* db_client_service) {
+  const int64_t expected_select_id[] = {TEST_ID_1, TEST_ID_2, TEST_ID_5, TEST_ID_6};
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  db_get_identity_objs_by_hash(db_client_service, (cass_byte_t*)TRANSACTION_1, db_identity_array);
+  db_get_identity_objs_by_hash(db_client_service, (cass_byte_t*)TRANSACTION_3, db_identity_array);
+  db_identity_t* itr;
+  int idx = 0;
+  IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
+    TEST_ASSERT_EQUAL_INT(db_ret_identity_id(itr), expected_select_id[idx]);
+    idx++;
+  }
+  db_identity_array_free(&db_identity_array);
+}
+
+void test_db_identity_table(void) {
+  db_client_service_t db_client_service;
+
+  const char hashes[][NUM_FLEX_TRITS_HASH] = {
+      {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_3},
+  };
+  const int64_t inserted_ids[] = {TEST_ID_1, TEST_ID_2, TEST_ID_3, TEST_ID_4, TEST_ID_5, TEST_ID_6};
+  const int inserted_status[] = {PENDING_TXN, PENDING_TXN, INSERTING_TXN, INSERTING_TXN, CONFIRMED_TXN, CONFIRMED_TXN};
+
+  db_client_service.host = strdup(host);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
+  for (int i = 0; i < 6; i++) {
+    db_insert_tx_into_identity(&db_client_service, inserted_ids[i], hashes[i], inserted_status[i]);
+  }
+  test_db_get_identity_objs_by_status(&db_client_service);
+  test_db_get_identity_objs_by_id(&db_client_service);
+  test_db_get_identity_objs_by_hash(&db_client_service);
+
+  db_client_service_free(&db_client_service);
+}
+
 int main(int argc, char** argv) {
   int cmdOpt;
   int optIdx;
