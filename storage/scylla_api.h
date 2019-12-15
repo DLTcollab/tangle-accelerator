@@ -358,7 +358,7 @@ status_t get_transactions(db_client_service_t* service, hash243_queue_t* res_que
 status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name);
 
 /**
- * @brief get db_identity_array_t with selected status from identity table
+ * @brief get identity objs with selected status from identity table
  *
  * @param[in] service ScyllaDB client service for connection
  * @param[in] status selected status TXN status
@@ -368,8 +368,35 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_select_identity_table(db_client_service_t* service, cass_int8_t status,
-                                  db_identity_array_t* db_identity_array);
+status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_t status,
+                                        db_identity_array_t* db_identity_array);
+/**
+ * @brief get identity objs with selected id from identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] id selected TXN id
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_get_identity_objs_by_id(db_client_service_t* service, cass_int64_t id,
+                                    db_identity_array_t* db_identity_array);
+
+/**
+ * @brief get identity objs with selected hash from identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] hash selected TXN hash
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_byte_t* hash,
+                                      db_identity_array_t* db_identity_array);
 
 /**
  * @brief insert db_identity_t into identity table

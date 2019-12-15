@@ -82,6 +82,39 @@ status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id);
 cass_int64_t db_ret_identity_id(const db_identity_t* obj);
 
 /**
+ * @brief set time(in seconds) in db_identity_t
+ *
+ * @param[in] obj pointer to db_identity_t
+ * @param[in] ts timestamp to be set into db_identity_t
+ * @return
+ * - SC_OK on success
+ * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ */
+status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts);
+
+/**
+ * @brief return time(in seconds) in db_identity_t
+ *
+ * @param[in] obj pointer to db_identity_t
+ *
+ * @return
+ * - time(in seconds) on success
+ * - NULL on error
+ */
+cass_int64_t db_ret_identity_timestamp(const db_identity_t* obj);
+
+/**
+ * @brief return time(in seconds) elapsed from identity obj update time to current time
+ *
+ * @param[in] obj pointer to db_identity_t
+ *
+ * @return
+ * - time(in seconds) on success
+ * - 0 on error
+ */
+cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj);
+
+/**
  * @brief set status in db_identity_t
  *
  * @param[in] obj pointer to db_identity_t
