@@ -218,7 +218,7 @@ typedef enum {
   SC_STORAGE_OOM = 0x01 | SC_MODULE_STORAGE | SC_SEVERITY_FATAL,
   /**< Fail to malloc space for transactions */
   SC_STORAGE_CONNECT_FAIL = 0x02 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Fail to connect scylla node */
+  /**< Fail to connect ScyllaDB node */
   SC_STORAGE_INVAILD_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< invaild input parameter, e.g., null pointer or   */
   SC_STORAGE_CASSANDRA_QUREY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,

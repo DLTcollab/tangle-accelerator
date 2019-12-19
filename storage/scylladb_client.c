@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+#include "scylladb_client.h"
+#include "scylladb_utils.h"
+#define logger_id scylladb_logger_id
+
+static void print_error(CassFuture* future) {
+  const char* message;
+  size_t message_length;
+  cass_future_error_message(future, &message, &message_length);
+  ta_log_error("Error: %.*s\n", (int)message_length, message);
+}
+
+static CassCluster* create_cluster(const char* hosts) {
+  CassCluster* cluster = cass_cluster_new();
+  cass_cluster_set_contact_points(cluster, hosts);
+  return cluster;
+}
+
+static CassError connect_session(CassSession* session, const CassCluster* cluster) {
+  CassError rc = CASS_OK;
+  CassFuture* future = cass_session_connect(session, cluster);
+
+  cass_future_wait(future);
+  rc = cass_future_error_code(future);
+  if (rc != CASS_OK) {
+    print_error(future);
+  }
+  cass_future_free(future);
+
+  return rc;
+}
+
+status_t db_client_service_init(db_client_service_t* service) {
+  if (service == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
+    return SC_TA_NULL;
+  }
+  if (service->host == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB hostname\n");
+    return SC_TA_NULL;
+  }
+  service->session = cass_session_new();
+  service->cluster = create_cluster(service->host);
+  if (connect_session(service->session, service->cluster) != CASS_OK) {
+    ta_log_error("connect ScyllaDB cluster with host : %s failed\n", service->host);
+    service->enabled = false;
+    return SC_STORAGE_CONNECT_FAIL;
+  }
+  service->enabled = true;
+  return SC_OK;
+}
+
+status_t db_client_service_free(db_client_service_t* service) {
+  if (service == NULL) {
+    ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
+    return SC_TA_NULL;
+  }
+  if (service->session != NULL) {
+    cass_session_free(service->session);
+  }
+  if (service->cluster != NULL) {
+    cass_cluster_free(service->cluster);
+  }
+  free(service->host);
+  return SC_OK;
+}
