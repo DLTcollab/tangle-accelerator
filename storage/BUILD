@@ -2,31 +2,65 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "storage",
-    srcs = ["scylla_api.c"],
+    hdrs = ["ta_storage.h"],
+    deps = [
+        ":scylladb_client",
+        ":scylladb_identity",
+        ":scylladb_permanode",
+    ],
+)
+
+cc_library(
+    name = "scylladb_identity",
+    srcs = ["scylladb_identity.c"],
+    hdrs = ["scylladb_identity.h"],
+    copts = ["-DLOGGER_ENABLE"],
+    linkopts = ["-lcassandra"],
+    deps = [
+        ":scylladb_client",
+        ":scylladb_utils",
+        "@com_github_uthash//:uthash",
+    ],
+)
+
+cc_library(
+    name = "scylladb_permanode",
+    srcs = ["scylladb_permanode.c"],
+    hdrs = ["scylladb_permanode.h"],
+    copts = ["-DLOGGER_ENABLE"],
+    linkopts = ["-lcassandra"],
+    deps = [
+        ":scylladb_client",
+        ":scylladb_utils",
+        "@com_github_uthash//:uthash",
+        "@entangled//utils/containers/hash:hash243_queue",
+    ],
+)
+
+cc_library(
+    name = "scylladb_client",
+    srcs = ["scylladb_client.c"],
     hdrs = [
-        "scylla_api.h",
+        "scylladb_client.h",
     ],
     copts = ["-DLOGGER_ENABLE"],
     linkopts = [
         "-lcassandra",
     ],
     deps = [
-        ":scylla_table",
-        "//accelerator:ta_errors",
-        "@entangled//utils/containers/hash:hash243_queue",
+        ":scylladb_utils",
     ],
 )
 
 cc_library(
-    name = "scylla_table",
-    srcs = ["scylla_table.c"],
-    hdrs = ["scylla_table.h"],
+    name = "scylladb_utils",
+    srcs = ["scylladb_utils.c"],
+    hdrs = ["scylladb_utils.h"],
     copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
         "//accelerator:ta_errors",
         "//utils:ta_logger",
-        "@com_github_uthash//:uthash",
         "@entangled//common/model:bundle",
     ],
 )

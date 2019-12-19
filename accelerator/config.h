@@ -15,7 +15,7 @@
 #include "accelerator/message.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
-#include "storage/scylla_api.h"
+#include "storage/ta_storage.h"
 #include "utils/cache.h"
 #include "utils/logger.h"
 #include "utils/pow.h"

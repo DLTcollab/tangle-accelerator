@@ -5,15 +5,15 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLA_TABLE_H_
-#define TA_SCYLLA_TABLE_H_
+#ifndef TA_SCYLLADB_IDENTITY_H_
+#define TA_SCYLLADB_IDENTITY_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "accelerator/errors.h"
-#include "cassandra.h"
-#include "utarray.h"
 
+#include "scylladb_client.h"
+#include "scylladb_utils.h"
+#include "utarray.h"
 typedef struct db_identity_s db_identity_t;
 typedef UT_array db_identity_array_t;
 
@@ -159,8 +159,86 @@ status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_
  */
 const cass_byte_t* db_ret_identity_hash(const db_identity_t* obj);
 
+/**
+ * @brief generate a new db_identity_t obj with specific hash and status
+ *
+ * @param[in] service ScyllaDB client service
+ * @param[in] hash transaction hash to be set
+ * @param[in] status transaction status to be set
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, const char* hash, db_txn_status_t status);
+
+/**
+ * @brief connect to ScyllaDB cluster and initialize identity keyspace and table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] need_drop true : drop table, false : keep old table
+ * @param[in] keyspace_name keyspace name the session should use
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+
+/**
+ * @brief get identity objs with selected status from identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] status selected status TXN status
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_t status,
+                                        db_identity_array_t* db_identity_array);
+/**
+ * @brief get identity objs with selected id from identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] id selected TXN id
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_get_identity_objs_by_id(db_client_service_t* service, cass_int64_t id,
+                                    db_identity_array_t* db_identity_array);
+
+/**
+ * @brief get identity objs with selected hash from identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] hash selected TXN hash
+ * @param[out] db_identity_array UT arrray for db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_byte_t* hash,
+                                      db_identity_array_t* db_identity_array);
+
+/**
+ * @brief insert db_identity_t into identity table
+ *
+ * @param[in] service ScyllaDB client service for connection
+ * @param[in] obj inserted db_identity_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* obj);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // TA_SCYLLA_TABLE_H_
+#endif  // TA_SCYLLADB_IDENTITY_H_

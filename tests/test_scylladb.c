@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "storage/scylla_api.h"
+#include "storage/ta_storage.h"
 #include "test_define.h"
 
 static char* host = "localhost";
@@ -250,9 +250,9 @@ int main(int argc, char** argv) {
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
-  scylla_api_logger_init();
+  scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
   RUN_TEST(test_scylla);
-  scylla_api_logger_release();
+  scylladb_logger_release();
   return UNITY_END();
 }

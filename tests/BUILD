@@ -107,9 +107,9 @@ cc_library(
 )
 
 cc_test(
-    name = "test_scylla",
+    name = "test_scylladb",
     srcs = [
-        "test_scylla.c",
+        "test_scylladb.c",
     ],
     deps = [
         ":test_define",
