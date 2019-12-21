@@ -43,7 +43,6 @@ static status_t ta_http_url_matcher(char const *const url, char *const regex_rul
   }
   if (regexec(&reg, url, 0, NULL, 0) != 0) {
     // Did not match pattern
-    ta_log_error("%s\n", "SC_HTTP_URL_NOT_MATCH");
     ret = SC_HTTP_URL_NOT_MATCH;
   }
 
@@ -251,6 +250,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
       return process_proxy_api_request(http, payload, out);
     }
   } else {
+    ta_log_error("SC_HTTP_URL_NOT_MATCH : %s\n", url);
     return process_invalid_path_request(out);
   }
   return MHD_HTTP_OK;
