@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "client_common.h"
+#include "mqtt_common.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

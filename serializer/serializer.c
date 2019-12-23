@@ -7,7 +7,9 @@
  */
 
 #include "serializer.h"
-#include "connectivity/mqtt/client_common.h"
+#ifdef MQTT_ENABLE
+#include "connectivity/mqtt/mqtt_common.h"
+#endif
 #include "utils/logger.h"
 #define SERI_LOGGER "serializer"
 
@@ -867,6 +869,7 @@ done:
   return ret;
 }
 
+#ifdef MQTT_ENABLE
 status_t mqtt_device_id_deserialize(const char* const obj, char* device_id) {
   if (obj == NULL) {
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
@@ -938,6 +941,7 @@ done:
   cJSON_Delete(json_obj);
   return ret;
 }
+#endif
 
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command) {
   if (obj == NULL) {

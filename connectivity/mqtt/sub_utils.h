@@ -9,7 +9,7 @@
 #ifndef SUB_UTILS_H
 #define SUB_UTILS_H
 
-#include "client_common.h"
+#include "mqtt_common.h"
 #include "third_party/mosquitto/config.h"
 
 #ifdef __cplusplus
