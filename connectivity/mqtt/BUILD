@@ -1,3 +1,8 @@
+config_setting(
+    name = "mqtt_enable",
+    values = {"define": "build=mqtt"},
+)
+
 cc_library(
     name = "mqtt_utils",
     srcs = [
@@ -8,7 +13,7 @@ cc_library(
         "duplex_callback.h",
         "duplex_utils.h",
     ],
-    copts = ["-DENABLE_MQTT"],
+    copts = ["-DMQTT_ENABLE"],
     visibility = ["//visibility:public"],
     deps = [
         ":mqtt_common",
@@ -22,16 +27,16 @@ cc_library(
 cc_library(
     name = "mqtt_common",
     srcs = [
-        "client_common.c",
+        "mqtt_common.c",
         "pub_utils.c",
         "sub_utils.c",
     ],
     hdrs = [
-        "client_common.h",
+        "mqtt_common.h",
         "pub_utils.h",
         "sub_utils.h",
     ],
-    copts = ["-DENABLE_MQTT"],
+    copts = ["-DMQTT_ENABLE"],
     visibility = ["//serializer:__pkg__"],
     deps = [
         "//accelerator:ta_config",

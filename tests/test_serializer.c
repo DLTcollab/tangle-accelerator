@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "connectivity/mqtt/client_common.h"
+#include "connectivity/mqtt/mqtt_common.h"
 #include "serializer/serializer.h"
 #include "test_define.h"
 

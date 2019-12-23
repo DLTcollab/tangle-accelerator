@@ -243,6 +243,7 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
  */
 status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
+#ifdef MQTT_ENABLE
 /**
  * @brief Deserialze device ID from MQTT JSON request.
  *
@@ -278,6 +279,7 @@ status_t mqtt_tag_req_deserialize(const char* const obj, char* tag);
  * - non-zero on error
  */
 status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash);
+#endif
 
 /**
  * @brief Deserialze proxy api command.

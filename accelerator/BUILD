@@ -5,8 +5,16 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 cc_binary(
     name = "accelerator",
-    srcs = ["server.cc"],
-    copts = ["-DLOGGER_ENABLE"] + select({
+    srcs = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "conn_mqtt.c",
+        ],
+        "//conditions:default": ["main.c"],
+    }),
+    copts = [
+        "-DLOGGER_ENABLE",
+        "-DMQTT_ENABLE",
+    ] + select({
         ":DEBUG_MODE": ["-g"],
         ":PROFILING_MODE": [
             "-DNDEBUG",
@@ -15,12 +23,18 @@ cc_binary(
         "//conditions:default": ["-DNDEBUG"],
     }),
     deps = [
-        ":apis",
-        ":proxy_apis",
         ":ta_config",
         ":ta_errors",
-        "@served",
-    ],
+        ":http",
+        "@entangled//utils/handles:signal",
+        ":apis",
+        ":proxy_apis",
+    ] + select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "//connectivity/mqtt:mqtt_utils",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 cc_binary(
@@ -38,36 +52,6 @@ cc_binary(
         ":http",
         ":ta_config",
         ":ta_errors",
-        "@entangled//utils/handles:signal",
-    ],
-)
-
-cc_binary(
-    name = "accelerator_mqtt",
-    srcs = [
-        "config.c",
-        "config.h",
-        "conn_mqtt.c",
-    ],
-    copts = [
-        "-DLOGGER_ENABLE",
-        "-DENABLE_MQTT",
-    ] + select({
-        ":DEBUG_MODE": ["-g"],
-        ":PROFILING_MODE": [
-            "-DNDEBUG",
-            "-pg",
-        ],
-        "//conditions:default": ["-DNDEBUG"],
-    }),
-    deps = [
-        ":message",
-        ":ta_config",
-        ":ta_errors",
-        "//connectivity/mqtt:mqtt_utils",
-        "//utils:cache",
-        "//utils:pow",
-        "@entangled//cclient/api",
         "@entangled//utils/handles:signal",
     ],
 )

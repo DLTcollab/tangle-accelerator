@@ -9,7 +9,7 @@
 #ifndef PUB_UTILS_H
 #define PUB_UTILS_H
 
-#include "client_common.h"
+#include "mqtt_common.h"
 #undef uthash_free
 #undef uthash_malloc
 #include "third_party/mosquitto/config.h"

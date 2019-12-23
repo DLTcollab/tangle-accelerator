@@ -1,6 +1,6 @@
 #include "accelerator/config.h"
 #include "config.h"
-#include "connectivity/mqtt/client_common.h"
+#include "connectivity/mqtt/mqtt_common.h"
 #include "connectivity/mqtt/duplex_callback.h"
 #include "connectivity/mqtt/duplex_utils.h"
 #include "errors.h"
