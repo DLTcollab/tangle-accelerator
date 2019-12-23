@@ -63,45 +63,24 @@ void db_identity_free(db_identity_t** obj);
  * @brief set id in db_identity_t
  *
  * @param[in] obj pointer to db_identity_t
- * @param[in] id id to be set into db_identity_t
+ * @param[in] in pointer to CassUuid to be set into db_identity_t
  * @return
  * - SC_OK on success
  * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
  */
-status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id);
+status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in);
 
 /**
- * @brief return id in db_identity_t
+ * @brief covert and return uuid in db_identity_t to uuid string
  *
  * @param[in] obj pointer to db_identity_t
- *
+ * @param[out] res_uuid_string buffer for CassUuid converting uuid string
  * @return
  * - id on success
  * - INT64_MAX on error
  */
-cass_int64_t db_ret_identity_id(const db_identity_t* obj);
 
-/**
- * @brief set time(in seconds) in db_identity_t
- *
- * @param[in] obj pointer to db_identity_t
- * @param[in] ts timestamp to be set into db_identity_t
- * @return
- * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
- */
-status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts);
-
-/**
- * @brief return time(in seconds) in db_identity_t
- *
- * @param[in] obj pointer to db_identity_t
- *
- * @return
- * - time(in seconds) on success
- * - NULL on error
- */
-cass_int64_t db_ret_identity_timestamp(const db_identity_t* obj);
+status_t db_get_identity_uuid_string(const db_identity_t* obj, char* res_uuid_string);
 
 /**
  * @brief return time(in seconds) elapsed from identity obj update time to current time
@@ -165,11 +144,14 @@ const cass_byte_t* db_ret_identity_hash(const db_identity_t* obj);
  * @param[in] service ScyllaDB client service
  * @param[in] hash transaction hash to be set
  * @param[in] status transaction status to be set
+ * @param[out] res_uuid_string a buffer to get new generated version 4 uuid string, buffer size must bigger than
+ * DB_UUID_STRING_LENGTH
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, const char* hash, db_txn_status_t status);
+status_t db_insert_tx_into_identity(db_client_service_t* service, const char* hash, db_txn_status_t status,
+                                    char* res_uuid_string);
 
 /**
  * @brief connect to ScyllaDB cluster and initialize identity keyspace and table
@@ -198,18 +180,40 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop,
 status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_t status,
                                         db_identity_array_t* db_identity_array);
 /**
- * @brief get identity objs with selected id from identity table
+ * @brief set time(in seconds) in db_identity_t
+ *
+ * @param[in] obj pointer to db_identity_t
+ * @param[in] ts timestamp to be set into db_identity_t
+ * @return
+ * - SC_OK on success
+ * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ */
+status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts);
+
+/**
+ * @brief return time(in seconds) in db_identity_t
+ *
+ * @param[in] obj pointer to db_identity_t
+ *
+ * @return
+ * - time(in seconds) on success
+ * - NULL on error
+ */
+cass_int64_t db_ret_identity_timestamp(const db_identity_t* obj);
+
+/**
+ * @brief get identity objs with selected uuid in string format from identity table
  *
  * @param[in] service ScyllaDB client service for connection
- * @param[in] id selected TXN id
+ * @param[in] uuid_string selected uuid string
  * @param[out] db_identity_array UT arrray for db_identity_t
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_get_identity_objs_by_id(db_client_service_t* service, cass_int64_t id,
-                                    db_identity_array_t* db_identity_array);
+status_t db_get_identity_objs_by_uuid_string(db_client_service_t* service, const char* uuid_string,
+                                             db_identity_array_t* db_identity_array);
 
 /**
  * @brief get identity objs with selected hash from identity table
