@@ -13,10 +13,13 @@ extern "C" {
 
 #include "scylladb_utils.h"
 
+#define DB_UUID_STRING_LENGTH CASS_UUID_STRING_LENGTH
 typedef struct {
   CassCluster* cluster;
   CassSession* session;
   char* host;
+  /**< CassUuidGen is a UUID generator object, which is thread-safe to generate UUIDs */
+  CassUuidGen* uuid_gen;
   bool enabled; /**< switch of db connection */
 } db_client_service_t;
 

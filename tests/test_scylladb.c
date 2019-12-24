@@ -9,10 +9,22 @@
 #include "storage/ta_storage.h"
 #include "test_define.h"
 
+#define logger_id scylladb_logger_id
+
 static char* host = "localhost";
 static char* keyspace_name;
 
-typedef enum { TEST_ID_1 = 1, TEST_ID_2, TEST_ID_3, TEST_ID_4, TEST_ID_5, TEST_ID_6 } TEST_ID;
+static struct identity_s {
+  char uuid_string[DB_UUID_STRING_LENGTH];
+  char* hash;
+  int8_t status;
+} identities[] = {
+    {.hash = TRANSACTION_1, .status = PENDING_TXN},
+    {.hash = TRANSACTION_2, .status = INSERTING_TXN},
+    {.hash = TRANSACTION_3, .status = CONFIRMED_TXN},
+};
+
+int identity_num = sizeof(identities) / sizeof(struct identity_s);
 
 void test_get_column_from_edgeTable(db_client_service_t* service) {
   char expected_result[][FLEX_TRIT_SIZE_243] = {
@@ -84,7 +96,7 @@ void test_get_transactions(db_client_service_t* service) {
   hash243_queue_free(&transactions);
 }
 
-void test_scylla(void) {
+void test_permanode(void) {
   /* input_transactions' graph
    * T1-T2 in BUNDLE 1 approved T3-T4 and T5-T6
    * T3-T4 in BUNDLE 2 approved T7-T8 and T9
@@ -153,48 +165,54 @@ void test_scylla(void) {
 }
 
 void test_db_get_identity_objs_by_status(db_client_service_t* db_client_service) {
-  const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {
-      {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_3}, {TRANSACTION_3},
-  };
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  db_get_identity_objs_by_status(db_client_service, INSERTING_TXN, db_identity_array);
-  db_get_identity_objs_by_status(db_client_service, PENDING_TXN, db_identity_array);
-  db_get_identity_objs_by_status(db_client_service, CONFIRMED_TXN, db_identity_array);
+  for (int i = 0; i < identity_num; i++) {
+    db_get_identity_objs_by_status(db_client_service, identities[i].status, db_identity_array);
+  }
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)expected_select_hashes[idx % 6],
+    char uuid_string[DB_UUID_STRING_LENGTH];
+    db_get_identity_uuid_string(itr, uuid_string);
+
+    TEST_ASSERT_EQUAL_STRING(uuid_string, identities[idx].uuid_string);
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
                              sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
     idx++;
   }
   db_identity_array_free(&db_identity_array);
 }
 
-void test_db_get_identity_objs_by_id(db_client_service_t* db_client_service) {
-  const char expected_select_hashes[][NUM_FLEX_TRITS_HASH] = {{TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_1}};
+void test_db_get_identity_objs_by_uuid_string(db_client_service_t* db_client_service) {
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  db_get_identity_objs_by_id(db_client_service, TEST_ID_3, db_identity_array);
-  db_get_identity_objs_by_id(db_client_service, TEST_ID_6, db_identity_array);
-  db_get_identity_objs_by_id(db_client_service, TEST_ID_1, db_identity_array);
+
+  for (int i = 0; i < identity_num; i++) {
+    db_get_identity_objs_by_uuid_string(db_client_service, identities[i].uuid_string, db_identity_array);
+  }
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)expected_select_hashes[idx],
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
                              sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    TEST_ASSERT_EQUAL_INT(db_ret_identity_status(itr), identities[idx].status);
     idx++;
   }
   db_identity_array_free(&db_identity_array);
 }
 
 void test_db_get_identity_objs_by_hash(db_client_service_t* db_client_service) {
-  const int64_t expected_select_id[] = {TEST_ID_1, TEST_ID_2, TEST_ID_5, TEST_ID_6};
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  db_get_identity_objs_by_hash(db_client_service, (cass_byte_t*)TRANSACTION_1, db_identity_array);
-  db_get_identity_objs_by_hash(db_client_service, (cass_byte_t*)TRANSACTION_3, db_identity_array);
+
+  for (int i = 0; i < identity_num; i++) {
+    db_get_identity_objs_by_hash(db_client_service, (cass_byte_t*)identities[i].hash, db_identity_array);
+  }
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
-    TEST_ASSERT_EQUAL_INT(db_ret_identity_id(itr), expected_select_id[idx]);
+    char uuid_string[DB_UUID_STRING_LENGTH];
+    db_get_identity_uuid_string(itr, uuid_string);
+    TEST_ASSERT_EQUAL_STRING(uuid_string, identities[idx].uuid_string);
+    TEST_ASSERT_EQUAL_INT(db_ret_identity_status(itr), identities[idx].status);
     idx++;
   }
   db_identity_array_free(&db_identity_array);
@@ -202,21 +220,14 @@ void test_db_get_identity_objs_by_hash(db_client_service_t* db_client_service) {
 
 void test_db_identity_table(void) {
   db_client_service_t db_client_service;
-
-  const char hashes[][NUM_FLEX_TRITS_HASH] = {
-      {TRANSACTION_1}, {TRANSACTION_1}, {TRANSACTION_2}, {TRANSACTION_2}, {TRANSACTION_3}, {TRANSACTION_3},
-  };
-  const int64_t inserted_ids[] = {TEST_ID_1, TEST_ID_2, TEST_ID_3, TEST_ID_4, TEST_ID_5, TEST_ID_6};
-  const int inserted_status[] = {PENDING_TXN, PENDING_TXN, INSERTING_TXN, INSERTING_TXN, CONFIRMED_TXN, CONFIRMED_TXN};
-
   db_client_service.host = strdup(host);
   TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
-  for (int i = 0; i < 6; i++) {
-    db_insert_tx_into_identity(&db_client_service, inserted_ids[i], hashes[i], inserted_status[i]);
+  for (int i = 0; i < identity_num; i++) {
+    db_insert_tx_into_identity(&db_client_service, identities[i].hash, identities[i].status, identities[i].uuid_string);
   }
   test_db_get_identity_objs_by_status(&db_client_service);
-  test_db_get_identity_objs_by_id(&db_client_service);
+  test_db_get_identity_objs_by_uuid_string(&db_client_service);
   test_db_get_identity_objs_by_hash(&db_client_service);
 
   db_client_service_free(&db_client_service);
@@ -252,7 +263,7 @@ int main(int argc, char** argv) {
   }
   scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
-  RUN_TEST(test_scylla);
+  RUN_TEST(test_permanode);
   scylladb_logger_release();
   return UNITY_END();
 }

@@ -11,8 +11,10 @@
 
 #define logger_id scylladb_logger_id
 
+#define DB_IDENTITY_UUID_VERSION 4
+
 struct db_identity_s {
-  cass_int64_t id;
+  CassUuid uuid;
   cass_int64_t timestamp;
   cass_int8_t status;
   cass_byte_t hash[NUM_FLEX_TRITS_BUNDLE];
@@ -33,25 +35,37 @@ void db_identity_free(db_identity_t** obj) {
   *obj = NULL;
 }
 
-status_t db_set_identity_id(db_identity_t* obj, cass_int64_t id) {
+status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
     return SC_TA_NULL;
   }
-  if (id <= 0) {
-    ta_log_error("Invaild ID\n");
+  if (in == NULL) {
+    ta_log_error("NULL pointer to uuid\n");
+    return SC_TA_NULL;
+  }
+  /**< The version number is in the most significant 4 bits of the timestamp */
+  int version = (in->time_and_version) >> 60;
+  if (version != DB_IDENTITY_UUID_VERSION) {
+    ta_log_error("input uuid version %d does not match expected version %d\n", version, DB_IDENTITY_UUID_VERSION);
     return SC_STORAGE_INVAILD_INPUT;
   }
-  obj->id = id;
+  obj->uuid.time_and_version = in->time_and_version;
+  obj->uuid.clock_seq_and_node = in->clock_seq_and_node;
   return SC_OK;
 }
 
-cass_int64_t db_ret_identity_id(const db_identity_t* obj) {
+status_t db_get_identity_uuid_string(const db_identity_t* obj, char* res_uuid_string) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return 0;
+    return SC_TA_NULL;
   }
-  return obj->id;
+  if (res_uuid_string == NULL) {
+    ta_log_error("NULL pointer to uuid string\n");
+    return SC_TA_NULL;
+  }
+  cass_uuid_string(obj->uuid, res_uuid_string);
+  return SC_OK;
 }
 
 status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status) {
@@ -148,7 +162,7 @@ static status_t create_identity_table(CassSession* session, bool need_drop) {
   }
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS identity("
-                    "id bigint, ts timestamp, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
+                    "id uuid, ts timestamp, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
     ta_log_error("create identity table fail\n");
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
@@ -164,8 +178,8 @@ static status_t create_identity_table(CassSession* session, bool need_drop) {
   return SC_OK;
 }
 
-status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, const char* hash,
-                                    db_txn_status_t status) {
+status_t db_insert_tx_into_identity(db_client_service_t* service, const char* hash, db_txn_status_t status,
+                                    char* res_uuid_string) {
   status_t ret = SC_OK;
   db_identity_t* identity = NULL;
 
@@ -177,18 +191,18 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, int64_t id, co
     ta_log_error("db set identity hash failed\n");
     goto exit;
   }
-  if ((ret = db_set_identity_id(identity, id)) != SC_OK) {
-    ta_log_error("db set identity id failed\n");
-    goto exit;
-  }
   if ((ret = db_set_identity_status(identity, status)) != SC_OK) {
     ta_log_error("db set identity status failed\n");
     goto exit;
   }
-
-  if ((ret = db_set_identity_timestamp(identity, (cass_int64_t)time(NULL))) != SC_OK) {
-    ta_log_error("db set identity time failed\n");
+  if ((ret = db_set_identity_timestamp(identity, time(NULL))) != SC_OK) {
+    ta_log_error("db set identity timestamp failed\n");
     goto exit;
+  }
+
+  cass_uuid_gen_random(service->uuid_gen, &identity->uuid);
+  if (res_uuid_string != NULL) {
+    cass_uuid_string(identity->uuid, res_uuid_string);
   }
   if ((ret = db_insert_identity_table(service, identity)) != SC_OK) {
     ta_log_error("db insert identity table failed\n");
@@ -237,10 +251,10 @@ exit:
 static CassStatement* ret_insert_identity_statement(const CassPrepared* prepared, const db_identity_t* obj) {
   CassStatement* statement = NULL;
   statement = cass_prepared_bind(prepared);
-  cass_statement_bind_int64_by_name(statement, "id", db_ret_identity_id(obj));
-  cass_statement_bind_int64_by_name(statement, "ts", db_ret_identity_timestamp(obj));
-  cass_statement_bind_bytes_by_name(statement, "hash", db_ret_identity_hash(obj), NUM_FLEX_TRITS_HASH);
-  cass_statement_bind_int8_by_name(statement, "status", db_ret_identity_status(obj));
+  cass_statement_bind_bytes_by_name(statement, "hash", obj->hash, NUM_FLEX_TRITS_HASH);
+  cass_statement_bind_int8_by_name(statement, "status", obj->status);
+  cass_statement_bind_int64_by_name(statement, "ts", obj->timestamp);
+  cass_statement_bind_uuid_by_name(statement, "id", obj->uuid);
   return statement;
 }
 
@@ -301,7 +315,7 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
     db_identity_t* itr;
     const cass_byte_t* hash;
     cass_int8_t value;
-    cass_int64_t id;
+    CassUuid uuid;
     cass_int64_t ts;
     size_t len;
     const CassRow* row = cass_iterator_get_row(iterator);
@@ -313,10 +327,10 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
     db_set_identity_hash(itr, hash, NUM_FLEX_TRITS_HASH);
     cass_value_get_int8(cass_row_get_column_by_name(row, "status"), &value);
     db_set_identity_status(itr, value);
-    cass_value_get_int64(cass_row_get_column_by_name(row, "id"), &id);
-    db_set_identity_id(itr, id);
     cass_value_get_int64(cass_row_get_column_by_name(row, "ts"), &ts);
     db_set_identity_timestamp(itr, ts);
+    cass_value_get_uuid(cass_row_get_column_by_name(row, "id"), &uuid);
+    db_set_identity_uuid(itr, &uuid);
   }
 
   cass_result_free(result);
@@ -348,19 +362,20 @@ status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_
   return ret;
 }
 
-status_t db_get_identity_objs_by_id(db_client_service_t* service, cass_int64_t id,
-                                    db_identity_array_t* identity_array) {
+status_t db_get_identity_objs_by_uuid_string(db_client_service_t* service, const char* uuid_string,
+                                             db_identity_array_t* identity_array) {
   status_t ret = SC_OK;
   CassStatement* statement = NULL;
   const CassPrepared* select_prepared = NULL;
   const char* query = "SELECT * FROM identity WHERE id = ?;";
-
+  CassUuid uuid;
+  cass_uuid_from_string(uuid_string, &uuid);
   if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare SELECT query fail");
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
   statement = cass_prepared_bind(select_prepared);
-  cass_statement_bind_int64_by_name(statement, "id", id);
+  cass_statement_bind_uuid_by_name(statement, "id", uuid);
   get_identity_array(service->session, statement, identity_array);
 
   cass_prepared_free(select_prepared);
