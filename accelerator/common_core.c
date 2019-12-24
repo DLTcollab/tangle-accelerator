@@ -154,7 +154,7 @@ static status_t ta_generate_address_thread(void* args) {
 status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
                              ta_generate_address_res_t* res) {
   ta_generate_address_args_t args = {.iconf = iconf, .service = service, .res = res};
-  int *rval;
+  int* rval;
   const struct itimerspec timeout = {.it_interval = {.tv_sec = 0, .tv_nsec = 0},
                                      .it_value = {.tv_sec = 50, .tv_nsec = 0}};
 

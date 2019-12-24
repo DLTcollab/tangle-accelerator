@@ -246,7 +246,8 @@ void test_proxy_apis() {
 
     for (size_t count = 0; count < TEST_COUNT; count++) {
       test_time_start(&start_time);
-      TEST_ASSERT_EQUAL_INT32(SC_OK, api_proxy_apis(&ta_core.iota_service, proxy_apis_g[i].json, &json_result));
+      TEST_ASSERT_EQUAL_INT32(
+          SC_OK, proxy_api_wrapper(&ta_core.ta_conf, &ta_core.iota_service, proxy_apis_g[i].json, &json_result));
       test_time_end(&start_time, &end_time, &sum);
       free(json_result);
     }

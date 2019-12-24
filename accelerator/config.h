@@ -67,6 +67,7 @@ typedef struct ta_config_s {
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
+  bool proxy_passthrough; /**< Pass proxy api directly without processing */
 } ta_config_t;
 
 /** struct type of iota configuration */
