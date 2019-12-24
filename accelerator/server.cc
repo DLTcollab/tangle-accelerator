@@ -397,6 +397,29 @@ int main(int argc, char* argv[]) {
       });
 
   /**
+   * @method {get} / Dump information about a running accelerator
+   *
+   * @return {String[]} object Info of a running accelerator
+   */
+  mux.handle("/info")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        UNUSED(req);
+        status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        ret = api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
    * @method {get} {*} Client bad request
    * @method {options} {*} Get server information
    *
@@ -418,29 +441,6 @@ int main(int argc, char* argv[]) {
         res << json;
 
         cJSON_Delete(json_obj);
-      });
-
-  /**
-   * @method {get} / Dump information about a running accelerator
-   *
-   * @return {String[]} object Info of a running accelerator
-   */
-  mux.handle("/")
-      .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                UNUSED(req);
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
-      .get([&](served::response& res, const served::request& req) {
-        UNUSED(req);
-        status_t ret = SC_OK;
-        char* json_result = NULL;
-
-        ret = api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
-        res << json_result;
       });
 
   /**
