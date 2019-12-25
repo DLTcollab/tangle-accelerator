@@ -45,6 +45,9 @@ status_t db_client_service_init(db_client_service_t* service) {
     ta_log_error("NULL pointer to ScyllaDB hostname\n");
     return SC_TA_NULL;
   }
+
+  /**< This object is thread-safe. It is best practice to create and reuse a single object per application. */
+  service->uuid_gen = cass_uuid_gen_new();
   service->session = cass_session_new();
   service->cluster = create_cluster(service->host);
   if (connect_session(service->session, service->cluster) != CASS_OK) {
@@ -60,6 +63,9 @@ status_t db_client_service_free(db_client_service_t* service) {
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
     return SC_TA_NULL;
+  }
+  if (service->uuid_gen != NULL) {
+    cass_uuid_gen_free(service->uuid_gen);
   }
   if (service->session != NULL) {
     cass_session_free(service->session);
