@@ -34,16 +34,21 @@ static status_t ta_http_url_matcher(char const *const url, char *const regex_rul
     return SC_HTTP_NULL;
   }
   regex_t reg;
+  regmatch_t pmatch;
   status_t ret = SC_OK;
-  int reg_flag = REG_EXTENDED | REG_NOSUB;
+  int reg_flag = REG_EXTENDED;
 
   if (regcomp(&reg, regex_rule, reg_flag) != 0) {
     ta_log_error("%s\n", "SC_HTTP_INVALID_REGEX");
     return SC_HTTP_INVALID_REGEX;
   }
-  if (regexec(&reg, url, 0, NULL, 0) != 0) {
+  if (regexec(&reg, url, 1, &pmatch, 0) != 0) {
     // Did not match pattern
     ret = SC_HTTP_URL_NOT_MATCH;
+  } else {
+    if (pmatch.rm_eo - pmatch.rm_so != strlen(url)) {
+      ret = SC_HTTP_URL_NOT_MATCH;
+    }
   }
 
   regfree(&reg);
