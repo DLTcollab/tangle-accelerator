@@ -6,11 +6,11 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef CLIENT_CONFIG_H
-#define CLIENT_CONFIG_H
+#ifndef MQTT_MQTT_COMMON_H_
+#define MQTT_MQTT_COMMON_H_
 
 #include <stdio.h>
-#include "accelerator/errors.h"
+#include "common/ta_errors.h"
 
 #ifdef MQTT_ENABLE
 #include "third_party/mosquitto/lib/mosquitto.h"
@@ -215,4 +215,4 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
 }
 #endif
 
-#endif  // CLIENT_CONFIG_H
+#endif  // MQTT_MQTT_COMMON_H_

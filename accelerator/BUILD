@@ -7,7 +7,7 @@ cc_binary(
     name = "accelerator",
     srcs = select({
         "//connectivity/mqtt:mqtt_enable": [
-            "conn_mqtt.c",
+            "mqtt_main.c",
         ],
         "//conditions:default": ["main.c"],
     }),
@@ -30,44 +30,12 @@ cc_binary(
         "//conditions:default": [],
     }),
     deps = [
-        ":ta_errors",
         ":ta_config",
-        ":http",
+        "//common:ta_errors",
+        "//connectivity/http",
         "@entangled//utils/handles:signal",
-        ":apis",
-        ":proxy_apis",
-    ] + select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "//connectivity/mqtt:mqtt_utils",
-        ],
-        "//conditions:default": [],
-    }),
-)
-
-cc_binary(
-    name = "accelerator_microhttpd",
-    srcs = ["main.c"],
-    copts = ["-DLOGGER_ENABLE"] + select({
-        ":DEBUG_MODE": ["-g"],
-        ":PROFILING_MODE": [
-            "-DNDEBUG",
-            "-pg",
-        ],
-        "//conditions:default": ["-DNDEBUG"],
-    }) + select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":http",
-        ":ta_config",
-        ":ta_errors",
-        "@entangled//utils/handles:signal",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
     ] + select({
         "//connectivity/mqtt:mqtt_enable": [
             "//connectivity/mqtt:mqtt_utils",
@@ -91,96 +59,6 @@ container_push(
 )
 
 cc_library(
-    name = "apis",
-    srcs = ["apis.c"],
-    hdrs = ["apis.h"],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
-    linkopts = ["-lpthread"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":common_core",
-        ":ta_errors",
-        "//map:mode",
-        "//serializer",
-        "@entangled//common/model:bundle",
-        "@entangled//common/trinary:trit_tryte",
-        "@entangled//mam/api",
-    ],
-)
-
-cc_library(
-    name = "proxy_apis",
-    srcs = ["proxy_apis.c"],
-    hdrs = ["proxy_apis.h"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":ta_errors",
-        "//serializer",
-        "//utils:hash_algo_djb2",
-        "//utils:ta_logger",
-        "@entangled//cclient/api",
-        "@entangled//cclient/request:requests",
-        "@entangled//cclient/response:responses",
-    ],
-)
-
-cc_library(
-    name = "http",
-    srcs = ["http.c"],
-    hdrs = ["http.h"],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
-    visibility = ["//visibility:public"],
-    deps = [
-        ":apis",
-        ":proxy_apis",
-        ":ta_config",
-        ":ta_errors",
-        "@libmicrohttpd",
-    ],
-)
-
-cc_library(
-    name = "common_core",
-    srcs = ["common_core.c"],
-    hdrs = ["common_core.h"],
-    copts = select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
-    visibility = ["//visibility:public"],
-    deps = [
-        ":ta_config",
-        ":ta_errors",
-        "//request",
-        "//response",
-        "//utils:bundle_array",
-        "//utils:timer",
-        "@com_github_uthash//:uthash",
-        "@entangled//cclient/api",
-        "@entangled//cclient/serialization:serializer",
-        "@entangled//cclient/serialization:serializer_json",
-        "@entangled//common/model:bundle",
-        "@entangled//utils:time",
-    ],
-)
-
-cc_library(
     name = "ta_config",
     srcs = ["config.c"],
     hdrs = ["config.h"],
@@ -195,11 +73,11 @@ cc_library(
     }),
     visibility = ["//visibility:public"],
     deps = [
-        ":message",
-        ":ta_errors",
-        "//utils:cache",
-        "//utils:pow",
-        "//utils:ta_logger",
+        ":cli_info",
+        "//accelerator/core:pow",
+        "//common:ta_errors",
+        "//common:ta_logger",
+        "//utils/cache",
         "@entangled//cclient/api",
         "@yaml",
     ] + select({
@@ -223,13 +101,6 @@ config_setting(
 )
 
 cc_library(
-    name = "ta_errors",
-    hdrs = ["errors.h"],
-    visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "message",
-    srcs = ["message.c"],
-    hdrs = ["message.h"],
+    name = "cli_info",
+    srcs = ["cli_info.h"],
 )

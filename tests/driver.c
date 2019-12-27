@@ -7,8 +7,8 @@
  */
 
 #include <time.h>
-#include "accelerator/apis.h"
-#include "accelerator/proxy_apis.h"
+#include "accelerator/core/apis.h"
+#include "accelerator/core/proxy_apis.h"
 #include "test_define.h"
 
 static ta_core_t ta_core;

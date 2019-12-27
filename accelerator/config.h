@@ -12,15 +12,15 @@
 #include <ctype.h>
 #include <getopt.h>
 
-#include "accelerator/message.h"
+#include "accelerator/cli_info.h"
+#include "accelerator/core/pow.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"
 #endif
-#include "utils/cache.h"
-#include "utils/logger.h"
-#include "utils/pow.h"
+#include "common/logger.h"
+#include "utils/cache/cache.h"
 
 #define FILE_PATH_SIZE 128
 

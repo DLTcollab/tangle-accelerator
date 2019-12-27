@@ -7,7 +7,7 @@
  */
 
 #include "test_define.h"
-#include "utils/cache.h"
+#include "utils/cache/cache.h"
 
 void test_cache_del(void) {
   const char* key = TRYTES_81_1;

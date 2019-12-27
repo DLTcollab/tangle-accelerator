@@ -5,8 +5,8 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLADB_CLIENT_H_
-#define TA_SCYLLADB_CLIENT_H_
+#ifndef STORAGE_SCYLLADB_CLIENT_H_
+#define STORAGE_SCYLLADB_CLIENT_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,4 +56,4 @@ status_t db_client_service_free(db_client_service_t* service);
 }
 #endif
 
-#endif  // TA_SCYLLADB_CLIENT_H_
+#endif  // STORAGE_SCYLLADB_CLIENT_H_

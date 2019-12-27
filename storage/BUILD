@@ -64,8 +64,8 @@ cc_library(
     copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
-        "//accelerator:ta_errors",
-        "//utils:ta_logger",
+        "//common:ta_errors",
+        "//common:ta_logger",
         "@entangled//common/model:bundle",
     ],
 )

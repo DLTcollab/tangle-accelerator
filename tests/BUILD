@@ -1,13 +1,13 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_test(
-    name = "test_common",
+    name = "test_core",
     srcs = [
-        "test_common.cc",
+        "test_core.cc",
     ],
     deps = [
         ":iota_api_mock",
-        "//accelerator:common_core",
+        "//accelerator/core",
     ],
 )
 
@@ -19,7 +19,7 @@ cc_library(
     hdrs = ["iota_api_mock.hh"],
     deps = [
         ":test_define",
-        "//accelerator:common_core",
+        "//accelerator/core",
         "@com_google_googletest//:gtest_main",
         "@entangled//cclient/api",
     ],
@@ -41,8 +41,8 @@ cc_test(
     }),
     deps = [
         ":test_define",
-        "//accelerator:apis",
-        "//accelerator:proxy_apis",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
     ],
 )
 
@@ -54,8 +54,8 @@ cc_binary(
     copts = ["-DENABLE_STAT"],
     deps = [
         ":test_define",
-        "//accelerator:apis",
-        "//accelerator:proxy_apis",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
     ],
 )
 
@@ -66,7 +66,7 @@ cc_test(
     ],
     deps = [
         ":test_define",
-        "//utils:cache",
+        "//utils/cache",
         "@unity",
     ],
 )
@@ -76,9 +76,13 @@ cc_test(
     srcs = [
         "test_serializer.c",
     ],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": ["-DMQTT_ENABLE"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":test_define",
-        "//serializer",
+        "//accelerator/core/serializer",
     ],
 )
 
@@ -89,22 +93,9 @@ cc_test(
     ],
     deps = [
         ":test_define",
-        "//utils:pow",
+        "//accelerator/core:pow",
     ],
 )
-
-"""
-cc_test(
-    name = "test_map_mode",
-    srcs = [
-        "test_map_mode.c",
-    ],
-    deps = [
-        ":test_define",
-        "//map:mode",
-    ],
-)
-"""
 
 cc_library(
     name = "test_define",

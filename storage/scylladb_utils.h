@@ -5,15 +5,15 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLADB_UTILS_H_
-#define TA_SCYLLADB_UTILS_H_
+#ifndef STORAGE_SCYLLADB_UTILS_H_
+#define STORAGE_SCYLLADB_UTILS_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include <stdlib.h>
-#include "accelerator/errors.h"
 #include "cassandra.h"
-#include "utils/logger.h"
+#include "common/logger.h"
+#include "common/ta_errors.h"
 
 logger_id_t scylladb_logger_id;
 
@@ -91,4 +91,4 @@ int scylladb_logger_release();
 }
 #endif
 
-#endif  // TA_SCYLLADB_UTILS_H_
+#endif  // STORAGE_SCYLLADB_UTILS_H_
