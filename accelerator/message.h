@@ -41,6 +41,7 @@ typedef enum ta_cli_arg_value_e {
   SEED_CLI,
   CACHE,
   CONF_CLI,
+  PROXY_API,
 
   /** LOGGER */
   VERBOSE,
@@ -68,6 +69,7 @@ static struct ta_cli_argument_s {
                           {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG},
                           {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG},
                           {"config", CONF_CLI, "Read configuration file", REQUIRED_ARG},
+                          {"proxy_passthrough", PROXY_API, "Pass proxy API directly to IRI without processing", NO_ARG},
                           {"verbose", VERBOSE, "Enable logger", NO_ARG}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);

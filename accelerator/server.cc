@@ -466,7 +466,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_proxy_apis(&ta_core.iota_service, req.body().c_str(), &json_result);
+          ret = proxy_api_wrapper(&ta_core.ta_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }

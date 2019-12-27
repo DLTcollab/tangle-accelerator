@@ -38,8 +38,11 @@ struct option* cli_build_options() {
 static status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_config_t* const iota_conf,
                              ta_cache_t* const cache, iota_client_service_t* const iota_service,
                              db_client_service_t* const db_service, int key, char* const value) {
-  if (value == NULL || ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL ||
-      db_service == NULL) {
+  if (ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL || db_service == NULL) {
+    ta_log_error("%s\n", "SC_CONF_NULL");
+    return SC_CONF_NULL;
+  }
+  if (value == NULL && key != PROXY_API) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -95,6 +98,10 @@ static status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_c
       verbose_mode = (toupper(value[0]) == 'T');
       break;
 
+    case PROXY_API:
+      ta_conf->proxy_passthrough = true;
+      break;
+
     // File configuration
     case CONF_CLI: {
       size_t arg_len = strlen(value);
@@ -123,7 +130,8 @@ status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const i
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
   ta_conf->thread_count = TA_THREAD_COUNT;
-#ifdef MQTT_ENABLE 
+  ta_conf->proxy_passthrough = false;
+#ifdef ENABLE_MQTT
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
 #endif

@@ -178,7 +178,7 @@ static inline int process_get_ta_info_request(ta_http_t *const http, char **cons
 
 static inline int process_proxy_api_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_proxy_apis(&http->core->iota_service, payload, out);
+  ret = proxy_api_wrapper(&http->core->ta_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 

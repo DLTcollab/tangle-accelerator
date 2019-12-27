@@ -193,7 +193,14 @@ clang-format can be installed by command:
 * Proxy API to IRI core functionalities
 
 ### IRI Porxy API
-`tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help user forward the request to IRI and forward the the response back to user. The followings are currently supporting Proxy APIs:
+`tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help users forward the request to IRI and forward the response back to users.
+We support two way to forward Proxy APIs to IRI:
+1. Bypass Proxy APIs directly to IRI.
+2. Process the Proxy APIs, then transmit them to IRI.
+
+The user can choose which way they want with CLI argument `--proxy_passthrough`.
+All the Proxy APIs are supported with the first way.
+However, the second way currently only supports the followings Proxy APIs:
 * checkConsistency
 * findTransactions
 * getBalances

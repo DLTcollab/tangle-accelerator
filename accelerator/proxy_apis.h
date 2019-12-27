@@ -64,6 +64,7 @@ status_t proxy_apis_lock_destroy();
 /**
  * @brief Proxy API of IOTA core functionalities
  *
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] obj IOTA core APIs request body
  * @param[out] json_result Result of IOTA core APIs
@@ -72,7 +73,8 @@ status_t proxy_apis_lock_destroy();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result);
+status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
+                           const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }

@@ -322,50 +322,70 @@ done:
   return ret;
 }
 
-status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
+                           const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  const uint8_t max_cmd_len = 30;
-  char command[max_cmd_len];
+  if (iconf->proxy_passthrough) {
+    char_buffer_t* res_buff = char_buffer_new();
+    char_buffer_t* req_buff = char_buffer_new();
+    char_buffer_set(req_buff, obj);
 
-  proxy_apis_command_req_deserialize(obj, command);
-  // TODO more proxy APIs should be implemented
-  enum {
-    H_checkConsistency = 3512812181U,
-    H_findTransactions = 1314581663U,
-    H_getBalances = 185959358U,
-    H_getInclusionStates = 3627925933U,
-    H_getNodeInfo = 1097192119U,
-    H_getTrytes = 3016694096U
-  };
+    retcode_t result = iota_service_query(service, req_buff, res_buff);
+    if (result != RC_OK) {
+      ta_log_error("%s\n", error_2_string(result));
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      goto done;
+    }
+    char_buffer_to_str(res_buff, json_result);
 
-  // With DJB2 hash function we could reduce the amount of string comparisons and deterministic execution time
-  switch (hash_algo_djb2(command)) {
-    case H_checkConsistency:
-      ret = api_check_consistency(service, obj, json_result);
-      break;
-    case H_findTransactions:
-      ret = api_find_transactions(service, obj, json_result);
-      break;
-    case H_getBalances:
-      ret = api_get_balances(service, obj, json_result);
-      break;
-    case H_getInclusionStates:
-      ret = api_get_inclusion_states(service, obj, json_result);
-      break;
-    case H_getNodeInfo:
-      ret = api_get_node_info(service, json_result);
-      break;
-    case H_getTrytes:
-      ret = api_get_trytes(service, obj, json_result);
-      break;
+  done:
+    char_buffer_free(req_buff);
+    char_buffer_free(res_buff);
+  } else {
+    const uint8_t max_cmd_len = 30;
+    char command[max_cmd_len];
 
-    default:
-      ta_log_error("%s\n", "SC_HTTP_URL_NOT_MATCH");
-      return SC_HTTP_URL_NOT_MATCH;
+    proxy_apis_command_req_deserialize(obj, command);
+    // TODO more proxy APIs should be implemented
+    enum {
+      H_checkConsistency = 3512812181U,
+      H_findTransactions = 1314581663U,
+      H_getBalances = 185959358U,
+      H_getInclusionStates = 3627925933U,
+      H_getNodeInfo = 1097192119U,
+      H_getTrytes = 3016694096U
+    };
+
+    // With DJB2 hash function we could reduce the amount of string comparisons and deterministic execution time
+    switch (hash_algo_djb2(command)) {
+      case H_checkConsistency:
+        ret = api_check_consistency(service, obj, json_result);
+        break;
+      case H_findTransactions:
+        ret = api_find_transactions(service, obj, json_result);
+        break;
+      case H_getBalances:
+        ret = api_get_balances(service, obj, json_result);
+        break;
+      case H_getInclusionStates:
+        ret = api_get_inclusion_states(service, obj, json_result);
+        break;
+      case H_getNodeInfo:
+        ret = api_get_node_info(service, json_result);
+        break;
+      case H_getTrytes:
+        ret = api_get_trytes(service, obj, json_result);
+        break;
+
+      default:
+        ta_log_error("%s\n", "SC_HTTP_URL_NOT_MATCH");
+        return SC_HTTP_URL_NOT_MATCH;
+    }
+
+    if (ret) {
+      ta_log_error("error code: %d\n", ret);
+    }
   }
 
-  if (ret) {
-    ta_log_error("%d\n", ret);
-  }
   return ret;
 }
