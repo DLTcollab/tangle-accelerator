@@ -24,7 +24,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "accelerator/errors.h"
+#include "common/ta_errors.h"
 
 /**
  * Initialize logger

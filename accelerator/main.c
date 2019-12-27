@@ -1,9 +1,9 @@
 #include <errno.h>
 
-#include "accelerator/errors.h"
-#include "accelerator/http.h"
+#include "common/logger.h"
+#include "common/ta_errors.h"
+#include "connectivity/http/http.h"
 #include "utils/handles/signal.h"
-#include "utils/logger.h"
 
 #define MAIN_LOGGER "main"
 

@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef SUB_UTILS_H
-#define SUB_UTILS_H
+#ifndef MQTT_SUB_UTILS_H_
+#define MQTT_SUB_UTILS_H_
 
 #include "mqtt_common.h"
 #include "third_party/mosquitto/config.h"
@@ -72,4 +72,4 @@ void subscribe_callback_sub_func(struct mosquitto *mosq, void *obj, int mid, int
 }
 #endif
 
-#endif  // SUB_UTILS_H
+#endif  // MQTT_SUB_UTILS_H_

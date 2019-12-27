@@ -17,9 +17,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":mqtt_common",
-        "//accelerator:apis",
-        "//accelerator:common_core",
-        "//accelerator:ta_errors",
+        "//accelerator/core",
+        "//accelerator/core:apis",
+        "//common:ta_errors",
         "@entangled//common/model:transaction",
     ],
 )
@@ -37,10 +37,10 @@ cc_library(
         "sub_utils.h",
     ],
     copts = ["-DMQTT_ENABLE"],
-    visibility = ["//serializer:__pkg__"],
+    visibility = ["//accelerator/core/serializer:__pkg__"],
     deps = [
         "//accelerator:ta_config",
-        "//accelerator:ta_errors",
+        "//common:ta_errors",
         "//third_party:mosquitto",
     ],
 )

@@ -5,8 +5,8 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLADB_PERMANODE_H_
-#define TA_SCYLLADB_PERMANODE_H_
+#ifndef STORAGE_SCYLLADB_PERMANODE_H_
+#define STORAGE_SCYLLADB_PERMANODE_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -293,4 +293,4 @@ status_t get_transactions(db_client_service_t* service, hash243_queue_t* res_que
 }
 #endif
 
-#endif  // TA_SCYLLADB_PREMANODE_H_
+#endif  // STORAGE_SCYLLADB_PERMANODE_H_

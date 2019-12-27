@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef DUPLEX_UTILS_H
-#define DUPLEX_UTILS_H
+#ifndef MQTT_DUPLEX_UTILS_H_
+#define MQTT_DUPLEX_UTILS_H_
 
 #include "pub_utils.h"
 #include "sub_utils.h"
@@ -113,4 +113,4 @@ status_t duplex_client_start(struct mosquitto *loop_mosq, mosq_config_t *loop_cf
 }
 #endif
 
-#endif  // DUPLEX_UTILS_H
+#endif  // MQTT_DUPLEX_UTILS_H_

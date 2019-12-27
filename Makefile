@@ -23,7 +23,7 @@ $(MOSQITTO_LIB): $(MOSQITTO_DIR)
 
 clean:
 	$(MAKE) -C $(DCURL_DIR) clean
-	$(MAKE) -C $(MOSQITTO_LIB) clean
+	$(MAKE) -C $(MOSQITTO_DIR) clean
 
 distclean: clean
 	$(RM) -r $(DCURL_DIR)

@@ -5,8 +5,8 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_STORAGE_H_
-#define TA_SCYLLADB_TA_API_H_
+#ifndef STORAGE_TA_STORAGE_H_
+#define STORAGE_TA_STORAGE_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,4 +19,4 @@ extern "C" {
 }
 #endif
 
-#endif  // TA_STORAGE_H_
+#endif  // STORAGE_TA_STORAGE_H_
