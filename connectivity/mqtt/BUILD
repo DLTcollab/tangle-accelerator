@@ -1,6 +1,6 @@
 config_setting(
     name = "mqtt_enable",
-    values = {"define": "build=mqtt"},
+    values = {"define": "mqtt=enable"},
 )
 
 cc_library(
