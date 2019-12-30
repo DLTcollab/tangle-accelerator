@@ -119,122 +119,6 @@ def API(get_query, get_data=None, post_data=None):
 
 
 class Regression_Test(unittest.TestCase):
-    """
-    def test_mam_send_msg(self):
-        logging.debug(
-            "\n================================mam send msg================================"
-        )
-        # cmd
-        #    0. English char only msg [success]
-        #    1. ASCII symbols msg [success]
-        #    2. Chinese msg [failed] curl response: "curl: (52) Empty reply from server"
-        #    3. Japanese msg [failed] curl response: "curl: (52) Empty reply from server"
-        #    4. Empty msg [failed]
-        #    5. Non-JSON, plain text msg [failed]
-        #    6. JSON msg with wrong key (not "message") [failed]
-        query_string = [
-            "ToBeOrNotToBe", "I met my soulmate. She didnt", "當工程師好開心阿",
-            "今夜は月が綺麗ですね", "", "Non-JSON, plain text msg",
-            "JSON msg with wrong key"
-        ]
-
-        pass_case = [0, 1, 4]
-        for i in range(len(query_string)):
-            if i not in pass_case:
-                query_string[i].encode(encoding='utf-8')
-
-        response = []
-        for i in range(len(query_string)):
-            logging.debug("testing case = " + repr(query_string[i]))
-            if i == 5:
-                post_data_json = query_string[i]
-            elif i == 6:
-                post_data = {"notkey": query_string[i]}
-                post_data_json = json.dumps(post_data)
-            else:
-                post_data = {"message": query_string[i]}
-                post_data_json = json.dumps(post_data)
-            response.append(API("/mam/", post_data=post_data_json))
-
-        for i in range(len(response)):
-            logging.debug("send msg i = " + str(i) + ", res = " +
-                          response[i]["content"] + ", status code = " +
-                          response[i]["status_code"])
-
-        for i in range(len(response)):
-            if i in pass_case:
-                res_json = json.loads(response[i]["content"])
-                self.assertTrue(valid_trytes(res_json["channel"], LEN_ADDR))
-                self.assertTrue(valid_trytes(res_json["bundle_hash"],
-                                             LEN_ADDR))
-            else:
-                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
-
-        # Time Statistics
-        payload = "Who are we? Just a speck of dust within the galaxy?"
-        post_data = {"message": payload}
-        post_data_json = json.dumps(post_data)
-
-        time_cost = []
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/mam/", post_data=post_data_json)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "mam send message")
-
-    def test_mam_recv_msg(self):
-        logging.debug(
-            "\n================================mam recv msg================================"
-        )
-        # cmd
-        #    0. Correct exist MAMv2 msg [success]
-        #    1. Empty msg [failed] empty parameter causes http error 405
-        #    2. Unicode msg [failed] {\"message\":\"Internal service error\"}
-        #    3. Not existing bundle hash (address)
-        query_string = [
-            "WRLPYSQSDIFAEDKTPKNTMMYLCPJXKBNRL9SQOQPYIXLSGVKH9RRUALUPZNEHWVCMZJFQURTXSONKTWOIE",
-            "", "生れてすみません"
-        ]
-
-        expect_cases = ["\"message\":\"ToBeOrNotToBe\""]
-
-        response = []
-        for t_case in query_string:
-            logging.debug("testing case = " + t_case)
-            response.append(API("/mam/", get_data=t_case))
-
-        for i in range(len(response)):
-            logging.debug("mam recv msg i = " + str(i) + ", res = " +
-                          response[i]["content"] + ", status code = " +
-                          response[i]["status_code"])
-
-        pass_case = [0]
-        for i in range(len(query_string)):
-            if i in pass_case:
-                self.assertTrue(expect_cases[i] in response[i]["content"])
-            else:
-                self.assertEqual(STATUS_CODE_405, response[i]["status_code"])
-
-        # Time Statistics
-        # send a MAM message and use it as the the message to be searched
-        payload = "Who are we? Just a speck of dust within the galaxy?"
-        post_data = {"message": payload}
-        post_data_json = json.dumps(post_data)
-        response = API("/mam/", post_data=post_data_json)
-
-        res_json = json.loads(response["content"])
-        channel_hash = res_json["channel"]
-
-        time_cost = []
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/mam/", get_data=channel_hash)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "mam recv message")
-    """
-
     def test_send_transfer(self):
         logging.debug(
             "\n================================send transfer================================"
@@ -287,6 +171,7 @@ class Regression_Test(unittest.TestCase):
         pass_case = [0, 1, 2, 5, 6, 7, 8, 9, 10]
         for i in range(len(response)):
             if i in pass_case:
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
                 res_json = json.loads(response[i]["content"])
 
                 # we only send zero tx at this moment
@@ -326,101 +211,6 @@ class Regression_Test(unittest.TestCase):
 
         eval_stat(time_cost, "send transfer")
 
-    def test_find_transactions(self):
-        logging.debug(
-            "\n================================find transactions================================"
-        )
-        # cmd
-        #    0. single address req
-        #    1. multiple addresses req
-        #    2. single bundle req
-        #    3. multiple bundles req
-        #    4. single tag req
-        #    5. multiple tags req
-        #    6. single approvee req
-        #    7. multiple approvees req
-        #    8. addresses, bundles, tags, approvees req
-        query_bundle = []
-        query_addr = []
-        query_tag = []
-        query_approvee = []
-        for i in range(3):
-            rand_tag = gen_rand_trytes(27)
-            rand_msg = gen_rand_trytes(30)
-            rand_addr = gen_rand_trytes(81)
-            tx_post_data = {
-                "value": 0,
-                "message": rand_msg,
-                "tag": rand_tag,
-                "address": rand_addr
-            }
-            tx_post_data_json = json.dumps(tx_post_data)
-            sent_transaction_obj = API("/transaction/",
-                                       post_data=tx_post_data_json)
-
-            logging.debug("sent_transaction_obj = " +
-                          repr(sent_transaction_obj))
-            sent_tx = json.loads(sent_transaction_obj["content"])
-
-            # append the sent transaction information
-            query_bundle.append(sent_tx["bundle_hash"])
-            query_addr.append(rand_addr)
-            query_tag.append(rand_tag)
-            query_approvee.append(sent_tx["trunk_transaction_hash"])
-            query_approvee.append(sent_tx["branch_transaction_hash"])
-
-        query_data = [{
-            "addresses": [query_addr[0]]
-        }, {
-            "addresses": query_addr
-        }, {
-            "bundles": [query_bundle[0]]
-        }, {
-            "bundles": query_bundle
-        }, {
-            "tags": [query_tag[0]]
-        }, {
-            "tags": query_tag
-        }, {
-            "approvees": [query_approvee[0]]
-        }, {
-            "approvees": query_approvee
-        }, {
-            "addresses": query_addr,
-            "bundles": query_bundle,
-            "tags": query_tag,
-            "approvees": query_approvee
-        }]
-        response = []
-        for i in range(len(query_data)):
-            logging.debug("testing case i = " + repr(i))
-            post_data_json = json.dumps(query_data[i])
-            response.append(API("/transaction/hash", post_data=post_data_json))
-
-        for i in range(len(response)):
-            logging.debug("response find transactions i = " + str(i) + ", " +
-                          repr(response[i]))
-
-        pass_case = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        for i in range(len(response)):
-            if i in pass_case:
-                res_json = json.loads(response[i]["content"])
-                res_hashes_list = res_json["hashes"]
-                for tx_hash in res_hashes_list:
-                    self.assertTrue(valid_trytes(tx_hash, LEN_ADDR))
-            else:
-                self.assertEqual(STATUS_CODE_500, response[i]["status_code"])
-
-        # Time Statistics
-        time_cost = []
-        post_data_json = json.dumps(query_data[0])
-        for i in range(TIMES_TOTAL):
-            start_time = time.time()
-            API("/transaction/hash", post_data=post_data_json)
-            time_cost.append(time.time() - start_time)
-
-        eval_stat(time_cost, "find transactions")
-
     def test_get_transactions_object(self):
         logging.debug(
             "\n================================find transaction objects================================"
@@ -449,6 +239,7 @@ class Regression_Test(unittest.TestCase):
 
             logging.debug("sent_transaction_obj = " +
                           repr(sent_transaction_obj))
+            self.assertEqual(STATUS_CODE_200, sent_transaction_obj["status_code"])
             sent_transaction_obj_json = json.loads(
                 sent_transaction_obj["content"])
             sent_transaction_tmp.append(sent_transaction_obj_json)
@@ -567,8 +358,7 @@ class Regression_Test(unittest.TestCase):
                 for tx_hashes in tips_hashes_array:
                     self.assertTrue(valid_trytes(tx_hashes, LEN_ADDR))
             else:
-                # At this moment, api get_tips allow whatever string follow after /tips/
-                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -603,6 +393,7 @@ class Regression_Test(unittest.TestCase):
         pass_case = [0]
         for i in range(len(response)):
             if i in pass_case:
+                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
                 res_json = json.loads(response[i]["content"])
 
                 self.assertTrue(
@@ -610,8 +401,7 @@ class Regression_Test(unittest.TestCase):
                 self.assertTrue(
                     valid_trytes(res_json["branchTransaction"], LEN_ADDR))
             else:
-                # At this moment, api get_tips allow whatever string follow after /tips/pair
-                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -650,8 +440,7 @@ class Regression_Test(unittest.TestCase):
 
                 self.assertTrue(valid_trytes(res_json[0], LEN_ADDR))
             else:
-                # At this moment, api generate_address allow whatever string follow after /generate_address/
-                self.assertEqual(STATUS_CODE_200, response[i]["status_code"])
+                self.assertEqual(STATUS_CODE_400, response[i]["status_code"])
 
         # Time Statistics
         time_cost = []
@@ -678,6 +467,7 @@ class Regression_Test(unittest.TestCase):
         for i in range(2):
             all_9_context = fill_nines("", 2673 - 81 * 3)
             tips_response = API("/tips/pair/", get_data="")
+            self.assertEqual(STATUS_CODE_200, tips_response["status_code"])
             res_json = json.loads(tips_response["content"])
 
             rand_trytes.append(all_9_context + res_json["trunkTransaction"] +

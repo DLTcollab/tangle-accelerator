@@ -123,9 +123,39 @@ static int set_response_content(status_t ret, char **json_result) {
   return http_ret;
 }
 
+static inline int process_find_txns_obj_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
+    status_t ret;
+    char *tag = NULL;
+    ret = ta_get_url_parameter(url, 1, &tag);
+    if (ret == SC_OK) {
+        ret = api_find_transactions_obj_by_tag(&http->core->iota_service, tag, out);
+    }
+    return set_response_content(ret, out);
+}
+
+static inline int process_find_txns_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
+    status_t ret;
+    char *tag = NULL;
+    ret = ta_get_url_parameter(url, 1, &tag);
+    if (ret == SC_OK) {
+        ret = api_find_transactions_by_tag(&http->core->iota_service, tag, out);
+    }
+    return set_response_content(ret, out);
+}
+
 static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
   status_t ret;
   ret = api_generate_address(&http->core->iota_conf, &http->core->iota_service, out);
+  return set_response_content(ret, out);
+}
+
+static inline int process_find_txn_obj_single_request(ta_http_t *const http, char const *const url, char **const out) {
+  status_t ret;
+  char *hash = NULL;
+  ret = ta_get_url_parameter(url, 1, &hash);
+  if (ret == SC_OK) {
+      ret = api_find_transaction_object_single(&http->core->iota_service, hash, out);
+  }
   return set_response_content(ret, out);
 }
 
@@ -214,8 +244,16 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_options_request(out);
   }
 
-  if (ta_http_url_matcher(url, "/address[/]?") == SC_OK) {
-    return process_generate_address_request(http, out);
+  if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
+    return process_recv_mam_msg_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/mam[/]?") == SC_OK) {
+    if (payload != NULL) {
+      return process_mam_send_msg_request(http, payload, out);
+    } else {
+      return process_method_not_allowed_request(out);
+    }
+  } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
+    return process_find_txn_obj_single_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction/object[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_find_txn_obj_request(http, payload, out);
@@ -226,17 +264,15 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_get_tips_pair_request(http, out);
   } else if (ta_http_url_matcher(url, "/tips[/]?") == SC_OK) {
     return process_get_tips_request(http, out);
+  } else if (ta_http_url_matcher(url, "/address[/]?") == SC_OK) {
+    return process_generate_address_request(http, out);
+  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
+      return process_find_txns_by_tag_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
+      return process_find_txns_obj_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
-    }
-  } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
-    return process_recv_mam_msg_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/mam[/]?") == SC_OK) {
-    if (payload != NULL) {
-      return process_mam_send_msg_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
     }
@@ -246,14 +282,11 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     } else {
       return process_method_not_allowed_request(out);
     }
-  } else if (ta_http_url_matcher(url, "/") == SC_OK) {
-    if (payload == NULL) {
-      // GET request
+  } else if (ta_http_url_matcher(url, "/info[/]?") == SC_OK) {
       return process_get_ta_info_request(http, out);
-    } else {
-      // POST request
-      return process_proxy_api_request(http, payload, out);
-    }
+  } else if (ta_http_url_matcher(url, "/") == SC_OK) {
+    // POST request
+    return process_proxy_api_request(http, payload, out);
   } else {
     ta_log_error("SC_HTTP_URL_NOT_MATCH : %s\n", url);
     return process_invalid_path_request(out);
