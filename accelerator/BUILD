@@ -5,7 +5,10 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 cc_binary(
     name = "accelerator",
-    srcs = select({
+    srcs = [
+        "config.c",
+        "config.h",
+    ] + select({
         "//connectivity/mqtt:mqtt_enable": [
             "conn_mqtt.c",
         ],
@@ -23,7 +26,6 @@ cc_binary(
         "//conditions:default": ["-DNDEBUG"],
     }),
     deps = [
-        ":ta_config",
         ":ta_errors",
         ":http",
         "@entangled//utils/handles:signal",
