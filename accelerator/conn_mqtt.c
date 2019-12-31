@@ -1,8 +1,8 @@
 #include "accelerator/config.h"
 #include "config.h"
-#include "connectivity/mqtt/mqtt_common.h"
 #include "connectivity/mqtt/duplex_callback.h"
 #include "connectivity/mqtt/duplex_utils.h"
+#include "connectivity/mqtt/mqtt_common.h"
 #include "errors.h"
 
 #define CONN_MQTT_LOGGER "conn-mqtt"

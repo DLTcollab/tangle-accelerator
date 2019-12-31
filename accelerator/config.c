@@ -131,7 +131,7 @@ status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const i
   ta_conf->port = TA_PORT;
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
-#ifdef ENABLE_MQTT
+#ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
 #endif

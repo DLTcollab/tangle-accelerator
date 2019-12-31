@@ -5,10 +5,7 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 cc_binary(
     name = "accelerator",
-    srcs = [
-        "config.c",
-        "config.h",
-    ] + select({
+    srcs = select({
         "//connectivity/mqtt:mqtt_enable": [
             "conn_mqtt.c",
         ],
@@ -16,7 +13,6 @@ cc_binary(
     }),
     copts = [
         "-DLOGGER_ENABLE",
-        "-DMQTT_ENABLE",
     ] + select({
         ":DEBUG_MODE": ["-g"],
         ":PROFILING_MODE": [
@@ -24,9 +20,15 @@ cc_binary(
             "-pg",
         ],
         "//conditions:default": ["-DNDEBUG"],
+    }) + select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
     }),
     deps = [
         ":ta_errors",
+        ":ta_config",
         ":http",
         "@entangled//utils/handles:signal",
         ":apis",
@@ -144,6 +146,12 @@ cc_library(
     name = "ta_config",
     srcs = ["config.c"],
     hdrs = ["config.h"],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         ":message",

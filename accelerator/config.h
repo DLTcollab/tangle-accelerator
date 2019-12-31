@@ -34,7 +34,7 @@ extern "C" {
 #define TA_VERSION "tangle-accelerator/0.5.0"
 #define TA_HOST "localhost"
 
-#ifdef MQTT_ENABLE 
+#ifdef MQTT_ENABLE
 #define MQTT_HOST "localhost"
 #define TOPIC_ROOT "root/topics"
 #endif
@@ -63,7 +63,7 @@ typedef struct ta_config_s {
   char* host;           /**< Binding address of tangle-accelerator */
   char* port;           /**< Binding port of tangle-accelerator */
   uint8_t thread_count; /**< Thread count of tangle-accelerator instance */
-#ifdef MQTT_ENABLE 
+#ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
