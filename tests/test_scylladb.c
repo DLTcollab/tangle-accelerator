@@ -259,6 +259,7 @@ int main(int argc, char** argv) {
 
   UNITY_BEGIN();
   if (ta_logger_init() != SC_OK) {
+    ta_log_error("logger init fail\n");
     return EXIT_FAILURE;
   }
   scylladb_logger_init();

@@ -265,10 +265,9 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service,
-                       &ta_core.db_service);
+  ta_core_default_init(&ta_core);
   ta_core_cli_init(&ta_core, argc, argv);
-  ta_core_set(&ta_core.cache, &ta_core.iota_service, &ta_core.db_service);
+  ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_generate_address);
@@ -282,6 +281,6 @@ int main(int argc, char* argv[]) {
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
   RUN_TEST(test_proxy_apis);
-  ta_core_destroy(&ta_core.iota_service, &ta_core.db_service);
+  ta_core_destroy(&ta_core);
   return UNITY_END();
 }

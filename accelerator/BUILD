@@ -25,6 +25,9 @@ cc_binary(
             "-DMQTT_ENABLE",
         ],
         "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
     }),
     deps = [
         ":ta_errors",
@@ -151,18 +154,23 @@ cc_library(
             "-DMQTT_ENABLE",
         ],
         "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
     deps = [
         ":message",
         ":ta_errors",
-        "//storage",
         "//utils:cache",
         "//utils:pow",
         "//utils:ta_logger",
         "@entangled//cclient/api",
         "@yaml",
-    ],
+    ] + select({
+        "//storage:db_enable": ["//storage"],
+        "//conditions:default": [],
+    }),
 )
 
 config_setting(

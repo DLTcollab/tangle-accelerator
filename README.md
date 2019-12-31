@@ -153,6 +153,31 @@ make MQTT && bazel run //accelerator:accelerator_mqtt
 Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker.
 For more information for MQTT connectivity of `tangle-accelerator`, you could read `connectivity/mqtt/usage.md`.
 
+### Optional: Enable external database for transaction reattachment
+Transaction reattachment is an optional feature.
+
+You can enable it in the build time by adding option : `--define db=enable`
+
+Transaction reattachment relies on ScyllDB, you need to install the dependency by following commands.
+
+For Ubuntu Linux 16.04/x86_64:
+
+```
+wget https://downloads.datastax.com/cpp-driver/ubuntu/16.04/cassandra/v2.14.1/cassandra-cpp-driver_2.14.1-1_amd64.deb
+wget https://downloads.datastax.com/cpp-driver/ubuntu/16.04/cassandra/v2.14.1/cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+```
+
+For Ubuntu Linux 18.04/x86_64:
+
+```
+wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.14.1/cassandra-cpp-driver_2.14.1-1_amd64.deb
+wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.14.1/cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+```
+
 ## Developing
 
 The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html):

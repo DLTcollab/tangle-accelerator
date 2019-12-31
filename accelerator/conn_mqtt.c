@@ -23,8 +23,7 @@ int main(int argc, char *argv[]) {
   logger_id = logger_helper_enable(CONN_MQTT_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_core_default_init(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &ta_core.iota_service,
-                           &ta_core.db_service) != SC_OK) {
+  if (ta_core_default_init(&ta_core) != SC_OK) {
     return EXIT_FAILURE;
   }
 
@@ -33,7 +32,7 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (ta_core_set(&ta_core.cache, &ta_core.iota_service, &ta_core.db_service) != SC_OK) {
+  if (ta_core_set(&ta_core) != SC_OK) {
     ta_log_error("Configure failed %s.\n", CONN_MQTT_LOGGER);
     return EXIT_FAILURE;
   }
