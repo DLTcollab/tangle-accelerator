@@ -30,6 +30,12 @@ cc_test(
     srcs = [
         "driver.c",
     ],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }),
     deps = [
         ":test_define",
         "//accelerator:apis",
