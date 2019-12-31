@@ -214,33 +214,33 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_options_request(out);
   }
 
-  if (ta_http_url_matcher(url, "/address") == SC_OK) {
+  if (ta_http_url_matcher(url, "/address[/]?") == SC_OK) {
     return process_generate_address_request(http, out);
-  } else if (ta_http_url_matcher(url, "/transaction/object") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/transaction/object[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_find_txn_obj_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
     }
-  } else if (ta_http_url_matcher(url, "/tips/pair") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/tips/pair[/]?") == SC_OK) {
     return process_get_tips_pair_request(http, out);
-  } else if (ta_http_url_matcher(url, "/tips") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/tips[/]?") == SC_OK) {
     return process_get_tips_request(http, out);
-  } else if (ta_http_url_matcher(url, "/transaction") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
     }
-  } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
     return process_recv_mam_msg_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/mam") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/mam[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_mam_send_msg_request(http, payload, out);
     } else {
       return process_method_not_allowed_request(out);
     }
-  } else if (ta_http_url_matcher(url, "/tryte") == SC_OK) {
+  } else if (ta_http_url_matcher(url, "/tryte[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_trytes_request(http, payload, out);
     } else {
