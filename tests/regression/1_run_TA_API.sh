@@ -16,4 +16,4 @@ then
 fi
 
 wait $(kill -9 $TA)
-trap 'exit 0' SIGTERM
+trap 'exit 0' TERM

@@ -8,4 +8,4 @@ pid=$!
 kill $pid
 wait $pid
 
-trap 'exit 0' SIGTERM
+trap 'exit 0' TERM
