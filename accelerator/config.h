@@ -15,7 +15,9 @@
 #include "accelerator/message.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
+#ifdef DB_ENABLE
 #include "storage/ta_storage.h"
+#endif
 #include "utils/cache.h"
 #include "utils/logger.h"
 #include "utils/pow.h"
@@ -92,8 +94,10 @@ typedef struct ta_core_s {
   ta_cache_t cache;                   /**< redis configiuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
-  db_client_service_t db_service;     /**< db connection structure */
-  char conf_file[FILE_PATH_SIZE];     /**< path to the configuration file */
+#ifdef DB_ENABLE
+  db_client_service_t db_service; /**< db connection structure */
+#endif
+  char conf_file[FILE_PATH_SIZE]; /**< path to the configuration file */
 } ta_core_t;
 
 /**
@@ -112,22 +116,18 @@ int get_conf_key(char const* const key);
 /**
  * Initializes configurations with default values
  *
- * @param ta_conf[in] Tangle-accelerator configuration variables
- * @param iota_conf[in] iota configuration variables
- * @param cache[in] redis configuration variables
- * @param iota_service[in] IRI connection configuration variables
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const iota_conf, ta_cache_t* const cache,
-                              iota_client_service_t* const iota_service, db_client_service_t* const db_service);
+status_t ta_core_default_init(ta_core_t* const core);
 
 /**
  * Initializes configurations with configuration file
  *
- * @param core[in] Tangle-accelerator core configuration variable
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
  * @param argc[in] Number of argument of CLI
  * @param argv[in] Argument of CLI
  *
@@ -140,7 +140,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv);
 /**
  * Initializes configurations with CLI values
  *
- * @param core[in] Tangle-accelerator core configuration variable
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
  * @param argc[in] Number of argument of CLI
  * @param argv[in] Argument of CLI
  *
@@ -153,25 +153,21 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv);
 /**
  * Start services after configurations are set
  *
- * @param cache[in] Redis server configuration variables
- * @param iota_service[in] IRI connection configuration variables
- * @param db_service[in] DB connection configuratin variables
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service,
-                     db_client_service_t* const db_service);
+status_t ta_core_set(ta_core_t* const core);
 
 /**
  * Free memory of configuration variables
  *
- * @param iota_service[in] IRI connection configuration variables
- * @param db_service[in] DB connection configuratin variables
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure.
  *
  */
-void ta_core_destroy(iota_client_service_t* const iota_service, db_client_service_t* const db_service);
+void ta_core_destroy(ta_core_t* const core);
 
 #ifdef __cplusplus
 }

@@ -35,6 +35,9 @@ cc_test(
             "-DMQTT_ENABLE",
         ],
         "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
     }),
     deps = [
         ":test_define",
@@ -114,13 +117,16 @@ cc_library(
 
 cc_test(
     name = "test_scylladb",
-    srcs = [
-        "test_scylladb.c",
-    ],
+    srcs = select({
+        "//storage:db_enable": ["test_scylladb.c"],
+        "//conditions:default": ["empty_test.c"],
+    }),
     deps = [
         ":test_define",
-        "//storage",
-    ],
+    ] + select({
+        "//storage:db_enable": ["//storage"],
+        "//conditions:default": [],
+    }),
 )
 
 cc_test(

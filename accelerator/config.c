@@ -35,18 +35,19 @@ struct option* cli_build_options() {
   return long_options;
 }
 
-static status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_config_t* const iota_conf,
-                             ta_cache_t* const cache, iota_client_service_t* const iota_service,
-                             db_client_service_t* const db_service, int key, char* const value) {
-  if (ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL || db_service == NULL) {
-    ta_log_error("%s\n", "SC_CONF_NULL");
-    return SC_CONF_NULL;
-  }
+static status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   if (value == NULL && key != PROXY_API) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
-
+  ta_config_t* const ta_conf = &core->ta_conf;
+  iota_config_t* const iota_conf = &core->iota_conf;
+  ta_cache_t* const cache = &core->cache;
+  iota_client_service_t* const iota_service = &core->iota_service;
+  char* conf_file = core->conf_file;
+#ifdef DB_ENABLE
+  db_client_service_t* const db_service = &core->db_service;
+#endif
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
@@ -74,11 +75,12 @@ static status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_c
     case REDIS_PORT_CLI:
       cache->port = atoi(value);
       break;
-
+#ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
       db_service->host = strdup(value);
       break;
+#endif
     // iota_conf IOTA configuration
     case MILESTONE_DEPTH_CLI:
       iota_conf->milestone_depth = atoi(value);
@@ -113,17 +115,19 @@ static status_t cli_core_set(char* conf_file, ta_config_t* const ta_conf, iota_c
   return SC_OK;
 }
 
-status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const iota_conf, ta_cache_t* const cache,
-                              iota_client_service_t* const iota_service, db_client_service_t* const db_service) {
+status_t ta_core_default_init(ta_core_t* const core) {
   status_t ret = SC_OK;
 
   logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
   ta_log_info("enable logger %s.\n", CONFIG_LOGGER);
 
-  if (ta_conf == NULL || iota_conf == NULL || cache == NULL || iota_service == NULL || db_service == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_TA_NULL;
-  }
+  ta_config_t* const ta_conf = &core->ta_conf;
+  iota_config_t* const iota_conf = &core->iota_conf;
+  ta_cache_t* const cache = &core->cache;
+  iota_client_service_t* const iota_service = &core->iota_service;
+#ifdef DB_ENABLE
+  db_client_service_t* const db_service = &core->db_service;
+#endif
 
   ta_log_info("Initializing TA information\n");
   ta_conf->version = TA_VERSION;
@@ -156,10 +160,10 @@ status_t ta_core_default_init(ta_config_t* const ta_conf, iota_config_t* const i
   iota_service->http.port = IRI_PORT;
   iota_service->http.api_version = 1;
   iota_service->serializer_type = SR_JSON;
-
+#ifdef DB_ENABLE
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
-
+#endif
   // Turn off verbose mode default
   verbose_mode = false;
 
@@ -197,8 +201,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
         break;
       case CONF_CLI:
-        ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service,
-                           &core->db_service, key, optarg);
+        ret = cli_core_set(core, key, optarg);
         break;
       default:
         break;
@@ -244,8 +247,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
         if (state == 0) {  // Key
           key = get_conf_key(arg);
         } else {  // Value
-          if ((ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service,
-                                  &core->db_service, key, strdup(arg))) != SC_OK) {
+          if ((ret = cli_core_set(core, key, strdup(arg))) != SC_OK) {
             goto done;
           }
         }
@@ -301,8 +303,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
         /* Already processed in ta_config_file_init() */
         break;
       default:
-        ret = cli_core_set(core->conf_file, &core->ta_conf, &core->iota_conf, &core->cache, &core->iota_service,
-                           &core->db_service, key, optarg);
+        ret = cli_core_set(core, key, optarg);
         break;
     }
     if (ret != SC_OK) {
@@ -314,14 +315,14 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
   return ret;
 }
 
-status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_service,
-                     db_client_service_t* const db_service) {
+status_t ta_core_set(ta_core_t* core) {
   status_t ret = SC_OK;
-  if (cache == NULL || iota_service == NULL || db_service == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_TA_NULL;
-  }
 
+  ta_cache_t* const cache = &core->cache;
+  iota_client_service_t* const iota_service = &core->iota_service;
+#ifdef DB_ENABLE
+  db_client_service_t* const db_service = &core->db_service;
+#endif
   if (iota_client_core_init(iota_service)) {
     ta_log_error("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
@@ -334,25 +335,32 @@ status_t ta_core_set(ta_cache_t* const cache, iota_client_service_t* const iota_
 
   ta_log_info("Initializing cache state\n");
   cache_init(cache->cache_state, cache->host, cache->port);
-
+#ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
   if ((ret = db_client_service_init(db_service)) != SC_OK) {
     ta_log_error("Initializing DB connection failed\n");
   }
+#endif
 
 exit:
   return ret;
 }
 
-void ta_core_destroy(iota_client_service_t* const iota_service, db_client_service_t* const db_service) {
+void ta_core_destroy(ta_core_t* const core) {
+  iota_client_service_t* const iota_service = &core->iota_service;
+#ifdef DB_ENABLE
+  db_client_service_t* const db_service = &core->db_service;
+#endif
+
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
   iota_client_core_destroy(iota_service);
-
+#ifdef DB_ENABLE
   if (db_service->enabled) {
     ta_log_info("Destroying DB connection\n");
     db_client_service_free(db_service);
   }
+#endif
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

@@ -1,5 +1,10 @@
 package(default_visibility = ["//visibility:public"])
 
+config_setting(
+    name = "db_enable",
+    values = {"define": "db=enable"},
+)
+
 cc_library(
     name = "storage",
     hdrs = ["ta_storage.h"],
