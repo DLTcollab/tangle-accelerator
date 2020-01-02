@@ -1,7 +1,16 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #ifndef RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 #define RESPONSE_TA_FIND_TRANSACTIONS_OBJ_H_
 
-#include "cclient/types/types.h"
+#include "./utarray.h"
+#include "common/model/transaction.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,8 +22,8 @@ extern "C" {
 
 /** struct of ta_find_transactions_obj_res_t */
 typedef struct ta_find_transactions_obj_res {
-  /** Transaction objects is a iota_transaction_t UT_array. */
-  UT_array* txn_obj;
+  /** Transaction objects is transaction_array_t. */
+  transaction_array_t* txn_obj;
 } ta_find_transactions_obj_res_t;
 
 /**
@@ -30,8 +39,6 @@ ta_find_transactions_obj_res_t* ta_find_transactions_obj_res_new();
  * Free memory of ta_find_transactions_obj_res_t
  *
  * @param res Data type of ta_find_transactions_obj_res_t
- *
- * @return NULL
  */
 void ta_find_transactions_obj_res_free(ta_find_transactions_obj_res_t** res);
 

@@ -1,26 +1,35 @@
+/*
+ * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #include <served/methods.hpp>
 #include <served/plugins.hpp>
 #include <served/served.hpp>
 #include "accelerator/apis.h"
 #include "accelerator/config.h"
 #include "accelerator/errors.h"
+#include "accelerator/proxy_apis.h"
 #include "cJSON.h"
-#include "utils/logger_helper.h"
+#include "utils/logger.h"
+#include "utils/macros.h"
 
-#define MAIN_LOGGER_ID "main"
+#define SERVER_LOGGER "server"
 
 static ta_core_t ta_core;
 static logger_id_t logger_id;
 
 void set_method_header(served::response& res, http_method_t method) {
-  res.set_header("Server", ta_core.info.version);
+  res.set_header("Server", ta_core.ta_conf.version);
   res.set_header("Access-Control-Allow-Origin", "*");
 
   switch (method) {
     case HTTP_METHOD_OPTIONS:
       res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.set_header("Access-Control-Allow-Headers",
-                     "Origin, Content-Type, Accept");
+      res.set_header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
       res.set_header("Access-Control-Max-Age", "86400");
       break;
     default:
@@ -36,15 +45,21 @@ status_t set_response_content(status_t ret, char** json_result) {
   }
 
   cJSON* json_obj = cJSON_CreateObject();
-  if ((ret & SC_ERROR_MASK) == 0x03) {
-    http_ret = SC_HTTP_NOT_FOUND;
-    cJSON_AddStringToObject(json_obj, "message", "Request not found");
-  } else if ((ret & SC_ERROR_MASK) == 0x07) {
-    http_ret = SC_HTTP_BAD_REQUEST;
-    cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
-  } else {
-    http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
-    cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+  switch (ret) {
+    case SC_CCLIENT_NOT_FOUND:
+    case SC_MAM_NOT_FOUND:
+      http_ret = SC_HTTP_NOT_FOUND;
+      cJSON_AddStringToObject(json_obj, "message", "Request not found");
+      break;
+    case SC_CCLIENT_JSON_KEY:
+    case SC_MAM_NO_PAYLOAD:
+      http_ret = SC_HTTP_BAD_REQUEST;
+      cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+      break;
+    default:
+      http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
+      cJSON_AddStringToObject(json_obj, "message", "Internal service error");
+      break;
   }
   *json_result = cJSON_PrintUnformatted(json_obj);
   return http_ret;
@@ -54,39 +69,64 @@ int main(int argc, char* argv[]) {
   served::multiplexer mux;
   mux.use_after(served::plugin::access_log);
 
-  if (logger_helper_init() != RC_OK) {
+  // Initialize logger
+  if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
-  logger_id = logger_helper_enable(MAIN_LOGGER_ID, LOGGER_DEBUG, true);
+
+  logger_id = logger_helper_enable(SERVER_LOGGER, LOGGER_DEBUG, true);
 
   // Initialize configurations with default value
-  if (ta_config_default_init(&ta_core.info, &ta_core.tangle, &ta_core.cache,
-                             &ta_core.service) != SC_OK) {
+  if (ta_core_default_init(&ta_core) != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  // Initialize configurations with file value
+  if (ta_core_file_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
   // Initialize configurations with CLI value
-  if (ta_config_cli_init(&ta_core, argc, argv) != SC_OK) {
+  if (ta_core_cli_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
   }
 
-  if (ta_config_set(&ta_core.cache, &ta_core.service) != SC_OK) {
-    log_critical(logger_id, "[%s:%d] Configure failed %s.\n", __func__,
-                 __LINE__, MAIN_LOGGER_ID);
+  if (ta_core_set(&ta_core) != SC_OK) {
+    ta_log_error("Configure failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
+  }
+
+  // Initialize apis cJSON lock
+  if (apis_lock_init() != SC_OK) {
+    ta_log_error("Lock initialization failed %s.\n", SERVER_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  // Enable other loggers when verbose mode is on
+  if (verbose_mode) {
+    apis_logger_init();
+    cc_logger_init();
+    serializer_logger_init();
+    pow_logger_init();
+    timer_logger_init();
+  } else {
+    // Destroy logger when verbose mode is off
+    logger_helper_release(logger_id);
+    logger_helper_destroy();
   }
 
   mux.handle("/mam/{bundle:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result = NULL;
 
-        ret = api_receive_mam_message(
-            &ta_core.service, req.params["bundle"].c_str(), &json_result);
+        ret = api_receive_mam_message(&ta_core.iota_conf, &ta_core.iota_service, req.params["bundle"].c_str(),
+                                      &json_result);
         ret = set_response_content(ret, &json_result);
 
         set_method_header(res, HTTP_METHOD_GET);
@@ -97,24 +137,22 @@ int main(int argc, char* argv[]) {
   mux.handle("/mam")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        if (req.header("content-type").find("application/json") ==
-            std::string::npos) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
-          cJSON_AddStringToObject(json_obj, "message",
-                                  "Invalid request header");
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_mam_send_message(&ta_core.tangle, &ta_core.service,
-                                     req.body().c_str(), &json_result);
+          ret = api_mam_send_message(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
@@ -124,23 +162,77 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {get} /tag/:tag Find transactions by tag
+   * @method {get} /transaction/<transaction hash> Find transaction object with get request
    *
-   * @param {String} tag Must be 27 trytes long
-   *
-   * @return {String[]} hashes List of transaction hashes
+   * @return {String[]} hash Transaction object
    */
-  mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
+  mux.handle("/transaction/{hash:[A-Z9]{81}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        ret = api_find_transaction_object_single(&ta_core.iota_service, req.params["hash"].c_str(), &json_result);
+        ret = set_response_content(ret, &json_result);
+
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {post} /transaction/object Find transaction object
+   *
+   * @return {String[]} object Info of entire transaction object
+   */
+  mux.handle("/transaction/object")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_by_tag(
-            &ta_core.service, req.params["tag"].c_str(), &json_result);
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_find_transaction_objects(&ta_core.iota_service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /tips Fetch pair tips which base on GetTransactionToApprove
+   *
+   * @return {String[]} tips Pair of transaction hashes
+   */
+  mux.handle("/tips/pair")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        UNUSED(req);
+        status_t ret = SC_OK;
+        char* json_result;
+
+        ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -148,23 +240,67 @@ int main(int argc, char* argv[]) {
       });
 
   /**
-   * @method {get} /transaction/:tx Get transaction object
+   * @method {get} /tips Fetch all tips
    *
-   * @param {String} tx Must be 81 trytes long transaction hash
-   *
-   * @return {String[]} object Info of enitre transaction object
+   * @return {String[]} tips List of transaction hashes
    */
-  mux.handle("/transaction/{tx:[A-Z9]{81}}")
+  mux.handle("/tips")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        UNUSED(req);
+        status_t ret = SC_OK;
+        char* json_result;
+
+        ret = api_get_tips(&ta_core.iota_service, &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /address Generate an unused address
+   *
+   * @return {String} address hashes
+   */
+  mux.handle("/address")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        UNUSED(req);
+        status_t ret = SC_OK;
+        char* json_result;
+
+        ret = api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} /tag/<transaction tag>/hashes Find transaction hash with tag
+   *
+   * @return {String} Transaction hashes
+   */
+  mux.handle("/tag/{tag:[A-Z9]{1,27}}/hashes")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_get_transaction_object(
-            &ta_core.service, req.params["tx"].c_str(), &json_result);
+        ret = api_find_transactions_by_tag(&ta_core.iota_service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -181,79 +317,14 @@ int main(int argc, char* argv[]) {
   mux.handle("/tag/{tag:[A-Z9]{1,27}}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        ret = api_find_transactions_obj_by_tag(
-            &ta_core.service, req.params["tag"].c_str(), &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
-        res << json_result;
-      });
-
-  /**
-   * @method {get} /tips Fetch pair tips which base on GetTransactionToApprove
-   *
-   * @return {String[]} tips Pair of transaction hashes
-   */
-  mux.handle("/tips/pair")
-      .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
-      .get([&](served::response& res, const served::request& req) {
-        status_t ret = SC_OK;
-        char* json_result;
-
-        ret =
-            api_get_tips_pair(&ta_core.tangle, &ta_core.service, &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
-        res << json_result;
-      });
-
-  /**
-   * @method {get} /tips Fetch all tips
-   *
-   * @return {String[]} tips List of transaction hashes
-   */
-  mux.handle("/tips")
-      .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
-      .get([&](served::response& res, const served::request& req) {
-        status_t ret = SC_OK;
-        char* json_result;
-
-        ret = api_get_tips(&ta_core.service, &json_result);
-        ret = set_response_content(ret, &json_result);
-        set_method_header(res, HTTP_METHOD_GET);
-        res.set_status(ret);
-        res << json_result;
-      });
-
-  /**
-   * @method {get} /address Generate an unused address
-   *
-   * @return {String} hash of address hashes
-   */
-  mux.handle("/address")
-      .method(served::method::OPTIONS,
-              [&](served::response& res, const served::request& req) {
-                set_method_header(res, HTTP_METHOD_OPTIONS);
-              })
-      .get([&](served::response& res, const served::request& req) {
-        status_t ret = SC_OK;
-        char* json_result;
-
-        ret = api_generate_address(&ta_core.tangle, &ta_core.service,
-                                   &json_result);
+        ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, req.params["tag"].c_str(), &json_result);
         ret = set_response_content(ret, &json_result);
         set_method_header(res, HTTP_METHOD_GET);
         res.set_status(ret);
@@ -268,29 +339,82 @@ int main(int argc, char* argv[]) {
   mux.handle("/transaction")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .post([&](served::response& res, const served::request& req) {
         status_t ret = SC_OK;
         char* json_result;
 
-        if (req.header("content-type").find("application/json") ==
-            std::string::npos) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
           cJSON* json_obj = cJSON_CreateObject();
-          cJSON_AddStringToObject(json_obj, "message",
-                                  "Invalid request header");
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
           json_result = cJSON_PrintUnformatted(json_obj);
 
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.tangle, &ta_core.service,
-                                  req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }
 
         set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  /**
+   * @method {post} /tryte send trytes
+   *
+   * @return {String} transaction object
+   */
+  mux.handle("/tryte")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
+
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = api_send_trytes(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  /**
+   * @method {get} / Dump information about a running accelerator
+   *
+   * @return {String[]} object Info of a running accelerator
+   */
+  mux.handle("/info")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .get([&](served::response& res, const served::request& req) {
+        UNUSED(req);
+        status_t ret = SC_OK;
+        char* json_result = NULL;
+
+        ret = api_get_ta_info(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.cache, &json_result);
+        ret = set_response_content(ret, &json_result);
+        set_method_header(res, HTTP_METHOD_GET);
+        res.set_status(ret);
         res << json_result;
       });
 
@@ -303,6 +427,7 @@ int main(int argc, char* argv[]) {
   mux.handle("{*}")
       .method(served::method::OPTIONS,
               [&](served::response& res, const served::request& req) {
+                UNUSED(req);
                 set_method_header(res, HTTP_METHOD_OPTIONS);
               })
       .get([](served::response& res, const served::request&) {
@@ -317,14 +442,58 @@ int main(int argc, char* argv[]) {
         cJSON_Delete(json_obj);
       });
 
-  std::cout << "Starting..." << std::endl;
-  served::net::server server(ta_core.info.host, ta_core.info.port, mux);
-  server.run(ta_core.info.thread_count);
+  /**
+   * @method {post} / IOTA proxy api
+   *
+   * @return {String} IOTA proxy api response
+   */
+  mux.handle("/")
+      .method(served::method::OPTIONS,
+              [&](served::response& res, const served::request& req) {
+                UNUSED(req);
+                set_method_header(res, HTTP_METHOD_OPTIONS);
+              })
+      .post([&](served::response& res, const served::request& req) {
+        status_t ret = SC_OK;
+        char* json_result;
 
-  ta_config_destroy(&ta_core.service);
-  logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
+        if (req.header("content-type").find("application/json") == std::string::npos) {
+          cJSON* json_obj = cJSON_CreateObject();
+          cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
+          json_result = cJSON_PrintUnformatted(json_obj);
+
+          res.set_status(SC_HTTP_BAD_REQUEST);
+          cJSON_Delete(json_obj);
+        } else {
+          ret = proxy_api_wrapper(&ta_core.ta_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
+          ret = set_response_content(ret, &json_result);
+          res.set_status(ret);
+        }
+
+        set_method_header(res, HTTP_METHOD_POST);
+        res << json_result;
+      });
+
+  std::cout << "Starting..." << std::endl;
+  served::net::server server(ta_core.ta_conf.host, ta_core.ta_conf.port, mux);
+  server.run(ta_core.ta_conf.thread_count);
+
+  if (apis_lock_destroy() != SC_OK) {
+    ta_log_error("Destroying api lock failed %s.\n", SERVER_LOGGER);
     return EXIT_FAILURE;
+  }
+  ta_core_destroy(&ta_core.iota_service, &ta_core.db_service);
+
+  if (verbose_mode) {
+    apis_logger_release();
+    cc_logger_release();
+    serializer_logger_release();
+    pow_logger_release();
+    timer_logger_release();
+    logger_helper_release(logger_id);
+    if (logger_helper_destroy() != RC_OK) {
+      return EXIT_FAILURE;
+    }
   }
   return 0;
 }

@@ -30,9 +30,19 @@ cc_test(
     srcs = [
         "driver.c",
     ],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
+    }),
     deps = [
         ":test_define",
         "//accelerator:apis",
+        "//accelerator:proxy_apis",
     ],
 )
 
@@ -45,10 +55,11 @@ cc_binary(
     deps = [
         ":test_define",
         "//accelerator:apis",
+        "//accelerator:proxy_apis",
     ],
 )
 
-cc_binary(
+cc_test(
     name = "test_cache",
     srcs = [
         "test_cache.c",
@@ -82,11 +93,49 @@ cc_test(
     ],
 )
 
+"""
+cc_test(
+    name = "test_map_mode",
+    srcs = [
+        "test_map_mode.c",
+    ],
+    deps = [
+        ":test_define",
+        "//map:mode",
+    ],
+)
+"""
+
 cc_library(
     name = "test_define",
     hdrs = ["test_define.h"],
     deps = [
         "//accelerator:ta_config",
         "@unity",
+    ],
+)
+
+cc_test(
+    name = "test_scylladb",
+    srcs = select({
+        "//storage:db_enable": ["test_scylladb.c"],
+        "//conditions:default": ["empty_test.c"],
+    }),
+    deps = [
+        ":test_define",
+    ] + select({
+        "//storage:db_enable": ["//storage"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_test(
+    name = "test_timer",
+    srcs = [
+        "test_timer.c",
+    ],
+    deps = [
+        ":test_define",
+        "//utils:timer",
     ],
 )

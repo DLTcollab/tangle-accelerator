@@ -1,16 +1,21 @@
 # Tangle-accelerator
 
-[![Build Status](https://badge.buildkite.com/0deb4c46f2f69363e4d326014843b92853733f243f379c70b5.svg)](https://buildkite.com/dltcollab/tangle-accelerator-test) [![Gitter](https://img.shields.io/gitter/room/DLTcollab/tangle-accelerator.svg)](https://gitter.im/DLTcollab/tangle-accelerator) [![GitHub release](https://img.shields.io/github/release-pre/DLTcollab/tangle-accelerator.svg)](https://github.com/DLTcollab/tangle-accelerator/releases)
+[![Build Status](https://badge.buildkite.com/0deb4c46f2f69363e4d326014843b92853733f243f379c70b5.svg)](https://buildkite.com/dltcollab/tangle-accelerator-test)  [![GitHub release](https://img.shields.io/github/release-pre/DLTcollab/tangle-accelerator.svg)](https://github.com/DLTcollab/tangle-accelerator/releases)
 
 `Tangle-accelerator` is a caching proxy server for [IOTA](https://www.iota.org/), which
 can cache API requests and rewrite their responses as needed to be routed through full
-nodes. Thus, one instance of `Tangle-accelerator` can serve thousands of Tangle requests
-at once without accessing remote full nodes frequently.
+nodes. In other words, one instance of `Tangle-accelerator` can serve thousands of IOTA
+requests at once without accessing remote full nodes frequently, that improves the
+scalability and usability of [Tangle network](https://www.iota.org/research/meet-the-tangle).
+
+Being at the edge as a key-value store, an edge-caching node powered by `Tangle-accelerator`
+does not have to communicate to typical [IOTA](https://www.iota.org/) full nodes for every API
+calls. Instead, the cached transaction data being sought is available as needed.
 
 As an intermediate server accelerateing interactions with the Tangle, it faciliates
 [dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
 on edge devices. In the meanwhile, `Tangle-accelerator` provides shortcuts for certain
-use scenarios such as MAM and [TangleID](https://github.com/TangleID).
+use scenarios such as MAM and [TangleID](https://tangleid.github.io/).
 
 At the moment, it is not feasible to host fully-functioned full nodes on Raspberry Pi class
 Arm devices, but Raspberry Pi 3 is known to be capable to execute `Tangle-accelerator`
@@ -43,6 +48,28 @@ both footprint and startup time are behaved pretty well.
 
 ```
 
+### Transaction reattachment
+
+`Tangle-accelerator` helps to reattach pending transactions were attached from `Tangle-accelerator`.
+Reattachment increases chances of confirmation and prevents messages being pruned when full nodes perform snapshot.
+Clients should provide a uniqle ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachement. 
+
+`Tangle-accelerator` uses ScyllaDB to store each transaction's ID, hash and status(Pending or confirmed). `Tangle-accelerator` will periodically check the status of pending transactions and reattach transactions which have been pended too long. Confirmed transactions will be stored into permanodes.
+
+Clients can find the transaction alone with wanted message by using the ID to query.
+
+## Connectivity
+
+`Tangle-accelerator`, at this moment, supports the following TCP/IP derived protocols:
+* `HTTP`
+* `MQTT` 
+
+### HTTP
+`HTTP` can be used in the normal internet service. User can use RESTful APIs to interact with `tangle-accelerator`.
+
+### MQTT
+`MQTT` is a lightweight communication protocol which can be used in the IoT scenarios. `Tangle-accelerator`'s support to `MQTT` allows embedded devices to write data on IOTA internet with relative low quality hardware devices. We hope this will speed up DLT into our daily life.
+
 ## Documentation
 
 This page contains basic instructions for setting up tangle-accelerator, You can generate full documentation and API reference via Doxygen. The documentation is under `docs/` after generated:
@@ -71,7 +98,7 @@ Before running tangle-accelerator, please edit binding address/port of accelerat
 $ make && bazel run //accelerator
 ```
 
-### Build from docker
+### Optional: Build Docker Images
 
 If you prefer building a docker image, tangle-accelerator also provides build rules for it. Note that you still have to edit configurations in `accelerator/config.h`.
 
@@ -82,7 +109,73 @@ $ make && bazel run //accelerator:ta_image
 There's also an easier option to pull image from docker hub then simply run with default configs. Please do remember a redis-server is still required in this way.
 
 ```
-$ docker run -d --net=host --name tangle-accelerator wusyong/tangel-accelerator:latest
+$ docker run -d --net=host --name tangle-accelerator dltcollab/tangle-accelerator
+```
+
+### Optional: Build and Push Docker Image to Docker Hub
+
+Before pushing the docker image to Docker Hub, you need to log in the docker registry:
+
+```
+$ docker login
+```
+
+Then you could push the docker image with the following command:
+
+```
+$ make && bazel run //accelerator:push_docker
+```
+
+If you get the following error message:
+
+```
+SyntaxError: invalid syntax
+----------------
+Note: The failure of target @containerregistry//:digester (with exit code 1) may have been caused by the fact that it is running under Python 3 instead of Python 2. Examine the error to determine if that appears to be the problem. Since this target is built in the host configuration, the only way to change its version is to set --host_force_python=PY2, which affects the entire build.
+
+If this error started occurring in Bazel 0.27 and later, it may be because the Python toolchain now enforces that targets analyzed as PY2 and PY3 run under a Python 2 and Python 3 interpreter, respectively. See https://github.com/bazelbuild/bazel/issues/7899 for more information.
+------------
+```
+
+Use the `--host_force_python=PY2` parameter to force the Bazel to use the Python2 in entire build.
+
+```
+$ make && bazel run //accelerator:push_docker --host_force_python=PY2
+```
+
+### Optional: Enable MQTT connectivity
+MQTT connectivity is an optional feature allowing IoT endpoint devices to collaborate with `Tangle-Accelerator`.
+
+```
+make MQTT && bazel run //accelerator:accelerator_mqtt
+```
+
+Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker.
+For more information for MQTT connectivity of `tangle-accelerator`, you could read `connectivity/mqtt/usage.md`.
+
+### Optional: Enable external database for transaction reattachment
+Transaction reattachment is an optional feature.
+
+You can enable it in the build time by adding option : `--define db=enable`
+
+Transaction reattachment relies on ScyllDB, you need to install the dependency by following commands.
+
+For Ubuntu Linux 16.04/x86_64:
+
+```
+wget https://downloads.datastax.com/cpp-driver/ubuntu/16.04/cassandra/v2.14.1/cassandra-cpp-driver_2.14.1-1_amd64.deb
+wget https://downloads.datastax.com/cpp-driver/ubuntu/16.04/cassandra/v2.14.1/cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+```
+
+For Ubuntu Linux 18.04/x86_64:
+
+```
+wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.14.1/cassandra-cpp-driver_2.14.1-1_amd64.deb
+wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.14.1/cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver_2.14.1-1_amd64.deb
+sudo dpkg -i cassandra-cpp-driver-dev_2.14.1-1_amd64.deb
 ```
 
 ## Developing
@@ -111,13 +204,34 @@ Buildifier can be installed with `bazel` or `go`
 2. change directory to `buildtools`
 3. build it with bazel command, `$ bazel build //buildifier`
    The executable file will be located under `path/to/buildtools/bazel-bin`
-4. make a soft link
+4. make a soft link or move the executable file under `/usr/bin` 
 
 ### clang-format
 clang-format can be installed by command:
 - Debian/Ubuntu based systems: `$ sudo apt-get install clang-format`
 - macOS: `$ brew install clang-format`
 
+
+## Usage
+`Tangle-accelerator` currently supports two categories of APIs
+* direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
+* Proxy API to IRI core functionalities
+
+### IRI Porxy API
+`tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help users forward the request to IRI and forward the response back to users.
+We support two way to forward Proxy APIs to IRI:
+1. Bypass Proxy APIs directly to IRI.
+2. Process the Proxy APIs, then transmit them to IRI.
+
+The user can choose which way they want with CLI argument `--proxy_passthrough`.
+All the Proxy APIs are supported with the first way.
+However, the second way currently only supports the followings Proxy APIs:
+* checkConsistency
+* findTransactions
+* getBalances
+* getInclusionStates
+* getNodeInfo
+* getTrytes
 
 ## Licensing
 `Tangle-accelerator` is freely redistributable under the MIT License. Use of this source

@@ -9,17 +9,12 @@ cc_import(
     shared_library = "dcurl/build/libdcurl.so",
 )
 
-cc_import(
-    name = "hiredis",
+cc_library(
+    name = "mosquitto",
+    srcs = ["mosquitto/lib/libmosquitto.so.1"],
     hdrs = [
-        "hiredis/async.h",
-        "hiredis/dict.h",
-        "hiredis/fmacros.h",
-        "hiredis/hiredis.h",
-        "hiredis/net.h",
-        "hiredis/read.h",
-        "hiredis/sds.h",
-        "hiredis/sdsalloc.h",
+        "mosquitto/config.h",
+        "mosquitto/lib/mosquitto.h",
+        "mosquitto/lib/mqtt_protocol.h",
     ],
-    static_library = "hiredis/libhiredis.a",
 )

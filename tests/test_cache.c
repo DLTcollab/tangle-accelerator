@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #include "test_define.h"
 #include "utils/cache.h"
 
@@ -22,7 +30,7 @@ void test_cache_set(void) {
 
 int main(void) {
   UNITY_BEGIN();
-  cache_init(REDIS_HOST, REDIS_PORT);
+  cache_init(true, REDIS_HOST, REDIS_PORT);
   RUN_TEST(test_cache_set);
   RUN_TEST(test_cache_get);
   RUN_TEST(test_cache_del);

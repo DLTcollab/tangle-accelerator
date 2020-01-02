@@ -8,7 +8,8 @@ INPUT                  = . \
                         request \
                         response \
                         serializer \
-                        utils
+                        utils \ 
+                        connectivity/mqtt
 FILE_PATTERNS          = *.h \
                         *.md
 EXAMPLE_PATH           = tests

@@ -1,111 +1,31 @@
+/*
+ * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #include "common_core.h"
 #include <sys/time.h>
 
-status_t cclient_get_txn_to_approve(const iota_client_service_t* const service,
-                                    uint8_t const depth,
-                                    ta_get_tips_res_t* res) {
-  if (res == NULL) {
-    return SC_TA_NULL;
+#define CC_LOGGER "common_core"
+
+static logger_id_t logger_id;
+
+void cc_logger_init() { logger_id = logger_helper_enable(CC_LOGGER, LOGGER_DEBUG, true); }
+
+int cc_logger_release() {
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", CC_LOGGER);
+    return EXIT_FAILURE;
   }
 
-  status_t ret = SC_OK;
-  get_transactions_to_approve_req_t* get_txn_req =
-      get_transactions_to_approve_req_new();
-  get_transactions_to_approve_res_t* get_txn_res =
-      get_transactions_to_approve_res_new();
-  if (get_txn_req == NULL || get_txn_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-  // The depth at which Random Walk starts. Mininal is 3, and max is 15.
-  get_transactions_to_approve_req_set_depth(get_txn_req, depth);
-
-  ret = iota_client_get_transactions_to_approve(service, get_txn_req,
-                                                get_txn_res);
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-
-  ret = hash243_stack_push(&res->tips, get_txn_res->branch);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    goto done;
-  }
-  ret = hash243_stack_push(&res->tips, get_txn_res->trunk);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-  }
-
-done:
-  get_transactions_to_approve_res_free(&get_txn_res);
-  get_transactions_to_approve_req_free(&get_txn_req);
-  return ret;
+  return 0;
 }
 
-status_t cclient_get_tips(const iota_client_service_t* const service,
-                          ta_get_tips_res_t* res) {
-  if (res == NULL) {
-    return SC_TA_NULL;
-  }
-  status_t ret = SC_OK;
-  get_tips_res_t* get_tips_res = get_tips_res_new();
-  if (get_tips_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  ret = iota_client_get_tips(service, get_tips_res);
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-  res->tips = get_tips_res->hashes;
-  get_tips_res->hashes = NULL;
-
-done:
-  get_tips_res_free(&get_tips_res);
-  return ret;
-}
-
-status_t cclient_prepare_transfer(const iota_client_service_t* const service,
-                                  transfer_t** const transfers,
-                                  uint32_t const num_transfer,
-                                  bundle_transactions_t* out_bundle) {
-  if (transfers == NULL || out_bundle == NULL) {
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  iota_transaction_t* TX = transaction_new();
-  iota_transaction_t* tx = NULL;
-  Kerl kerl = {};
-  transfer_ctx_t transfer_ctx = {};
-  transfer_iterator_t* transfer_iterator =
-      transfer_iterator_new(transfers, num_transfer, &kerl, TX);
-  if (transfer_iterator == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  // calculate bundle hash
-  transfer_ctx_init(&transfer_ctx, transfers, 1);
-  transfer_ctx_hash(&transfer_ctx, &kerl, transfers, 1);
-
-  for (tx = transfer_iterator_next(transfer_iterator); tx;
-       tx = transfer_iterator_next(transfer_iterator)) {
-    transaction_set_bundle(tx, transfer_ctx.bundle);
-    bundle_transactions_add(out_bundle, tx);
-  }
-
-done:
-  transfer_iterator_free(&transfer_iterator);
-  transaction_free(TX);
-  return ret;
-}
-
-status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
-                             attach_to_tangle_res_t* res) {
+status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_tangle_res_t* res) {
   status_t ret = SC_OK;
   bundle_transactions_t* bundle = NULL;
   iota_transaction_t tx;
@@ -120,13 +40,11 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
     bundle_transactions_add(bundle, &tx);
 
     // store transaction to cache
-    flex_trits_to_trytes((tryte_t*)cache_key, NUM_TRYTES_HASH,
-                         transaction_hash(&tx), NUM_TRITS_HASH, NUM_TRITS_HASH);
-    flex_trits_to_trytes(
-        (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
-        NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+    flex_trits_to_trytes((tryte_t*)cache_key, NUM_TRYTES_HASH, transaction_hash(&tx), NUM_TRITS_HASH, NUM_TRITS_HASH);
+    flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
+                         NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
     ret = cache_set(cache_key, cache_value);
-    if (ret) {
+    if (ret != SC_OK && ret != SC_CACHE_OFF) {
       goto done;
     }
   }
@@ -147,6 +65,7 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req,
       tx_trytes = NULL;
     } else {
       ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
       goto done;
     }
   }
@@ -156,86 +75,106 @@ done:
   return ret;
 }
 
-status_t ta_send_trytes(const iota_config_t* const tangle,
-                        const iota_client_service_t* const service,
+status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         hash8019_array_p trytes) {
   status_t ret = SC_OK;
-  ta_get_tips_res_t* get_txn_res = ta_get_tips_res_new();
+  get_transactions_to_approve_req_t* tx_approve_req = get_transactions_to_approve_req_new();
+  get_transactions_to_approve_res_t* tx_approve_res = get_transactions_to_approve_res_new();
   attach_to_tangle_req_t* attach_req = attach_to_tangle_req_new();
   attach_to_tangle_res_t* attach_res = attach_to_tangle_res_new();
-  if (!get_txn_res || !attach_req || !attach_res) {
+  if (!tx_approve_req || !tx_approve_res || !attach_req || !attach_res) {
     ret = SC_CCLIENT_OOM;
+    ta_log_error("%s\n", "SC_CCLIENT_OOM");
     goto done;
   }
 
-  // get transaction to approve
-  ret =
-      cclient_get_txn_to_approve(service, tangle->milestone_depth, get_txn_res);
-  if (ret) {
+  get_transactions_to_approve_req_set_depth(tx_approve_req, iconf->milestone_depth);
+  if (iota_client_get_transactions_to_approve(service, tx_approve_req, tx_approve_res)) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
-  // attach to tangle
-  memcpy(attach_req->trunk, hash243_stack_peek(get_txn_res->tips),
-         FLEX_TRIT_SIZE_243);
-  hash243_stack_pop(&get_txn_res->tips);
-  memcpy(attach_req->branch, hash243_stack_peek(get_txn_res->tips),
-         FLEX_TRIT_SIZE_243);
-  hash243_stack_pop(&get_txn_res->tips);
-  attach_req->mwm = tangle->mwm;
-
+  // copy trytes to attach_req->trytes
   flex_trit_t* elt = NULL;
-  HASH_ARRAY_FOREACH(trytes, elt) { hash_array_push(attach_req->trytes, elt); }
-
-  ret = ta_attach_to_tangle(attach_req, attach_res);
-  if (ret) {
+  HASH_ARRAY_FOREACH(trytes, elt) { attach_to_tangle_req_trytes_add(attach_req, elt); }
+  attach_to_tangle_req_init(attach_req, get_transactions_to_approve_res_trunk(tx_approve_res),
+                            get_transactions_to_approve_res_branch(tx_approve_res), iconf->mwm);
+  if (ta_attach_to_tangle(attach_req, attach_res) != SC_OK) {
     goto done;
   }
 
   // store and broadcast
-  ret = iota_client_store_and_broadcast(service,
-                                        (store_transactions_req_t*)attach_res);
-  if (ret) {
+  if (iota_client_store_and_broadcast(service, (store_transactions_req_t*)attach_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+    goto done;
   }
 
+  // set the value of attach_res->trytes as output trytes result
+  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(hash8019_array_p));
+
 done:
-  ta_get_tips_res_free(&get_txn_res);
+  get_transactions_to_approve_req_free(&tx_approve_req);
+  get_transactions_to_approve_res_free(&tx_approve_res);
   attach_to_tangle_req_free(&attach_req);
   attach_to_tangle_res_free(&attach_res);
   return ret;
 }
 
-status_t ta_generate_address(const iota_config_t* const tangle,
-                             const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res) {
+static status_t ta_generate_address_helper(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                                           ta_generate_address_res_t* res) {
   if (res == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
   status_t ret = SC_OK;
   hash243_queue_t out_address = NULL;
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH,
-                         (const tryte_t*)tangle->seed, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
+  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   address_opt_t opt = {.security = 3, .start = 0, .total = 0};
 
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
 
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
   } else {
     res->addresses = out_address;
   }
   return ret;
 }
 
-status_t ta_send_transfer(const iota_config_t* const tangle,
-                          const iota_client_service_t* const service,
-                          const ta_send_transfer_req_t* const req,
-                          ta_send_transfer_res_t* res) {
+static status_t ta_generate_address_thread(void* args) {
+  ta_generate_address_args_t* arg = (ta_generate_address_args_t*)args;
+  return ta_generate_address_helper(arg->iconf, arg->service, arg->res);
+}
+
+status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                             ta_generate_address_res_t* res) {
+  ta_generate_address_args_t args = {.iconf = iconf, .service = service, .res = res};
+  int* rval;
+  const struct itimerspec timeout = {.it_interval = {.tv_sec = 0, .tv_nsec = 0},
+                                     .it_value = {.tv_sec = 50, .tv_nsec = 0}};
+
+  ta_timer_t* timer_id = ta_timer_start(&timeout, ta_generate_address_thread, (void*)&args);
+  if (timer_id != NULL) {
+    if (!ta_timer_stop(timer_id, (void**)&rval)) {
+      ta_log_error("%s\n", "SC_UTILS_TIMER_ERROR");
+    }
+  } else {
+    ta_log_error("%s\n", "SC_TA_OOM");
+    return SC_TA_OOM;
+  }
+
+  return (status_t)rval;
+}
+
+status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                          const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res) {
   if (req == NULL || res == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
@@ -247,17 +186,37 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
   iota_transaction_t* txn = NULL;
   bundle_transactions_t* out_bundle = NULL;
   bundle_transactions_new(&out_bundle);
-  transfer_t* transfers[1];
-  transfers[0] = transfer_data_new(hash243_queue_peek(req->address),
-                                   hash81_queue_peek(req->tag), req->message,
-                                   req->msg_len, current_timestamp_ms());
-  if (find_tx_req == NULL || find_tx_res == NULL) {
+  transfer_array_t* transfers = transfer_array_new();
+  if (find_tx_req == NULL || find_tx_res == NULL || transfers == NULL) {
     ret = SC_CCLIENT_OOM;
+    ta_log_error("%s\n", "SC_CCLIENT_OOM");
     goto done;
   }
 
-  ret = cclient_prepare_transfer(service, transfers, 1, out_bundle);
-  if (ret) {
+  // TODO Maybe we can replace the variable type of message from flex_trit_t to
+  // tryte_t
+  tryte_t msg_tryte[NUM_TRYTES_SERIALIZED_TRANSACTION];
+  flex_trits_to_trytes(msg_tryte, req->msg_len / 3, req->message, req->msg_len, req->msg_len);
+
+  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len / 3};
+
+  if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) != RC_OK) {
+    ret = SC_CCLIENT_OOM;
+    ta_log_error("%s\n", "SC_CCLIENT_OOM");
+    goto done;
+  }
+  memcpy(transfer.address, hash243_queue_peek(req->address), FLEX_TRIT_SIZE_243);
+  memcpy(transfer.tag, hash81_queue_peek(req->tag), FLEX_TRIT_SIZE_81);
+  transfer_array_add(transfers, &transfer);
+
+  // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
+  // future and declare `security` field in `iota_config_t`
+  flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
+  flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, false, current_timestamp_ms(),
+                                    out_bundle) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -265,13 +224,14 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
     serialized_txn = transaction_serialize(txn);
     if (serialized_txn == NULL) {
       ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
       goto done;
     }
-    utarray_insert(raw_tx, serialized_txn, 0);
+    hash_array_push(raw_tx, serialized_txn);
     free(serialized_txn);
   }
 
-  ret = ta_send_trytes(tangle, service, raw_tx);
+  ret = ta_send_trytes(iconf, service, raw_tx);
   if (ret) {
     goto done;
   }
@@ -280,12 +240,14 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
   ret = hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
   if (ret) {
     ret = SC_CCLIENT_HASH;
+    ta_log_error("%s\n", "SC_CCLIENT_HASH");
     goto done;
   }
 
   ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -293,168 +255,142 @@ status_t ta_send_transfer(const iota_config_t* const tangle,
   find_tx_res->hashes = NULL;
 
 done:
+  transfer_message_free(&transfer);
   hash_array_free(raw_tx);
-  transfer_free(transfers);
+  transfer_array_free(transfers);
   bundle_transactions_free(&out_bundle);
   find_transactions_req_free(&find_tx_req);
   find_transactions_res_free(&find_tx_res);
   return ret;
 }
 
-status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
-                                     const char* const req,
-                                     ta_find_transactions_res_t* res) {
+status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
+                                         const find_transactions_req_t* const req, transaction_array_t* res) {
   if (req == NULL || res == NULL) {
+    ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
   }
 
   status_t ret = SC_OK;
-  find_transactions_req_t* find_tx_req = find_transactions_req_new();
-  find_transactions_res_t* find_tx_res = find_transactions_res_new();
-  if (find_tx_req == NULL || find_tx_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  flex_trit_t tag_trits[NUM_TRITS_TAG];
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)req,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  ret = hash81_queue_push(&find_tx_req->tags, tag_trits);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    goto done;
-  }
-  ret = iota_client_find_transactions(service, find_tx_req, find_tx_res);
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-
-  res->hashes = find_tx_res->hashes;
-  find_tx_res->hashes = NULL;
-
-done:
-  find_transactions_req_free(&find_tx_req);
-  find_transactions_res_free(&find_tx_res);
-  return ret;
-}
-
-status_t ta_get_transaction_object(const iota_client_service_t* const service,
-                                   const char* const req,
-                                   ta_get_transaction_object_res_t* res) {
-  if (res == NULL) {
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  flex_trit_t tx_trits[FLEX_TRIT_SIZE_8019];
-  flex_trit_t hash_trits[NUM_TRITS_HASH];
-  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)req,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  char cache_value[FLEX_TRIT_SIZE_8019] = {0};
-
-  // get raw transaction data of transaction hashes
-  get_trytes_req_t* get_trytes_req = get_trytes_req_new();
-  get_trytes_res_t* get_trytes_res = get_trytes_res_new();
-  if (get_trytes_req == NULL || get_trytes_res == NULL) {
-    ret = SC_CCLIENT_OOM;
-    goto done;
-  }
-
-  // get in cache first, then get from full node if no result in cache
-  ret = cache_get(req, cache_value);
-  if (ret == SC_OK) {
-    flex_trits_from_trytes(
-        tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
-        NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
-  } else {
-    ret = hash243_queue_push(&get_trytes_req->hashes, hash_trits);
-    if (ret) {
-      ret = SC_CCLIENT_HASH;
-      goto done;
-    }
-
-    ret = iota_client_get_trytes(service, get_trytes_req, get_trytes_res);
-    if (ret) {
-      ret = SC_CCLIENT_FAILED_RESPONSE;
-      goto done;
-    }
-
-    memcpy(tx_trits, hash8019_queue_peek(get_trytes_res->trytes),
-           FLEX_TRIT_SIZE_8019);
-
-    // set into cache if get_trytes response is not null trytes
-    if (!flex_trits_are_null(tx_trits, FLEX_TRIT_SIZE_8019)) {
-      flex_trits_to_trytes(
-          (tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, tx_trits,
-          NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      cache_set(req, cache_value);
-    } else {
-      ret = SC_CCLIENT_NOT_FOUND;
-      goto done;
-    }
-  }
-
-  // deserialize raw data to transaction object
-  res->txn = transaction_deserialize(tx_trits, 0);
-  if (res->txn == NULL) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    goto done;
-  }
-  transaction_set_hash(res->txn, hash_trits);
-
-done:
-  get_trytes_req_free(&get_trytes_req);
-  get_trytes_res_free(&get_trytes_res);
-  return ret;
-}
-
-status_t ta_find_transactions_obj_by_tag(
-    const iota_client_service_t* const service, const char* const req,
-    ta_find_transactions_obj_res_t* res) {
-  if (req == NULL || res == NULL) {
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  char hash_trytes[NUM_TRYTES_HASH + 1];
-  flex_trit_t* hash_trits = NULL;
-
-  ta_find_transactions_res_t* hash_res = ta_find_transactions_res_new();
-  if (hash_res == NULL) {
-    ret = SC_TA_OOM;
+  find_transactions_res_t* txn_res = find_transactions_res_new();
+  ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
+  if (txn_res == NULL || obj_req == NULL) {
+    ta_log_error("%s\n", "SC_TA_OOM");
     goto done;
   }
 
   // get transaction hash
-  ret = ta_find_transactions_by_tag(service, req, hash_res);
-  if (ret) {
+  if (iota_client_find_transactions(service, req, txn_res) != RC_OK) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
-  // get transaction obj
-  for (hash_trits = hash243_queue_peek(hash_res->hashes); hash_trits != NULL;
-       hash_trits = hash243_queue_peek(hash_res->hashes)) {
-    ta_get_transaction_object_res_t* obj_res =
-        ta_get_transaction_object_res_new();
-    if (obj_res == NULL) {
-      ret = SC_TA_OOM;
-      goto done;
-    }
-    flex_trits_to_trytes((tryte_t*)hash_trytes, NUM_TRYTES_HASH, hash_trits,
-                         NUM_TRITS_HASH, NUM_TRITS_HASH);
-    hash243_queue_pop(&hash_res->hashes);
-    hash_trytes[NUM_TRYTES_HASH] = '\0';
-    ret = ta_get_transaction_object(service, hash_trytes, obj_res);
-    if (ret) {
-      break;
-    }
-    utarray_push_back(res->txn_obj, obj_res->txn);
-    ta_get_transaction_object_res_free(&obj_res);
+  hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
+
+  ret = ta_find_transaction_objects(service, obj_req, res);
+  if (ret) {
+    ta_log_error("%d\n", ret);
+    goto done;
   }
 
 done:
-  ta_find_transactions_res_free(&hash_res);
+  find_transactions_res_free(&txn_res);
+  ta_find_transaction_objects_req_free(&obj_req);
+  return ret;
+}
+
+status_t ta_find_transaction_objects(const iota_client_service_t* const service,
+                                     const ta_find_transaction_objects_req_t* const req, transaction_array_t* res) {
+  status_t ret = SC_OK;
+  flex_trit_t tx_trits[NUM_TRITS_SERIALIZED_TRANSACTION];
+  iota_transaction_t* temp = NULL;
+  get_trytes_req_t* req_get_trytes = get_trytes_req_new();
+  transaction_array_t* uncached_txn_array = transaction_array_new();
+  flex_trit_t* temp_txn_trits = NULL;
+  if (req == NULL || res == NULL || req_get_trytes == NULL || uncached_txn_array == NULL) {
+    ret = SC_TA_NULL;
+    ta_log_error("%s\n", "SC_TA_NULL");
+    goto done;
+  }
+  char txn_hash[NUM_TRYTES_HASH + 1] = {0};
+  char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {0};
+  txn_hash[NUM_TRYTES_HASH] = '\0';
+  cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
+
+  // append transaction object which is already cached to transaction_array_t
+  // if not, append uncached to request object of `iota_client_find_transaction_objectss`
+  hash243_queue_entry_t* q_iter = NULL;
+  CDL_FOREACH(req->hashes, q_iter) {
+    flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
+
+    ret = cache_get(txn_hash, cache_value);
+    if (ret == SC_OK) {
+      flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
+                             NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+
+      // deserialize raw data to transaction object
+      temp = transaction_deserialize(tx_trits, true);
+      if (temp == NULL) {
+        ret = SC_CCLIENT_OOM;
+        ta_log_error("%s\n", "SC_CCLIENT_OOM");
+        goto done;
+      }
+
+      transaction_array_push_back(res, temp);
+      transaction_free(temp);
+
+      // reset the string `cache_value`
+      cache_value[0] = '\0';
+    } else {
+      if (hash243_queue_push(&req_get_trytes->hashes, q_iter->hash) != RC_OK) {
+        ret = SC_CCLIENT_HASH;
+        ta_log_error("%s\n", "SC_CCLIENT_HASH");
+        goto done;
+      }
+      ret = SC_OK;
+    }
+  }
+
+  if (req_get_trytes->hashes != NULL) {
+    if (iota_client_get_transaction_objects(service, req_get_trytes, uncached_txn_array) != RC_OK) {
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      goto done;
+    }
+  }
+
+  // append response of `iota_client_find_transaction_objects` into cache
+  TX_OBJS_FOREACH(uncached_txn_array, temp) {
+    temp_txn_trits = transaction_serialize(temp);
+    if (!flex_trits_are_null(temp_txn_trits, FLEX_TRIT_SIZE_8019)) {
+      flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, transaction_hash(temp), NUM_TRITS_HASH, NUM_TRITS_HASH);
+      flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, temp_txn_trits,
+                           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
+      ret = cache_set(txn_hash, cache_value);
+      if (ret != SC_OK) {
+        if (ret != SC_CACHE_OFF) {
+          goto done;
+        }
+        ret = SC_OK;
+      }
+
+      iota_transaction_t* append_txn = transaction_deserialize(temp_txn_trits, true);
+      transaction_array_push_back(res, append_txn);
+      transaction_free(append_txn);
+    } else {
+      ret = SC_CCLIENT_NOT_FOUND;
+      ta_log_error("%s\n", "SC_CCLIENT_NOT_FOUND");
+      goto done;
+    }
+    free(temp_txn_trits);
+    temp_txn_trits = NULL;
+  }
+
+done:
+  get_trytes_req_free(&req_get_trytes);
+  transaction_array_free(uncached_txn_array);
+  free(temp_txn_trits);
   return ret;
 }
 
@@ -464,13 +400,11 @@ static int idx_sort(void const* lhs, void const* rhs) {
 
   return (transaction_current_index(_lhs) < transaction_current_index(_rhs))
              ? -1
-             : (transaction_current_index(_lhs) >
-                transaction_current_index(_rhs));
+             : (transaction_current_index(_lhs) > transaction_current_index(_rhs));
 }
 
-static void get_first_bundle_from_transactions(
-    transaction_array_t const* transactions,
-    bundle_transactions_t* const bundle) {
+static void get_first_bundle_from_transactions(transaction_array_t const* transactions,
+                                               bundle_transactions_t* const bundle) {
   iota_transaction_t* tail = NULL;
   iota_transaction_t* curr_tx = NULL;
   iota_transaction_t* prev = NULL;
@@ -481,18 +415,15 @@ static void get_first_bundle_from_transactions(
 
   prev = tail;
   TX_OBJS_FOREACH(transactions, curr_tx) {
-    if (transaction_current_index(curr_tx) ==
-            (transaction_current_index(prev) + 1) &&
-        (memcmp(transaction_hash(curr_tx), transaction_trunk(prev),
-                FLEX_TRIT_SIZE_243) == 0)) {
+    if (transaction_current_index(curr_tx) == (transaction_current_index(prev) + 1) &&
+        (memcmp(transaction_hash(curr_tx), transaction_trunk(prev), FLEX_TRIT_SIZE_243) == 0)) {
       bundle_transactions_add(bundle, curr_tx);
       prev = curr_tx;
     }
   }
 }
 
-status_t ta_get_bundle(const iota_client_service_t* const service,
-                       tryte_t const* const bundle_hash,
+status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const* const bundle_hash,
                        bundle_transactions_t* const bundle) {
   status_t ret = SC_OK;
   flex_trit_t bundle_hash_flex[FLEX_TRIT_SIZE_243];
@@ -500,16 +431,17 @@ status_t ta_get_bundle(const iota_client_service_t* const service,
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   if (find_tx_req == NULL) {
     ret = SC_CCLIENT_OOM;
+    ta_log_error("%s\n", "SC_CCLIENT_OOM");
     goto done;
   }
 
   // find transactions by bundle hash
-  flex_trits_from_trytes(bundle_hash_flex, NUM_TRITS_BUNDLE, bundle_hash,
-                         NUM_TRITS_HASH, NUM_TRYTES_BUNDLE);
+  flex_trits_from_trytes(bundle_hash_flex, NUM_TRITS_BUNDLE, bundle_hash, NUM_TRITS_HASH, NUM_TRYTES_BUNDLE);
   hash243_queue_push(&find_tx_req->bundles, bundle_hash_flex);
   ret = iota_client_find_transaction_objects(service, find_tx_req, tx_objs);
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
 
@@ -522,8 +454,7 @@ done:
   return ret;
 }
 
-status_t ta_send_bundle(const iota_config_t* const tangle,
-                        const iota_client_service_t* const service,
+status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_service_t* const service,
                         bundle_transactions_t* const bundle) {
   Kerl kerl;
   kerl_init(&kerl);
@@ -538,10 +469,77 @@ status_t ta_send_bundle(const iota_config_t* const tangle,
     hash_array_push(raw_trytes, trits_8019);
   }
 
-  ta_send_trytes(tangle, service, raw_trytes);
+  ta_send_trytes(iconf, service, raw_trytes);
 
   hash_array_free(raw_trytes);
   transaction_array_free(out_tx_objs);
 
   return SC_OK;
+}
+
+status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
+                                bundle_array_t* bundle_array) {
+  status_t ret = SC_OK;
+  tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
+  find_transactions_req_t* txn_req = find_transactions_req_new();
+  find_transactions_res_t* txn_res = find_transactions_res_new();
+  ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
+  transaction_array_t* obj_res = transaction_array_new();
+
+  if (txn_req == NULL || txn_res == NULL || obj_req == NULL || obj_res == NULL) {
+    ta_log_error("%s\n", "SC_TA_OOM");
+    ret = SC_TA_OOM;
+    goto done;
+  }
+
+  flex_trit_t addr_trits[NUM_TRITS_HASH];
+  flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH, (const tryte_t*)addr, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  find_transactions_req_address_add(txn_req, addr_trits);
+
+  if (iota_client_find_transactions(service, txn_req, txn_res) != RC_OK) {
+    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+
+  // In case the requested transction hashes is an empty one
+  if (hash243_queue_count(txn_res->hashes) > 0) {
+    hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+  } else {
+    ta_log_error("%s\n", "SC_MAM_NOT_FOUND");
+    ret = SC_MAM_NOT_FOUND;
+    goto done;
+  }
+
+  ret = ta_find_transaction_objects(service, obj_req, obj_res);
+  if (ret != SC_OK) {
+    ta_log_error("%d\n", ret);
+    goto done;
+  }
+
+  iota_transaction_t* curr_tx = NULL;
+  TX_OBJS_FOREACH(obj_res, curr_tx) {
+    flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
+                         NUM_TRITS_BUNDLE);
+
+    bundle_transactions_t* bundle = NULL;
+    bundle_transactions_new(&bundle);
+    ret = ta_get_bundle(service, bundle_hash, bundle);
+    if (ret != SC_OK) {
+      ta_log_error("%d\n", ret);
+      goto done;
+    }
+
+    // TODO We need to check out if the current bundle is already in bundle_array
+    utarray_push_back(bundle_array, bundle);
+
+    bundle_transactions_free(&bundle);
+  }
+
+done:
+  find_transactions_req_free(&txn_req);
+  find_transactions_res_free(&txn_res);
+  ta_find_transaction_objects_req_free(&obj_req);
+  transaction_array_free(obj_res);
+  return ret;
 }

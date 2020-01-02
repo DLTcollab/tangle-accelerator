@@ -1,5 +1,16 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
+#include <hiredis/hiredis.h>
 #include "cache.h"
-#include "third_party/hiredis/hiredis.h"
+#include "utils/logger.h"
+
+#define BR_LOGGER "backend_redis"
 
 /* private data used by cache_t */
 typedef struct {
@@ -8,21 +19,36 @@ typedef struct {
 #define CONN(c) ((connection_private*)(c.conn))
 
 static cache_t cache;
+static bool cache_state;
+static logger_id_t logger_id;
 
 /*
  * Private functions
  */
 
+void br_logger_init() { logger_id = logger_helper_enable(BR_LOGGER, LOGGER_DEBUG, true); }
+
+int br_logger_release() {
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", BR_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
+
 static status_t redis_del(redisContext* c, const char* const key) {
   status_t ret = SC_OK;
-
   if (key == NULL) {
+    ta_log_error("%s\n", "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "DEL %s", key);
   if (!reply->integer) {
     ret = SC_CACHE_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
@@ -31,8 +57,8 @@ static status_t redis_del(redisContext* c, const char* const key) {
 
 static status_t redis_get(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
-
   if (key == NULL || res[0] != '\0') {
+    ta_log_error("%s\n", "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
@@ -41,24 +67,24 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
     strncpy(res, reply->str, FLEX_TRIT_SIZE_8019);
   } else {
     ret = SC_CACHE_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
   return ret;
 }
 
-static status_t redis_set(redisContext* c, const char* const key,
-                          const char* const value) {
+static status_t redis_set(redisContext* c, const char* const key, const char* const value) {
   status_t ret = SC_OK;
-
   if (key == NULL || value == NULL) {
+    ta_log_error("%s\n", "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
-  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243,
-                                   value, FLEX_TRIT_SIZE_8019);
+  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243, value, FLEX_TRIT_SIZE_8019);
   if (!reply->integer) {
     ret = SC_CACHE_FAILED_RESPONSE;
+    ta_log_error("%s\n", "SC_CACHE_FAILED_RESPONSE");
   }
 
   freeReplyObject(reply);
@@ -69,7 +95,12 @@ static status_t redis_set(redisContext* c, const char* const key,
  * Public functions
  */
 
-bool cache_init(const char* host, int port) {
+bool cache_init(bool state, const char* host, int port) {
+  cache_state = state;
+  if (!state) {
+    return false;
+  }
+
   cache.conn = (connection_private*)malloc(sizeof(connection_private));
   CONN(cache)->rc = redisConnect(host, port);
   if (CONN(cache)->rc) {
@@ -79,7 +110,7 @@ bool cache_init(const char* host, int port) {
 }
 
 void cache_stop() {
-  if (CONN(cache)->rc) {
+  if (cache_state == true && CONN(cache)->rc) {
     redisFree(CONN(cache)->rc);
 
     if (CONN(cache)) {
@@ -89,13 +120,25 @@ void cache_stop() {
 }
 
 status_t cache_del(const char* const key) {
+  if (!cache_state) {
+    ta_log_info("%s\n", "SC_CACHE_OFF");
+    return SC_CACHE_OFF;
+  }
   return redis_del(CONN(cache)->rc, key);
 }
 
 status_t cache_get(const char* const key, char* res) {
+  if (!cache_state) {
+    ta_log_info("%s\n", "SC_CACHE_OFF");
+    return SC_CACHE_OFF;
+  }
   return redis_get(CONN(cache)->rc, key, res);
 }
 
 status_t cache_set(const char* const key, const char* const value) {
+  if (!cache_state) {
+    ta_log_info("%s\n", "SC_CACHE_OFF");
+    return SC_CACHE_OFF;
+  }
   return redis_set(CONN(cache)->rc, key, value);
 }

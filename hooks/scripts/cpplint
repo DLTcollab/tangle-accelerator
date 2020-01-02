@@ -1,4 +1,0 @@
-#!/bin/sh
-
-root=$(git rev-parse --show-toplevel)
-python $root/hooks/scripts/cpplint.py --filter=-build/include_order,-whitespace/comments,-runtime/references --extensions=h,cc $(find $root | grep -E "\.(cc|cpp|h|hh|hpp)\$" | grep -Ev "/third_party/")

@@ -1,9 +1,15 @@
+/*
+ * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #ifndef ACCELERATOR_APIS_H_
 #define ACCELERATOR_APIS_H_
 
 #include "accelerator/common_core.h"
-#include "accelerator/errors.h"
-#include "cclient/types/types.h"
 #include "common/trinary/trit_tryte.h"
 #include "mam/api/api.h"
 #include "mam/mam/mam_channel_t_set.h"
@@ -23,12 +29,60 @@ extern "C" {
  */
 
 /**
+ * Initialize logger
+ */
+void apis_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int apis_logger_release();
+
+/**
+ * @brief Dump tangle accelerator information.
+ *
+ * @param info[in] Tangle-accelerator configuration variables
+ * @param tangle[in] iota configuration variables
+ * @param cache[in] redis configuration variables
+ * @param service[in] IRI connection configuration variables
+ * @param[out] json_result Result containing tangle accelerator information in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_get_ta_info(ta_config_t* const info, iota_config_t* const tangle, ta_cache_t* const cache,
+                         char** json_result);
+
+/**
+ * Initialize lock
+ *
+ * @return
+ * - zero on success
+ * - SC_CONF_LOCK_INIT on error
+ */
+status_t apis_lock_init();
+
+/**
+ * Destroy lock
+ *
+ * @return
+ * - zero on success
+ * - SC_CONF_LOCK_DESTROY on error
+ */
+status_t apis_lock_destroy();
+
+/**
  * @brief Generate an unused address.
  *
  * Generate and return an unused address from the seed. An unused address means
  * the address does not have any transaction with it yet.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] json_result Result containing an unused address in json format
  *
@@ -36,8 +90,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_generate_address(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
                               char** json_result);
 
 /**
@@ -46,7 +99,7 @@ status_t api_generate_address(const iota_config_t* const tangle,
  * Get a tips pair as trunk/branch transactions for transaction construction.
  * The result is char array in json format:
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[out] json_result Result containing a tips pair in json format
  *
@@ -54,8 +107,7 @@ status_t api_generate_address(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips_pair(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_service_t* const service,
                            char** json_result);
 
 /**
@@ -71,8 +123,7 @@ status_t api_get_tips_pair(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips(const iota_client_service_t* const service,
-                      char** json_result);
+status_t api_get_tips(const iota_client_service_t* const service, char** json_result);
 
 /**
  * @brief Receive a MAM message.
@@ -80,16 +131,15 @@ status_t api_get_tips(const iota_client_service_t* const service,
  * Receive a MAM message from given bundle hash.
  *
  * @param[in] service IRI node end point service
- * @param[in] bundle_hash bundle hash decoded in trytes string
- * @param[out] json_result Result containing an unused address in json format
+ * @param[in] chid channel ID string
+ * @param[out] json_result Fetched MAM message in JSON format
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_receive_mam_message(const iota_client_service_t* const service,
-                                 const char* const bundle_hash,
-                                 char** json_result);
+status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                                 const char* const chid, char** json_result);
 
 /**
  * @brief Send a MAM message with given Payload.
@@ -98,7 +148,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
  * There is no need to decode the ascii payload to tryte, since the
  * api_mam_send_message() will take this job.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] payload message to send undecoded ascii string.
  * @param[out] json_result Result containing channel id and bundle hash
@@ -107,8 +157,7 @@ status_t api_receive_mam_message(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_mam_send_message(const iota_config_t* const tangle,
-                              const iota_client_service_t* const service,
+status_t api_mam_send_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
                               char const* const payload, char** json_result);
 
 /**
@@ -118,7 +167,7 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
- * @param[in] tangle IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] obj Input data in JSON
  * @param[out] json_result Result containing transaction objects in json format
@@ -127,14 +176,30 @@ status_t api_mam_send_message(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_transfer(const iota_config_t* const tangle,
-                           const iota_client_service_t* const service,
+status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                            const char* const obj, char** json_result);
+
+/**
+ * @brief Return transaction object with given single transaction hash.
+ *
+ * Explore transaction hash information with given single transaction hash. This would
+ * return whole transaction object details in json format instead of raw trytes.
+ *
+ * @param[in] service IRI node end point service
+ * @param[in] obj transaction hash in trytes
+ * @param[out] json_result Result containing the only one transaction object in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
+                                            char** json_result);
 
 /**
  * @brief Return transaction object with given transaction hash.
  *
- * Explore transaction hash information with given transaction haash. This would
+ * Explore transaction hash information with given transaction hash. This would
  * return whole transaction object details in json format instead of raw trytes.
  *
  * @param[in] service IRI node end point service
@@ -145,46 +210,64 @@ status_t api_send_transfer(const iota_config_t* const tangle,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_transaction_object(const iota_client_service_t* const service,
-                                    const char* const obj, char** json_result);
+status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result);
 
 /**
- * @brief Return list of transaction hash with given tag hash.
+ * @brief Return list of transaction hash with given tag.
  *
  * Retreive all transactions that have same given tag. The result is a list of
- * transaction hash in json format.
+ * transaction hashes in json format.
  *
  * @param[in] service IRI node end point service
  * @param[in] obj tag in trytes
- * @param[out] json_result Result containing list of transaction hash in json
+ * @param[out] json_result Result containing list of transaction hashes in json
  *             format
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result);
+status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                      char** json_result);
 
 /**
- * @brief Return list of transaction object with given tag hash.
+ * @brief Return list of transaction objects with given tag.
  *
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction objects in json format.
  *
  * @param[in] service IRI node end point service
  * @param[in] obj tag in trytes
- * @param[out] json_result Result containing list of transaction object in json
+ * @param[out] json_result Result containing list of transaction objects in json
  * format
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_obj_by_tag(
-    const iota_client_service_t* const service, const char* const obj,
-    char** json_result);
+status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
+                                          char** json_result);
+
+/**
+ * @brief Attach trytes to Tangle and return transaction hashes
+ *
+ * Persist trytes locally before sending to network.
+ * This allows for reattachments and prevents key reuse if trytes can't
+ * be recovered by querying the network after broadcasting.
+ *
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IRI node end point service
+ * @param[in] obj trytes to attach, store and broadcast in json array
+ * @param[out] json_result Result containing list of attached transaction hashes
+ * in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                         const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }

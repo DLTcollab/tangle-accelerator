@@ -1,7 +1,18 @@
+/*
+ * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #ifndef REQUEST_TA_SEND_TRANSFER_H_
 #define REQUEST_TA_SEND_TRANSFER_H_
 
-#include "cclient/types/types.h"
+#include <stdlib.h>
+#include "common/trinary/flex_trit.h"
+#include "utils/containers/hash/hash243_queue.h"
+#include "utils/containers/hash/hash81_queue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,8 +52,6 @@ ta_send_transfer_req_t* ta_send_transfer_req_new();
  * Free memory of ta_send_transfer_req_t
  *
  * @param req Data type of ta_send_transfer_req_t
- *
- * @return NULL
  */
 void ta_send_transfer_req_free(ta_send_transfer_req_t** req);
 

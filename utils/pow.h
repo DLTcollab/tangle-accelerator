@@ -1,10 +1,19 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #ifndef UTILS_POW_H_
 #define UTILS_POW_H_
 
 #include <stdint.h>
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
 #include "common/model/bundle.h"
+#include "common/trinary/flex_trit.h"
+#include "utarray.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,16 +26,26 @@ extern "C" {
  */
 
 /**
- * Initiate pow module
+ * Initialize logger
+ */
+void pow_logger_init();
+
+/**
+ * Release logger
  *
- * @return NULL
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int pow_logger_release();
+
+/**
+ * Initiate pow module
  */
 void pow_init();
 
 /**
  * Stop interacting with pow module
- *
- * @return NULL
  */
 void pow_destroy();
 
@@ -52,8 +71,7 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_pow(const bundle_transactions_t* bundle,
-                const flex_trit_t* const trunk, const flex_trit_t* const branch,
+status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const trunk, const flex_trit_t* const branch,
                 const uint8_t mwm);
 
 #ifdef __cplusplus

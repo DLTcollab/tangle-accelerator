@@ -1,44 +1,26 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
+#include "connectivity/mqtt/mqtt_common.h"
 #include "serializer/serializer.h"
 #include "test_define.h"
 
-void test_serialize_ta_get_tips(void) {
-  const char* json = "{\"tips\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
-  char* json_result;
-  ta_get_tips_res_t* res = ta_get_tips_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
-      hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-
-  hash243_stack_push(&res->tips, hash_trits_2);
-  hash243_stack_push(&res->tips, hash_trits_1);
-
-  ta_get_tips_res_serialize(&json_result, res);
-  TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_get_tips_res_free(&res);
-  free(json_result);
-}
-
 void test_serialize_ta_generate_address(void) {
-  const char* json = "{\"address\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
+  const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
   char* json_result;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
-      hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   hash243_queue_push(&res->addresses, hash_trits_1);
   hash243_queue_push(&res->addresses, hash_trits_2);
 
-  ta_generate_address_res_serialize(&json_result, res);
+  ta_generate_address_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_generate_address_res_free(&res);
   free(json_result);
@@ -53,29 +35,24 @@ void test_deserialize_ta_send_transfer(void) {
       "\"address\":\"" TRYTES_81_1 "\"}";
 
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
-  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81],
-      hash_trits_1[FLEX_TRIT_SIZE_243];
+  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81], hash_trits_1[FLEX_TRIT_SIZE_243];
 
   ta_send_transfer_req_deserialize(json, req);
 
   TEST_ASSERT_EQUAL_INT(100, req->value);
-  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
 
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(hash_trits_1, req->address->hash,
-                           FLEX_TRIT_SIZE_243);
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(hash_trits_1, req->address->hash, FLEX_TRIT_SIZE_243);
 
   ta_send_transfer_req_free(&req);
 }
 
-void test_serialize_ta_get_transaction_object(void) {
+void test_serialize_ta_find_transaction_objects(void) {
   const char* json =
-      "{\"hash\":\"" TRYTES_81_1 "\","
+      "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
       "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
@@ -87,88 +64,78 @@ void test_serialize_ta_get_transaction_object(void) {
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
-      "\"nonce\":\"" NONCE "\"}";
+      "\"nonce\":\"" NONCE "\"}]";
   char* json_result;
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81],
-      hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
-  ta_get_transaction_object_res_t* res = ta_get_transaction_object_res_new();
-  res->txn = transaction_new();
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81], hash_trits_1[FLEX_TRIT_SIZE_243],
+      hash_trits_2[FLEX_TRIT_SIZE_243];
+  // ta_find_transaction_objects_res_t* res = ta_find_transaction_objects_res_new();
+  transaction_array_t* res = transaction_array_new();
 
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  iota_transaction_t* txn = transaction_new();
   // set transaction hash
-  transaction_set_hash(res->txn, hash_trits_1);
+  transaction_set_hash(txn, hash_trits_1);
 
   // set message
-  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
-                         (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
+  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
-  transaction_set_signature(res->txn, msg_trits);
+  transaction_set_signature(txn, msg_trits);
 
   // set address
-  transaction_set_address(res->txn, hash_trits_1);
+  transaction_set_address(txn, hash_trits_1);
   // set value
-  transaction_set_value(res->txn, VALUE);
+  transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  transaction_set_obsolete_tag(res->txn, tag_trits);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
-  transaction_set_timestamp(res->txn, TIMESTAMP);
+  transaction_set_timestamp(txn, TIMESTAMP);
   // set current_index
-  transaction_set_current_index(res->txn, CURRENT_INDEX);
+  transaction_set_current_index(txn, CURRENT_INDEX);
   // set last_index
-  transaction_set_last_index(res->txn, LAST_INDEX);
+  transaction_set_last_index(txn, LAST_INDEX);
   // set bundle_hash
-  transaction_set_bundle(res->txn, hash_trits_2);
+  transaction_set_bundle(txn, hash_trits_2);
   // set trunk
-  transaction_set_trunk(res->txn, hash_trits_2);
+  transaction_set_trunk(txn, hash_trits_2);
   // set branch
-  transaction_set_branch(res->txn, hash_trits_1);
+  transaction_set_branch(txn, hash_trits_1);
   // set tag
-  transaction_set_tag(res->txn, tag_trits);
+  transaction_set_tag(txn, tag_trits);
   // set attachment_timestamp
-  transaction_set_attachment_timestamp(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp(txn, TIMESTAMP);
   // set attachment_timestamp_lower_bound
-  transaction_set_attachment_timestamp_lower(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp_lower(txn, TIMESTAMP);
   // set attachment_timestamp_upper_bound
-  transaction_set_attachment_timestamp_upper(res->txn, TIMESTAMP);
+  transaction_set_attachment_timestamp_upper(txn, TIMESTAMP);
   // set nonce
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_NONCE, (const tryte_t*)NONCE,
-                         NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
-  transaction_set_nonce(res->txn, tag_trits);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_NONCE, (const tryte_t*)NONCE, NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
+  transaction_set_nonce(txn, tag_trits);
+  transaction_array_push_back(res, txn);
 
-  ta_get_transaction_object_res_serialize(&json_result, res);
+  ta_find_transaction_objects_res_serialize(res, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_get_transaction_object_res_free(&res);
+  transaction_array_free(res);
+  transaction_free(txn);
   free(json_result);
 }
 
 void test_serialize_ta_find_transactions_by_tag(void) {
-  const char* json = "{\"hashes\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]}";
+  const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
   char* json_result;
-  ta_find_transactions_res_t* res = ta_find_transactions_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243],
-      hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH,
-                         (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH,
-                         NUM_TRYTES_HASH);
+  ta_find_transactions_by_tag_res_t* res = ta_find_transactions_res_new();
+  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
 
   hash243_queue_push(&res->hashes, hash_trits_1);
   hash243_queue_push(&res->hashes, hash_trits_2);
 
-  ta_find_transactions_res_serialize(&json_result, res);
+  ta_find_transactions_by_tag_res_serialize(res, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_find_transactions_res_free(&res);
@@ -177,7 +144,7 @@ void test_serialize_ta_find_transactions_by_tag(void) {
 
 void test_serialize_ta_find_transactions_obj_by_tag(void) {
   const char* json =
-      "{\"transactions\":[{\"hash\":\"" TRYTES_81_1 "\","
+      "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
       "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
@@ -189,23 +156,20 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
-      "\"nonce\":\"" NONCE "\"}]}";
+      "\"nonce\":\"" NONCE "\"}]";
   char* json_result;
   iota_transaction_t* txn = transaction_new();
-  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81],
-      hash1[FLEX_TRIT_SIZE_243], hash2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2,
-                         NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trit_t msg_trits[FLEX_TRIT_SIZE_6561], tag_trits[FLEX_TRIT_SIZE_81], hash1[FLEX_TRIT_SIZE_243],
+      hash2[FLEX_TRIT_SIZE_243];
+  flex_trits_from_trytes(hash1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  flex_trits_from_trytes(hash2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   ta_find_transactions_obj_res_t* res = ta_find_transactions_obj_res_new();
 
   // set transaction hash
   transaction_set_hash(txn, hash1);
 
   // set message
-  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE,
-                         (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
+  flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
   transaction_set_signature(txn, msg_trits);
 
@@ -215,8 +179,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG,
-                         NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
@@ -240,12 +203,11 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   // set attachment_timestamp_upper_bound
   transaction_set_attachment_timestamp_upper(txn, TIMESTAMP);
   // set nonce
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_NONCE, (const tryte_t*)NONCE,
-                         NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_NONCE, (const tryte_t*)NONCE, NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
   transaction_set_nonce(txn, tag_trits);
 
   utarray_push_back(res->txn_obj, txn);
-  ta_find_transactions_obj_res_serialize(&json_result, res);
+  ta_find_transaction_objects_res_serialize(res->txn_obj, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_find_transactions_obj_res_free(&res);
@@ -253,65 +215,176 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   free(json_result);
 }
 
-void test_serialize_send_mam_message(void) {
-  const char* json = "{\"channel\":\"" TRYTES_81_1
+void test_send_mam_message_request_deserialize(void) {
+  const char* json =
+      "{\"seed\":\"" TRYTES_81_1
+      "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) ",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(
+          TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(TEST_EP_DEPTH) ",\"ntru_pk\":\"" TEST_NTRU_PK
+                                                                 "\",\"psk\":\"" TRYTES_81_2 "\"}";
+  ta_send_mam_req_t* req = send_mam_req_new();
+
+  send_mam_req_deserialize(json, req);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, req->seed, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_INT(TEST_CHANNEL_ORD, req->channel_ord);
+  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, req->message);
+  TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, req->ch_mss_depth);
+  TEST_ASSERT_EQUAL_INT(TEST_EP_DEPTH, req->ep_mss_depth);
+  TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, req->ntru_pk, MAM_NTRU_PK_SIZE / 3);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, req->psk, NUM_TRYTES_HASH);
+
+  send_mam_req_free(&req);
+}
+
+void test_send_mam_message_response_serialize(void) {
+  const char* json = "{\"bundle_hash\":\"" TRYTES_81_1
                      "\","
-                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
+                     "\"chid\":\"" TRYTES_81_2
+                     "\","
+                     "\"epid\":\"" TRYTES_81_3
+                     "\","
+                     "\"msg_id\":\"" TEST_MSG_ID
+                     "\","
+                     "\"announcement_bundle_hash\":\"" ADDRESS_1
+                     "\","
+                     "\"chid1\":\"" ADDRESS_2 "\"}";
   char* json_result;
-  send_mam_res_t* res = send_mam_res_new();
+  ta_send_mam_res_t* res = send_mam_res_new();
 
-  send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_2);
-  send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_1);
+  send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_1);
+  send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_2);
+  send_mam_res_set_endpoint_id(res, (tryte_t*)TRYTES_81_3);
+  send_mam_res_set_msg_id(res, (tryte_t*)TEST_MSG_ID);
+  send_mam_res_set_announcement_bundle_hash(res, (tryte_t*)ADDRESS_1);
+  send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
-  send_mam_res_serialize(&json_result, res);
+  send_mam_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
   send_mam_res_free(&res);
 }
 
-void test_deserialize_send_mam_message_response(void) {
-  const char* json = "{\"channel\":\"" TRYTES_81_1
+void test_send_mam_message_response_deserialize(void) {
+  const char* json = "{\"bundle_hash\":\"" TRYTES_81_1
                      "\","
-                     "\"bundle_hash\":\"" TRYTES_81_2 "\"}";
-  send_mam_res_t* res = send_mam_res_new();
+                     "\"chid\":\"" TRYTES_81_2
+                     "\","
+                     "\"epid\":\"" TRYTES_81_3
+                     "\","
+                     "\"msg_id\":\"" TEST_MSG_ID
+                     "\","
+                     "\"announcement_bundle_hash\":\"" ADDRESS_1
+                     "\","
+                     "\"chid1\":\"" ADDRESS_2 "\"}";
+  ta_send_mam_res_t* res = send_mam_res_new();
 
   send_mam_res_deserialize(json, res);
 
-  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, res->channel_id);
-  TEST_ASSERT_EQUAL_STRING(TRYTES_81_2, res->bundle_hash);
-
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, res->bundle_hash, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, res->chid, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_3, res->epid, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(TEST_MSG_ID, res->msg_id, MAM_MSG_ID_SIZE / 3);
+  TEST_ASSERT_EQUAL_MEMORY(ADDRESS_1, res->announcement_bundle_hash, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(ADDRESS_2, res->chid1, NUM_TRYTES_HASH);
   send_mam_res_free(&res);
 }
 
-void test_deserialize_send_mam_message(void) {
-  const char* json = "{\"message\":\"" TEST_PAYLOAD "\"}";
-  send_mam_req_t* req = send_mam_req_new();
+void test_deserialize_ta_send_trytes_req(void) {
+  const char* json = "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  hash8019_array_p out_trytes = hash8019_array_new();
+  ta_send_trytes_req_deserialize(json, out_trytes);
 
-  send_mam_req_deserialize(json, req);
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  TEST_ASSERT_EQUAL_MEMORY(hash, hash_array_at(out_trytes, 0), NUM_TRYTES_SERIALIZED_TRANSACTION);
 
-  size_t payload_size = strlen(TEST_PAYLOAD) * 2;
-  tryte_t* payload_trytes = (tryte_t*)malloc(payload_size * sizeof(tryte_t));
-  ascii_to_trytes(TEST_PAYLOAD, payload_trytes);
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  TEST_ASSERT_EQUAL_MEMORY(hash, hash_array_at(out_trytes, 1), NUM_TRYTES_SERIALIZED_TRANSACTION);
 
-  TEST_ASSERT_EQUAL_UINT(payload_size, req->payload_trytes_size);
-  TEST_ASSERT_EQUAL_MEMORY(payload_trytes, req->payload_trytes, payload_size);
+  hash_array_free(out_trytes);
+}
 
-  free(payload_trytes);
-  send_mam_req_free(&req);
+void test_serialize_ta_send_trytes_res(void) {
+  const char* json = "{\"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  char* json_result;
+  hash8019_array_p trytes = hash8019_array_new();
+
+  flex_trit_t hash[FLEX_TRIT_SIZE_8019] = {};
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, hash);
+
+  flex_trits_from_trytes(hash, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_2,
+                         NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
+  hash_array_push(trytes, hash);
+
+  ta_send_trytes_res_serialize(trytes, &json_result);
+
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  hash_array_free(trytes);
+  free(json_result);
+}
+
+void test_mqtt_device_id_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
+  const int id_len = 32;
+  char device_id[ID_LEN + 1] = {0};
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_device_id_deserialize(json, device_id));
+
+  TEST_ASSERT_EQUAL_STRING(device_id, DEVICE_ID);
+}
+
+void test_mqtt_tag_req_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TAG_MSG "\"}";
+  char tag[NUM_TRYTES_TAG + 1] = {0};
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_tag_req_deserialize(json, tag));
+
+  TEST_ASSERT_EQUAL_STRING(tag, TAG_MSG);
+}
+
+void test_mqtt_transaction_hash_req_deserialize(void) {
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"hash\":\"" TRYTES_81_1 "\"}";
+  char hash[NUM_TRYTES_HASH + 1];
+  TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_transaction_hash_req_deserialize(json, hash));
+
+  TEST_ASSERT_EQUAL_STRING(hash, TRYTES_81_1);
+}
+
+void test_proxy_apis_command_req_deserialize(void) {
+  const char* json =
+      "{\"command\": \"" TEST_PROXY_API(addNeighbors) "\",\"uris\": [\"tcp://8.8.8.8:14265\",\"tcp://8.8.8.8:14265\"]}";
+  char command[30];
+  TEST_ASSERT_EQUAL_INT(SC_OK, proxy_apis_command_req_deserialize(json, command));
+
+  TEST_ASSERT_EQUAL_STRING(command, TEST_PROXY_API(addNeighbors));
 }
 
 int main(void) {
   UNITY_BEGIN();
 
-  RUN_TEST(test_serialize_ta_get_tips);
+  // Initialize logger
+  if (ta_logger_init() != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  serializer_logger_init();
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
-  RUN_TEST(test_serialize_ta_get_transaction_object);
+  RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
-  RUN_TEST(test_serialize_send_mam_message);
-  RUN_TEST(test_deserialize_send_mam_message_response);
-  RUN_TEST(test_deserialize_send_mam_message);
+  RUN_TEST(test_send_mam_message_response_serialize);
+  RUN_TEST(test_send_mam_message_response_deserialize);
+  RUN_TEST(test_send_mam_message_request_deserialize);
+  RUN_TEST(test_deserialize_ta_send_trytes_req);
+  RUN_TEST(test_serialize_ta_send_trytes_res);
+  RUN_TEST(test_mqtt_device_id_deserialize);
+  RUN_TEST(test_mqtt_tag_req_deserialize);
+  RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
+  RUN_TEST(test_proxy_apis_command_req_deserialize);
+  serializer_logger_release();
   return UNITY_END();
 }

@@ -1,12 +1,20 @@
+/*
+ * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * All Rights Reserved.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the MIT license. A copy of the license can be found in the file
+ * "LICENSE" at the root of this distribution.
+ */
+
 #ifndef UTILS_CACHE_H_
 #define UTILS_CACHE_H_
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "accelerator/errors.h"
-#include "cclient/types/types.h"
+#include "common/trinary/flex_trit.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,21 +34,33 @@ typedef struct {
 } cache_t;
 
 /**
+ * Initialize logger
+ */
+void br_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int br_logger_release();
+
+/**
  * Initiate cache module
  *
+ * @param[in] state if cache server should open
  * @param[in] host cache server host
  * @param[in] port cache server port
- *
  * @return
  * - True on success
  * - False on error
  */
-bool cache_init(const char* host, int port);
+bool cache_init(bool state, const char* host, int port);
 
 /**
  * Stop interacting with cache module
- *
- * @return NULL
  */
 void cache_stop();
 
