@@ -62,6 +62,7 @@ status_t set_response_content(status_t ret, char** json_result) {
       break;
   }
   *json_result = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
   return http_ret;
 }
 
