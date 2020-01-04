@@ -136,7 +136,7 @@ void test_permanode(void) {
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
   db_client_service.host = strdup(host);
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, DB_USAGE_NULL), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_permanent_keyspace_init(&db_client_service, true, keyspace_name), SC_OK);
 
   new_scylla_iota_transaction(&transaction);
@@ -221,7 +221,7 @@ void test_db_get_identity_objs_by_hash(db_client_service_t* db_client_service) {
 void test_db_identity_table(void) {
   db_client_service_t db_client_service;
   db_client_service.host = strdup(host);
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, DB_USAGE_NULL), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
   for (int i = 0; i < identity_num; i++) {
     db_insert_tx_into_identity(&db_client_service, identities[i].hash, identities[i].status, identities[i].uuid_string);

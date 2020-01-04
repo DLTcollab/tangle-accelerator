@@ -78,6 +78,7 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
 #ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
+      free(db_service->host);
       db_service->host = strdup(value);
       break;
 #endif
@@ -337,7 +338,7 @@ status_t ta_core_set(ta_core_t* core) {
   cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
-  if ((ret = db_client_service_init(db_service)) != SC_OK) {
+  if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
     ta_log_error("Initializing DB connection failed\n");
   }
 #endif
@@ -347,20 +348,14 @@ exit:
 }
 
 void ta_core_destroy(ta_core_t* const core) {
-  iota_client_service_t* const iota_service = &core->iota_service;
-#ifdef DB_ENABLE
-  db_client_service_t* const db_service = &core->db_service;
-#endif
-
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
-  iota_client_core_destroy(iota_service);
+  iota_client_core_destroy(&core->iota_service);
 #ifdef DB_ENABLE
-  if (db_service->enabled) {
-    ta_log_info("Destroying DB connection\n");
-    db_client_service_free(db_service);
-  }
+  ta_log_info("Destroying DB connection\n");
+  db_client_service_free(&core->db_service);
 #endif
+
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

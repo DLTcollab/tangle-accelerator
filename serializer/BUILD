@@ -7,6 +7,9 @@ cc_library(
     copts = ["-DLOGGER_ENABLE"] + select({
         "//connectivity/mqtt:mqtt_enable": ["-DMQTT_ENABLE"],
         "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
     deps = [

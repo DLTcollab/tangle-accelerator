@@ -44,6 +44,14 @@ static const int proxy_apis_num = sizeof(proxy_apis_g) / sizeof(struct proxy_api
 #define TEST_COUNT 1
 #endif
 
+#ifdef DB_ENABLE
+static struct identity_s {
+  char uuid_string[DB_UUID_STRING_LENGTH];
+  char hash[NUM_FLEX_TRITS_HASH + 1];
+  int8_t status;
+} identities[TEST_COUNT];
+#endif
+
 static void gen_rand_tag(char* tag) {
   const char tryte_alpahbet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
 
@@ -130,8 +138,26 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
+#ifdef DB_ENABLE
+    cJSON* json_obj = cJSON_Parse(json_result);
+    cJSON* json_item = NULL;
+    json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "id");
+
+    TEST_ASSERT(json_item != NULL && json_item->valuestring != NULL &&
+                (strnlen(json_item->valuestring, DB_UUID_STRING_LENGTH - 1) == (DB_UUID_STRING_LENGTH - 1)));
+    memcpy(identities[count].uuid_string, json_item->valuestring, DB_UUID_STRING_LENGTH);
+
+    json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "hash");
+    TEST_ASSERT(json_item != NULL && json_item->valuestring != NULL &&
+                (strnlen(json_item->valuestring, NUM_TRYTES_HASH) == NUM_TRYTES_HASH));
+    memcpy(identities[count].hash, json_item->valuestring, NUM_TRYTES_HASH);
+    identities[count].hash[NUM_TRYTES_HASH] = '\0';
+    identities[count].status = PENDING_TXN;
+
+    cJSON_Delete(json_obj);
+#endif
     free(json_result);
   }
   printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
@@ -179,6 +205,50 @@ void test_find_transactions_by_tag(void) {
   printf("Average time of find_transactions_by_tag: %lf\n", sum / TEST_COUNT);
 }
 
+#ifdef DB_ENABLE
+void test_find_transactions_by_id(void) {
+  char* json_result;
+  double sum = 0;
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_id(&ta_core.iota_service, &ta_core.db_service,
+                                                               identities[count].uuid_string, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of find_transactions_by_id: %lf\n", sum / TEST_COUNT);
+}
+
+void test_api_get_identity_info_by_id(void) {
+  char* json_result;
+  double sum = 0;
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_get_identity_info_by_id(&ta_core.db_service, identities[count].uuid_string, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of get_identity_info_by_id: %lf\n", sum / TEST_COUNT);
+}
+
+void test_api_get_identity_info_by_hash(void) {
+  char* json_result;
+  double sum = 0;
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(SC_OK,
+                            api_get_identity_info_by_hash(&ta_core.db_service, identities[count].hash, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of get_identity_info_by_hash: %lf\n", sum / TEST_COUNT);
+}
+#endif
+
 void test_find_transactions_obj_by_tag(void) {
   char* json_result;
   double sum = 0;
@@ -193,7 +263,6 @@ void test_find_transactions_obj_by_tag(void) {
   }
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
 }
-
 void test_send_mam_message(void) {
   double sum = 0;
   const char* json =
@@ -280,6 +349,11 @@ int main(int argc, char* argv[]) {
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
+#ifdef DB_ENABLE
+  RUN_TEST(test_api_get_identity_info_by_hash);
+  RUN_TEST(test_api_get_identity_info_by_id);
+  RUN_TEST(test_find_transactions_by_id);
+#endif
   RUN_TEST(test_proxy_apis);
   ta_core_destroy(&ta_core);
   return UNITY_END();
