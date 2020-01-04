@@ -54,13 +54,26 @@ cc_binary(
             "-pg",
         ],
         "//conditions:default": ["-DNDEBUG"],
+    }) + select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
     }),
     deps = [
         ":http",
         ":ta_config",
         ":ta_errors",
         "@entangled//utils/handles:signal",
-    ],
+    ] + select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "//connectivity/mqtt:mqtt_utils",
+        ],
+        "//conditions:default": [],
+    }),
 )
 
 cc_image(
@@ -81,6 +94,15 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
+    }),
     linkopts = ["-lpthread"],
     visibility = ["//visibility:public"],
     deps = [
@@ -114,6 +136,15 @@ cc_library(
     name = "http",
     srcs = ["http.c"],
     hdrs = ["http.h"],
+    copts = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "-DMQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         ":apis",
@@ -128,6 +159,10 @@ cc_library(
     name = "common_core",
     srcs = ["common_core.c"],
     hdrs = ["common_core.h"],
+    copts = select({
+        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
     deps = [
         ":ta_config",

@@ -182,7 +182,7 @@ static inline int process_get_tips_request(ta_http_t *const http, char **const o
 
 static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_transfer(&http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_transfer(http->core, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -196,6 +196,44 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   free(bundle);
   return set_response_content(ret, out);
 }
+#ifdef DB_ENABLE
+static inline int process_get_identity_info_by_hash_request(ta_http_t *const http, char const *const url,
+                                                            char **const out) {
+  status_t ret = SC_OK;
+  char *hash = NULL;
+  ret = ta_get_url_parameter(url, 2, &hash);
+  if (ret == SC_OK) {
+    ret = api_get_identity_info_by_hash(&http->core->db_service, hash, out);
+  }
+  free(hash);
+
+  return set_response_content(ret, out);
+}
+
+static inline int process_get_identity_info_by_id_request(ta_http_t *const http, char const *const url,
+                                                          char **const out) {
+  status_t ret;
+  char *buf = NULL;
+  ret = ta_get_url_parameter(url, 2, &buf);
+  if (ret == SC_OK) {
+    ret = api_get_identity_info_by_id(&http->core->db_service, buf, out);
+  }
+  free(buf);
+  return set_response_content(ret, out);
+}
+
+static inline int process_find_transaction_by_id_request(ta_http_t *const http, char const *const url,
+                                                         char **const out) {
+  status_t ret;
+  char *buf = NULL;
+  ret = ta_get_url_parameter(url, 2, &buf);
+  if (ret == SC_OK) {
+    ret = api_find_transactions_by_id(&http->core->iota_service, &http->core->db_service, buf, out);
+  }
+  free(buf);
+  return set_response_content(ret, out);
+}
+#endif
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
@@ -277,7 +315,17 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_find_txns_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
     return process_find_txns_obj_by_tag_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
+  }
+#ifdef DB_ENABLE
+  else if (ta_http_url_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
+    return process_get_identity_info_by_hash_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/identity/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+    return process_get_identity_info_by_id_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/transaction/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+    return process_find_transaction_by_id_request(http, url, out);
+  }
+#endif
+  else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
     } else {

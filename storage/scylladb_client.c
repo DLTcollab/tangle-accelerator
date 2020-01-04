@@ -9,6 +9,21 @@
 #include "scylladb_utils.h"
 #define logger_id scylladb_logger_id
 
+static struct db_keyspace_names_s {
+  db_client_usage_t usage;
+  const char* name;
+} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}};
+static const int db_keyspace_name_nums = sizeof(db_keyspace_names) / sizeof(struct db_keyspace_names_s);
+
+static const char* get_keyspace_name(db_client_usage_t usage) {
+  for (int i = 0; i < db_keyspace_name_nums; i++) {
+    if (db_keyspace_names[i].usage == usage) {
+      return db_keyspace_names[i].name;
+    }
+  }
+  return NULL;
+}
+
 static void print_error(CassFuture* future) {
   const char* message;
   size_t message_length;
@@ -22,9 +37,14 @@ static CassCluster* create_cluster(const char* hosts) {
   return cluster;
 }
 
-static CassError connect_session(CassSession* session, const CassCluster* cluster) {
+static CassError connect_session(CassSession* session, const CassCluster* cluster, const char* keyspace_name) {
   CassError rc = CASS_OK;
-  CassFuture* future = cass_session_connect(session, cluster);
+  CassFuture* future;
+  if (keyspace_name == NULL) {
+    future = cass_session_connect(session, cluster);
+  } else {
+    future = cass_session_connect_keyspace(session, cluster, keyspace_name);
+  }
 
   cass_future_wait(future);
   rc = cass_future_error_code(future);
@@ -36,7 +56,7 @@ static CassError connect_session(CassSession* session, const CassCluster* cluste
   return rc;
 }
 
-status_t db_client_service_init(db_client_service_t* service) {
+status_t db_client_service_init(db_client_service_t* service, db_client_usage_t usage) {
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
     return SC_TA_NULL;
@@ -50,7 +70,8 @@ status_t db_client_service_init(db_client_service_t* service) {
   service->uuid_gen = cass_uuid_gen_new();
   service->session = cass_session_new();
   service->cluster = create_cluster(service->host);
-  if (connect_session(service->session, service->cluster) != CASS_OK) {
+  const char* keyspace_name = get_keyspace_name(usage);
+  if (connect_session(service->session, service->cluster, keyspace_name) != CASS_OK) {
     ta_log_error("connect ScyllaDB cluster with host : %s failed\n", service->host);
     service->enabled = false;
     return SC_STORAGE_CONNECT_FAIL;

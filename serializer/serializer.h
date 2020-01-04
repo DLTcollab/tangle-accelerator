@@ -73,6 +73,19 @@ int serializer_logger_release();
 status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_config_t* const tangle,
                                ta_cache_t* const cache);
 
+#ifdef DB_ENABLE
+/**
+ * @brief Serialze identity info into JSON
+ *
+ * @param[out] obj db identity info in JSON
+ * @param[in] id_obj pointer to db_identity_t;
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_identity_serialize(char** obj, db_identity_t* id_obj);
+#endif
+
 /**
  * @brief Serialze type of ta_generate_address_res_t to JSON string
  *
@@ -98,6 +111,19 @@ status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* cons
 status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
 
 /**
+ * @brief Serialze the response of api_insert_identity()
+ *
+ * @param[in] hash Response transaction hash
+ * @param[in] uuid_string Response uuid string
+ * @param[out] obj Input values in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_insert_identity_res_serialize(const char* hash, const char* uuid_string, char** obj);
+
+/**
  * @brief Deserialze JSON string to type of ta_send_transfer_req_t
  *
  * @param[in] obj Input values in JSON
@@ -112,14 +138,14 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
 /**
  * @brief Serialze the response of api_send_transfer()
  *
- * @param[in] res Response data in type of transaction_array_t
+ * @param[in] res Response data in type of ta_send_transfer_res_t
  * @param[out] obj Input values in JSON
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer_res_serialize(transaction_array_t* res, char** obj);
+status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj);
 
 /**
  * @brief Deserialze JSON string to hash8019_array_p
