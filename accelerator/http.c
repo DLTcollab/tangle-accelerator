@@ -360,8 +360,14 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   // While upload_data_size > 0 process upload_data
   if (*upload_data_size > 0) {
     if (http_req->request == NULL) {
-      http_req->request = (char *)malloc(*upload_data_size);
+      http_req->request = (char *)malloc((*upload_data_size) + 1);
+      if (http_req->request == NULL) {
+        ta_log_error("%s\n", "Not enough size for allocating HTTP request payload.");
+        goto cleanup;
+      }
+
       strncpy(http_req->request, upload_data, *upload_data_size);
+      http_req->request[*upload_data_size] = 0;
     } else {
       ret = MHD_NO;
       ta_log_error("%s\n", "MHD_NO");
