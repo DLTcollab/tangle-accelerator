@@ -12,6 +12,10 @@
 extern "C" {
 #endif
 
+/**
+ * @file hash_algo_djb2.h
+ */
+
 // source http://www.cse.yorku.ca/~oz/hash.html
 static inline uint32_t hash_algo_djb2(char const* str) {
   uint32_t hash = 5381;

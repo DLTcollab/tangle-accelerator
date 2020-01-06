@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @file pow.h
+ * @file accelerator/core/pow.h
  * @brief Implementation of pow interface
  * @example test_pow.c
  */

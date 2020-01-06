@@ -30,13 +30,13 @@ cc_test(
     srcs = [
         "driver.c",
     ],
-    copts = select({
+    defines = select({
         "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
+            "MQTT_ENABLE",
         ],
         "//conditions:default": [],
     }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
     deps = [
@@ -76,8 +76,10 @@ cc_test(
     srcs = [
         "test_serializer.c",
     ],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": ["-DMQTT_ENABLE"],
+    defines = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "MQTT_ENABLE",
+        ],
         "//conditions:default": [],
     }),
     deps = [

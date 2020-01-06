@@ -17,7 +17,7 @@
 #include "ta_send_transfer.h"
 
 /**
- * @file response.h
+ * @file accelerator/core/response/response.h
  * @brief Data structure of response type
  */
 

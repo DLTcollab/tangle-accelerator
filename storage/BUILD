@@ -8,8 +8,11 @@ config_setting(
 cc_library(
     name = "storage",
     hdrs = ["ta_storage.h"],
+    defines = select({
+        "//storage:db_enable": ["DB_ENABLE"],
+        "//conditions:default": [],
+    }),
     deps = [
-        ":scylladb_client",
         ":scylladb_identity",
         ":scylladb_permanode",
     ],
@@ -23,7 +26,6 @@ cc_library(
     linkopts = ["-lcassandra"],
     deps = [
         ":scylladb_client",
-        ":scylladb_utils",
         "@com_github_uthash//:uthash",
     ],
 )
@@ -36,7 +38,6 @@ cc_library(
     linkopts = ["-lcassandra"],
     deps = [
         ":scylladb_client",
-        ":scylladb_utils",
         "@com_github_uthash//:uthash",
         "@entangled//utils/containers/hash:hash243_queue",
     ],

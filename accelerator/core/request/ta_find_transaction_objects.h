@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * @file request/ta_find_transaction_objects.h
+ * @file accelerator/core/request/ta_find_transaction_objects.h
  */
 
 /** struct of ta_find_transaction_objects_req_t */

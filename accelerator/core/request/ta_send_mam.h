@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @file request/ta_send_mam.h
+ * @file accelerator/core/request/ta_send_mam.h
  */
 
 /** struct of ta_send_mam_req_t */
