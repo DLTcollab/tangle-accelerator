@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     goto cleanup;
   }
 
-  log_warning(logger_id, "Tangle-accelerator starts running\n");
+  log_info(logger_id, "Tangle-accelerator starts running\n");
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
@@ -86,12 +86,12 @@ int main(int argc, char* argv[]) {
   }
 
 cleanup:
-  log_warning(logger_id, "Destroying API lock\n");
+  log_info(logger_id, "Destroying API lock\n");
   if (apis_lock_destroy() != SC_OK) {
     ta_log_error("Destroying api lock failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
-  log_warning(logger_id, "Destroying TA configurations\n");
+  log_info(logger_id, "Destroying TA configurations\n");
   ta_core_destroy(&ta_core);
 
   if (verbose_mode) {
