@@ -10,6 +10,7 @@
 #ifdef MQTT_ENABLE
 #include "connectivity/mqtt/mqtt_common.h"
 #endif
+#include "time.h"
 #include "utils/logger.h"
 #define SERI_LOGGER "serializer"
 
@@ -56,7 +57,47 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
   cJSON_Delete(json_root);
   return ret;
 }
+#ifdef DB_ENABLE
+status_t db_identity_serialize(char** obj, db_identity_t* id_obj) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_CREATE");
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+  // uuid
+  char uuid_str[DB_UUID_STRING_LENGTH];
+  db_get_identity_uuid_string(id_obj, uuid_str);
+  cJSON_AddStringToObject(json_root, "id", uuid_str);
 
+  // transaction hash
+  char hash_trytes[NUM_TRYTES_HASH + 1];
+  memcpy(hash_trytes, db_ret_identity_hash(id_obj), NUM_TRYTES_HASH);
+  hash_trytes[NUM_TRYTES_HASH] = '\0';
+  cJSON_AddStringToObject(json_root, "hash", hash_trytes);
+
+  // status
+  if (db_ret_identity_status(id_obj) == CONFIRMED_TXN) {
+    cJSON_AddStringToObject(json_root, "status", "CONFIRMED");
+  } else {
+    cJSON_AddStringToObject(json_root, "status", "PENDING");
+  }
+
+  // timestamp
+  time_t raw_time = db_ret_identity_timestamp(id_obj);
+  struct tm* ts = localtime(&raw_time);
+  char buf[40];
+  strftime(buf, sizeof(buf), "%a %Y-%m-%d %H:%M:%S %Z", ts);
+  cJSON_AddStringToObject(json_root, "timestamp", buf);
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+  cJSON_Delete(json_root);
+  return ret;
+}
+#endif
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* json_root) {
   size_t array_count = 0;
   hash243_stack_entry_t* s_iter = NULL;
@@ -625,7 +666,7 @@ done:
   return ret;
 }
 
-status_t ta_send_transfer_res_serialize(transaction_array_t* res, char** obj) {
+status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -634,11 +675,13 @@ status_t ta_send_transfer_res_serialize(transaction_array_t* res, char** obj) {
     goto done;
   }
 
-  ret = iota_transaction_to_json_object(transaction_array_at(res, 0), &json_root);
+  ret = iota_transaction_to_json_object(transaction_array_at(res->txn_array, 0), &json_root);
   if (ret != SC_OK) {
     goto done;
   }
-
+#ifdef DB_ENABLE
+  cJSON_AddStringToObject(json_root, "id", res->uuid_string);
+#endif
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;

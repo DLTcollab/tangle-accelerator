@@ -10,6 +10,10 @@
 #define RESPONSE_TA_SEND_TRANSFER_H_
 
 #include <stdlib.h>
+#ifdef DB_ENABLE
+#include "storage/ta_storage.h"
+#endif
+#include "common/model/transaction.h"
 #include "utils/containers/hash/hash243_queue.h"
 
 #ifdef __cplusplus
@@ -24,6 +28,10 @@ extern "C" {
 typedef struct {
   /** Transaction address is a 243 long flex trits hash queue. */
   hash243_queue_t hash;
+  transaction_array_t* txn_array;
+#ifdef DB_ENABLE
+  char uuid_string[DB_UUID_STRING_LENGTH];
+#endif
 } ta_send_transfer_res_t;
 
 /**

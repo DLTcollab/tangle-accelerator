@@ -298,17 +298,20 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
   CassIterator* iterator;
   db_identity_t* identity = NULL;
   if ((ret = db_identity_new(&identity)) != SC_OK) {
+    ta_log_error("fail to create db idenetity\n");
     goto exit;
   }
+
   future = cass_session_execute(session, statement);
-  cass_future_wait(future);
+
   if (cass_future_error_code(future) != CASS_OK) {
     print_error(future);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    cass_future_free(future);
     goto exit;
   }
 
   result = cass_future_get_result(future);
+  cass_future_free(future);
   iterator = cass_iterator_from_result(result);
 
   while (cass_iterator_next(iterator)) {
@@ -337,9 +340,12 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
   cass_iterator_free(iterator);
 
 exit:
-  cass_future_free(future);
   cass_statement_free(statement);
   db_identity_free(&identity);
+  if ((db_identity_t*)utarray_front(identity_array) == NULL) {
+    ta_log_error("no identity is found\n");
+    return SC_STORAGE_INVAILD_INPUT;
+  }
   return ret;
 }
 
@@ -370,10 +376,12 @@ status_t db_get_identity_objs_by_uuid_string(db_client_service_t* service, const
   const char* query = "SELECT * FROM identity WHERE id = ?;";
   CassUuid uuid;
   cass_uuid_from_string(uuid_string, &uuid);
+
   if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare SELECT query fail");
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
+
   statement = cass_prepared_bind(select_prepared);
   cass_statement_bind_uuid_by_name(statement, "id", uuid);
   get_identity_array(service->session, statement, identity_array);
@@ -395,7 +403,7 @@ status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_b
   }
   statement = cass_prepared_bind(select_prepared);
   cass_statement_bind_bytes_by_name(statement, "hash", hash, NUM_FLEX_TRITS_HASH);
-  get_identity_array(service->session, statement, identity_array);
+  ret = get_identity_array(service->session, statement, identity_array);
 
   cass_prepared_free(select_prepared);
   return ret;

@@ -13,6 +13,8 @@
 #define CONFIG_LOGGER "config"
 
 static logger_id_t logger_id;
+// FIXME: We need further improvements without depending on temporary variables
+static int tmp_argc;
 
 int get_conf_key(char const* const key) {
   for (int i = 0; i < cli_cmd_num; ++i) {
@@ -22,6 +24,19 @@ int get_conf_key(char const* const key) {
   }
 
   return 0;
+}
+
+static void remove_nonvalue_dash(int argc, char** argv) {
+  for (int i = 1; i < argc; i++) {
+    if ((strlen(argv[i]) == 2) && (!strncmp(argv[i], "--", 2))) {
+      argc--;
+      if (argc == (i + 1)) {
+        break;
+      }
+      memmove(argv + i, argv + (i + 1), (argc - i) * sizeof(char*));
+    }
+  }
+  tmp_argc = argc;
 }
 
 struct option* cli_build_options() {
@@ -78,6 +93,7 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
 #ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
+      free(db_service->host);
       db_service->host = strdup(value);
       break;
 #endif
@@ -189,6 +205,9 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
     goto done;
   }
 
+  // remove `--` from argv
+  remove_nonvalue_dash(argc, argv);
+
   // Loop through the CLI arguments for first time to find the configuration file path
   while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
@@ -276,7 +295,10 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
   status_t ret = SC_OK;
   struct option* long_options = cli_build_options();
 
-  while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
+  // remove `--` from argv
+  remove_nonvalue_dash(tmp_argc, argv);
+
+  while ((key = getopt_long(tmp_argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;
@@ -337,7 +359,7 @@ status_t ta_core_set(ta_core_t* core) {
   cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
-  if ((ret = db_client_service_init(db_service)) != SC_OK) {
+  if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
     ta_log_error("Initializing DB connection failed\n");
   }
 #endif
@@ -347,20 +369,14 @@ exit:
 }
 
 void ta_core_destroy(ta_core_t* const core) {
-  iota_client_service_t* const iota_service = &core->iota_service;
-#ifdef DB_ENABLE
-  db_client_service_t* const db_service = &core->db_service;
-#endif
-
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
-  iota_client_core_destroy(iota_service);
+  iota_client_core_destroy(&core->iota_service);
 #ifdef DB_ENABLE
-  if (db_service->enabled) {
-    ta_log_info("Destroying DB connection\n");
-    db_client_service_free(db_service);
-  }
+  ta_log_info("Destroying DB connection\n");
+  db_client_service_free(&core->db_service);
 #endif
+
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

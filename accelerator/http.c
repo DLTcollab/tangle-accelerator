@@ -124,23 +124,25 @@ static int set_response_content(status_t ret, char **json_result) {
 }
 
 static inline int process_find_txns_obj_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
-    status_t ret;
-    char *tag = NULL;
-    ret = ta_get_url_parameter(url, 1, &tag);
-    if (ret == SC_OK) {
-        ret = api_find_transactions_obj_by_tag(&http->core->iota_service, tag, out);
-    }
-    return set_response_content(ret, out);
+  status_t ret;
+  char *tag = NULL;
+  ret = ta_get_url_parameter(url, 1, &tag);
+  if (ret == SC_OK) {
+    ret = api_find_transactions_obj_by_tag(&http->core->iota_service, tag, out);
+  }
+  free(tag);
+  return set_response_content(ret, out);
 }
 
 static inline int process_find_txns_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
-    status_t ret;
-    char *tag = NULL;
-    ret = ta_get_url_parameter(url, 1, &tag);
-    if (ret == SC_OK) {
-        ret = api_find_transactions_by_tag(&http->core->iota_service, tag, out);
-    }
-    return set_response_content(ret, out);
+  status_t ret;
+  char *tag = NULL;
+  ret = ta_get_url_parameter(url, 1, &tag);
+  if (ret == SC_OK) {
+    ret = api_find_transactions_by_tag(&http->core->iota_service, tag, out);
+  }
+  free(tag);
+  return set_response_content(ret, out);
 }
 
 static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
@@ -154,8 +156,9 @@ static inline int process_find_txn_obj_single_request(ta_http_t *const http, cha
   char *hash = NULL;
   ret = ta_get_url_parameter(url, 1, &hash);
   if (ret == SC_OK) {
-      ret = api_find_transaction_object_single(&http->core->iota_service, hash, out);
+    ret = api_find_transaction_object_single(&http->core->iota_service, hash, out);
   }
+  free(hash);
   return set_response_content(ret, out);
 }
 
@@ -179,7 +182,7 @@ static inline int process_get_tips_request(ta_http_t *const http, char **const o
 
 static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_transfer(&http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_transfer(http->core, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -190,8 +193,47 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   if (ret == SC_OK) {
     ret = api_receive_mam_message(&http->core->iota_conf, &http->core->iota_service, bundle, out);
   }
+  free(bundle);
   return set_response_content(ret, out);
 }
+#ifdef DB_ENABLE
+static inline int process_get_identity_info_by_hash_request(ta_http_t *const http, char const *const url,
+                                                            char **const out) {
+  status_t ret = SC_OK;
+  char *hash = NULL;
+  ret = ta_get_url_parameter(url, 2, &hash);
+  if (ret == SC_OK) {
+    ret = api_get_identity_info_by_hash(&http->core->db_service, hash, out);
+  }
+  free(hash);
+
+  return set_response_content(ret, out);
+}
+
+static inline int process_get_identity_info_by_id_request(ta_http_t *const http, char const *const url,
+                                                          char **const out) {
+  status_t ret;
+  char *buf = NULL;
+  ret = ta_get_url_parameter(url, 2, &buf);
+  if (ret == SC_OK) {
+    ret = api_get_identity_info_by_id(&http->core->db_service, buf, out);
+  }
+  free(buf);
+  return set_response_content(ret, out);
+}
+
+static inline int process_find_transaction_by_id_request(ta_http_t *const http, char const *const url,
+                                                         char **const out) {
+  status_t ret;
+  char *buf = NULL;
+  ret = ta_get_url_parameter(url, 2, &buf);
+  if (ret == SC_OK) {
+    ret = api_find_transactions_by_id(&http->core->iota_service, &http->core->db_service, buf, out);
+  }
+  free(buf);
+  return set_response_content(ret, out);
+}
+#endif
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
@@ -221,6 +263,7 @@ static inline int process_invalid_path_request(char **const out) {
   cJSON *json_obj = cJSON_CreateObject();
   cJSON_AddStringToObject(json_obj, "message", "Invalid path");
   *out = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
   return MHD_HTTP_BAD_REQUEST;
 }
 
@@ -228,6 +271,7 @@ static inline int process_method_not_allowed_request(char **const out) {
   cJSON *json_obj = cJSON_CreateObject();
   cJSON_AddStringToObject(json_obj, "message", "Method not allowed");
   *out = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
   return MHD_HTTP_METHOD_NOT_ALLOWED;
 }
 
@@ -235,6 +279,7 @@ static inline int process_options_request(char **const out) {
   cJSON *json_obj = cJSON_CreateObject();
   cJSON_AddStringToObject(json_obj, "message", "OPTIONS request");
   *out = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
   return MHD_HTTP_OK;
 }
 
@@ -267,10 +312,20 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/address[/]?") == SC_OK) {
     return process_generate_address_request(http, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
-      return process_find_txns_by_tag_request(http, url, out);
+    return process_find_txns_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
-      return process_find_txns_obj_by_tag_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
+    return process_find_txns_obj_by_tag_request(http, url, out);
+  }
+#ifdef DB_ENABLE
+  else if (ta_http_url_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
+    return process_get_identity_info_by_hash_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/identity/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+    return process_get_identity_info_by_id_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/transaction/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+    return process_find_transaction_by_id_request(http, url, out);
+  }
+#endif
+  else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
     } else {
@@ -283,7 +338,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
       return process_method_not_allowed_request(out);
     }
   } else if (ta_http_url_matcher(url, "/info[/]?") == SC_OK) {
-      return process_get_ta_info_request(http, out);
+    return process_get_ta_info_request(http, out);
   } else if (ta_http_url_matcher(url, "/") == SC_OK) {
     // POST request
     return process_proxy_api_request(http, payload, out);
@@ -353,8 +408,14 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   // While upload_data_size > 0 process upload_data
   if (*upload_data_size > 0) {
     if (http_req->request == NULL) {
-      http_req->request = (char *)malloc(*upload_data_size);
+      http_req->request = (char *)malloc((*upload_data_size) + 1);
+      if (http_req->request == NULL) {
+        ta_log_error("%s\n", "Not enough size for allocating HTTP request payload.");
+        goto cleanup;
+      }
+
       strncpy(http_req->request, upload_data, *upload_data_size);
+      http_req->request[*upload_data_size] = 0;
     } else {
       ret = MHD_NO;
       ta_log_error("%s\n", "MHD_NO");

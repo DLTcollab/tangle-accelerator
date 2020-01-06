@@ -156,7 +156,9 @@ For more information for MQTT connectivity of `tangle-accelerator`, you could re
 ### Optional: Enable external database for transaction reattachment
 Transaction reattachment is an optional feature.
 
-You can enable it in the build time by adding option : `--define db=enable`
+You can enable it in the build time by adding option : `--define db=enable`.
+
+When enabling reattachment, every transaction issues from the `tangle-accelerator` API called `Send Transfer Message` will be stored in the specific ScyllaDB host and response a UUID string for each transfer message as the identifier. With a promoting process that monitors the status of storing transactions, persistent pending transactions will be reattached to the Tangle.
 
 Transaction reattachment relies on ScyllDB, you need to install the dependency by following commands.
 

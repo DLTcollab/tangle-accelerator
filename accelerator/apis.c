@@ -500,8 +500,7 @@ done:
   return ret;
 }
 
-status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                           const char* const obj, char** json_result) {
+status_t api_send_transfer(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
@@ -521,26 +520,31 @@ status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_s
     goto done;
   }
 
-  ret = ta_send_transfer(iconf, service, req, res);
+  ret = ta_send_transfer(&core->iota_conf, &core->iota_service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-
   // return transaction object
   hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash));
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_find_transaction_objects(service, txn_obj_req, res_txn_array);
+  ret = ta_find_transaction_objects(&core->iota_service, txn_obj_req, res_txn_array);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-
-  ret = ta_send_transfer_res_serialize(res_txn_array, json_result);
-
+  res->txn_array = res_txn_array;
+#ifdef DB_ENABLE
+  ret = db_insert_tx_into_identity(&core->db_service, res->hash, PENDING_TXN, res->uuid_string);
+  if (ret != SC_OK) {
+    ta_log_error("fail to insert new pending transaction for reattachement\n");
+    goto done;
+  }
+#endif
+  ret = ta_send_transfer_res_serialize(res, json_result);
 done:
   ta_send_transfer_req_free(&req);
   ta_send_transfer_res_free(&res);
@@ -580,3 +584,90 @@ done:
   hash_array_free(trytes);
   return ret;
 }
+
+#ifdef DB_ENABLE
+status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
+                                     const db_client_service_t* const db_service, const char* const obj,
+                                     char** json_result) {
+  if (obj == NULL) {
+    ta_log_error("Invalid NULL pointer to uuid string\n");
+    return SC_TA_NULL;
+  }
+  status_t ret = SC_OK;
+  ta_log_info("find transaction by uuid string: %s\n", obj);
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  ret = db_get_identity_objs_by_uuid_string(db_service, obj, db_identity_array);
+  if (ret != SC_OK) {
+    ta_log_error("fail to find transaction by uuid string\n");
+    goto exit;
+  }
+
+  db_identity_t* itr = (db_identity_t*)utarray_front(db_identity_array);
+  if (itr != NULL) {
+    ret = api_find_transaction_object_single(iota_service, (const char* const)db_ret_identity_hash(itr), json_result);
+  } else {
+    ta_log_error("No corresponding transaction found by uuid string : %s\n", obj);
+    ret = SC_TA_WRONG_REQUEST_OBJ;
+  }
+
+exit:
+  db_identity_array_free(&db_identity_array);
+  return ret;
+}
+
+status_t api_get_identity_info_by_hash(const db_client_service_t* const db_service, const char* const obj,
+                                       char** json_result) {
+  if (obj == NULL) {
+    ta_log_error("Invalid NULL pointer to uuid string\n");
+    return SC_TA_NULL;
+  }
+  status_t ret = SC_OK;
+  ta_log_info("get identity info by hash : %s\n", obj);
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  ret = db_get_identity_objs_by_hash(db_service, (const cass_byte_t*)obj, db_identity_array);
+  if (ret != SC_OK) {
+    ta_log_error("fail to get identity objs by transaction hash\n");
+    goto exit;
+  }
+
+  db_identity_t* itr = (db_identity_t*)utarray_front(db_identity_array);
+  if (itr != NULL) {
+    ret = db_identity_serialize(json_result, itr);
+  } else {
+    ta_log_error("No corresponding identity info found by hash : %s\n", obj);
+    ret = SC_TA_WRONG_REQUEST_OBJ;
+  }
+exit:
+  db_identity_array_free(&db_identity_array);
+  return ret;
+}
+
+status_t api_get_identity_info_by_id(const db_client_service_t* const db_service, const char* const obj,
+                                     char** json_result) {
+  if (obj == NULL) {
+    ta_log_error("Invalid NULL pointer to uuid string\n");
+    return SC_TA_NULL;
+  }
+
+  status_t ret = SC_OK;
+  ta_log_info("get identity info by uuid string : %s\n", obj);
+  db_identity_array_t* db_identity_array = db_identity_array_new();
+  ret = db_get_identity_objs_by_uuid_string(db_service, obj, db_identity_array);
+  if (ret != SC_OK) {
+    ta_log_error("fail to get identity objs by uuid string\n");
+    goto exit;
+  }
+
+  db_identity_t* itr = (db_identity_t*)utarray_front(db_identity_array);
+  if (itr != NULL) {
+    ret = db_identity_serialize(json_result, itr);
+  } else {
+    ta_log_error("No corresponding identity info found by uuid string : %s\n", obj);
+    ret = SC_TA_WRONG_REQUEST_OBJ;
+  }
+
+exit:
+  db_identity_array_free(&db_identity_array);
+  return ret;
+}
+#endif

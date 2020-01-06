@@ -62,6 +62,7 @@ status_t set_response_content(status_t ret, char** json_result) {
       break;
   }
   *json_result = cJSON_PrintUnformatted(json_obj);
+  cJSON_Delete(json_obj);
   return http_ret;
 }
 
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
           res.set_status(SC_HTTP_BAD_REQUEST);
           cJSON_Delete(json_obj);
         } else {
-          ret = api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, req.body().c_str(), &json_result);
+          ret = api_send_transfer(&ta_core, req.body().c_str(), &json_result);
           ret = set_response_content(ret, &json_result);
           res.set_status(ret);
         }

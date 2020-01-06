@@ -167,8 +167,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
- * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
  * @param[in] obj Input data in JSON
  * @param[out] json_result Result containing transaction objects in json format
  *
@@ -176,8 +175,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                           const char* const obj, char** json_result);
+status_t api_send_transfer(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Return transaction object with given single transaction hash.
@@ -268,6 +266,54 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  */
 status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                          const char* const obj, char** json_result);
+#ifdef DB_ENABLE
+/**
+ * @brief Return transaction object with given single identity number.
+ *
+ * Explore transaction hash information with given single identity number. This would
+ * return whole transaction object details in json format instead of raw trytes.
+ *
+ * @param[in] iota_service IRI node end point service
+ * @param[in] db_service db client service
+ * @param[in] obj identity number
+ * @param[out] json_result Result containing the only one transaction object in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
+                                     const db_client_service_t* const db_service, const char* const obj,
+                                     char** json_result);
+
+/**
+ * @brief Return db identity object with given single transaction hash.
+ *
+ * @param[in] db_service db client service
+ * @param[in] obj transaction hash
+ * @param[out] json_result Result containing the only one db identity object in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_get_identity_info_by_hash(const db_client_service_t* const db_service, const char* const obj,
+                                       char** json_result);
+
+/**
+ * @brief Return db identity object with given single transaction id.
+ *
+ * @param[in] db_service db client service
+ * @param[in] obj transaction id
+ * @param[out] json_result Result containing the only one db identity object in json format
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_get_identity_info_by_id(const db_client_service_t* const db_service, const char* const obj,
+                                     char** json_result);
+#endif
 
 #ifdef __cplusplus
 }
