@@ -20,25 +20,15 @@ cc_binary(
             "-pg",
         ],
         "//conditions:default": ["-DNDEBUG"],
-    }) + select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
     }),
     deps = [
         ":ta_config",
         "//common:ta_errors",
         "//connectivity/http",
         "@entangled//utils/handles:signal",
-        "//accelerator/core:apis",
-        "//accelerator/core:proxy_apis",
     ] + select({
         "//connectivity/mqtt:mqtt_enable": [
-            "//connectivity/mqtt:mqtt_utils",
+            "//connectivity/mqtt",
         ],
         "//conditions:default": [],
     }),
@@ -62,13 +52,10 @@ cc_library(
     name = "ta_config",
     srcs = ["config.c"],
     hdrs = ["config.h"],
-    copts = select({
+    defines = select({
         "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
+            "MQTT_ENABLE",
         ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],

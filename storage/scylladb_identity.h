@@ -12,8 +12,12 @@ extern "C" {
 #endif
 
 #include "scylladb_client.h"
-#include "scylladb_utils.h"
 #include "utarray.h"
+
+/**
+ * @file scylladb_identity.h
+ */
+
 typedef struct db_identity_s db_identity_t;
 typedef UT_array db_identity_array_t;
 

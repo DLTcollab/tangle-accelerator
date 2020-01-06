@@ -2,14 +2,16 @@
 #define HTTP_HTTP_H_
 
 #include <stdbool.h>
-#include "accelerator/config.h"
 #include "accelerator/core/apis.h"
 #include "accelerator/core/proxy_apis.h"
-#include "common/ta_errors.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file http.h
+ */
 
 typedef struct ta_http_s {
   void *daemon;

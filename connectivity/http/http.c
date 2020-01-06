@@ -5,7 +5,6 @@
 #include <string.h>
 #include <time.h>
 
-#include "cJSON.h"
 #include "http.h"
 
 #define HTTP_LOGGER "http"

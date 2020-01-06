@@ -2,11 +2,14 @@ cc_library(
     name = "serializer",
     srcs = ["serializer.c"],
     hdrs = ["serializer.h"],
-    copts = ["-DLOGGER_ENABLE"] + select({
-        "//connectivity/mqtt:mqtt_enable": ["-DMQTT_ENABLE"],
+    copts = ["-DLOGGER_ENABLE"],
+    defines = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "MQTT_ENABLE",
+        ],
         "//conditions:default": [],
     }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
+        "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
@@ -20,7 +23,6 @@ cc_library(
         "@cJSON",
         "@entangled//cclient/response:responses",
         "@entangled//common/trinary:flex_trit",
-        "@entangled//common/trinary:tryte_ascii",
         "@entangled//utils:char_buffer",
         "@entangled//utils/containers/hash:hash_array",
     ] + select({

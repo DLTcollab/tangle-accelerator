@@ -5,11 +5,15 @@ OUTPUT_DIRECTORY       = docs/
 OPTIMIZE_OUTPUT_FOR_C  = YES
 INPUT                  = . \
                         accelerator \
-                        request \
-                        response \
-                        serializer \
+                        accelerator/core \
+                        accelerator/core/request \
+                        accelerator/core/response \
+                        accelerator/core/serializer \
                         utils \ 
-                        connectivity/mqtt
+                        common \
+                        storage \
+                        connectivity/mqtt \
+                        connectivity/http
 FILE_PATTERNS          = *.h \
                         *.md
 EXAMPLE_PATH           = tests

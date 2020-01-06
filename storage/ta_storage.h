@@ -11,9 +11,12 @@
 extern "C" {
 #endif
 
-#include "scylladb_client.h"
 #include "scylladb_identity.h"
 #include "scylladb_permanode.h"
+
+/**
+ * @file ta_storage.h
+ */
 
 #ifdef __cplusplus
 }

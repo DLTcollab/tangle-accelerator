@@ -4,13 +4,8 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
+    defines = select({
+        "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
     linkopts = ["-lpthread"],
@@ -20,9 +15,6 @@ cc_library(
         "//accelerator/core:mam_core",
         "//accelerator/core/serializer",
         "//common:ta_errors",
-        "@entangled//common/model:bundle",
-        "@entangled//common/trinary:trit_tryte",
-        "@entangled//mam/api",
     ],
 )
 
@@ -33,8 +25,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator/core/serializer",
-        "//common:ta_errors",
-        "//common:ta_logger",
         "//utils:hash_algo_djb2",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
@@ -50,14 +40,10 @@ cc_library(
         "//accelerator:ta_config",
         "//accelerator/core/request",
         "//accelerator/core/response",
-        "//common:ta_errors",
         "//utils:bundle_array",
         "//utils:timer",
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",
-        "@entangled//cclient/serialization:serializer",
-        "@entangled//cclient/serialization:serializer_json",
-        "@entangled//common/model:bundle",
         "@entangled//utils:time",
     ],
 )
@@ -71,9 +57,7 @@ cc_library(
         "//accelerator/core",
         "//accelerator/core/request",
         "//accelerator/core/response",
-        "@entangled//common/model:bundle",
         "@entangled//common/trinary:flex_trit",
-        "@entangled//common/trinary:tryte_ascii",
         "@entangled//mam/api",
         "@entangled//utils/containers/hash:hash_array",
     ],

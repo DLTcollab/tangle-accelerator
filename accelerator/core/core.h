@@ -9,7 +9,6 @@
 #ifndef CORE_CORE_H_
 #define CORE_CORE_H_
 
-#include <sys/time.h>
 #include "accelerator/config.h"
 #include "accelerator/core/request/request.h"
 #include "accelerator/core/response/response.h"
@@ -23,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * @file core.h
+ * @file accelerator/core/core.h
  * @brief General tangle-accelerator core functions
  *
  * tangle-accelerator core functions provide major IOTA usage with
