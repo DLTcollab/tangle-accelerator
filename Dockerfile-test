@@ -1,0 +1,8 @@
+# docker build -t mytest . --no-cache -f Dockerfile-test
+
+FROM myimage
+
+WORKDIR /workdir
+COPY . /workdir
+
+RUN make && bazel build //accelerator
