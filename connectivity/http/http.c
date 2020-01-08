@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <errno.h>
 #include <microhttpd.h>
 #include <regex.h>
 #include <string.h>
@@ -486,7 +487,7 @@ status_t ta_http_start(ta_http_t *const http) {
       MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
                        atoi(http->core->ta_conf.port), request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_OOM");
+    ta_log_error("%s\n", strerror(errno));
     return SC_HTTP_OOM;
   }
   return SC_OK;
