@@ -1,5 +1,3 @@
-package(default_visibility = ["//visibility:public"])
-
 config_setting(
     name = "db_enable",
     values = {"define": "db=enable"},
@@ -12,6 +10,7 @@ cc_library(
         "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
+    visibility = ["//visibility:public"],
     deps = [
         ":scylladb_identity",
         ":scylladb_permanode",

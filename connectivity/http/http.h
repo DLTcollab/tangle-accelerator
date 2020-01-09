@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @file http.h
+ * @file connectivity/http/http.h
  */
 
 typedef struct ta_http_s {

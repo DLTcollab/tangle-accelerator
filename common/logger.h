@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * @file logger.h
+ * @file common/logger.h
  */
 
 /**

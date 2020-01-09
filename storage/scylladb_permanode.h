@@ -16,7 +16,7 @@ extern "C" {
 #include "utils/containers/hash/hash243_queue.h"
 
 /**
- * @file scylladb_permanode.h
+ * @file storage/scylladb_permanode.h
  */
 
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;

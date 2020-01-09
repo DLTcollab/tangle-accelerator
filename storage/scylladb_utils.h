@@ -15,7 +15,7 @@ extern "C" {
 #include "common/logger.h"
 
 /**
- * @file scylladb_utils.h
+ * @file storage/scylladb_utils.h
  */
 
 logger_id_t scylladb_logger_id;

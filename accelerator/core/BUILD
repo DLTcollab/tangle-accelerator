@@ -1,5 +1,3 @@
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "apis",
     srcs = ["apis.c"],
@@ -36,6 +34,7 @@ cc_library(
     name = "core",
     srcs = ["core.c"],
     hdrs = ["core.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "//accelerator:ta_config",
         "//accelerator/core/request",
@@ -67,6 +66,7 @@ cc_library(
     name = "pow",
     srcs = ["pow.c"],
     hdrs = ["pow.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "//common:ta_errors",
         "//common:ta_logger",

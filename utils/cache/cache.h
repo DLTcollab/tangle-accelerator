@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 /**
- * @file cache.h
+ * @file utils/cache/cache.h
  * @brief Implementation of cache interface
  * @example test_cache.c
  */
