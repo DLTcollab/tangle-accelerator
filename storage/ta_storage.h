@@ -15,7 +15,7 @@ extern "C" {
 #include "scylladb_permanode.h"
 
 /**
- * @file ta_storage.h
+ * @file storage/ta_storage.h
  */
 
 #ifdef __cplusplus

@@ -6,8 +6,13 @@ cc_library(
     hdrs = glob([
         "*.h",
     ]),
-    copts = select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
+    defines = select({
+        "//connectivity/mqtt:mqtt_enable": [
+            "MQTT_ENABLE",
+        ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
     include_prefix = "accelerator/core/response",

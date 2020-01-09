@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 /**
- * @file mam_core.h
+ * @file accelerator/core/mam_core.h
  */
 
 /**

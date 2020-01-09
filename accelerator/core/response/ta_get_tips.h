@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 /**
- * @file accelerator/core/response//ta_get_tips.h
+ * @file accelerator/core/response/ta_get_tips.h
  */
 
 /** struct of ta_get_tips_res_t */

@@ -15,7 +15,7 @@ extern "C" {
 #include "utarray.h"
 
 /**
- * @file scylladb_identity.h
+ * @file storage/scylladb_identity.h
  */
 
 typedef struct db_identity_s db_identity_t;

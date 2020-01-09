@@ -545,6 +545,7 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
   }
 #endif
   ret = ta_send_transfer_res_serialize(res, json_result);
+
 done:
   ta_send_transfer_req_free(&req);
   ta_send_transfer_res_free(&res);

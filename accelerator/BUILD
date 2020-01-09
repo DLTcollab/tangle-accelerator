@@ -1,7 +1,19 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+
+config_setting(
+    name = "DEBUG_MODE",
+    values = {
+        "define": "build_type=debug",
+    },
+)
+
+config_setting(
+    name = "PROFILING_MODE",
+    values = {
+        "define": "build_type=profiling",
+    },
+)
 
 cc_binary(
     name = "accelerator",
@@ -34,20 +46,6 @@ cc_binary(
     }),
 )
 
-cc_image(
-    name = "docker",
-    binary = ":accelerator",
-)
-
-container_push(
-    name = "push_docker",
-    format = "Docker",
-    image = ":docker",
-    registry = "index.docker.io",
-    repository = "dltcollab/tangle-accelerator",
-    tag = "latest",
-)
-
 cc_library(
     name = "ta_config",
     srcs = ["config.c"],
@@ -56,6 +54,9 @@ cc_library(
         "//connectivity/mqtt:mqtt_enable": [
             "MQTT_ENABLE",
         ],
+        "//conditions:default": [],
+    }) + select({
+        "//storage:db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
     }),
     visibility = ["//visibility:public"],
@@ -73,21 +74,21 @@ cc_library(
     }),
 )
 
-config_setting(
-    name = "DEBUG_MODE",
-    values = {
-        "define": "build_type=debug",
-    },
-)
-
-config_setting(
-    name = "PROFILING_MODE",
-    values = {
-        "define": "build_type=profiling",
-    },
-)
-
 cc_library(
     name = "cli_info",
     srcs = ["cli_info.h"],
+)
+
+cc_image(
+    name = "docker",
+    binary = ":accelerator",
+)
+
+container_push(
+    name = "push_docker",
+    format = "Docker",
+    image = ":docker",
+    registry = "index.docker.io",
+    repository = "dltcollab/tangle-accelerator",
+    tag = "latest",
 )

@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 /**
- * @file hash_algo_djb2.h
+ * @file utils/hash_algo_djb2.h
  */
 
 // source http://www.cse.yorku.ca/~oz/hash.html
