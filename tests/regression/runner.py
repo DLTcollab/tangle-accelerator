@@ -12,6 +12,7 @@ import os
 import sys
 import unittest
 import logging
+import threading
 
 # Run all the API Test here
 if __name__ == '__main__':
@@ -21,10 +22,18 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     parse_cli_arg()
 
+    threads = []
+
     suite_path = os.path.join(os.path.dirname(__file__), "test_suite")
     sys.path.append(suite_path)
     for module in os.listdir(suite_path):
         if module[-3:] == ".py":
             mod = __import__(module[:-3], locals(), globals())
             suite = unittest.TestLoader().loadTestsFromModule(mod)
-            unittest.TextTestRunner().run(suite)
+            t = threading.Thread(target=unittest.TextTestRunner().run, args=(suite,))
+            threads.append(t)
+            t.start()
+        
+    for i in range(len(threads)):
+        threads[i].join()
+        
