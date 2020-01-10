@@ -3,26 +3,20 @@ load("//third_party:third_party.bzl", "third_party_deps")
 
 git_repository(
     name = "rules_iota",
-    commit = "73f598ad1ce3ba79ff22d747f723d6d5cbf351e1",
+    commit = "e08b0038f376d6c82b80f5283bb0a86648bb58dc",
     remote = "https://github.com/iotaledger/rules_iota.git",
 )
 
 git_repository(
     name = "iota_toolchains",
-    commit = "0f93f76fdff9f091dd3a99aa3f19b5d3f4f7f7fc",
+    commit = "700904f445d15ef948d112bf0bccf7dd3814ae5c",
     remote = "https://github.com/iotaledger/toolchains.git",
 )
 
 git_repository(
     name = "entangled",
-    remote = "https://github.com/iotaledger/entangled.git",
-    tag = "cclient-v1.0.0-beta",
-)
-
-git_repository(
-    name = "served",
-    commit = "757172e1d8aa7e273e800ce8ec91974c90a2a8b1",
-    remote = "https://github.com/meltwater/served.git",
+    commit = "4cbb3110c60fb12afb27c2050f6524bccfb5a23c",
+    remote = "https://github.com/DLTcollab/entangled",
 )
 
 git_repository(
