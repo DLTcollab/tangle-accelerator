@@ -1,15 +1,6 @@
-config_setting(
-    name = "db_enable",
-    values = {"define": "db=enable"},
-)
-
 cc_library(
     name = "storage",
     hdrs = ["ta_storage.h"],
-    defines = select({
-        "//storage:db_enable": ["DB_ENABLE"],
-        "//conditions:default": [],
-    }),
     visibility = ["//visibility:public"],
     deps = [
         ":scylladb_identity",
@@ -21,7 +12,6 @@ cc_library(
     name = "scylladb_identity",
     srcs = ["scylladb_identity.c"],
     hdrs = ["scylladb_identity.h"],
-    copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
         ":scylladb_client",
@@ -33,7 +23,6 @@ cc_library(
     name = "scylladb_permanode",
     srcs = ["scylladb_permanode.c"],
     hdrs = ["scylladb_permanode.h"],
-    copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
         ":scylladb_client",
@@ -48,7 +37,6 @@ cc_library(
     hdrs = [
         "scylladb_client.h",
     ],
-    copts = ["-DLOGGER_ENABLE"],
     linkopts = [
         "-lcassandra",
     ],
@@ -61,11 +49,9 @@ cc_library(
     name = "scylladb_utils",
     srcs = ["scylladb_utils.c"],
     hdrs = ["scylladb_utils.h"],
-    copts = ["-DLOGGER_ENABLE"],
     linkopts = ["-lcassandra"],
     deps = [
-        "//common:ta_errors",
-        "//common:ta_logger",
+        "//common",
         "@entangled//common/model:bundle",
     ],
 )

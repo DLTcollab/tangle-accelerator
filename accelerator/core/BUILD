@@ -2,17 +2,14 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
-    defines = select({
-        "//storage:db_enable": ["DB_ENABLE"],
-        "//conditions:default": [],
-    }),
     linkopts = ["-lpthread"],
     visibility = ["//visibility:public"],
     deps = [
+        "//accelerator:build_option",
         "//accelerator/core",
         "//accelerator/core:mam_core",
         "//accelerator/core/serializer",
-        "//common:ta_errors",
+        "//common",
     ],
 )
 
