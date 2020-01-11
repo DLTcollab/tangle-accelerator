@@ -95,7 +95,7 @@ cc_test(
     name = "test_scylladb",
     srcs = ["test_scylladb.c"],
     deps = select({
-        "//storage:db_enable": [
+        "//accelerator:db_enable": [
             "//storage",
             ":test_define",
         ],
