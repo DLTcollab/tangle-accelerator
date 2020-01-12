@@ -16,6 +16,7 @@ import threading
 
 # Run all the API Test here
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     if DEBUG_FLAG == True:
         logging.basicConfig(level=logging.DEBUG)
     else:

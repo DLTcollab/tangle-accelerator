@@ -3,10 +3,10 @@ import json
 import unittest
 import time
 import logging
+import threading
+import inspect
 
-
-class SendTransfer(unittest.TestCase):
-
+class testCases():
     # Positive value, tryte maessage, tryte tag, tryte address (pass)
     def test_normal(self):
         res = API("/transaction/",
@@ -92,6 +92,8 @@ class SendTransfer(unittest.TestCase):
 
         eval_stat(time_cost, "send transfer")
 
+class SendTransfer(unittest.TestCase):
+
     @classmethod
     def setUp(cls):
         rand_msg = gen_rand_trytes(30)
@@ -109,6 +111,19 @@ class SendTransfer(unittest.TestCase):
                             [0, rand_msg, None, rand_addr],
                             [0, rand_msg, rand_tag, None],
                             [0, rand_msg, rand_tag, "我思故我在"]]
+        
+        #testList = inspect.getmembers(testCases, predicate=lambda x: inspect.isfunction(x) or inspect.ismethod(x))
+        testList = [func for func in dir(testCases) if callable(getattr(testCases, func))]
+        
+        threads = []
+        for testFunc in testList:
+            t = threading.Thread(target=testFunc)
+            threads.append(t)
+
+        for thread in threads:
+            thread.join()
+
+
 
     def _verify_pass(self, res):
         self.assertEqual(STATUS_CODE_200, res["status_code"])
