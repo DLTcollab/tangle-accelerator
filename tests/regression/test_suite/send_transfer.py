@@ -8,71 +8,83 @@ import logging
 class SendTransfer(unittest.TestCase):
 
     # Positive value, tryte maessage, tryte tag, tryte address (pass)
+    @test_logger
     def test_normal(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[0]))
         self._verify_pass(res)
 
     # Zero value, tryte message, tryte tag, tryte address (pass)
+    @test_logger
     def test_zero_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[1]))
         self._verify_pass(res)
 
     # Chinese value, tryte message, tryte tag, tryte address (pass)
+    @test_logger
     def test_chinese_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[2]))
 
     # Zero value, chinese message, tryte tag, tryte address (fail)
+    @test_logger
     def test_chinese_message(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[3]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Zero value, tryte message, chinese tag, tryte address (fail)
+    @test_logger
     def test_chinese_tag(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[4]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Negative value, tryte maessage, tryte tag, tryte address (pass)
+    @test_logger
     def test_negative_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[5]))
         self._verify_pass(res)
 
     # No value, tryte maessage, tryte tag, tryte address (pass)
+    @test_logger
     def test_no_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[6]))
         self._verify_pass(res)
 
     # Zero value, no maessage, tryte tag, tryte address (pass)
+    @test_logger
     def test_no_message(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[7]))
         self._verify_pass(res)
 
     # Zero value, tryte maessage, no tag, tryte address (pass)
+    @test_logger
     def test_no_tag(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[8]))
         self._verify_pass(res)
 
     # Zero value, tryte maessage, tryte tag, no address (pass)
+    @test_logger
     def test_no_address(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[9]))
         self._verify_pass(res)
 
     # Zero value, tryte maessage, tryte tag, unicode address (pass)
+    @test_logger
     def test_unicode_address(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[10]))
         self._verify_pass(res)
 
     # Time statistics
+    @test_logger
     def test_time_statistics(self):
         time_cost = []
         rand_msg = gen_rand_trytes(30)
@@ -93,7 +105,7 @@ class SendTransfer(unittest.TestCase):
         eval_stat(time_cost, "send transfer")
 
     @classmethod
-    def setUp(cls):
+    def setUpClass(cls):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)
         rand_addr = gen_rand_trytes(81)

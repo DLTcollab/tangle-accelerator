@@ -8,6 +8,7 @@ import logging
 class GenerateAddress(unittest.TestCase):
 
     # Without additional GET parameter (pass)
+    @test_logger
     def test_normal(self):
         res = API("/address/", get_data=self.query_string[0])
         res_json = json.loads(res["content"])
@@ -16,16 +17,19 @@ class GenerateAddress(unittest.TestCase):
         self.assertTrue(valid_trytes(res_json[0], LEN_ADDR))
 
     # Ascii string (fail)
+    @test_logger
     def test_ascii_string(self):
         res = API("/address/", get_data=self.query_string[1])
         self.assertEqual(STATUS_CODE_400, res["status_code"])
 
     # Unicode string (fail)
+    @test_logger
     def test_unicode_string(self):
         res = API("/address/", get_data=self.query_string[2])
         self.assertEqual(STATUS_CODE_400, res["status_code"])
 
     # Time statistics
+    @test_logger
     def test_time_statistics(self):
         time_cost = []
         for i in range(TIMES_TOTAL):
