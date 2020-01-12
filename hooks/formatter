@@ -4,3 +4,8 @@ for file in $(find $(git rev-parse --show-toplevel) | grep -E "\.(c|cc|cpp|h|hh|
 do
   clang-format -style=file -fallback-style=none -i $file
 done
+
+for file in $(find $(git rev-parse --show-toplevel) | grep -E "\BUILD\$" | grep -Ev "/third_party/")
+do
+  buildifier $file
+done
