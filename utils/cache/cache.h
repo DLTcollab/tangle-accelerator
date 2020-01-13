@@ -22,7 +22,7 @@ extern "C" {
 
 /**
  * @file utils/cache/cache.h
- * @brief Implementation of cache interface
+ * @brief Caching service interface
  * @example test_cache.c
  */
 

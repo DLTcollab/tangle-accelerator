@@ -19,6 +19,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/mqtt_common.h
+ * @brief Common functions and configures of MQTT clients.
  */
 
 #define ID_LEN 32
