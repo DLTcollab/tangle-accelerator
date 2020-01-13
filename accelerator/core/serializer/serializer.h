@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 /**
- * @file serializer.h
+ * @file accelerator/core/serializer/serializer.h
  * @brief Serialization of data strings
  * @example test_serializer.c
  */

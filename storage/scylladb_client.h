@@ -13,6 +13,10 @@ extern "C" {
 
 #include "scylladb_utils.h"
 
+/**
+ * @file storage/scylladb_client.h
+ */
+
 #define DB_UUID_STRING_LENGTH CASS_UUID_STRING_LENGTH
 
 /*

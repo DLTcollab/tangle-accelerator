@@ -1,47 +1,55 @@
-package(default_visibility = ["//visibility:public"])
-
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 
 cc_binary(
     name = "accelerator",
     srcs = select({
-        "//connectivity/mqtt:mqtt_enable": [
+        ":mqtt_enable": [
             "mqtt_main.c",
         ],
         "//conditions:default": ["main.c"],
     }),
-    copts = [
-        "-DLOGGER_ENABLE",
-    ] + select({
-        ":DEBUG_MODE": ["-g"],
-        ":PROFILING_MODE": [
-            "-DNDEBUG",
+    copts = select({
+        ":debug_mode": ["-g"],
+        ":profile_mode": [
             "-pg",
         ],
-        "//conditions:default": ["-DNDEBUG"],
-    }) + select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
         "//conditions:default": [],
     }),
     deps = [
         ":ta_config",
-        "//common:ta_errors",
         "//connectivity/http",
         "@entangled//utils/handles:signal",
-        "//accelerator/core:apis",
-        "//accelerator/core:proxy_apis",
     ] + select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "//connectivity/mqtt:mqtt_utils",
+        ":mqtt_enable": [
+            "//connectivity/mqtt",
         ],
         "//conditions:default": [],
     }),
+)
+
+cc_library(
+    name = "ta_config",
+    srcs = ["config.c"],
+    hdrs = ["config.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cli_info",
+        "//accelerator/core:pow",
+        "//common",
+        ":build_option",
+        "//utils/cache",
+        "@entangled//cclient/api",
+        "@yaml",
+    ] + select({
+        ":db_enable": ["//storage"],
+        "//conditions:default": [],
+    }),
+)
+
+cc_library(
+    name = "cli_info",
+    srcs = ["cli_info.h"],
 )
 
 cc_image(
@@ -59,48 +67,40 @@ container_push(
 )
 
 cc_library(
-    name = "ta_config",
-    srcs = ["config.c"],
-    hdrs = ["config.h"],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
+    name = "build_option",
+    defines = select({
+        ":mqtt_enable": ["MQTT_ENABLE"],
         "//conditions:default": [],
     }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
+        ":db_enable": ["DB_ENABLE"],
         "//conditions:default": [],
+    }) + select({
+        ":debug_mode": [],
+        "//conditions:default": ["NDEBUG"],
     }),
     visibility = ["//visibility:public"],
-    deps = [
-        ":cli_info",
-        "//accelerator/core:pow",
-        "//common:ta_errors",
-        "//common:ta_logger",
-        "//utils/cache",
-        "@entangled//cclient/api",
-        "@yaml",
-    ] + select({
-        "//storage:db_enable": ["//storage"],
-        "//conditions:default": [],
-    }),
 )
 
 config_setting(
-    name = "DEBUG_MODE",
+    name = "debug_mode",
     values = {
         "define": "build_type=debug",
     },
 )
 
 config_setting(
-    name = "PROFILING_MODE",
+    name = "profile_mode",
     values = {
-        "define": "build_type=profiling",
+        "define": "build_type=profile",
     },
 )
 
-cc_library(
-    name = "cli_info",
-    srcs = ["cli_info.h"],
+config_setting(
+    name = "mqtt_enable",
+    values = {"define": "mqtt=enable"},
+)
+
+config_setting(
+    name = "db_enable",
+    values = {"define": "db=enable"},
 )

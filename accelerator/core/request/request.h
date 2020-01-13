@@ -14,7 +14,7 @@
 #include "ta_send_transfer.h"
 
 /**
- * @file request.h
+ * @file accelerator/core/request/request.h
  * @brief Data structure of request type
  */
 

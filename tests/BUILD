@@ -1,5 +1,3 @@
-package(default_visibility = ["//visibility:public"])
-
 cc_test(
     name = "test_core",
     srcs = [
@@ -30,15 +28,6 @@ cc_test(
     srcs = [
         "driver.c",
     ],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":test_define",
         "//accelerator/core:apis",
@@ -51,7 +40,7 @@ cc_binary(
     srcs = [
         "driver.c",
     ],
-    copts = ["-DENABLE_STAT"],
+    defines = ["ENABLE_STAT"],
     deps = [
         ":test_define",
         "//accelerator/core:apis",
@@ -76,10 +65,6 @@ cc_test(
     srcs = [
         "test_serializer.c",
     ],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": ["-DMQTT_ENABLE"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":test_define",
         "//accelerator/core/serializer",
@@ -108,14 +93,12 @@ cc_library(
 
 cc_test(
     name = "test_scylladb",
-    srcs = select({
-        "//storage:db_enable": ["test_scylladb.c"],
-        "//conditions:default": ["empty_test.c"],
-    }),
-    deps = [
-        ":test_define",
-    ] + select({
-        "//storage:db_enable": ["//storage"],
+    srcs = ["test_scylladb.c"],
+    deps = select({
+        "//accelerator:db_enable": [
+            "//storage",
+            ":test_define",
+        ],
         "//conditions:default": [],
     }),
 )

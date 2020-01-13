@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 /**
- * @file config.h
+ * @file accelerator/config.h
  * @brief Configuration of tangle-accelerator
  */
 

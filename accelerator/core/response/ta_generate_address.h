@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 /**
- * @file response/ta_generate_address.h
+ * @file accelerator/core/response/ta_generate_address.h
  */
 
 /** struct of ta_generate_address_res_t */

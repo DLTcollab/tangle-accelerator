@@ -10,9 +10,6 @@
 #define CORE_MAM_CORE_H_
 
 #include "accelerator/core/core.h"
-#include "accelerator/core/request/request.h"
-#include "accelerator/core/response/response.h"
-#include "common/ta_errors.h"
 #include "common/trinary/flex_trit.h"
 #include "common/trinary/tryte_ascii.h"
 #include "mam/api/api.h"
@@ -22,6 +19,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file accelerator/core/mam_core.h
+ */
 
 /**
  * Initialize a mam_api_t object

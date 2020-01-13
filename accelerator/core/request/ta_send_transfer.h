@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @file request/ta_send_transfer.h
+ * @file accelerator/core/request/ta_send_transfer.h
  */
 
 /** struct of ta_send_transfer_req_t */

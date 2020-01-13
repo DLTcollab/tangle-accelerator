@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 /**
- * @file response/ta_send_transfer.h
+ * @file accelerator/core/response/ta_send_transfer.h
  */
 
 /** struct of ta_send_transfer_res_t */
