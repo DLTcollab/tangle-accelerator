@@ -80,8 +80,8 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     transaction_set_attachment_timestamp_upper(tx, 3812798742493LL);
     transaction_set_attachment_timestamp_lower(tx, 0);
 
-    transaction_serialize_on_flex_trits(tx, tx_trits);
-    if (tx_trits == NULL) {
+    size_t offset = transaction_serialize_on_flex_trits(tx, tx_trits);
+    if (offset != NUM_TRITS_SERIALIZED_TRANSACTION) {
       ret = SC_CCLIENT_INVALID_FLEX_TRITS;
       ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
       goto done;
