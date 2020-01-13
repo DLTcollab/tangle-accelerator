@@ -112,7 +112,7 @@ status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_serv
   }
 
   // set the value of attach_res->trytes as output trytes result
-  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(hash8019_array_p));
+  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(flex_trit_t));
 
 done:
   get_transactions_to_approve_req_free(&tx_approve_req);
