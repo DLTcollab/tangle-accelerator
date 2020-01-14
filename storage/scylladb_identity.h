@@ -16,6 +16,14 @@ extern "C" {
 
 /**
  * @file storage/scylladb_identity.h
+ * @brief Identity table and corresponding insertion and selection functions.
+ *
+ * Data stored in the identity table is used for transaction reattachment.
+ * The identity table contains following 4 columns.
+ * id : A UUID as the identifer of transactions.
+ * hash : The transaction hash that would be updated after reattachment.
+ * status : The inclustion status of transaction.
+ * ts : The timestamp of update time of status or hash.
  */
 
 typedef struct db_identity_s db_identity_t;
