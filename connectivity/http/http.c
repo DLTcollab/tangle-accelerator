@@ -1,10 +1,10 @@
 #include <arpa/inet.h>
+#include <errno.h>
 #include <microhttpd.h>
 #include <regex.h>
 #include <string.h>
 #include <time.h>
 
-#include "cJSON.h"
 #include "http.h"
 
 #define HTTP_LOGGER "http"
@@ -294,17 +294,17 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (ta_http_url_matcher(url, "/mam[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_mam_send_msg_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
     }
+    return process_method_not_allowed_request(out);
+
   } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
     return process_find_txn_obj_single_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/transaction/object[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_find_txn_obj_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
     }
+    return process_method_not_allowed_request(out);
+
   } else if (ta_http_url_matcher(url, "/tips/pair[/]?") == SC_OK) {
     return process_get_tips_pair_request(http, out);
   } else if (ta_http_url_matcher(url, "/tips[/]?") == SC_OK) {
@@ -328,20 +328,23 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
     }
+    return process_method_not_allowed_request(out);
+
   } else if (ta_http_url_matcher(url, "/tryte[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_trytes_request(http, payload, out);
-    } else {
-      return process_method_not_allowed_request(out);
     }
+    return process_method_not_allowed_request(out);
+
   } else if (ta_http_url_matcher(url, "/info[/]?") == SC_OK) {
     return process_get_ta_info_request(http, out);
   } else if (ta_http_url_matcher(url, "/") == SC_OK) {
-    // POST request
-    return process_proxy_api_request(http, payload, out);
+    if (payload != NULL) {
+      return process_proxy_api_request(http, payload, out);
+    }
+    return process_method_not_allowed_request(out);
+
   } else {
     ta_log_error("SC_HTTP_URL_NOT_MATCH : %s\n", url);
     return process_invalid_path_request(out);
@@ -486,7 +489,7 @@ status_t ta_http_start(ta_http_t *const http) {
       MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
                        atoi(http->core->ta_conf.port), request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
   if (http->daemon == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_OOM");
+    ta_log_error("%s\n", strerror(errno));
     return SC_HTTP_OOM;
   }
   return SC_OK;

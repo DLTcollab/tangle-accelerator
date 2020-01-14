@@ -22,6 +22,10 @@ extern "C" {
 #endif
 
 /**
+ * @file common/logger.h
+ */
+
+/**
  * @brief initialize logger level according to build type.
  * @return
  * - SC_OK on success

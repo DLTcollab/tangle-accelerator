@@ -112,7 +112,7 @@ status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_serv
   }
 
   // set the value of attach_res->trytes as output trytes result
-  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(hash8019_array_p));
+  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(flex_trit_t));
 
 done:
   get_transactions_to_approve_req_free(&tx_approve_req);
@@ -518,12 +518,12 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
   }
 
   iota_transaction_t* curr_tx = NULL;
+  bundle_transactions_t* bundle = NULL;
   TX_OBJS_FOREACH(obj_res, curr_tx) {
+    bundle_transactions_new(&bundle);
     flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
                          NUM_TRITS_BUNDLE);
 
-    bundle_transactions_t* bundle = NULL;
-    bundle_transactions_new(&bundle);
     ret = ta_get_bundle(service, bundle_hash, bundle);
     if (ret != SC_OK) {
       ta_log_error("%d\n", ret);
@@ -537,6 +537,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
   }
 
 done:
+  bundle_transactions_free(&bundle);
   find_transactions_req_free(&txn_req);
   find_transactions_res_free(&txn_res);
   ta_find_transaction_objects_req_free(&obj_req);

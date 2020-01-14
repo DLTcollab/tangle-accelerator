@@ -17,7 +17,7 @@ extern "C" {
 #include "utarray.h"
 
 /**
- * @file bundle_array.h
+ * @file utils/bundle_array.h
  * @brief Implementation of bundle array object. This object would be used when we fetch multiple
  * `bundle_transactions_t` objects. It provides an easier way to save and traverse all the bundles.
  */

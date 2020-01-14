@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @file apis.h
+ * @file accelerator/core/apis.h
  * @brief General tangle-accelerator APIs
  *
  * tangle-accelerator APIs provide major IOTA APIs wrapper for public usage.

@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 /**
- * @file errors.h
+ * @file common/ta_errors.h
  * @brief Error Code of tangle-acclerator
  *
  * bit division:

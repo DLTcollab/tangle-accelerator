@@ -13,7 +13,10 @@ extern "C" {
 #include <stdlib.h>
 #include "cassandra.h"
 #include "common/logger.h"
-#include "common/ta_errors.h"
+
+/**
+ * @file storage/scylladb_utils.h
+ */
 
 logger_id_t scylladb_logger_id;
 

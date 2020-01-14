@@ -89,3 +89,6 @@ ciri/ciri.db*
 
 # Documentation
 docs/html/
+
+# Python
+__pycache__/

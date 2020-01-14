@@ -10,9 +10,6 @@
 #define MQTT_DUPLEX_CALLBACK_H_
 
 #include "accelerator/core/apis.h"
-#include "accelerator/core/core.h"
-#include "accelerator/core/serializer/serializer.h"
-#include "common/logger.h"
 #include "common/model/transaction.h"
 #include "duplex_utils.h"
 

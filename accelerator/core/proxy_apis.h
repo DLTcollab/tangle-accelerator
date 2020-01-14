@@ -12,8 +12,6 @@
 #include "cclient/api/core/core_api.h"
 #include "cclient/request/requests.h"
 #include "cclient/response/responses.h"
-#include "common/logger.h"
-#include "common/ta_errors.h"
 #include "serializer/serializer.h"
 
 #ifdef __cplusplus
@@ -21,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @file proxy_apis.h
+ * @file accelerator/core/proxy_apis.h
  * @brief Implement Proxy APIs
  *
  * tangle-accelerator provides major IRI Proxy APIs wrapper.
@@ -72,7 +70,8 @@ status_t proxy_apis_lock_destroy();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_proxy_apis(const iota_client_service_t* const service, const char* const obj, char** json_result);
+status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
+                           const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }

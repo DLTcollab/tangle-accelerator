@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 /**
- * @file response/ta_send_mam.h
+ * @file accelerator/core/response/ta_send_mam.h
  */
 
 #define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
