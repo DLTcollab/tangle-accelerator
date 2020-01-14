@@ -31,6 +31,8 @@ typedef UT_array db_identity_array_t;
 
 typedef enum { PENDING_TXN = 0, INSERTING_TXN, CONFIRMED_TXN, NUM_OF_TXN_STATUS } db_txn_status_t;
 
+#define DB_NUM_TRYTES_HASH NUM_TRYTES_HASH
+
 /**
  * Allocate memory of db_identity_array_t
  */
@@ -252,6 +254,16 @@ status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_b
  * - non-zero on error
  */
 status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* obj);
+
+/**
+ * @brief show logger info for details of identity object
+ *
+ * @param[in] obj pointer to db_identity_t
+ * @return
+ * - SC_OK on success
+ * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ */
+status_t db_show_identity_info(db_identity_t* obj);
 
 #ifdef __cplusplus
 }
