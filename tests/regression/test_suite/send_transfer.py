@@ -6,7 +6,7 @@ import logging
 import threading
 import inspect
 
-class testCases():
+class testCases(object):
     # Positive value, tryte maessage, tryte tag, tryte address (pass)
     def test_normal(self):
         res = API("/transaction/",
@@ -92,7 +92,22 @@ class testCases():
 
         eval_stat(time_cost, "send transfer")
 
+
 class SendTransfer(unittest.TestCase):
+    def test_run_all(self):
+        inst = testCases()
+        attrs = (getattr(inst, func) for func in dir(inst))
+        self._is_test(inst.test_chinese_message)
+        testList = filter(inspect.ismethod, attrs)
+
+        threads = []
+        for testFunc in testList:
+            t = threading.Thread(target=testFunc)
+            threads.append(t)
+            t.start()
+
+        for thread in threads:
+            thread.join()
 
     @classmethod
     def setUp(cls):
@@ -111,19 +126,8 @@ class SendTransfer(unittest.TestCase):
                             [0, rand_msg, None, rand_addr],
                             [0, rand_msg, rand_tag, None],
                             [0, rand_msg, rand_tag, "我思故我在"]]
-        
-        #testList = inspect.getmembers(testCases, predicate=lambda x: inspect.isfunction(x) or inspect.ismethod(x))
-        testList = [func for func in dir(testCases) if callable(getattr(testCases, func))]
-        
-        threads = []
-        for testFunc in testList:
-            t = threading.Thread(target=testFunc)
-            threads.append(t)
-
-        for thread in threads:
-            thread.join()
-
-
+    def _is_test(self, object): 
+        print(object.__name__)
 
     def _verify_pass(self, res):
         self.assertEqual(STATUS_CODE_200, res["status_code"])
