@@ -18,6 +18,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/sub_utils.h
+ * @brief MQTT subscriber utilities.
  */
 
 /**

@@ -14,6 +14,7 @@ extern "C" {
 
 /**
  * @file utils/hash_algo_djb2.h
+ * @brief Hash function DJB2
  */
 
 // source http://www.cse.yorku.ca/~oz/hash.html

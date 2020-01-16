@@ -11,6 +11,7 @@ extern "C" {
 
 /**
  * @file connectivity/http/http.h
+ * @brief Router of HTTP protocol
  */
 
 typedef struct ta_http_s {
