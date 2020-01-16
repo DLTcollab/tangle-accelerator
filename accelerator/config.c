@@ -13,8 +13,6 @@
 #define CONFIG_LOGGER "config"
 
 static logger_id_t logger_id;
-// FIXME: We need further improvements without depending on temporary variables
-static int tmp_argc;
 
 int get_conf_key(char const* const key) {
   for (int i = 0; i < cli_cmd_num; ++i) {
@@ -24,19 +22,6 @@ int get_conf_key(char const* const key) {
   }
 
   return 0;
-}
-
-static void remove_nonvalue_dash(int argc, char** argv) {
-  for (int i = 1; i < argc; i++) {
-    if ((strlen(argv[i]) == 2) && (!strncmp(argv[i], "--", 2))) {
-      argc--;
-      if (argc == (i + 1)) {
-        break;
-      }
-      memmove(argv + i, argv + (i + 1), (argc - i) * sizeof(char*));
-    }
-  }
-  tmp_argc = argc;
 }
 
 struct option* cli_build_options() {
@@ -205,9 +190,6 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
     goto done;
   }
 
-  // remove `--` from argv
-  remove_nonvalue_dash(argc, argv);
-
   // Loop through the CLI arguments for first time to find the configuration file path
   while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
@@ -295,10 +277,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
   status_t ret = SC_OK;
   struct option* long_options = cli_build_options();
 
-  // remove `--` from argv
-  remove_nonvalue_dash(tmp_argc, argv);
-
-  while ((key = getopt_long(tmp_argc, argv, "hv", long_options, NULL)) != -1) {
+  while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;

@@ -72,7 +72,8 @@ static struct ta_cli_argument_s {
                           {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG},
                           {"config", CONF_CLI, "Read configuration file", REQUIRED_ARG},
                           {"proxy_passthrough", PROXY_API, "Pass proxy API directly to IRI without processing", NO_ARG},
-                          {"verbose", VERBOSE, "Enable logger", NO_ARG}};
+                          {"verbose", VERBOSE, "Enable logger", NO_ARG},
+                          {NULL, 0, NULL, (ta_cli_arg_requirement_t)0}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
 
