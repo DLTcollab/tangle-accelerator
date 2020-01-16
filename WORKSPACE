@@ -15,7 +15,7 @@ git_repository(
 
 git_repository(
     name = "entangled",
-    commit = "4cbb3110c60fb12afb27c2050f6524bccfb5a23c",
+    commit = "fe3929b8ac6e7377eed82b83aad96369b42d0641",
     remote = "https://github.com/DLTcollab/entangled",
 )
 
