@@ -29,7 +29,7 @@ struct option* cli_build_options() {
   for (int i = 0; i < cli_cmd_num; ++i) {
     long_options[i].name = ta_cli_arguments_g[i].name;
     long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
-    long_options[i].flag = NULL;
+    long_options[i].flag = ta_cli_arguments_g[i].flag;
     long_options[i].val = ta_cli_arguments_g[i].val;
   }
   return long_options;
