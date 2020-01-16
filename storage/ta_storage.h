@@ -16,6 +16,7 @@ extern "C" {
 
 /**
  * @file storage/ta_storage.h
+ * @brief The high level header for TA storage driver.
  */
 
 #ifdef __cplusplus

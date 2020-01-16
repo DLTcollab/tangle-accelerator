@@ -16,6 +16,7 @@ extern "C" {
 
 /**
  * @file storage/scylladb_utils.h
+ * @brief Universal functions, the logger and headers for ScyllaDB driver.
  */
 
 logger_id_t scylladb_logger_id;

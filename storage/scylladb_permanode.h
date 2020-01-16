@@ -17,6 +17,7 @@ extern "C" {
 
 /**
  * @file storage/scylladb_permanode.h
+ * @brief Edge and bundle table with insertion and selection functions.
  */
 
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;

@@ -15,6 +15,7 @@ extern "C" {
 
 /**
  * @file storage/scylladb_client.h
+ * @brief ScyllaDB client service for connection and executing queries.
  */
 
 #define DB_UUID_STRING_LENGTH CASS_UUID_STRING_LENGTH
