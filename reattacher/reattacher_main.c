@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
     if (cmdOpt == -1) break;
 
     /* Invalid option */
-    if (cmdOpt == '?') break;
+    if (cmdOpt == '?') continue;
 
     if (cmdOpt == 'h') {
       iota_service.http.host = optarg;

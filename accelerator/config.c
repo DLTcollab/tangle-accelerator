@@ -200,7 +200,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case CONF_CLI:
         ret = cli_core_set(core, key, optarg);
         break;
@@ -286,7 +286,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case 'h':
         ta_usage();
         exit(EXIT_SUCCESS);
