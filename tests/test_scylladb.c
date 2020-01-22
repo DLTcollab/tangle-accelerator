@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
   int cmdOpt;
   int optIdx;
   const struct option longOpt[] = {
-      {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
+      {"db_host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
   keyspace_name = "test_scylla";
   /* Parse the command line options */
@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
     if (cmdOpt == -1) break;
 
     /* Invalid option */
-    if (cmdOpt == '?') break;
+    if (cmdOpt == '?') continue;
 
     if (cmdOpt == 'h') {
       host = optarg;
