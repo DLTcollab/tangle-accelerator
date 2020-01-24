@@ -68,6 +68,16 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       iota_service->http.port = atoi(value);
       break;
 
+#ifdef MQTT_ENABLE
+    // MQTT configuration
+    case MQTT_HOST_CLI:
+      ta_conf->mqtt_host = value;
+      break;
+    case MQTT_ROOT_CLI:
+      ta_conf->mqtt_topic_root = value;
+      break;
+#endif
+
     // Cache configuration
     case REDIS_HOST_CLI:
       cache->host = value;
