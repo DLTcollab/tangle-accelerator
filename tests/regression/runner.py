@@ -15,10 +15,10 @@ import logging
 
 # Run all the API Test here
 if __name__ == '__main__':
-    if DEBUG_FLAG == True:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
+    ver = sys.version_info
+    if ver.major < 3 or (ver.major == 3 and ver.minor < 6):
+        raise Exception("Must be using Python 3.6 or greater")
+
     parse_cli_arg()
 
     suite_path = os.path.join(os.path.dirname(__file__), "test_suite")
@@ -27,4 +27,6 @@ if __name__ == '__main__':
         if module[-3:] == ".py":
             mod = __import__(module[:-3], locals(), globals())
             suite = unittest.TestLoader().loadTestsFromModule(mod)
-            unittest.TextTestRunner().run(suite)
+            result = unittest.TextTestRunner().run(suite)
+            if not result.wasSuccessful():
+                exit(1)
