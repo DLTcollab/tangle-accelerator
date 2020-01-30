@@ -58,6 +58,10 @@ int main(int argc, char* argv[]) {
   // Enable other loggers when verbose mode is on
   if (verbose_mode) {
     http_logger_init();
+    apis_logger_init();
+    cc_logger_init();
+    pow_logger_init();
+    timer_logger_init();
   } else {
     // Destroy logger when verbose mode is off
     logger_helper_release(logger_id);
@@ -96,6 +100,11 @@ cleanup:
 
   if (verbose_mode) {
     http_logger_release();
+    apis_logger_release();
+    cc_logger_release();
+    serializer_logger_release();
+    pow_logger_release();
+    timer_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
