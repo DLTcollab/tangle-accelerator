@@ -30,6 +30,10 @@ typedef enum ta_cli_arg_value_e {
   IRI_HOST_CLI,
   IRI_PORT_CLI,
 
+  /** MQTT */
+  MQTT_HOST_CLI,
+  MQTT_ROOT_CLI,
+
   /** REDIS */
   REDIS_HOST_CLI,
   REDIS_PORT_CLI,
@@ -63,6 +67,8 @@ static struct ta_cli_argument_s {
     {"ta_thread", optional_argument, NULL, TA_THREAD_COUNT_CLI, "TA executing thread"},
     {"iri_host", required_argument, NULL, IRI_HOST_CLI, "IRI listening host"},
     {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
+    {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
+    {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
     {"redis_host", required_argument, NULL, REDIS_HOST_CLI, "Redis server listening host"},
     {"redis_port", required_argument, NULL, REDIS_PORT_CLI, "Redis server listening port"},
     {"db_host", required_argument, NULL, DB_HOST_CLI, "DB server listening host"},

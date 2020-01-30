@@ -27,6 +27,11 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
+  // Initialize configurations with configuration file
+  if (ta_core_file_init(&ta_core, argc, argv) != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
   // Initialize configurations with CLI value
   if (ta_core_cli_init(&ta_core, argc, argv) != SC_OK) {
     return EXIT_FAILURE;
