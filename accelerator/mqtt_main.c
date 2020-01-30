@@ -43,6 +43,10 @@ int main(int argc, char *argv[]) {
     mqtt_callback_logger_init();
     mqtt_pub_logger_init();
     mqtt_sub_logger_init();
+    apis_logger_init();
+    cc_logger_init();
+    pow_logger_init();
+    timer_logger_init();
   } else {
     // Destroy logger when verbose mode is off
     logger_helper_release(logger_id);
@@ -95,6 +99,11 @@ done:
     mqtt_callback_logger_release();
     mqtt_pub_logger_release();
     mqtt_sub_logger_release();
+    apis_logger_release();
+    cc_logger_release();
+    serializer_logger_release();
+    pow_logger_release();
+    timer_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       return EXIT_FAILURE;

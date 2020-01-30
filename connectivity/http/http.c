@@ -5,8 +5,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "utils/macros.h"
 #include "http.h"
+#include "utils/macros.h"
 
 #define HTTP_LOGGER "http"
 
