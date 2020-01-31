@@ -9,6 +9,7 @@ cc_library(
     include_prefix = "accelerator/core/request",
     visibility = ["//visibility:public"],
     deps = [
+        "//common",
         "//common:ta_errors",
         "@entangled//common:errors",
         "@entangled//common/model:transaction",
