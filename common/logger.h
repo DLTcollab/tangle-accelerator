@@ -70,7 +70,7 @@ static inline status_t ta_logger_init() {
     fflush(stdout);                                         \
   } while (0)
 
-bool verbose_mode; /**< flag of verbose mode */
+bool quiet_mode; /**< flag of quiet mode */
 
 #ifdef __cplusplus
 }

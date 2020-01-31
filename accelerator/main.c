@@ -67,17 +67,17 @@ int main(int argc, char* argv[]) {
 
   log_info(logger_id, "Tangle-accelerator starts running\n");
 
-  // Enable other loggers when verbose mode is on
-  if (verbose_mode) {
+  // Disable loggers when quiet mode is on
+  if (quiet_mode) {
+    // Destroy logger when quiet mode is on
+    logger_helper_release(logger_id);
+    logger_helper_destroy();
+  } else {
     http_logger_init();
     apis_logger_init();
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
-  } else {
-    // Destroy logger when verbose mode is off
-    logger_helper_release(logger_id);
-    logger_helper_destroy();
   }
 
   /* pause() cause TA to sleep until it catch a signal,
@@ -98,7 +98,7 @@ cleanup:
   log_info(logger_id, "Destroying TA configurations\n");
   ta_core_destroy(&ta_core);
 
-  if (verbose_mode) {
+  if (quiet_mode == false) {
     http_logger_release();
     apis_logger_release();
     cc_logger_release();

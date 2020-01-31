@@ -46,7 +46,7 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
   cJSON_AddNumberToObject(json_root, "redis_port", cache->port);
   cJSON_AddNumberToObject(json_root, "milestone_depth", tangle->milestone_depth);
   cJSON_AddNumberToObject(json_root, "mwm", tangle->mwm);
-  cJSON_AddBoolToObject(json_root, "verbose", verbose_mode);
+  cJSON_AddBoolToObject(json_root, "quiet", quiet_mode);
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
