@@ -55,6 +55,18 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
+    ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  if (ta_http_start(&ta_http) != SC_OK) {
+    ta_log_error("Starting TA failed %s.\n", MAIN_LOGGER);
+    goto cleanup;
+  }
+
+  log_info(logger_id, "Tangle-accelerator starts running\n");
+
   // Enable other loggers when verbose mode is on
   if (verbose_mode) {
     http_logger_init();
@@ -67,18 +79,6 @@ int main(int argc, char* argv[]) {
     logger_helper_release(logger_id);
     logger_helper_destroy();
   }
-
-  if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
-    ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
-    return EXIT_FAILURE;
-  }
-
-  if (ta_http_start(&ta_http) != SC_OK) {
-    ta_log_error("Starting TA failed %s.\n", MAIN_LOGGER);
-    goto cleanup;
-  }
-
-  log_info(logger_id, "Tangle-accelerator starts running\n");
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
