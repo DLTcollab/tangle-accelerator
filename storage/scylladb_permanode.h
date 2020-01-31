@@ -226,14 +226,14 @@ int64_t ret_transaction_timestamp(scylla_iota_transaction_t* obj);
  * @brief connect to ScyllaDB node and create table
  *
  * @param[in] service ScyllaDB db client service
- * @param[in] need_drop true : drop table
+ * @param[in] need_truncate true : clear all data, false : keep old data
  * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_truncate, const char* keyspace_name);
 /**
  * @brief insert transactions into bundle table
  *

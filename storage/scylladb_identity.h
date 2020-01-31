@@ -171,14 +171,14 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, const char* ha
  * @brief connect to ScyllaDB cluster and initialize identity keyspace and table
  *
  * @param[in] service ScyllaDB client service for connection
- * @param[in] need_drop true : drop table, false : keep old table
+ * @param[in] need_truncate true : clear all data, false : keep old data
  * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+status_t db_init_identity_keyspace(db_client_service_t* service, bool need_truncate, const char* keyspace_name);
 
 /**
  * @brief get identity objs with selected status from identity table

@@ -78,6 +78,17 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
 status_t create_keyspace(CassSession* session, const char* keyspace_name);
 
 /**
+ * @brief clear all data in the specific ScyllaDB table without droping the table
+ *
+ * @param[in] session used to execute queries and maintains cluster state
+ * @param[in] table_name The name of table to be truncated
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_truncate_table(CassSession* session, const char* table_name);
+
+/**
  * Initialize logger
  */
 void scylladb_logger_init();

@@ -10,7 +10,6 @@
 #include "time.h"
 
 #define logger_id scylladb_logger_id
-
 #define DB_IDENTITY_UUID_VERSION 4
 
 struct db_identity_s {
@@ -168,13 +167,7 @@ static void print_error(CassFuture* future) {
   ta_log_error("Error: %.*s\n", (int)message_length, message);
 }
 
-static status_t create_identity_table(CassSession* session, bool need_drop) {
-  if (need_drop) {
-    if (execute_query(session, "DROP TABLE IF EXISTS identity;") != CASS_OK) {
-      ta_log_error("drop identity table fail\n");
-      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    }
-  }
+static status_t create_identity_table(CassSession* session, bool need_truncate) {
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS identity("
                     "id uuid, ts timestamp, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
@@ -188,6 +181,12 @@ static status_t create_identity_table(CassSession* session, bool need_drop) {
   if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(hash);") != CASS_OK) {
     ta_log_error("create identity table index fail\n");
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  if (need_truncate) {
+    if (db_truncate_table(session, "identity") != SC_OK) {
+      ta_log_error("truncate identity table fail\n");
+      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    }
   }
 
   return SC_OK;
@@ -229,7 +228,7 @@ exit:
   return ret;
 }
 
-status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name) {
+status_t db_init_identity_keyspace(db_client_service_t* service, bool need_truncate, const char* keyspace_name) {
   status_t ret = SC_OK;
   CassStatement* use_statement = NULL;
   char* use_query = NULL;
@@ -252,8 +251,7 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop,
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
-
-  if ((ret = create_identity_table(service->session, need_drop)) != SC_OK) {
+  if ((ret = create_identity_table(service->session, need_truncate)) != SC_OK) {
     ta_log_error("%s\n", "create identity table fail");
     goto exit;
   }
