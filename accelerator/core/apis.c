@@ -346,7 +346,7 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
     goto done;
   }
 
-  ret = receive_mam_message_res_serialize(payload, json_result);
+  // ret = receive_mam_message_res_serialize(payload, json_result);
 
 done:
   // Destroying MAM API

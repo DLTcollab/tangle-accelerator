@@ -59,6 +59,7 @@ status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chi
   if (req == NULL || (!bundle_hash && !chid && !epid && !msg_id)) {
     return SC_TA_NULL;
   }
+  status_t ret = SC_OK;
 
   req->data_id = (data_id_mam_v1_t*)malloc(sizeof(data_id_mam_v1_t));
   if (!req->data_id) {
@@ -66,25 +67,55 @@ status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chi
   }
 
   data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  data_id->bundle_hash = NULL;
+  data_id->chid = NULL;
+  data_id->epid = NULL;
+  data_id->msg_id = NULL;
   if (bundle_hash) {
-    strncpy(data_id->bundle_hash, bundle_hash, NUM_TRYTES_HASH);
+    data_id->bundle_hash = strdup(bundle_hash);
+    if (!data_id->bundle_hash) {
+      ret = SC_TA_OOM;
+      goto error;
+    }
   }
   if (chid) {
-    strncpy(data_id->chid, chid, NUM_TRYTES_HASH);
+    data_id->chid = strdup(chid);
+    if (!data_id->chid) {
+      ret = SC_TA_OOM;
+      goto error;
+    }
   }
   if (epid) {
-    strncpy(data_id->epid, epid, NUM_TRYTES_HASH);
+    data_id->epid = strdup(epid);
+    if (!data_id->epid) {
+      ret = SC_TA_OOM;
+      goto error;
+    }
   }
   if (msg_id) {
-    strncpy(data_id->msg_id, msg_id, NUM_TRYTES_MAM_MSG_ID);
+    data_id->msg_id = strdup(msg_id);
+    if (!data_id->msg_id) {
+      ret = SC_TA_OOM;
+      goto error;
+    }
   }
 
-  return SC_OK;
+  return ret;
+
+error:
+  free(req->data_id);
+  req->data_id = NULL;
+  return ret;
 }
 
 status_t set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru) {
-  if (!req->key) {
+  if (!req) {
     return SC_TA_NULL;
+  }
+
+  req->key = (key_mam_v1_t*)malloc(sizeof(key_mam_v1_t));
+  if (!req->key) {
+    return SC_TA_OOM;
   }
 
   key_mam_v1_t* key = (key_mam_v1_t*)req->key;

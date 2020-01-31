@@ -231,7 +231,7 @@ status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by
  * - SC_OK on success
  * - non-zero on error
  */
-status_t receive_mam_message_res_serialize(char* const message, char** obj);
+status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_mam_req_t

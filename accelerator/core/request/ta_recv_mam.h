@@ -52,13 +52,13 @@ void recv_mam_req_free(ta_recv_mam_req_t** req);
 
 typedef struct data_id_mam_v1_s {
   /** ascii string bundle hash */
-  char bundle_hash[NUM_TRYTES_HASH + 1];
+  char* bundle_hash;
   /** ascii string channel id */
-  char chid[NUM_TRYTES_HASH + 1];
+  char* chid;
   /** ascii string endpoint id */
-  char epid[NUM_TRYTES_HASH + 1];
+  char* epid;
   /** channel ordinal which is the number of channel we generated */
-  char msg_id[NUM_TRYTES_MAM_MSG_ID + 1];
+  char* msg_id;
 } data_id_mam_v1_t;
 
 typedef struct key_mam_v1_s {
