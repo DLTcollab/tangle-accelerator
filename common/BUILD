@@ -3,6 +3,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "common",
     deps = [
+        "macros",
         ":ta_errors",
         ":ta_logger",
     ],
@@ -20,5 +21,15 @@ cc_library(
     defines = ["LOGGER_ENABLE"],
     deps = [
         "@entangled//utils:logger_helper",
+    ],
+)
+
+cc_library(
+    name = "macros",
+    hdrs = ["macros.h"],
+    deps = [
+        "@entangled//common/model:transaction",
+        "@entangled//common/trinary:tryte",
+        "@entangled//mam/mam:message",
     ],
 )
