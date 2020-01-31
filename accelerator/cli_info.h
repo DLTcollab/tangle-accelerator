@@ -50,7 +50,7 @@ typedef enum ta_cli_arg_value_e {
   PROXY_API,
 
   /** LOGGER */
-  VERBOSE,
+  QUIET,
 } ta_cli_arg_value_t;
 
 static struct ta_cli_argument_s {
@@ -78,7 +78,7 @@ static struct ta_cli_argument_s {
     {"cache", required_argument, NULL, CACHE, "Enable cache server with Y"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
-    {"verbose", no_argument, NULL, VERBOSE, "Enable logger"},
+    {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
