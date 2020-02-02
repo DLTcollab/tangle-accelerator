@@ -21,6 +21,11 @@ extern "C" {
 
 /**
  * @file utils/fill_nines.h
+ * @brief Padding string with 9s to assigned length
+ *
+ * 9 would be mapped to 0 in the trinary system of IOTA. Therefore, when the legnth of the input string is less than the
+ * length of a certain IOTA transaction field, the user can use this function to use 9's as padding and make the input
+ * string long enough.
  */
 
 /**

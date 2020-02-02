@@ -178,8 +178,8 @@ void test_db_get_identity_objs_by_status(db_client_service_t* db_client_service)
     db_get_identity_uuid_string(itr, uuid_string);
 
     TEST_ASSERT_EQUAL_STRING(uuid_string, identities[idx].uuid_string);
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
-                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (cass_byte_t*)identities[idx].hash,
+                             sizeof(cass_byte_t) * DB_NUM_TRYTES_HASH);
     idx++;
   }
   db_identity_array_free(&db_identity_array);
@@ -194,8 +194,8 @@ void test_db_get_identity_objs_by_uuid_string(db_client_service_t* db_client_ser
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
-                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (cass_byte_t*)identities[idx].hash,
+                             sizeof(cass_byte_t) * DB_NUM_TRYTES_HASH);
     TEST_ASSERT_EQUAL_INT(db_ret_identity_status(itr), identities[idx].status);
     idx++;
   }
@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
   int cmdOpt;
   int optIdx;
   const struct option longOpt[] = {
-      {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
+      {"db_host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
   keyspace_name = "test_scylla";
   /* Parse the command line options */
@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
     if (cmdOpt == -1) break;
 
     /* Invalid option */
-    if (cmdOpt == '?') break;
+    if (cmdOpt == '?') continue;
 
     if (cmdOpt == 'h') {
       host = optarg;

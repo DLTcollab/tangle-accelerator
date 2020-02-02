@@ -18,6 +18,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/duplex_utils.h
+ * @brief MQTT read/write client
  */
 
 /**

@@ -13,8 +13,6 @@
 #define CONFIG_LOGGER "config"
 
 static logger_id_t logger_id;
-// FIXME: We need further improvements without depending on temporary variables
-static int tmp_argc;
 
 int get_conf_key(char const* const key) {
   for (int i = 0; i < cli_cmd_num; ++i) {
@@ -26,25 +24,12 @@ int get_conf_key(char const* const key) {
   return 0;
 }
 
-static void remove_nonvalue_dash(int argc, char** argv) {
-  for (int i = 1; i < argc; i++) {
-    if ((strlen(argv[i]) == 2) && (!strncmp(argv[i], "--", 2))) {
-      argc--;
-      if (argc == (i + 1)) {
-        break;
-      }
-      memmove(argv + i, argv + (i + 1), (argc - i) * sizeof(char*));
-    }
-  }
-  tmp_argc = argc;
-}
-
 struct option* cli_build_options() {
   struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
   for (int i = 0; i < cli_cmd_num; ++i) {
     long_options[i].name = ta_cli_arguments_g[i].name;
     long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
-    long_options[i].flag = NULL;
+    long_options[i].flag = ta_cli_arguments_g[i].flag;
     long_options[i].val = ta_cli_arguments_g[i].val;
   }
   return long_options;
@@ -82,6 +67,16 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
     case IRI_PORT_CLI:
       iota_service->http.port = atoi(value);
       break;
+
+#ifdef MQTT_ENABLE
+    // MQTT configuration
+    case MQTT_HOST_CLI:
+      ta_conf->mqtt_host = value;
+      break;
+    case MQTT_ROOT_CLI:
+      ta_conf->mqtt_topic_root = value;
+      break;
+#endif
 
     // Cache configuration
     case REDIS_HOST_CLI:
@@ -205,9 +200,6 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
     goto done;
   }
 
-  // remove `--` from argv
-  remove_nonvalue_dash(argc, argv);
-
   // Loop through the CLI arguments for first time to find the configuration file path
   while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
@@ -218,7 +210,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case CONF_CLI:
         ret = cli_core_set(core, key, optarg);
         break;
@@ -295,10 +287,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
   status_t ret = SC_OK;
   struct option* long_options = cli_build_options();
 
-  // remove `--` from argv
-  remove_nonvalue_dash(tmp_argc, argv);
-
-  while ((key = getopt_long(tmp_argc, argv, "hv", long_options, NULL)) != -1) {
+  while ((key = getopt_long(argc, argv, "hv", long_options, NULL)) != -1) {
     switch (key) {
       case ':':
         ret = SC_CONF_MISSING_ARGUMENT;
@@ -307,7 +296,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case 'h':
         ta_usage();
         exit(EXIT_SUCCESS);

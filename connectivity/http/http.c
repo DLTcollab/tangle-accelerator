@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "http.h"
+#include "utils/macros.h"
 
 #define HTTP_LOGGER "http"
 
@@ -46,7 +47,7 @@ static status_t ta_http_url_matcher(char const *const url, char *const regex_rul
     // Did not match pattern
     ret = SC_HTTP_URL_NOT_MATCH;
   } else {
-    if (pmatch.rm_eo - pmatch.rm_so != strlen(url)) {
+    if ((size_t)(pmatch.rm_eo - pmatch.rm_so) != strlen(url)) {
       ret = SC_HTTP_URL_NOT_MATCH;
     }
   }
@@ -353,6 +354,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
 }
 
 static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
+  UNUSED(kind);
   ta_http_request_t *header = cls;
 
   if (0 == strcmp(MHD_HTTP_HEADER_CONTENT_TYPE, key)) {
@@ -362,6 +364,8 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *k
 }
 
 static int request_log(void *cls, const struct sockaddr *addr, socklen_t addrlen) {
+  UNUSED(cls);
+  UNUSED(addrlen);
   char buf[30];
   struct sockaddr_in *addr_ip = (struct sockaddr_in *)addr;
   char *ip = inet_ntoa(addr_ip->sin_addr);
@@ -373,6 +377,7 @@ static int request_log(void *cls, const struct sockaddr *addr, socklen_t addrlen
 
 static int ta_http_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
                            const char *version, const char *upload_data, size_t *upload_data_size, void **ptr) {
+  UNUSED(version);
   int ret = MHD_NO, req_ret = MHD_HTTP_OK;
   int post = 0, options = 0;
   ta_http_t *api = (ta_http_t *)cls;

@@ -17,8 +17,23 @@ struct db_identity_s {
   CassUuid uuid;
   cass_int64_t timestamp;
   cass_int8_t status;
-  cass_byte_t hash[NUM_FLEX_TRITS_BUNDLE];
+  cass_byte_t hash[DB_NUM_TRYTES_HASH];
 };
+
+status_t db_show_identity_info(db_identity_t* obj) {
+  if (obj == NULL) {
+    ta_log_error("Invaild NULL pointer : obj\n");
+    return SC_TA_NULL;
+  }
+  char uuid_string[DB_UUID_STRING_LENGTH];
+  char hash[DB_NUM_TRYTES_HASH + 1];
+  db_get_identity_uuid_string(obj, uuid_string);
+  memcpy(hash, obj->hash, DB_NUM_TRYTES_HASH);
+  hash[DB_NUM_TRYTES_HASH] = 0;
+  ta_log_info("identity info\n uuid string : %s\nhash :%s\ntimestamp : %ld\ntime eclapsed : %ld\nstatus : %d\n",
+              uuid_string, hash, obj->timestamp, db_ret_identity_time_elapsed(obj), obj->status);
+  return SC_OK;
+}
 
 status_t db_identity_new(db_identity_t** obj) {
   *obj = (db_identity_t*)malloc(sizeof(struct db_identity_s));
@@ -122,11 +137,11 @@ status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_
   if (hash == NULL) {
     ta_log_error("NULL pointer to hash to insert into identity table\n");
   }
-  if (length != NUM_FLEX_TRITS_HASH) {
+  if (length != DB_NUM_TRYTES_HASH) {
     ta_log_error("SC_STORAGE_INVAILD_INPUT\n");
     return SC_STORAGE_INVAILD_INPUT;
   }
-  memcpy(obj->hash, hash, NUM_FLEX_TRITS_HASH);
+  memcpy(obj->hash, hash, DB_NUM_TRYTES_HASH);
   return SC_OK;
 }
 
@@ -187,7 +202,7 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, const char* ha
     ta_log_error("db new identity failed\n");
     goto exit;
   }
-  if ((ret = db_set_identity_hash(identity, (cass_byte_t*)hash, NUM_FLEX_TRITS_HASH)) != SC_OK) {
+  if ((ret = db_set_identity_hash(identity, (cass_byte_t*)hash, DB_NUM_TRYTES_HASH)) != SC_OK) {
     ta_log_error("db set identity hash failed\n");
     goto exit;
   }
@@ -251,7 +266,7 @@ exit:
 static CassStatement* ret_insert_identity_statement(const CassPrepared* prepared, const db_identity_t* obj) {
   CassStatement* statement = NULL;
   statement = cass_prepared_bind(prepared);
-  cass_statement_bind_bytes_by_name(statement, "hash", obj->hash, NUM_FLEX_TRITS_HASH);
+  cass_statement_bind_bytes_by_name(statement, "hash", obj->hash, DB_NUM_TRYTES_HASH);
   cass_statement_bind_int8_by_name(statement, "status", obj->status);
   cass_statement_bind_int64_by_name(statement, "ts", obj->timestamp);
   cass_statement_bind_uuid_by_name(statement, "id", obj->uuid);
@@ -262,9 +277,7 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
   status_t ret = SC_OK;
   const CassPrepared* insert_prepared = NULL;
   CassStatement* statement = NULL;
-  const char* insert_query =
-      "INSERT INTO identity (id, ts, status, hash)"
-      "VALUES (?, ?, ?, ?);";
+  const char* query = "UPDATE identity Set ts = ?, status = ?, hash =? Where id = ?";
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)");
     return SC_TA_NULL;
@@ -274,7 +287,7 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
     return SC_TA_NULL;
   }
 
-  if (prepare_query(service->session, insert_query, &insert_prepared) != CASS_OK) {
+  if (prepare_query(service->session, query, &insert_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare INSERT query fail");
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
@@ -327,7 +340,7 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
     itr = (db_identity_t*)utarray_back(identity_array);
 
     cass_value_get_bytes(cass_row_get_column_by_name(row, "hash"), &hash, &len);
-    db_set_identity_hash(itr, hash, NUM_FLEX_TRITS_HASH);
+    db_set_identity_hash(itr, hash, DB_NUM_TRYTES_HASH);
     cass_value_get_int8(cass_row_get_column_by_name(row, "status"), &value);
     db_set_identity_status(itr, value);
     cass_value_get_int64(cass_row_get_column_by_name(row, "ts"), &ts);
@@ -402,7 +415,7 @@ status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_b
     return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
   statement = cass_prepared_bind(select_prepared);
-  cass_statement_bind_bytes_by_name(statement, "hash", hash, NUM_FLEX_TRITS_HASH);
+  cass_statement_bind_bytes_by_name(statement, "hash", hash, DB_NUM_TRYTES_HASH);
   ret = get_identity_array(service->session, statement, identity_array);
 
   cass_prepared_free(select_prepared);

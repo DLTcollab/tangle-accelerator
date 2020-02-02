@@ -8,42 +8,49 @@ import logging
 class GetTransactionsObject(unittest.TestCase):
 
     # 81 trytes transaction hash (pass)
+    @test_logger
     def test_81_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[0]]))
         self._verify_pass(res, 0)
 
     # Multiple 81 trytes transaction hash (pass)
+    @test_logger
     def test_mult_81_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[1]]))
         self._verify_pass(res, 1)
 
     # 20 trytes transaction hash (fail)
+    @test_logger
     def test_20_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[2]]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # 100 trytes transaction hash (fail)
+    @test_logger
     def test_100_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[3]]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Unicode transaction hash (fail)
+    @test_logger
     def test_unicode_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[4]]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Null Transaction hash (fail)
+    @test_logger
     def test_null_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[5]]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Time statistics
+    @test_logger
     def test_time_statistics(self):
         time_cost = []
         post_data_json = json.dumps({"hashes": self.query_string[0]})
@@ -67,7 +74,7 @@ class GetTransactionsObject(unittest.TestCase):
             tx_post_data_json = json.dumps(tx_post_data)
             sent_txn_obj = API("/transaction/", post_data=tx_post_data_json)
 
-            logging.debug("sent_transaction_obj = {}".format(sent_txn_obj))
+            logging.debug(f"sent_transaction_obj = {sent_txn_obj}")
 
             unittest.TestCase().assertEqual(STATUS_CODE_200,
                                             sent_txn_obj["status_code"])

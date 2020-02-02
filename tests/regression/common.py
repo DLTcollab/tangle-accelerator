@@ -5,8 +5,8 @@ import logging
 import requests
 import statistics
 import subprocess
+import argparse
 
-DEBUG_FLAG = False
 TIMES_TOTAL = 100
 TIMEOUT = 100  # [sec]
 STATUS_CODE_500 = "500"
@@ -24,19 +24,23 @@ URL = ""
 
 def parse_cli_arg():
     global URL
-    if len(sys.argv) == 2:
-        raw_url = sys.argv[1]
-    elif len(sys.argv) == 4:
-        raw_url = sys.argv[1]
-        if sys.argv[2] == 'Y':
-            DEBUG_FLAG = True
+    parser = argparse.ArgumentParser('Regression test runner program')
+    parser.add_argument('-u',
+                        '--url',
+                        dest='raw_url',
+                        default="localhost:8000")
+    parser.add_argument('-d', '--debug', dest="debug", action="store_true")
+    parser.add_argument('--nostat', dest="no_stat", action="store_true")
+    args = parser.parse_args()
 
-        # the 3rd arg is the option which determine if use the debugging mode of statistical tests
-        if sys.argv[3] == 'Y':
-            TIMES_TOTAL = 2
+    if args.no_stat:
+        global TIMES_TOTAL
+        TIMES_TOTAL = 2
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
     else:
-        raw_url = "localhost:8000"
-    URL = "http://" + raw_url
+        logging.basicConfig(level=logging.INFO)
+    URL = "http://" + args.raw_url
 
 
 def eval_stat(time_cost, func_name):
@@ -61,6 +65,17 @@ def gen_rand_trytes(tryte_len):
     return trytes
 
 
+def test_logger(f):
+    logger = logging.getLogger(f.__module__)
+    name = f.__name__
+
+    def decorate(instance):
+        logger.debug(f"Testing case = {name}")
+        return instance
+
+    return decorate(f)
+
+
 def valid_trytes(trytes, trytes_len):
     if len(trytes) != trytes_len:
         return False
@@ -81,18 +96,16 @@ def map_field(key, value):
 
 def API(get_query, get_data=None, post_data=None):
     global URL
+    command = "curl {} -X POST -H 'Content-Type: application/json' -w \", %{{http_code}}\" -d '{}'"
     try:
         response = {}
         if get_data is not None:
-            r = requests.get(str(URL + get_query + get_data), timeout=TIMEOUT)
+            command = str(URL + get_query + get_data)
+            r = requests.get(command, timeout=TIMEOUT)
             response = {"content": r.text, "status_code": str(r.status_code)}
 
         elif post_data is not None:
-            command = "curl " + str(
-                URL + get_query
-            ) + " -X POST -H 'Content-Type: application/json' -w \", %{http_code}\" -d '" + str(
-                post_data) + "'"
-            logging.debug("curl command = " + command)
+            command = command.format(URL + get_query, post_data)
             p = subprocess.Popen(command,
                                  shell=True,
                                  stdout=subprocess.PIPE,
@@ -113,5 +126,7 @@ def API(get_query, get_data=None, post_data=None):
         return None
     if not response:
         response = None
+
+    logging.debug(f"Command = {command}, response = {response}")
 
     return response
