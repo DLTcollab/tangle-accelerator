@@ -89,12 +89,13 @@ Tangle-accelerator is built and launched through Bazel, it also requires Redis t
 
 ## Build from Source
 
-Before running tangle-accelerator, please edit binding address/port of accelerator instance, IRI, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [entangled](https://github.com/iotaledger/entangled), IRI address doesn't support https at the moment. Here are some configurations you might need to change:
+Before running tangle-accelerator, please edit binding address/port of accelerator instance, IRI, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [entangled](https://github.com/iotaledger/entangled), IRI address doesn't support https at the moment. Here are some configurations and command you might need to change and use:
 
 * `TA_HOST`: binding address of accelerator instance
 * `TA_PORT`: port of accelerator instance
 * `IRI_HOST`: binding address of IRI
 * `IRI_PORT`: port of IRI
+* `quiet`: Turn off logging message
 
 ```
 $ make && bazel run //accelerator
