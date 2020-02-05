@@ -365,6 +365,39 @@ void test_proxy_apis_command_req_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(command, TEST_PROXY_API(addNeighbors));
 }
 
+void test_get_iri_status_milestone_deserialize(void) {
+  const char* json =
+      "{\"appName\": \"IRI\",\"appVersion\": \"1.7.0-RELEASE\",\"jreAvailableProcessors\": 8,\"jreFreeMemory\": "
+      "2115085674,\"jreVersion\": \"1.8.0_191\",\"jreMaxMemory\": 20997734400,\"jreTotalMemory\": "
+      "4860129502,\"latestMilestone\": "
+      "\"CUOENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999\",\"latestMilestoneIndex\": "
+      "1050373,\"latestSolidSubtangleMilestone\": "
+      "\"999ENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999\", "
+      "\"latestSolidSubtangleMilestoneIndex\": 1050373, \"milestoneStartIndex\": 1050101, "
+      "\"lastSnapshottedMilestoneIndex\": 1039138, \"neighbors\": 7, \"packetsQueueSize\": 0, \"time\": 1554970558971, "
+      "\"tips\": 9018, \"transactionsToRequest\": 0, \"features\": [  \"snapshotPruning\",  \"dnsRefresher\",  "
+      "\"tipSolidification\" ],\"coordinatorAddress\": "
+      "\"EQSAUZXULTTYZCLNJNTXQTQHOMOFZERHTCGTXOLTVAHKSA9OGAZDEKECURBRIXIJWNPFCQIOVFVVXJVD9\",\"duration\": 0}";
+  const char latestMilestone[] = "CUOENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999";
+  const char latestSolidSubtangleMilestone[] =
+      "999ENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999";
+  char deserialize_latestMilestone[82], deserialize_latestSolidSubtangleMilestone[82];
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, get_iri_status_milestone_deserialize(json, deserialize_latestMilestone,
+                                                                    deserialize_latestSolidSubtangleMilestone));
+  TEST_ASSERT_EQUAL_STRING(latestMilestone, deserialize_latestMilestone);
+  TEST_ASSERT_EQUAL_STRING(latestSolidSubtangleMilestone, deserialize_latestSolidSubtangleMilestone);
+}
+
+void test_get_iri_status_res_serialize(void) {
+  const char* json = "{\"status\":false,\"status_code\":\"SC_CORE_IRI_UNSYNC\"}";
+  char* json_result = NULL;
+  TEST_ASSERT_EQUAL_STRING(SC_OK, get_iri_status_res_serialize(SC_CORE_IRI_UNSYNC, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -390,6 +423,8 @@ int main(void) {
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
 #endif
   RUN_TEST(test_proxy_apis_command_req_deserialize);
+  RUN_TEST(test_get_iri_status_milestone_deserialize);
+  RUN_TEST(test_get_iri_status_res_serialize);
   serializer_logger_release();
   return UNITY_END();
 }

@@ -308,6 +308,20 @@ void test_receive_mam_message(void) {
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
+void test_get_iri_status() {
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_iri_status(&ta_core.iota_service, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+    free(json_result);
+  }
+  printf("Average time of get_iri_status: %lf\n", sum / TEST_COUNT);
+}
+
 void test_proxy_apis() {
   for (int i = 0; i < proxy_apis_num; i++) {
     char* json_result;
@@ -339,6 +353,7 @@ int main(int argc, char* argv[]) {
   ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
+
   RUN_TEST(test_generate_address);
   RUN_TEST(test_get_tips_pair);
   RUN_TEST(test_get_tips);
@@ -355,6 +370,7 @@ int main(int argc, char* argv[]) {
   RUN_TEST(test_find_transactions_by_id);
 #endif
   RUN_TEST(test_proxy_apis);
+  RUN_TEST(test_get_iri_status);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }
