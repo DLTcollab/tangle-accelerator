@@ -268,7 +268,6 @@ int main(int argc, char** argv) {
   }
   scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
-  RUN_TEST(test_permanode);
   scylladb_logger_release();
   return UNITY_END();
 #else
