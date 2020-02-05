@@ -672,3 +672,35 @@ exit:
   return ret;
 }
 #endif
+
+status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result) {
+  status_t ret = SC_OK;
+
+  ret = ta_get_iri_status(service);
+  switch (ret) {
+    /*
+     * The statuses of each status_t are listed as the following. Not listed status code are unexpected errors which
+     * would cause TA return error.
+     *
+     * SC_CCLIENT_FAILED_RESPONSE: Can't connect to IRI host
+     * SC_CORE_IRI_UNSYNC: IRI host is not at the latest milestone
+     * SC_OK: IRI host works fine.
+     **/
+    case SC_CCLIENT_FAILED_RESPONSE:
+    case SC_CORE_IRI_UNSYNC:
+    case SC_OK:
+      break;
+
+    default:
+      ta_log_error("check IRI connection failed. status code: %d\n", ret);
+      goto done;
+  }
+
+  ret = get_iri_status_res_serialize(ret, json_result);
+  if (ret) {
+    ta_log_error("failed to serialize. status code: %d\n", ret);
+  }
+
+done:
+  return ret;
+}

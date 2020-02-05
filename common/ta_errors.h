@@ -55,6 +55,7 @@ extern "C" {
 #define SC_MODULE_HTTP (0x09 << SC_MODULE_SHIFT)
 #define SC_MODULE_MQTT (0x0A << SC_MODULE_SHIFT)
 #define SC_MODULE_STORAGE (0x0B << SC_MODULE_SHIFT)
+#define SC_MODULE_CORE (0x0C << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -224,6 +225,14 @@ typedef enum {
   /**< Fail to execute Cassandra query   */
   SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< ZeroMQ process error   */
+
+  // Core module
+  SC_CORE_OOM = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< Fail to create core object */
+  SC_CORE_NULL = 0x02 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< NULL object in core */
+  SC_CORE_IRI_UNSYNC = 0x03 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< IRI host is unsynchromized */
 
 } status_t;
 

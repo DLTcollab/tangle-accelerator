@@ -7,6 +7,7 @@
  */
 
 #include "proxy_apis.h"
+#include "utils/char_buffer_str.h"
 #include "utils/handles/lock.h"
 #include "utils/hash_algo_djb2.h"
 
@@ -38,31 +39,6 @@ status_t proxy_apis_lock_destroy() {
   if (lock_handle_destroy(&cjson_lock)) {
     return SC_CONF_LOCK_DESTROY;
   }
-  return SC_OK;
-}
-
-/**
- * @brief Store response message to json_result
- * @param[in] res_buff Buffer of response message
- * @param[out] json_result Response message
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-static status_t char_buffer_to_str(char_buffer_t* res_buff, char** json_result) {
-  if (res_buff == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_TA_NULL;
-  }
-
-  *json_result = (char*)malloc((res_buff->length + 1) * sizeof(char));
-  if (*json_result == NULL) {
-    ta_log_error("%s\n", "SC_TA_OOM");
-    return SC_TA_OOM;
-  }
-  snprintf(*json_result, (res_buff->length + 1), "%s", res_buff->data);
-
   return SC_OK;
 }
 
@@ -102,7 +78,7 @@ static status_t api_check_consistency(const iota_client_service_t* const service
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   check_consistency_req_free(&req);
@@ -146,7 +122,7 @@ static status_t api_find_transactions(const iota_client_service_t* const service
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   find_transactions_req_free(&req);
@@ -191,7 +167,7 @@ static status_t api_get_balances(const iota_client_service_t* const service, con
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   get_balances_req_free(&req);
@@ -236,7 +212,7 @@ static status_t api_get_inclusion_states(const iota_client_service_t* const serv
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   get_inclusion_states_req_free(&req);
@@ -270,7 +246,7 @@ static status_t api_get_node_info(const iota_client_service_t* const service, ch
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   get_node_info_res_free(&res);
@@ -313,7 +289,7 @@ static status_t api_get_trytes(const iota_client_service_t* const service, const
     goto done;
   }
 
-  ret = char_buffer_to_str(res_buff, json_result);
+  ret = str_from_char_buffer(res_buff, json_result);
 
 done:
   get_trytes_req_free(&req);
@@ -336,7 +312,7 @@ status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_ser
       ret = SC_CCLIENT_FAILED_RESPONSE;
       goto done;
     }
-    char_buffer_to_str(res_buff, json_result);
+    str_from_char_buffer(res_buff, json_result);
 
   done:
     char_buffer_free(req_buff);

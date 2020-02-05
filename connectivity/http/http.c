@@ -197,6 +197,13 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   free(bundle);
   return set_response_content(ret, out);
 }
+
+static inline int process_get_iri_status(ta_http_t *const http, char **const out) {
+  status_t ret;
+  ret = api_get_iri_status(&http->core->iota_service, out);
+  return set_response_content(ret, out);
+}
+
 #ifdef DB_ENABLE
 static inline int process_get_identity_info_by_hash_request(ta_http_t *const http, char const *const url,
                                                             char **const out) {
@@ -316,6 +323,8 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_find_txns_by_tag_request(http, url, out);
   } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
     return process_find_txns_obj_by_tag_request(http, url, out);
+  } else if (ta_http_url_matcher(url, "/status[/]?") == SC_OK) {
+    return process_get_iri_status(http, out);
   }
 #ifdef DB_ENABLE
   else if (ta_http_url_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {

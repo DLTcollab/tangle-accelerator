@@ -20,6 +20,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator/core/serializer",
+        "//utils:char_buffer_str",
         "//utils:hash_algo_djb2",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
@@ -36,7 +37,9 @@ cc_library(
         "//accelerator:ta_config",
         "//accelerator/core/request",
         "//accelerator/core/response",
+        "//accelerator/core/serializer",
         "//utils:bundle_array",
+        "//utils:char_buffer_str",
         "//utils:timer",
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",

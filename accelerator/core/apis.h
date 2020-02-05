@@ -266,6 +266,19 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  */
 status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
                          const char* const obj, char** json_result);
+
+/**
+ * @brief Check the connection status between tangle-accelerator and IRI host.
+ *
+ * @param[in] iota_service IRI node end point service
+ * @param[out] json_result Result containing the current connection status.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result);
+
 #ifdef DB_ENABLE
 /**
  * @brief Return transaction object with given single identity number.

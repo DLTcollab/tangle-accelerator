@@ -544,3 +544,40 @@ done:
   transaction_array_free(obj_res);
   return ret;
 }
+
+status_t ta_get_iri_status(const iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  char const* const getnodeinfo = "{\"command\": \"getNodeInfo\"}";
+  char* iri_result = NULL;
+  char_buffer_t* res_buff = char_buffer_new();
+  char_buffer_t* req_buff = char_buffer_new();
+  char_buffer_set(req_buff, getnodeinfo);
+
+  // Check IRI host connection
+  retcode_t result = iota_service_query(service, req_buff, res_buff);
+  if (result != RC_OK) {
+    ta_log_error("%s\n", error_2_string(result));
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+  str_from_char_buffer(res_buff, &iri_result);
+
+  // Check whether IRI host is at the latest milestone
+  char latestMilestone[NUM_TRYTES_ADDRESS + 1], latestSolidSubtangleMilestone[NUM_TRYTES_ADDRESS + 1];
+  ret = get_iri_status_milestone_deserialize(iri_result, latestMilestone, latestSolidSubtangleMilestone);
+  if (ret != SC_OK) {
+    ta_log_error("check iri connection failed deserialized. status code: %d\n", ret);
+    goto done;
+  }
+
+  if (strcmp(latestMilestone, latestSolidSubtangleMilestone)) {
+    ret = SC_CORE_IRI_UNSYNC;
+  }
+
+done:
+  free(iri_result);
+  char_buffer_free(req_buff);
+  char_buffer_free(res_buff);
+
+  return ret;
+}
