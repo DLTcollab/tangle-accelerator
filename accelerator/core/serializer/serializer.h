@@ -319,6 +319,32 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
  */
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
 
+/**
+ * @brief Deserialze latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
+ *
+ * @param[in] obj getNodeInfo response in JSON.
+ * @param[out] latestMilestone Hash of latestMilestone
+ * @param[out] latestSolidSubtangleMilestone Hash of latestSolidSubtangleMilestone
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t get_iri_status_milestone_deserialize(char const* const obj, char* const latestMilestone,
+                                              char* const latestSolidSubtangleMilestone);
+
+/**
+ * @brief Serialze the response of IRI connection status.
+ *
+ * @param[in] status Reponse status code
+ * @param[out] obj Serialized API response
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t get_iri_status_res_serialize(const status_t status, char** obj);
+
 #ifdef __cplusplus
 }
 #endif
