@@ -42,7 +42,12 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (verbose_mode) {
+  // Disable loggers when quiet mode is on
+  if (quiet_mode) {
+    // Destroy logger when quiet mode is on
+    logger_helper_release(logger_id);
+    logger_helper_destroy();
+  } else {
     mqtt_utils_logger_init();
     mqtt_common_logger_init();
     mqtt_callback_logger_init();
@@ -52,10 +57,6 @@ int main(int argc, char *argv[]) {
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
-  } else {
-    // Destroy logger when verbose mode is off
-    logger_helper_release(logger_id);
-    logger_helper_destroy();
   }
 
   // Initialize `mosq` and `cfg`
@@ -98,7 +99,7 @@ done:
   mosquitto_lib_cleanup();
   mosq_config_free(&cfg);
 
-  if (verbose_mode) {
+  if (quiet_mode == false) {
     mqtt_utils_logger_release();
     mqtt_common_logger_release();
     mqtt_callback_logger_release();
