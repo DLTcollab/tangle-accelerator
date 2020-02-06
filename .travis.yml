@@ -22,6 +22,6 @@ addons:
       description: "Accelerate IOTA transactions by caching API requests and redirecting to faster alternatives"
     build_command_prepend: ""
     build_command: "bash bash tests/coverity_analysis.sh"
-    branch_pattern: develop
+    branch_pattern: coverity_scan
 
 script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
