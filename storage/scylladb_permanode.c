@@ -9,7 +9,6 @@
 #include "scylladb_permanode.h"
 
 #define logger_id scylladb_logger_id
-
 typedef struct select_where_s {
   cass_byte_t* bundle;
   cass_byte_t* address;
@@ -251,15 +250,9 @@ static status_t get_blob(const CassRow* row, cass_byte_t* target, const char* co
   return ret;
 }
 
-static status_t create_bundle_table(CassSession* session, bool need_drop) {
+static status_t create_bundle_table(CassSession* session, bool need_truncate) {
   status_t ret = SC_OK;
-  if (need_drop) {
-    if (execute_query(session, "DROP TABLE IF EXISTS bundleTable;") != CASS_OK) {
-      ta_log_error("Drop bundleTable fail\n");
-      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-      goto exit;
-    }
-  }
+
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS bundleTable ("
                     "bundle blob,"
@@ -275,19 +268,18 @@ static status_t create_bundle_table(CassSession* session, bool need_drop) {
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
+  if (need_truncate) {
+    if (db_truncate_table(session, "bundleTable") != SC_OK) {
+      ta_log_error("truncate bundleTable fail\n");
+      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    }
+  }
 exit:
   return ret;
 }
 
-static status_t create_edge_table(CassSession* session, bool need_drop) {
+static status_t create_edge_table(CassSession* session, bool need_truncate) {
   status_t ret = SC_OK;
-  if (need_drop) {
-    if (execute_query(session, "DROP TABLE IF EXISTS edgeTable;") != CASS_OK) {
-      ta_log_error("Drop edgeTable fail\n");
-      ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-      goto exit;
-    }
-  }
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS edgeTable("
                     "edge blob,"
@@ -299,12 +291,18 @@ static status_t create_edge_table(CassSession* session, bool need_drop) {
     ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
     goto exit;
   }
+  if (need_truncate) {
+    if (db_truncate_table(session, "edgeTable") != SC_OK) {
+      ta_log_error("truncate edgeTable fail\n");
+      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    }
+  }
 
 exit:
   return ret;
 }
 
-status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_drop, const char* keyspace_name) {
+status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_truncate, const char* keyspace_name) {
   status_t ret = SC_OK;
   CassStatement* use_statement = NULL;
   char* use_query = NULL;
@@ -329,11 +327,11 @@ status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_drop
     goto exit;
   }
 
-  if ((ret = create_bundle_table(service->session, need_drop)) != SC_OK) {
+  if ((ret = create_bundle_table(service->session, need_truncate)) != SC_OK) {
     ta_log_error("%s\n", "create bundle table fail");
     goto exit;
   }
-  if ((ret = create_edge_table(service->session, need_drop)) != SC_OK) {
+  if ((ret = create_edge_table(service->session, need_truncate)) != SC_OK) {
     ta_log_error("%s\n", "create edge table fail");
     goto exit;
   }

@@ -16,6 +16,7 @@ extern "C" {
 
 /**
  * @file storage/scylladb_utils.h
+ * @brief Universal functions, the logger and headers for ScyllaDB driver.
  */
 
 logger_id_t scylladb_logger_id;
@@ -75,6 +76,17 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
  * - non-zero on error
  */
 status_t create_keyspace(CassSession* session, const char* keyspace_name);
+
+/**
+ * @brief clear all data in the specific ScyllaDB table without droping the table
+ *
+ * @param[in] session used to execute queries and maintains cluster state
+ * @param[in] table_name The name of table to be truncated
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_truncate_table(CassSession* session, const char* table_name);
 
 /**
  * Initialize logger

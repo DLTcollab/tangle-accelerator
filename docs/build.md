@@ -52,7 +52,7 @@ MQTT connectivity is an optional feature allowing IoT endpoint devices to collab
 make MQTT && bazel run --define mqtt=enable //accelerator
 ```
 
-Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker.
+Note you may need to set up the `MQTT_HOST` and `TOPIC_ROOT` in `config.h` to connect to a MQTT broker, or you can use CLI option `--mqtt_host`, and  `--mqtt_root` to set MQTT broker address and MQTT topic root, respectively.
 For more information for MQTT connectivity of `tangle-accelerator`, you could read `connectivity/mqtt/usage.md`.
 
 ## Enable external database for transaction reattachment

@@ -16,12 +16,22 @@ extern "C" {
 
 /**
  * @file storage/scylladb_identity.h
+ * @brief Identity table and corresponding insertion and selection functions.
+ *
+ * Data stored in the identity table is used for transaction reattachment.
+ * The identity table contains following 4 columns.
+ * id : A UUID as the identifer of transactions.
+ * hash : The transaction hash that would be updated after reattachment.
+ * status : The inclustion status of transaction.
+ * ts : The timestamp of update time of status or hash.
  */
 
 typedef struct db_identity_s db_identity_t;
 typedef UT_array db_identity_array_t;
 
 typedef enum { PENDING_TXN = 0, INSERTING_TXN, CONFIRMED_TXN, NUM_OF_TXN_STATUS } db_txn_status_t;
+
+#define DB_NUM_TRYTES_HASH NUM_TRYTES_HASH
 
 /**
  * Allocate memory of db_identity_array_t
@@ -161,14 +171,14 @@ status_t db_insert_tx_into_identity(db_client_service_t* service, const char* ha
  * @brief connect to ScyllaDB cluster and initialize identity keyspace and table
  *
  * @param[in] service ScyllaDB client service for connection
- * @param[in] need_drop true : drop table, false : keep old table
+ * @param[in] need_truncate true : clear all data, false : keep old data
  * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_init_identity_keyspace(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+status_t db_init_identity_keyspace(db_client_service_t* service, bool need_truncate, const char* keyspace_name);
 
 /**
  * @brief get identity objs with selected status from identity table
@@ -244,6 +254,16 @@ status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_b
  * - non-zero on error
  */
 status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* obj);
+
+/**
+ * @brief show logger info for details of identity object
+ *
+ * @param[in] obj pointer to db_identity_t
+ * @return
+ * - SC_OK on success
+ * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ */
+status_t db_show_identity_info(db_identity_t* obj);
 
 #ifdef __cplusplus
 }

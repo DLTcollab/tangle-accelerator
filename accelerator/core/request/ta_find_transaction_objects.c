@@ -19,7 +19,9 @@ ta_find_transaction_objects_req_t* ta_find_transaction_objects_req_new() {
 }
 
 void ta_find_transaction_objects_req_free(ta_find_transaction_objects_req_t** req) {
-  hash243_queue_free(&(*req)->hashes);
-  free((*req));
-  *req = NULL;
+  if (*req) {
+    hash243_queue_free(&(*req)->hashes);
+    free((*req));
+    *req = NULL;
+  }
 }

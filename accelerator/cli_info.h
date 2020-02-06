@@ -30,6 +30,10 @@ typedef enum ta_cli_arg_value_e {
   IRI_HOST_CLI,
   IRI_PORT_CLI,
 
+  /** MQTT */
+  MQTT_HOST_CLI,
+  MQTT_ROOT_CLI,
+
   /** REDIS */
   REDIS_HOST_CLI,
   REDIS_PORT_CLI,
@@ -49,30 +53,33 @@ typedef enum ta_cli_arg_value_e {
   VERBOSE,
 } ta_cli_arg_value_t;
 
-typedef enum ta_cli_arg_requirement_e { NO_ARG, REQUIRED_ARG, OPTIONAL_ARG } ta_cli_arg_requirement_t;
-
 static struct ta_cli_argument_s {
   char const* name;
+  int has_arg; /* one of: no_argument, required_argument, optional_argument */
+  int* flag;
   int val;
-  char const* desc;
-  ta_cli_arg_requirement_t has_arg;
-} ta_cli_arguments_g[] = {{"help", 'h', "Show tangle-accelerator usage", NO_ARG},
-                          {"version", 'v', "tangle-accelerator version", NO_ARG},
-                          {"ta_host", TA_HOST_CLI, "TA listening host", REQUIRED_ARG},
-                          {"ta_port", TA_PORT_CLI, "TA listening port", REQUIRED_ARG},
-                          {"ta_thread", TA_THREAD_COUNT_CLI, "TA executing thread", OPTIONAL_ARG},
-                          {"iri_host", IRI_HOST_CLI, "IRI listening host", REQUIRED_ARG},
-                          {"iri_port", IRI_PORT_CLI, "IRI listening port", REQUIRED_ARG},
-                          {"redis_host", REDIS_HOST_CLI, "Redis server listening host", REQUIRED_ARG},
-                          {"redis_port", REDIS_PORT_CLI, "Redis server listening port", REQUIRED_ARG},
-                          {"db_host", DB_HOST_CLI, "DB server listening host", REQUIRED_ARG},
-                          {"milestone_depth", MILESTONE_DEPTH_CLI, "IRI milestone depth", OPTIONAL_ARG},
-                          {"mwm", MWM_CLI, "minimum weight magnitude", OPTIONAL_ARG},
-                          {"seed", SEED_CLI, "IOTA seed", OPTIONAL_ARG},
-                          {"cache", CACHE, "Enable cache server with Y", REQUIRED_ARG},
-                          {"config", CONF_CLI, "Read configuration file", REQUIRED_ARG},
-                          {"proxy_passthrough", PROXY_API, "Pass proxy API directly to IRI without processing", NO_ARG},
-                          {"verbose", VERBOSE, "Enable logger", NO_ARG}};
+  const char* desc;
+} ta_cli_arguments_g[] = {
+    {"help", no_argument, NULL, 'h', "Show tangle-accelerator usage"},
+    {"version", no_argument, NULL, 'v', "tangle-accelerator version"},
+    {"ta_host", required_argument, NULL, TA_HOST_CLI, "TA listening host"},
+    {"ta_port", required_argument, NULL, TA_PORT_CLI, "TA listening port"},
+    {"ta_thread", optional_argument, NULL, TA_THREAD_COUNT_CLI, "TA executing thread"},
+    {"iri_host", required_argument, NULL, IRI_HOST_CLI, "IRI listening host"},
+    {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
+    {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
+    {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
+    {"redis_host", required_argument, NULL, REDIS_HOST_CLI, "Redis server listening host"},
+    {"redis_port", required_argument, NULL, REDIS_PORT_CLI, "Redis server listening port"},
+    {"db_host", required_argument, NULL, DB_HOST_CLI, "DB server listening host"},
+    {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IRI milestone depth"},
+    {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
+    {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
+    {"cache", required_argument, NULL, CACHE, "Enable cache server with Y"},
+    {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
+    {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
+    {"verbose", no_argument, NULL, VERBOSE, "Enable logger"},
+    {NULL, 0, NULL, 0, NULL}};
 
 static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
 
@@ -81,9 +88,9 @@ static inline void ta_usage() {
   for (int i = 0; i < cli_cmd_num; i++) {
     printf("--%-34s ", ta_cli_arguments_g[i].name);
     printf("     ");
-    if (ta_cli_arguments_g[i].has_arg == REQUIRED_ARG) {
+    if (ta_cli_arguments_g[i].has_arg == required_argument) {
       printf(" arg ");
-    } else if (ta_cli_arguments_g[i].has_arg == OPTIONAL_ARG) {
+    } else if (ta_cli_arguments_g[i].has_arg == optional_argument) {
       printf("[arg]");
     } else {
       printf("     ");

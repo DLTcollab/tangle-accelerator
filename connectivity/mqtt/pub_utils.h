@@ -21,6 +21,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/pub_utils.h
+ * @brief MQTT publisher utilities.
  */
 
 /**

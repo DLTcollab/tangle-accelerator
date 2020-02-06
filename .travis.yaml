@@ -1,0 +1,27 @@
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+    - secure: "UzFj98mHlWrUob3k8s+T3AyPY3V/M5PIMyTzdNpLokby6YOl7BAb0ubeHkz3JxfYiEvGt1TB5zD/8LA8hBH0pn/EccrgNX/BYLW+ZUBA3rbBahJvpcTlGqKifKbWYEcPXSrW+naAEU5HFIfYayhyGLg1weucY2lsoM7yo8NlE2kYPu9+XXbltHpRYa2Nfw0bTHRs0RRVSs5kvtLIVyq/f2Mv/CdBbJJRaiTlzVUilQvejM9bdu/sLOvDdxucv6wMvPdzJL2LtXW6BSjjkE9lgQg58OT2AxErBENMElZMMG3lO2KgHozTJ+IOjJ+/CzkyUHfLjAD7aKxRN4cygV/DXcoZ/+ppw5MqDLA7eIVzX0xAjy6S93QPrfpiB4rkohls8NCAd4No6o0vFgCvFfPxcbYpa7eLEyrMpbHnUwBkGXcHUHyGg/v5WQUCthHGUTJ0A0SIPn7z5WEaNTv15IusSVSxYZhLu0PqWosABslDnaMVrOZkgkaNMty3ZFBpNBWHtlH9XjybBe4V28/E4g5xOrwkDm9KLiFQi+vjdPx2i0vOCgRHseG5DCRUBjyfgktOOP3DhOvbe48CxAyRm2qT1T/xeT9qK420k9fryjzdMV/4L86Fid4oBqAGd+ScjODhgIS3tAQRpdpOzFZWitwWxZUEGC4AjqrwTwIsyiBopuI="
+
+language: c
+
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  # Add Bazel distribution URI as a package source
+  - sudo apt install curl
+  - curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+  - echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+  # Install and update Bazel
+  - sudo apt update && sudo apt install bazel
+
+addons:
+  coverity_scan:
+    project:
+      name: "DLTcollab/tangle-accelerator"
+      description: "Accelerate IOTA transactions by caching API requests and redirecting to faster alternatives"
+    build_command_prepend: ""
+    build_command: "bash tests/coverity_analysis.sh"
+    branch_pattern: develop
+
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
