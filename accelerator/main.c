@@ -55,19 +55,6 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  // Enable other loggers when verbose mode is on
-  if (verbose_mode) {
-    http_logger_init();
-    apis_logger_init();
-    cc_logger_init();
-    pow_logger_init();
-    timer_logger_init();
-  } else {
-    // Destroy logger when verbose mode is off
-    logger_helper_release(logger_id);
-    logger_helper_destroy();
-  }
-
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
     ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
@@ -79,6 +66,19 @@ int main(int argc, char* argv[]) {
   }
 
   log_info(logger_id, "Tangle-accelerator starts running\n");
+
+  // Disable loggers when quiet mode is on
+  if (quiet_mode) {
+    // Destroy logger when quiet mode is on
+    logger_helper_release(logger_id);
+    logger_helper_destroy();
+  } else {
+    http_logger_init();
+    apis_logger_init();
+    cc_logger_init();
+    pow_logger_init();
+    timer_logger_init();
+  }
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
@@ -98,7 +98,7 @@ cleanup:
   log_info(logger_id, "Destroying TA configurations\n");
   ta_core_destroy(&ta_core);
 
-  if (verbose_mode) {
+  if (quiet_mode == false) {
     http_logger_release();
     apis_logger_release();
     cc_logger_release();
