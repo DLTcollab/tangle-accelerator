@@ -33,7 +33,7 @@ extern "C" {
  * @brief Configuration of tangle-accelerator
  */
 
-#define TA_VERSION "tangle-accelerator/0.8.0"
+#define TA_VERSION "tangle-accelerator/0.9.0"
 #define TA_HOST "localhost"
 
 #ifdef MQTT_ENABLE
