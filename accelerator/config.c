@@ -106,9 +106,9 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       cache->cache_state = (toupper(value[0]) == 'T');
       break;
 
-    // Verbose configuration
-    case VERBOSE:
-      verbose_mode = (toupper(value[0]) == 'T');
+    // Quiet mode configuration
+    case QUIET:
+      quiet_mode = (toupper(value[0]) == 'T');
       break;
 
     case PROXY_API:
@@ -175,8 +175,8 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
 #endif
-  // Turn off verbose mode default
-  verbose_mode = false;
+  // Turn off quiet mode default
+  quiet_mode = false;
 
   return ret;
 }
@@ -303,9 +303,9 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case 'v':
         printf("%s\n", TA_VERSION);
         exit(EXIT_SUCCESS);
-      case VERBOSE:
-        // Turn on verbose mode
-        verbose_mode = true;
+      case QUIET:
+        // Turn on quiet mode
+        quiet_mode = true;
 
         // Enable backend_redis logger
         br_logger_init();

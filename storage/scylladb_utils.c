@@ -108,6 +108,22 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
   return SC_OK;
 }
 
+status_t db_truncate_table(CassSession* session, const char* table_name) {
+  status_t ret = SC_OK;
+  char* query = NULL;
+  ret = make_query(&query, "TRUNCATE TABLE ", table_name, "");
+  if (ret != SC_OK) {
+    ta_log_error("Fail to make truncate query\n");
+    return ret;
+  }
+  if (execute_query(session, query) != CASS_OK) {
+    ta_log_error("Fail to truncate table:  %s\n", table_name);
+    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+  }
+  free(query);
+  return ret;
+}
+
 status_t create_keyspace(CassSession* session, const char* keyspace_name) {
   status_t ret = SC_OK;
   char* create_query = NULL;
