@@ -1,13 +1,11 @@
-package(default_visibility = ["//visibility:public"])
-
 cc_test(
-    name = "test_common",
+    name = "test_core",
     srcs = [
-        "test_common.cc",
+        "test_core.cc",
     ],
     deps = [
         ":iota_api_mock",
-        "//accelerator:common_core",
+        "//accelerator/core",
     ],
 )
 
@@ -19,7 +17,7 @@ cc_library(
     hdrs = ["iota_api_mock.hh"],
     deps = [
         ":test_define",
-        "//accelerator:common_core",
+        "//accelerator/core",
         "@com_google_googletest//:gtest_main",
         "@entangled//cclient/api",
     ],
@@ -30,19 +28,10 @@ cc_test(
     srcs = [
         "driver.c",
     ],
-    copts = select({
-        "//connectivity/mqtt:mqtt_enable": [
-            "-DMQTT_ENABLE",
-        ],
-        "//conditions:default": [],
-    }) + select({
-        "//storage:db_enable": ["-DDB_ENABLE"],
-        "//conditions:default": [],
-    }),
     deps = [
         ":test_define",
-        "//accelerator:apis",
-        "//accelerator:proxy_apis",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
     ],
 )
 
@@ -51,11 +40,11 @@ cc_binary(
     srcs = [
         "driver.c",
     ],
-    copts = ["-DENABLE_STAT"],
+    defines = ["ENABLE_STAT"],
     deps = [
         ":test_define",
-        "//accelerator:apis",
-        "//accelerator:proxy_apis",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
     ],
 )
 
@@ -66,7 +55,7 @@ cc_test(
     ],
     deps = [
         ":test_define",
-        "//utils:cache",
+        "//utils/cache",
         "@unity",
     ],
 )
@@ -78,7 +67,7 @@ cc_test(
     ],
     deps = [
         ":test_define",
-        "//serializer",
+        "//accelerator/core/serializer",
     ],
 )
 
@@ -89,22 +78,9 @@ cc_test(
     ],
     deps = [
         ":test_define",
-        "//utils:pow",
+        "//accelerator/core:pow",
     ],
 )
-
-"""
-cc_test(
-    name = "test_map_mode",
-    srcs = [
-        "test_map_mode.c",
-    ],
-    deps = [
-        ":test_define",
-        "//map:mode",
-    ],
-)
-"""
 
 cc_library(
     name = "test_define",
@@ -117,14 +93,12 @@ cc_library(
 
 cc_test(
     name = "test_scylladb",
-    srcs = select({
-        "//storage:db_enable": ["test_scylladb.c"],
-        "//conditions:default": ["empty_test.c"],
-    }),
-    deps = [
-        ":test_define",
-    ] + select({
-        "//storage:db_enable": ["//storage"],
+    srcs = ["test_scylladb.c"],
+    deps = select({
+        "//accelerator:db_enable": [
+            "//storage",
+            ":test_define",
+        ],
         "//conditions:default": [],
     }),
 )

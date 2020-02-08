@@ -6,15 +6,12 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef CLIENT_CONFIG_H
-#define CLIENT_CONFIG_H
+#ifndef MQTT_MQTT_COMMON_H_
+#define MQTT_MQTT_COMMON_H_
 
 #include <stdio.h>
-#include "accelerator/errors.h"
-
-#ifdef MQTT_ENABLE
+#include "common/ta_errors.h"
 #include "third_party/mosquitto/lib/mosquitto.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +19,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/mqtt_common.h
+ * @brief Common functions and configures of MQTT clients.
  */
 
 #define ID_LEN 32
@@ -29,7 +27,6 @@ extern "C" {
 
 typedef enum client_type_s { client_pub, client_sub, client_duplex } client_type_t;
 
-#ifdef MQTT_ENABLE
 typedef enum mosq_err_t mosq_retcode_t;  // typedef the original enum
 
 typedef struct mosq_general_config_s {
@@ -209,10 +206,9 @@ status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg);
  * - non-zero on error
  */
 status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topic);
-#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // CLIENT_CONFIG_H
+#endif  // MQTT_MQTT_COMMON_H_

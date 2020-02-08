@@ -5,18 +5,22 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_STORAGE_H_
-#define TA_SCYLLADB_TA_API_H_
+#ifndef STORAGE_TA_STORAGE_H_
+#define STORAGE_TA_STORAGE_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "scylladb_client.h"
 #include "scylladb_identity.h"
 #include "scylladb_permanode.h"
+
+/**
+ * @file storage/ta_storage.h
+ * @brief The high level header for TA storage driver.
+ */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // TA_STORAGE_H_
+#endif  // STORAGE_TA_STORAGE_H_

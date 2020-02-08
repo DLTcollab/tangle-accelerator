@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef PUB_UTILS_H
-#define PUB_UTILS_H
+#ifndef MQTT_PUB_UTILS_H_
+#define MQTT_PUB_UTILS_H_
 
 #include "mqtt_common.h"
 #undef uthash_free
@@ -21,6 +21,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/pub_utils.h
+ * @brief MQTT publisher utilities.
  */
 
 /**
@@ -83,4 +84,4 @@ status_t init_check_error(mosq_config_t *cfg, client_type_t client_type);
 }
 #endif
 
-#endif  // PUB_UTILS_H
+#endif  // MQTT_PUB_UTILS_H_

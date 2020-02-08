@@ -6,8 +6,10 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#ifdef MQTT_ENABLE
 #include "connectivity/mqtt/mqtt_common.h"
-#include "serializer/serializer.h"
+#endif
+#include "accelerator/core/serializer/serializer.h"
 #include "test_define.h"
 
 void test_serialize_ta_generate_address(void) {
@@ -327,7 +329,7 @@ void test_serialize_ta_send_trytes_res(void) {
   hash_array_free(trytes);
   free(json_result);
 }
-
+#ifdef MQTT_ENABLE
 void test_mqtt_device_id_deserialize(void) {
   const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"trytes\":[\"" TRYTES_2673_1 "\",\"" TRYTES_2673_2 "\"]}";
   const int id_len = 32;
@@ -352,6 +354,7 @@ void test_mqtt_transaction_hash_req_deserialize(void) {
 
   TEST_ASSERT_EQUAL_STRING(hash, TRYTES_81_1);
 }
+#endif
 
 void test_proxy_apis_command_req_deserialize(void) {
   const char* json =
@@ -381,9 +384,11 @@ int main(void) {
   RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_deserialize_ta_send_trytes_req);
   RUN_TEST(test_serialize_ta_send_trytes_res);
+#ifdef MQTT_ENABLE
   RUN_TEST(test_mqtt_device_id_deserialize);
   RUN_TEST(test_mqtt_tag_req_deserialize);
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
+#endif
   RUN_TEST(test_proxy_apis_command_req_deserialize);
   serializer_logger_release();
   return UNITY_END();

@@ -5,16 +5,20 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLADB_PERMANODE_H_
-#define TA_SCYLLADB_PERMANODE_H_
+#ifndef STORAGE_SCYLLADB_PERMANODE_H_
+#define STORAGE_SCYLLADB_PERMANODE_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include "common/model/transaction.h"
 #include "scylladb_client.h"
-#include "scylladb_utils.h"
 #include "utils/containers/hash/hash243_queue.h"
+
+/**
+ * @file storage/scylladb_permanode.h
+ * @brief Edge and bundle table with insertion and selection functions.
+ */
 
 typedef struct scylla_iota_transaction_s scylla_iota_transaction_t;
 
@@ -222,14 +226,14 @@ int64_t ret_transaction_timestamp(scylla_iota_transaction_t* obj);
  * @brief connect to ScyllaDB node and create table
  *
  * @param[in] service ScyllaDB db client service
- * @param[in] need_drop true : drop table
+ * @param[in] need_truncate true : clear all data, false : keep old data
  * @param[in] keyspace_name keyspace name the session should use
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_drop, const char* keyspace_name);
+status_t db_permanent_keyspace_init(db_client_service_t* service, bool need_truncate, const char* keyspace_name);
 /**
  * @brief insert transactions into bundle table
  *
@@ -293,4 +297,4 @@ status_t get_transactions(db_client_service_t* service, hash243_queue_t* res_que
 }
 #endif
 
-#endif  // TA_SCYLLADB_PREMANODE_H_
+#endif  // STORAGE_SCYLLADB_PERMANODE_H_

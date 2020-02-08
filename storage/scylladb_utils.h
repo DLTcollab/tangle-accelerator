@@ -5,15 +5,19 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef TA_SCYLLADB_UTILS_H_
-#define TA_SCYLLADB_UTILS_H_
+#ifndef STORAGE_SCYLLADB_UTILS_H_
+#define STORAGE_SCYLLADB_UTILS_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include <stdlib.h>
-#include "accelerator/errors.h"
 #include "cassandra.h"
-#include "utils/logger.h"
+#include "common/logger.h"
+
+/**
+ * @file storage/scylladb_utils.h
+ * @brief Universal functions, the logger and headers for ScyllaDB driver.
+ */
 
 logger_id_t scylladb_logger_id;
 
@@ -74,6 +78,17 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
 status_t create_keyspace(CassSession* session, const char* keyspace_name);
 
 /**
+ * @brief clear all data in the specific ScyllaDB table without droping the table
+ *
+ * @param[in] session used to execute queries and maintains cluster state
+ * @param[in] table_name The name of table to be truncated
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t db_truncate_table(CassSession* session, const char* table_name);
+
+/**
  * Initialize logger
  */
 void scylladb_logger_init();
@@ -91,4 +106,4 @@ int scylladb_logger_release();
 }
 #endif
 
-#endif  // TA_SCYLLADB_UTILS_H_
+#endif  // STORAGE_SCYLLADB_UTILS_H_

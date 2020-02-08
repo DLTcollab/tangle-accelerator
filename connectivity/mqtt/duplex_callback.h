@@ -6,15 +6,12 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef DUPLEX_CALLBACK_H
-#define DUPLEX_CALLBACK_H
+#ifndef MQTT_DUPLEX_CALLBACK_H_
+#define MQTT_DUPLEX_CALLBACK_H_
 
-#include "accelerator/apis.h"
-#include "accelerator/common_core.h"
+#include "accelerator/core/apis.h"
 #include "common/model/transaction.h"
 #include "duplex_utils.h"
-#include "serializer/serializer.h"
-#include "utils/logger.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +19,7 @@ extern "C" {
 
 /**
  * @file connectivity/mqtt/duplex_callbacks.h
+ * @brief Callback functions to handle MQTT requests
  */
 
 /**
@@ -57,4 +55,4 @@ status_t duplex_callback_func_set(struct mosquitto *mosq);
 }
 #endif
 
-#endif  // DUPLEX_CALLBACK_H
+#endif  // MQTT_DUPLEX_CALLBACK_H_

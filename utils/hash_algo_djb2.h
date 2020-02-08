@@ -5,12 +5,17 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef HASH_ALGO_DJB2_H_
-#define HASH_ALGO_DJB2_H_
+#ifndef UTILS_HASH_ALGO_DJB2_H_
+#define UTILS_HASH_ALGO_DJB2_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file utils/hash_algo_djb2.h
+ * @brief Hash function DJB2
+ */
 
 // source http://www.cse.yorku.ca/~oz/hash.html
 static inline uint32_t hash_algo_djb2(char const* str) {
@@ -28,4 +33,4 @@ static inline uint32_t hash_algo_djb2(char const* str) {
 }
 #endif
 
-#endif  // HASH_ALGO_DJB2_H_
+#endif  // UTILS_HASH_ALGO_DJB2_H_

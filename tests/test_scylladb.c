@@ -6,6 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#ifdef DB_ENABLE
+
 #include "storage/ta_storage.h"
 #include "test_define.h"
 
@@ -136,7 +138,7 @@ void test_permanode(void) {
   size_t tx_num = sizeof(hashes) / (NUM_FLEX_TRITS_HASH);
   scylla_iota_transaction_t* transaction;
   db_client_service.host = strdup(host);
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, DB_USAGE_NULL), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_permanent_keyspace_init(&db_client_service, true, keyspace_name), SC_OK);
 
   new_scylla_iota_transaction(&transaction);
@@ -176,8 +178,8 @@ void test_db_get_identity_objs_by_status(db_client_service_t* db_client_service)
     db_get_identity_uuid_string(itr, uuid_string);
 
     TEST_ASSERT_EQUAL_STRING(uuid_string, identities[idx].uuid_string);
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
-                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (cass_byte_t*)identities[idx].hash,
+                             sizeof(cass_byte_t) * DB_NUM_TRYTES_HASH);
     idx++;
   }
   db_identity_array_free(&db_identity_array);
@@ -192,8 +194,8 @@ void test_db_get_identity_objs_by_uuid_string(db_client_service_t* db_client_ser
   db_identity_t* itr;
   int idx = 0;
   IDENTITY_TABLE_ARRAY_FOREACH(db_identity_array, itr) {
-    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (flex_trit_t*)identities[idx].hash,
-                             sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+    TEST_ASSERT_EQUAL_MEMORY(db_ret_identity_hash(itr), (cass_byte_t*)identities[idx].hash,
+                             sizeof(cass_byte_t) * DB_NUM_TRYTES_HASH);
     TEST_ASSERT_EQUAL_INT(db_ret_identity_status(itr), identities[idx].status);
     idx++;
   }
@@ -221,7 +223,7 @@ void test_db_get_identity_objs_by_hash(db_client_service_t* db_client_service) {
 void test_db_identity_table(void) {
   db_client_service_t db_client_service;
   db_client_service.host = strdup(host);
-  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&db_client_service, DB_USAGE_NULL), SC_OK);
   TEST_ASSERT_EQUAL_INT(db_init_identity_keyspace(&db_client_service, true, keyspace_name), SC_OK);
   for (int i = 0; i < identity_num; i++) {
     db_insert_tx_into_identity(&db_client_service, identities[i].hash, identities[i].status, identities[i].uuid_string);
@@ -232,12 +234,14 @@ void test_db_identity_table(void) {
 
   db_client_service_free(&db_client_service);
 }
+#endif  // DB_ENABLE
 
 int main(int argc, char** argv) {
+#ifdef DB_ENABLE
   int cmdOpt;
   int optIdx;
   const struct option longOpt[] = {
-      {"host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
+      {"db_host", required_argument, NULL, 'h'}, {"keyspace", required_argument, NULL, 'k'}, {NULL, 0, NULL, 0}};
 
   keyspace_name = "test_scylla";
   /* Parse the command line options */
@@ -247,7 +251,7 @@ int main(int argc, char** argv) {
     if (cmdOpt == -1) break;
 
     /* Invalid option */
-    if (cmdOpt == '?') break;
+    if (cmdOpt == '?') continue;
 
     if (cmdOpt == 'h') {
       host = optarg;
@@ -264,7 +268,9 @@ int main(int argc, char** argv) {
   }
   scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
-  RUN_TEST(test_permanode);
   scylladb_logger_release();
   return UNITY_END();
+#else
+  return 0;
+#endif  // DB_ENABLE
 }

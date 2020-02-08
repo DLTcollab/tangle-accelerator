@@ -14,9 +14,11 @@ extern "C" {
 #endif
 
 /**
- * @file timer.h
- * @brief Implementation of one-shot timer. The wrapper wraps and executes the callback,
- * executes in a different thread, and cancels the thread after the given tiemout.
+ * @file utils/timer.h
+ * @brief Implementation of one-shot timer.
+ *
+ * The wrapper wraps and executes the callback, executes in a different thread, and cancels the thread after the given
+ * tiemout.
  */
 
 #include <pthread.h>
@@ -24,7 +26,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "accelerator/errors.h"
+#include "common/ta_errors.h"
 
 /**
  * Initialize logger

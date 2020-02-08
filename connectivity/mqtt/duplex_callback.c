@@ -63,7 +63,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
       mqtt_transaction_hash_req_deserialize(req, hash);
       ret = api_find_transaction_object_single(&ta_core.iota_service, hash, &json_result);
     } else if (!strncmp(p + 12, "send", 4)) {
-      ret = api_send_transfer(&ta_core.iota_conf, &ta_core.iota_service, req, &json_result);
+      ret = api_send_transfer(&ta_core, req, &json_result);
     }
   } else if ((p = strstr(api_sub_topic, "tips"))) {
     if (!strncmp(p + 5, "all", 3)) {

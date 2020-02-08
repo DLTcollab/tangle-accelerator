@@ -1,9 +1,9 @@
 #include <errno.h>
 
-#include "accelerator/errors.h"
-#include "accelerator/http.h"
+#include "common/logger.h"
+#include "common/ta_errors.h"
+#include "connectivity/http/http.h"
 #include "utils/handles/signal.h"
-#include "utils/logger.h"
 
 #define MAIN_LOGGER "main"
 
@@ -55,15 +55,6 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  // Enable other loggers when verbose mode is on
-  if (verbose_mode) {
-    http_logger_init();
-  } else {
-    // Destroy logger when verbose mode is off
-    logger_helper_release(logger_id);
-    logger_helper_destroy();
-  }
-
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
     ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
@@ -74,7 +65,20 @@ int main(int argc, char* argv[]) {
     goto cleanup;
   }
 
-  log_warning(logger_id, "Tangle-accelerator starts running\n");
+  log_info(logger_id, "Tangle-accelerator starts running\n");
+
+  // Disable loggers when quiet mode is on
+  if (quiet_mode) {
+    // Destroy logger when quiet mode is on
+    logger_helper_release(logger_id);
+    logger_helper_destroy();
+  } else {
+    http_logger_init();
+    apis_logger_init();
+    cc_logger_init();
+    pow_logger_init();
+    timer_logger_init();
+  }
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
@@ -86,16 +90,21 @@ int main(int argc, char* argv[]) {
   }
 
 cleanup:
-  log_warning(logger_id, "Destroying API lock\n");
+  log_info(logger_id, "Destroying API lock\n");
   if (apis_lock_destroy() != SC_OK) {
     ta_log_error("Destroying api lock failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
   }
-  log_warning(logger_id, "Destroying TA configurations\n");
+  log_info(logger_id, "Destroying TA configurations\n");
   ta_core_destroy(&ta_core);
 
-  if (verbose_mode) {
+  if (quiet_mode == false) {
     http_logger_release();
+    apis_logger_release();
+    cc_logger_release();
+    serializer_logger_release();
+    pow_logger_release();
+    timer_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);

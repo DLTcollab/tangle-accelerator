@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include "accelerator/core/pow.h"
 #include "test_define.h"
-#include "utils/pow.h"
 
 void test_pow_flex(void) {
   int mwm = 9;

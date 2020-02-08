@@ -12,15 +12,15 @@
 #include <ctype.h>
 #include <getopt.h>
 
-#include "accelerator/message.h"
+#include "accelerator/cli_info.h"
+#include "accelerator/core/pow.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"
 #endif
-#include "utils/cache.h"
-#include "utils/logger.h"
-#include "utils/pow.h"
+#include "common/logger.h"
+#include "utils/cache/cache.h"
 
 #define FILE_PATH_SIZE 128
 
@@ -29,11 +29,11 @@ extern "C" {
 #endif
 
 /**
- * @file config.h
+ * @file accelerator/config.h
  * @brief Configuration of tangle-accelerator
  */
 
-#define TA_VERSION "tangle-accelerator/0.8.0"
+#define TA_VERSION "tangle-accelerator/0.9.0"
 #define TA_HOST "localhost"
 
 #ifdef MQTT_ENABLE

@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "accelerator/common_core.h"
+#include "accelerator/core/core.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
 #include "gmock/gmock.h"

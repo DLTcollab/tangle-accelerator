@@ -29,7 +29,7 @@ struct option* cli_build_options() {
   for (int i = 0; i < cli_cmd_num; ++i) {
     long_options[i].name = ta_cli_arguments_g[i].name;
     long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
-    long_options[i].flag = NULL;
+    long_options[i].flag = ta_cli_arguments_g[i].flag;
     long_options[i].val = ta_cli_arguments_g[i].val;
   }
   return long_options;
@@ -68,6 +68,16 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       iota_service->http.port = atoi(value);
       break;
 
+#ifdef MQTT_ENABLE
+    // MQTT configuration
+    case MQTT_HOST_CLI:
+      ta_conf->mqtt_host = value;
+      break;
+    case MQTT_ROOT_CLI:
+      ta_conf->mqtt_topic_root = value;
+      break;
+#endif
+
     // Cache configuration
     case REDIS_HOST_CLI:
       cache->host = value;
@@ -78,6 +88,7 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
 #ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
+      free(db_service->host);
       db_service->host = strdup(value);
       break;
 #endif
@@ -95,9 +106,9 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       cache->cache_state = (toupper(value[0]) == 'T');
       break;
 
-    // Verbose configuration
-    case VERBOSE:
-      verbose_mode = (toupper(value[0]) == 'T');
+    // Quiet mode configuration
+    case QUIET:
+      quiet_mode = (toupper(value[0]) == 'T');
       break;
 
     case PROXY_API:
@@ -164,8 +175,8 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
 #endif
-  // Turn off verbose mode default
-  verbose_mode = false;
+  // Turn off quiet mode default
+  quiet_mode = false;
 
   return ret;
 }
@@ -199,7 +210,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case CONF_CLI:
         ret = cli_core_set(core, key, optarg);
         break;
@@ -285,16 +296,16 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case '?':
         ret = SC_CONF_UNKNOWN_OPTION;
         ta_log_error("%s\n", "SC_CONF_UNKNOWN_OPTION");
-        break;
+        continue;
       case 'h':
         ta_usage();
         exit(EXIT_SUCCESS);
       case 'v':
         printf("%s\n", TA_VERSION);
         exit(EXIT_SUCCESS);
-      case VERBOSE:
-        // Turn on verbose mode
-        verbose_mode = true;
+      case QUIET:
+        // Turn on quiet mode
+        quiet_mode = true;
 
         // Enable backend_redis logger
         br_logger_init();
@@ -337,7 +348,7 @@ status_t ta_core_set(ta_core_t* core) {
   cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
-  if ((ret = db_client_service_init(db_service)) != SC_OK) {
+  if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
     ta_log_error("Initializing DB connection failed\n");
   }
 #endif
@@ -347,20 +358,14 @@ exit:
 }
 
 void ta_core_destroy(ta_core_t* const core) {
-  iota_client_service_t* const iota_service = &core->iota_service;
-#ifdef DB_ENABLE
-  db_client_service_t* const db_service = &core->db_service;
-#endif
-
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
-  iota_client_core_destroy(iota_service);
+  iota_client_core_destroy(&core->iota_service);
 #ifdef DB_ENABLE
-  if (db_service->enabled) {
-    ta_log_info("Destroying DB connection\n");
-    db_client_service_free(db_service);
-  }
+  ta_log_info("Destroying DB connection\n");
+  db_client_service_free(&core->db_service);
 #endif
+
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);
