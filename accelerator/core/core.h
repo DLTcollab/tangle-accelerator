@@ -12,8 +12,10 @@
 #include "accelerator/config.h"
 #include "accelerator/core/request/request.h"
 #include "accelerator/core/response/response.h"
+#include "accelerator/core/serializer/serializer.h"
 #include "common/model/transfer.h"
 #include "utils/bundle_array.h"
+#include "utils/char_buffer_str.h"
 #include "utils/time.h"
 #include "utils/timer.h"
 
@@ -214,6 +216,23 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
  */
 status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
                                 bundle_array_t* bundle_array);
+
+/**
+ * @brief Get current connection status. The status will be responded with return value.
+ *
+ * We would check out the connection status with IRI core API getNodeInfo. At the first step, we would check whether
+ * tangle-accelerator can connect to the IRI host which is assigned in iota_client_service_t object. If the
+ * tangl-accelerator connects to the IRI host, the next step we are going to check out whether the connected IRI has
+ * synchronized to the latest milestone. The mentioned two errors above would trigger tangle-acclerator connect to
+ * another IRI host on IRI priority host list.
+ *
+ * @param[in] service IRI node end point service
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_iri_status(const iota_client_service_t* const service);
 
 #ifdef __cplusplus
 }

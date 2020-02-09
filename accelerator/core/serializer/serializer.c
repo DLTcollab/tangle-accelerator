@@ -1010,3 +1010,68 @@ done:
   cJSON_Delete(json_obj);
   return ret;
 }
+
+status_t get_iri_status_milestone_deserialize(char const* const obj, char* const latestMilestone,
+                                              char* const latestSolidSubtangleMilestone) {
+  if (obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  status_t ret = SC_OK;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+  if (ta_json_get_string(json_obj, "latestMilestone", (char*)latestMilestone, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    goto done;
+  }
+
+  if (ta_json_get_string(json_obj, "latestSolidSubtangleMilestone", (char*)latestSolidSubtangleMilestone,
+                         NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+    ret = SC_SERIALIZER_NULL;
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t get_iri_status_res_serialize(const status_t status, char** obj) {
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_CREATE");
+    goto done;
+  }
+
+  if (status == SC_OK) {
+    cJSON_AddBoolToObject(json_root, "status", true);
+  } else {
+    cJSON_AddBoolToObject(json_root, "status", false);
+  }
+
+  if (status == SC_CCLIENT_FAILED_RESPONSE) {
+    cJSON_AddStringToObject(json_root, "status_code", "SC_CCLIENT_FAILED_RESPONSE");
+  } else if (status == SC_CORE_IRI_UNSYNC) {
+    cJSON_AddStringToObject(json_root, "status_code", "SC_CORE_IRI_UNSYNC");
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}

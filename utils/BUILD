@@ -36,3 +36,9 @@ cc_library(
         "//common:ta_logger",
     ],
 )
+
+cc_library(
+    name = "char_buffer_str",
+    srcs = ["char_buffer_str.h"],
+    deps = ["@entangled//utils:char_buffer"],
+)
