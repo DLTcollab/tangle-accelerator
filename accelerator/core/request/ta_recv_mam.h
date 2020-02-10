@@ -62,13 +62,37 @@ typedef struct data_id_mam_v1_s {
 } data_id_mam_v1_t;
 
 typedef struct key_mam_v1_s {
-  /** The pre-shared key to encrypt the message. Length: 81 trytes. Default: NULL. */
-  tryte_t* psk;
-  /** The NTRU public key to encrypt the message. Length: 1024 trytes. Default: NULL. */
-  tryte_t* ntru_pk;
+  /** Message encryption key. This field could be Pre-Shared Key (81 trytes) or NTRU public key (1024 trytes). Default:
+   * NULL. */
+  char* enc_key;
 } key_mam_v1_t;
 
+/**
+ * Set the data ID for MAMv1
+ *
+ * @param[in] req Response data in type of ta_recv_mam_req_t object
+ * @param[in] bundle_hash Bundle hash of the message
+ * @param[in] chid Channel ID of the messages
+ * @param[in] epid Endpoint ID of the messages
+ * @param[in] msg_id Message ID of the message
+ *
+ * @return
+ * - struct of ta_recv_mam_req_t on success
+ * - NULL on error
+ */
 status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id);
+
+/**
+ * Set the key for MAMv1
+ *
+ * @param[in] req Response data in type of ta_recv_mam_req_t object
+ * @param[in] psk Pre-Shared Key to decrypt message
+ * @param[in] ntru NTRU public key to decrypt message
+ *
+ * @return
+ * - struct of ta_recv_mam_req_t on success
+ * - NULL on error
+ */
 status_t set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru);
 
 #ifdef __cplusplus

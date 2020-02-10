@@ -36,11 +36,7 @@ static void recv_mam_req_v1_free(ta_recv_mam_req_t** req) {
 
   if ((*req)->key) {
     key_mam_v1_t* key = (*req)->key;
-    free(key->psk);
-    free(key->ntru_pk);
-    key->psk = NULL;
-    key->ntru_pk = NULL;
-
+    free(key->enc_key);
     free(key);
     (*req)->key = NULL;
   }
@@ -129,21 +125,20 @@ status_t set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru) {
 
   key_mam_v1_t* key = (key_mam_v1_t*)req->key;
   // We will set either psk or ntru, so initializing both fields will avoid errors in the future.
-  key->psk = NULL;
-  key->ntru_pk = NULL;
+  key->enc_key = NULL;
 
   if (psk) {
-    key->psk = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
-    if (!key->psk) {
+    key->enc_key = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
+    if (!key->enc_key) {
       return SC_TA_OOM;
     }
-    memcpy(key->psk, psk, sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
+    memcpy(key->enc_key, psk, sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
   } else if (ntru) {
-    key->ntru_pk = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
-    if (!key->ntru_pk) {
+    key->enc_key = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
+    if (!key->enc_key) {
       return SC_TA_OOM;
     }
-    memcpy(key->ntru_pk, ntru, sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
+    memcpy(key->enc_key, ntru, sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
   }
 
   return SC_OK;

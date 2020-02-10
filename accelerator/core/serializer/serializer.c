@@ -98,6 +98,29 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj) {
   return ret;
 }
 #endif
+
+status_t string_utarray_to_json_array(UT_array const* const ut, cJSON* const json_root, char const* const obj_name) {
+  cJSON* array_obj = cJSON_CreateArray();
+  char** p = NULL;
+
+  if (!ut) {
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    return SC_SERIALIZER_NULL;
+  }
+
+  if (array_obj == NULL) {
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_CREATE");
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+
+  cJSON_AddItemToObject(json_root, obj_name, array_obj);
+
+  while ((p = (char**)utarray_next(ut, p))) {
+    cJSON_AddItemToArray(array_obj, cJSON_CreateString(*p));
+  }
+  return SC_OK;
+}
+
 static status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* json_root) {
   size_t array_count = 0;
   hash243_stack_entry_t* s_iter = NULL;
@@ -702,49 +725,27 @@ done:
 }
 
 static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_obj, ta_recv_mam_req_t* const req) {
-  cJSON *json_sub = NULL, *json_value = NULL;
+  cJSON *json_key = NULL, *json_value = NULL;
   status_t ret = SC_OK;
   char *bundle_hash = NULL, *chid = NULL, *epid = NULL, *msg_id = NULL, *psk = NULL, *ntru = NULL;
 
-  if (cJSON_HasObjectItem(json_obj, "key")) {
-    json_sub = cJSON_GetObjectItem(json_obj, "key");
-    if (json_sub == NULL) {
-      ret = SC_SERIALIZER_JSON_PARSE;
-      ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
-      goto done;
-    }
+  json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "key");
+  if (json_value == NULL) {
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
+    return SC_CCLIENT_JSON_KEY;
   }
-
-  if (cJSON_HasObjectItem(json_sub, "psk")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "psk");
-    if (json_value == NULL) {
-      ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
-      return SC_CCLIENT_JSON_KEY;
-    }
-    if (cJSON_IsString(json_value) && (json_value->valuestring != NULL) &&
-        (strlen(json_value->valuestring) == NUM_TRYTES_MAM_PSK_KEY_SIZE)) {
+  if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
+    if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_PSK_KEY_SIZE) {
       psk = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
       strncpy(psk, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
-    } else {
-      ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-      return SC_CCLIENT_JSON_PARSE;
-    }
-  }
-
-  if (cJSON_HasObjectItem(json_sub, "ntru")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "ntru");
-    if (json_value == NULL) {
-      ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
-      return SC_CCLIENT_JSON_KEY;
-    }
-    if (cJSON_IsString(json_value) && (json_value->valuestring != NULL) &&
-        (strlen(json_value->valuestring) == NUM_TRYTES_MAM_NTRU_PK_SIZE)) {
+    } else if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_NTRU_PK_SIZE) {
       ntru = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
       strncpy(ntru, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
-    } else {
-      ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
-      return SC_CCLIENT_JSON_PARSE;
     }
+
+  } else {
+    ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
+    return SC_CCLIENT_JSON_PARSE;
   }
 
   ret = set_mam_v1_key(req, (tryte_t*)psk, (tryte_t*)ntru);
@@ -753,15 +754,15 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     goto done;
   }
 
-  json_sub = cJSON_GetObjectItem(json_obj, "data_id");
-  if (json_sub == NULL) {
+  json_key = cJSON_GetObjectItem(json_obj, "data_id");
+  if (json_key == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
     ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
     goto done;
   }
 
-  if (cJSON_HasObjectItem(json_sub, "bundle_hash")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "bundle_hash");
+  if (cJSON_HasObjectItem(json_key, "bundle_hash")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "bundle_hash");
     if (json_value == NULL) {
       ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
       return SC_CCLIENT_JSON_KEY;
@@ -777,8 +778,8 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     goto set_data_id;
   }
 
-  if (cJSON_HasObjectItem(json_sub, "chid")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "chid");
+  if (cJSON_HasObjectItem(json_key, "chid")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "chid");
     if (json_value == NULL) {
       ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
       return SC_CCLIENT_JSON_KEY;
@@ -793,8 +794,8 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     }
   }
 
-  if (cJSON_HasObjectItem(json_sub, "epid")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "epid");
+  if (cJSON_HasObjectItem(json_key, "epid")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "epid");
     if (json_value == NULL) {
       ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
       return SC_CCLIENT_JSON_KEY;
@@ -809,8 +810,8 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     }
   }
 
-  if (cJSON_HasObjectItem(json_sub, "msg_id")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_sub, "msg_id");
+  if (cJSON_HasObjectItem(json_key, "msg_id")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "msg_id");
     if (json_value == NULL) {
       ta_log_error("%s\n", "SC_CCLIENT_JSON_KEY");
       return SC_CCLIENT_JSON_KEY;
@@ -843,7 +844,7 @@ done:
 }
 
 status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req) {
-  if (obj == NULL) {
+  if (obj == NULL || req == NULL) {
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
@@ -886,7 +887,7 @@ done:
   return ret;
 }
 
-status_t recv_mam_message_res_serialize(char* const message, char** obj) {
+status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -895,7 +896,12 @@ status_t recv_mam_message_res_serialize(char* const message, char** obj) {
     goto done;
   }
 
-  cJSON_AddStringToObject(json_root, "message", message);
+  ret = string_utarray_to_json_array(payload_array, json_root, "payload");
+  if (ret) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {

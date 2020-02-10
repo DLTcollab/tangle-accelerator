@@ -192,7 +192,7 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, char const
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
   if (ret == SC_OK) {
-    ret = api_receive_mam_message(&http->core->iota_conf, &http->core->iota_service, bundle, out);
+    ret = api_recv_mam_message(&http->core->iota_conf, &http->core->iota_service, bundle, out);
   }
   free(bundle);
   return set_response_content(ret, out);
@@ -459,7 +459,8 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (options) {
     // header information for OPTIONS request
     MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    MHD_add_response_header(response, "Access-Control-Allow-Headers", "Origin, Content-Type, Accept, X-IOTA-API-Version");
+    MHD_add_response_header(response, "Access-Control-Allow-Headers",
+                            "Origin, Content-Type, Accept, X-IOTA-API-Version");
     MHD_add_response_header(response, "Access-Control-Max-Age", "86400");
   } else {
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json");

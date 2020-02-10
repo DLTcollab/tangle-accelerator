@@ -161,6 +161,9 @@ extern "C" {
 #define TEST_CHID                                                              \
   "WYEVIWJN9DF9SBQHBUWYUECD9KD9BQHQXHOGQDTVKKYBRQUFQYGOFOTHREGVSKSSEVXMFOEHWN" \
   "KHLHDKQ"
+#define TEST_EPID                                                              \
+  "AAEVIWJN9DF9SBQHBUWYUECD9KD9BQHQXHOGQDTVKKYBRQUFQYGOFOTHREGVSKSSEVXMFOEHWN" \
+  "KHLHDKQ"
 
 #define TEST_PAYLOAD                                                           \
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer aliquam "  \

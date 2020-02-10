@@ -527,7 +527,6 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
                            NUM_TRITS_BUNDLE);
       ret = ta_get_bundle(service, bundle_hash, bundle);
       if (ret != SC_OK) {
-        bundle_transactions_free(&bundle);
         ta_log_error("%d\n", ret);
         goto done;
       }

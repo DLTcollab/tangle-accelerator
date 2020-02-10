@@ -222,16 +222,28 @@ status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* co
 status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj);
 
 /**
- * @brief Serialize response of mam message
+ * @brief Deserialize request of recv_mam_message
  *
- * @param[out] obj message formed in JSON
- * @param[in] message Response of payload message
+ * @param[in] obj message formed in JSON
+ * @param[out] req ta_recv_mam_req_t object
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req);
+
+/**
+ * @brief Serialize response of mam message
+ *
+ * @param[in] payload_array Response of payload message in utarray
+ * @param[out] obj message array formed in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_mam_req_t
