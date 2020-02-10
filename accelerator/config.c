@@ -161,7 +161,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_conf->seed = SEED;
   char mam_file_path[] = MAM_FILE_PREFIX;
   mkstemp(mam_file_path);
-  iota_conf->mam_file_path = mam_file_path;
+  iota_conf->mam_file_path = strdup(mam_file_path);
 
   ta_log_info("Initializing IRI connection\n");
   iota_service->http.path = "/";

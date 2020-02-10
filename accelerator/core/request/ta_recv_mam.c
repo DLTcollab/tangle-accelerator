@@ -20,18 +20,27 @@ ta_recv_mam_req_t* recv_mam_req_new() {
 
 static void recv_mam_req_v1_free(ta_recv_mam_req_t** req) {
   if ((*req)->data_id) {
+    data_id_mam_v1_t* data_id = (*req)->data_id;
+    free(data_id->bundle_hash);
+    free(data_id->chid);
+    free(data_id->epid);
+    free(data_id->msg_id);
+    data_id->bundle_hash = NULL;
+    data_id->chid = NULL;
+    data_id->epid = NULL;
+    data_id->msg_id = NULL;
+
     free((*req)->data_id);
     (*req)->data_id = NULL;
   }
 
-  key_mam_v1_t* key = (*req)->key;
-  if (key) {
-    if (key->psk) {
-      free(key->psk);
-    }
-    if (key->ntru_pk) {
-      free(key->ntru_pk);
-    }
+  if ((*req)->key) {
+    key_mam_v1_t* key = (*req)->key;
+    free(key->psk);
+    free(key->ntru_pk);
+    key->psk = NULL;
+    key->ntru_pk = NULL;
+
     free(key);
     (*req)->key = NULL;
   }

@@ -16,6 +16,7 @@
 #include "common/model/transfer.h"
 #include "utils/bundle_array.h"
 #include "utils/char_buffer_str.h"
+#include "utils/containers/hash/hash243_set.h"
 #include "utils/time.h"
 #include "utils/timer.h"
 

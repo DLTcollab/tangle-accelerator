@@ -44,6 +44,7 @@ cc_library(
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",
         "@entangled//utils:time",
+        "@entangled//utils/containers/hash:hash243_set",
     ],
 )
 

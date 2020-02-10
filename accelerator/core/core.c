@@ -480,7 +480,7 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
 status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
                                 bundle_array_t* bundle_array) {
   status_t ret = SC_OK;
-  tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
+  tryte_t bundle_hash[NUM_TRYTES_BUNDLE + 1] = {0};
   find_transactions_req_t* txn_req = find_transactions_req_new();
   find_transactions_res_t* txn_res = find_transactions_res_new();
   ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
@@ -504,7 +504,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 
   // In case the requested transction hashes is an empty one
   if (hash243_queue_count(txn_res->hashes) > 0) {
-    hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+    hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
   } else {
     ta_log_error("%s\n", "SC_MAM_NOT_FOUND");
     ret = SC_MAM_NOT_FOUND;
@@ -519,29 +519,31 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 
   iota_transaction_t* curr_tx = NULL;
   bundle_transactions_t* bundle = NULL;
+  hash243_set_t bundle_hash_set = NULL;
   TX_OBJS_FOREACH(obj_res, curr_tx) {
-    bundle_transactions_new(&bundle);
-    flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
-                         NUM_TRITS_BUNDLE);
+    if (!hash243_set_contains(bundle_hash_set, transaction_bundle(curr_tx))) {
+      bundle_transactions_new(&bundle);
+      flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
+                           NUM_TRITS_BUNDLE);
+      ret = ta_get_bundle(service, bundle_hash, bundle);
+      if (ret != SC_OK) {
+        bundle_transactions_free(&bundle);
+        ta_log_error("%d\n", ret);
+        goto done;
+      }
 
-    ret = ta_get_bundle(service, bundle_hash, bundle);
-    if (ret != SC_OK) {
-      ta_log_error("%d\n", ret);
-      goto done;
+      bundle_array_add(bundle_array, bundle);
+      hash243_set_add(&bundle_hash_set, transaction_bundle(curr_tx));
+      free(bundle);
     }
-
-    // TODO We need to check out if the current bundle is already in bundle_array
-    utarray_push_back(bundle_array, bundle);
-
-    bundle_transactions_free(&bundle);
   }
 
 done:
-  bundle_transactions_free(&bundle);
   find_transactions_req_free(&txn_req);
   find_transactions_res_free(&txn_res);
   ta_find_transaction_objects_req_free(&obj_req);
   transaction_array_free(obj_res);
+  hash243_set_free(&bundle_hash_set);
   return ret;
 }
 

@@ -218,42 +218,41 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
 }
 
 void test_recv_mam_message_request_psk_deserialize(void) {
-  const char* json = "{\"data_id\":{\"bundle_hash\":\"" ADDRESS_1 "\",\"chid\":\"" ADDRESS_2 "\",\"epid\":\"" ADDRESS_3
-                     "\",\"msg_id\":\"" TEST_MSG_ID
+  const char* json = "{\"data_id\":{\"chid\":\"" ADDRESS_2 "\",\"epid\":\"" ADDRESS_3 "\",\"msg_id\":\"" TEST_MSG_ID
                      "\"},"
                      "\"key\":{\"psk\":\"" TRYTES_81_1 "\"},\"protocol\":\"MAM_V1\"}";
   ta_recv_mam_req_t* req = recv_mam_req_new();
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
   data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
-  TEST_ASSERT_EQUAL_STRING(ADDRESS_1, data_id->bundle_hash);
+  TEST_ASSERT_NULL(data_id->bundle_hash);
   TEST_ASSERT_EQUAL_STRING(ADDRESS_2, data_id->chid);
   TEST_ASSERT_EQUAL_STRING(ADDRESS_3, data_id->epid);
   TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
 
   key_mam_v1_t* key = (key_mam_v1_t*)req->key;
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, key->psk, NUM_TRYTES_MAM_PSK_KEY_SIZE);
-  TEST_ASSERT_EQUAL_MEMORY(NULL, key->ntru_pk, sizeof(tryte_t*));
+  TEST_ASSERT_NULL(key->ntru_pk);
 
   recv_mam_req_free(&req);
 }
 
 void test_recv_mam_message_request_ntru_deserialize(void) {
-  const char* json = "{\"data_id\":{\"bundle_hash\":\"" ADDRESS_1 "\",\"chid\":\"" ADDRESS_2 "\",\"epid\":\"" ADDRESS_3
-                     "\",\"msg_id\":\"" TEST_MSG_ID
+  const char* json = "{\"data_id\":{\"bundle_hash\":\"" TEST_BUNDLE_HASH "\",\"chid\":\"" ADDRESS_2
+                     "\",\"epid\":\"" ADDRESS_3 "\",\"msg_id\":\"" TEST_MSG_ID
                      "\"},"
                      "\"key\":{\"ntru\":\"" TEST_NTRU_PK "\"},\"protocol\":\"MAM_V1\"}";
   ta_recv_mam_req_t* req = recv_mam_req_new();
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
   data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
-  TEST_ASSERT_EQUAL_STRING(ADDRESS_1, data_id->bundle_hash);
-  TEST_ASSERT_EQUAL_STRING(ADDRESS_2, data_id->chid);
-  TEST_ASSERT_EQUAL_STRING(ADDRESS_3, data_id->epid);
-  TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
+  TEST_ASSERT_EQUAL_STRING(TEST_BUNDLE_HASH, data_id->bundle_hash);
+  TEST_ASSERT_NULL(data_id->chid);
+  TEST_ASSERT_NULL(data_id->epid);
+  TEST_ASSERT_NULL(data_id->msg_id);
 
   key_mam_v1_t* key = (key_mam_v1_t*)req->key;
-  TEST_ASSERT_EQUAL_MEMORY(NULL, key->psk, sizeof(tryte_t*));
+  TEST_ASSERT_NULL(key->psk);
   TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, key->ntru_pk, NUM_TRYTES_MAM_NTRU_PK_SIZE);
 
   recv_mam_req_free(&req);

@@ -157,7 +157,7 @@ extern "C" {
 
 #define TEST_BUNDLE_HASH                                                       \
   "QBFXQETKSHDYPFUDO9ILVCAVQIXOHXKCECZYFLPBNVIX9JUXQZJE9URQEEUWPWYZOIACTCGZX9" \
-  "IDIODCA "
+  "IDIODCA"
 #define TEST_CHID                                                              \
   "WYEVIWJN9DF9SBQHBUWYUECD9KD9BQHQXHOGQDTVKKYBRQUFQYGOFOTHREGVSKSSEVXMFOEHWN" \
   "KHLHDKQ"
