@@ -564,15 +564,17 @@ status_t ta_get_iri_status(const iota_client_service_t* const service) {
   str_from_char_buffer(res_buff, &iri_result);
 
   // Check whether IRI host is at the latest milestone
-  char latestMilestone[NUM_TRYTES_ADDRESS + 1], latestSolidSubtangleMilestone[NUM_TRYTES_ADDRESS + 1];
-  ret = get_iri_status_milestone_deserialize(iri_result, latestMilestone, latestSolidSubtangleMilestone);
+  int latestMilestoneIndex, latestSolidSubtangleMilestoneIndex;
+  ret = get_iri_status_milestone_deserialize(iri_result, &latestMilestoneIndex, &latestSolidSubtangleMilestoneIndex);
   if (ret != SC_OK) {
     ta_log_error("check iri connection failed deserialized. status code: %d\n", ret);
     goto done;
   }
 
-  if (strcmp(latestMilestone, latestSolidSubtangleMilestone)) {
+  // The tolerant difference between latestSolidSubtangleMilestoneIndex and latestMilestoneIndex is less equal than 1.
+  if ((latestSolidSubtangleMilestoneIndex - latestMilestoneIndex) > 1) {
     ret = SC_CORE_IRI_UNSYNC;
+    ta_log_error("%s\n", "SC_CORE_IRI_UNSYNC");
   }
 
 done:

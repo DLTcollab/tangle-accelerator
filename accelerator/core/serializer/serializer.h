@@ -335,15 +335,15 @@ status_t proxy_apis_command_req_deserialize(const char* const obj, char* command
  * @brief Deserialze latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
  *
  * @param[in] obj getNodeInfo response in JSON.
- * @param[out] latestMilestone Hash of latestMilestone
- * @param[out] latestSolidSubtangleMilestone Hash of latestSolidSubtangleMilestone
+ * @param[out] latestMilestoneIndex Index of latestMilestone
+ * @param[out] latestSolidSubtangleMilestoneIndex Index of latestSolidSubtangleMilestone
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_iri_status_milestone_deserialize(char const* const obj, char* const latestMilestone,
-                                              char* const latestSolidSubtangleMilestone);
+status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
+                                              int* const latestSolidSubtangleMilestone);
 
 /**
  * @brief Serialze the response of IRI connection status.

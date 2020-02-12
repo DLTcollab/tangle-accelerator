@@ -417,15 +417,14 @@ void test_get_iri_status_milestone_deserialize(void) {
       "\"tips\": 9018, \"transactionsToRequest\": 0, \"features\": [  \"snapshotPruning\",  \"dnsRefresher\",  "
       "\"tipSolidification\" ],\"coordinatorAddress\": "
       "\"EQSAUZXULTTYZCLNJNTXQTQHOMOFZERHTCGTXOLTVAHKSA9OGAZDEKECURBRIXIJWNPFCQIOVFVVXJVD9\",\"duration\": 0}";
-  const char latestMilestone[] = "CUOENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999";
-  const char latestSolidSubtangleMilestone[] =
-      "999ENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999";
-  char deserialize_latestMilestone[82], deserialize_latestSolidSubtangleMilestone[82];
+  const int latestMilestoneIndex = 1050373;
+  const int latestSolidSubtangleMilestoneIndex = 1050373;
+  int deserialize_latestMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex;
 
-  TEST_ASSERT_EQUAL_INT(SC_OK, get_iri_status_milestone_deserialize(json, deserialize_latestMilestone,
-                                                                    deserialize_latestSolidSubtangleMilestone));
-  TEST_ASSERT_EQUAL_STRING(latestMilestone, deserialize_latestMilestone);
-  TEST_ASSERT_EQUAL_STRING(latestSolidSubtangleMilestone, deserialize_latestSolidSubtangleMilestone);
+  TEST_ASSERT_EQUAL_INT(SC_OK, get_iri_status_milestone_deserialize(json, &deserialize_latestMilestoneIndex,
+                                                                    &deserialize_latestSolidSubtangleMilestoneIndex));
+  TEST_ASSERT_EQUAL_INT(latestMilestoneIndex, deserialize_latestMilestoneIndex);
+  TEST_ASSERT_EQUAL_INT(latestSolidSubtangleMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex);
 }
 
 void test_get_iri_status_res_serialize(void) {

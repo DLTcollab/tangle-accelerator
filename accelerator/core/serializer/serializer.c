@@ -1209,13 +1209,14 @@ done:
   return ret;
 }
 
-status_t get_iri_status_milestone_deserialize(char const* const obj, char* const latestMilestone,
-                                              char* const latestSolidSubtangleMilestone) {
+status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestoneIndex,
+                                              int* const latestSolidSubtangleMilestoneIndex) {
   if (obj == NULL) {
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     return SC_SERIALIZER_NULL;
   }
   cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_value = NULL;
   status_t ret = SC_OK;
 
   if (json_obj == NULL) {
@@ -1224,14 +1225,19 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, char* const
     goto done;
   }
 
-  if (ta_json_get_string(json_obj, "latestMilestone", (char*)latestMilestone, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+  json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "latestMilestoneIndex");
+  if (cJSON_IsNumber(json_value)) {
+    *latestMilestoneIndex = json_value->valueint;
+  } else {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
     goto done;
   }
 
-  if (ta_json_get_string(json_obj, "latestSolidSubtangleMilestone", (char*)latestSolidSubtangleMilestone,
-                         NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+  json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "latestSolidSubtangleMilestoneIndex");
+  if (cJSON_IsNumber(json_value)) {
+    *latestSolidSubtangleMilestoneIndex = json_value->valueint;
+  } else {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", "SC_SERIALIZER_NULL");
   }
