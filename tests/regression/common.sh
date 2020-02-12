@@ -8,7 +8,7 @@ setup_build_opts() {
         "|--iri_port ${IRI_PORT}"
         "|--ta_host ${TA_HOST}"
         "|--db_host ${DB_HOST}"
-        "|--verbose"
+        "|--quiet"
         "|--proxy_passthrough"
         "--define db=enable|"
         "--define build_type=debug|"

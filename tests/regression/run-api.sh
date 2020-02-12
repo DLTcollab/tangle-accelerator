@@ -17,8 +17,8 @@ redis-server &
 # Iterate over all available build options
 for (( i = 0; i < ${#OPTIONS[@]}; i++ )); do
     option=${OPTIONS[${i}]}
-    cli_arg=${option} | cut -d '|' -f 1
-    build_arg=${option} | cut -d '|' -f 2
+    cli_arg=$(echo ${option} | cut -d '|' -f 2)
+    build_arg=$(echo ${option} | cut -d '|' -f 1)
 
     bazel run accelerator ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} &
     TA=$!
