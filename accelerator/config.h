@@ -41,10 +41,11 @@ extern "C" {
 #define TOPIC_ROOT "root/topics"
 #endif
 
-#define TA_PORT "8000"
+#define TA_PORT 8000
 #define TA_THREAD_COUNT 10
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
+#define MAX_IRI_LIST_ELEMENTS 5
 #define DB_HOST "localhost"
 #define MILESTONE_DEPTH 3
 #define MWM 14
@@ -52,6 +53,7 @@ extern "C" {
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
+#define IRI_HEALTH_TRACK_PERIOD 1800  // Check every half hour in default
 
 /** @name Redis connection config */
 /** @{ */
@@ -61,15 +63,18 @@ extern "C" {
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
-  char* version;        /**< Binding version of tangle-accelerator */
-  char* host;           /**< Binding address of tangle-accelerator */
-  char* port;           /**< Binding port of tangle-accelerator */
-  uint8_t thread_count; /**< Thread count of tangle-accelerator instance */
+  char* version;                          /**< Binding version of tangle-accelerator */
+  char* host;                             /**< Binding address of tangle-accelerator */
+  int port;                               /**< Binding port of tangle-accelerator */
+  char* host_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding host of tangle-accelerator */
+  int port_list[MAX_IRI_LIST_ELEMENTS];   /**< List of binding port of tangle-accelerator */
+  uint8_t thread_count;                   /**< Thread count of tangle-accelerator instance */
 #ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
   bool proxy_passthrough; /**< Pass proxy api directly without processing */
+  int check_period;       /**< The period for checking IRI host connection status */
 } ta_config_t;
 
 /** struct type of iota configuration */

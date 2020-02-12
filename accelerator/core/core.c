@@ -584,3 +584,33 @@ done:
 
   return ret;
 }
+
+status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->host_list[i]; i++) {
+    // update new IRI host
+    ta_conf->host = ta_conf->host_list[i];
+    ta_conf->port = ta_conf->port_list[i];
+    service->http.host = ta_conf->host_list[i];
+    service->http.port = ta_conf->port_list[i];
+    ta_log_info("Try tp connect to %s:%d\n", ta_conf->host, ta_conf->port);
+
+    if (iota_client_core_init(service)) {
+      ta_log_error("Initializing IRI connection failed!\n");
+      return SC_TA_OOM;
+    }
+    iota_client_extended_init();
+
+    // Run from the first one until found a good one.
+    if (ta_get_iri_status(service) == SC_OK) {
+      ta_log_info("Connect to %s:%d\n", ta_conf->host, ta_conf->port);
+      goto done;
+    }
+  }
+  if (ret) {
+    ta_log_error("All IRI host on priority list failed.\n");
+  }
+
+done:
+  return ret;
+}

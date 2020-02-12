@@ -54,7 +54,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       ta_conf->host = value;
       break;
     case TA_PORT_CLI:
-      ta_conf->port = value;
+      ta_conf->port = atoi(value);
       break;
     case TA_THREAD_COUNT_CLI:
       ta_conf->thread_count = atoi(value);
@@ -66,6 +66,27 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       break;
     case IRI_PORT_CLI:
       iota_service->http.port = atoi(value);
+      break;
+    case IRI_URL_LIST_CLI:
+      for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
+        if (!ta_conf->host_list[i]) {
+          char *host, *port;
+          host = strtok(value, ":");
+          port = strtok(NULL, "");
+
+          if (i == 0) {
+            iota_service->http.host = host;
+            iota_service->http.port = atoi(port);
+          }
+          ta_conf->host_list[i] = host;
+          ta_conf->port_list[i] = atoi(port);
+          break;
+        }
+      }
+      break;
+
+    case HEALTH_TRACK_PERIOD:
+      ta_conf->check_period = atoi(value);
       break;
 
 #ifdef MQTT_ENABLE
@@ -85,6 +106,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case REDIS_PORT_CLI:
       cache->port = atoi(value);
       break;
+
 #ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
@@ -92,6 +114,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       db_service->host = strdup(value);
       break;
 #endif
+
     // iota_conf IOTA configuration
     case MILESTONE_DEPTH_CLI:
       iota_conf->milestone_depth = atoi(value);
@@ -144,8 +167,11 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->version = TA_VERSION;
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
+  memset(ta_conf->host_list, 0, sizeof(ta_conf->host_list));
+  memset(ta_conf->port_list, 0, sizeof(ta_conf->port_list));
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
+  ta_conf->check_period = IRI_HEALTH_TRACK_PERIOD;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;

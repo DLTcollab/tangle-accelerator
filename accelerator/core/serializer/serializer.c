@@ -40,7 +40,7 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
   cJSON_AddStringToObject(json_root, "name", "tangle-accelerator");
   cJSON_AddStringToObject(json_root, "host", ta_config->host);
   cJSON_AddStringToObject(json_root, "version", ta_config->version);
-  cJSON_AddStringToObject(json_root, "port", ta_config->port);
+  cJSON_AddNumberToObject(json_root, "port", ta_config->port);
   cJSON_AddNumberToObject(json_root, "thread", ta_config->thread_count);
   cJSON_AddStringToObject(json_root, "redis_host", cache->host);
   cJSON_AddNumberToObject(json_root, "redis_port", cache->port);

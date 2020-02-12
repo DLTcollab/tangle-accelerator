@@ -235,6 +235,21 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
  */
 status_t ta_get_iri_status(const iota_client_service_t* const service);
 
+/**
+ * @brief Update the binding IRI host to another valid host on priority list
+ *
+ * ta_update_iri_conneciton would check the connection status of all the IRI host on priority list iteratively. Once it
+ * connect to one of the IRI host on the priority list, it would return SC_OK.
+ *
+ * @param ta_conf[in] Tangle-accelerator configuration variables
+ * @param service[in] service IRI node end point service
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service);
+
 #ifdef __cplusplus
 }
 #endif
