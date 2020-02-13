@@ -9,6 +9,7 @@
 #include "duplex_callback.h"
 #include <stdlib.h>
 #include <string.h>
+#include "connectivity/common.h"
 
 #define MQTT_CALLBACK_LOGGER "mqtt-callback"
 static logger_id_t logger_id;
@@ -44,38 +45,36 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   }
 
   char *api_sub_topic = subscribe_topic + strlen(ta_core.ta_conf.mqtt_topic_root);
-  char *p;
-  if (!strncmp(api_sub_topic, "address", 7)) {
+  if (api_path_matcher(api_sub_topic, "/address") == SC_OK)
     ret = api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
-  } else if ((p = strstr(api_sub_topic, "tag"))) {
-    if (!strncmp(p + 4, "hashes", 6)) {
-      char tag[NUM_TRYTES_TAG + 1] = {0};
-      mqtt_tag_req_deserialize(req, tag);
-      ret = api_find_transactions_by_tag(&ta_core.iota_service, tag, &json_result);
-    } else if (!strncmp(p + 4, "object", 6)) {
-      char tag[NUM_TRYTES_TAG + 1] = {0};
-      mqtt_tag_req_deserialize(req, tag);
-      ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, tag, &json_result);
-    }
-  } else if ((p = strstr(api_sub_topic, "transaction"))) {
-    if (!strncmp(p + 12, "object", 6)) {
-      char hash[NUM_TRYTES_HASH + 1];
-      mqtt_transaction_hash_req_deserialize(req, hash);
-      ret = api_find_transaction_object_single(&ta_core.iota_service, hash, &json_result);
-    } else if (!strncmp(p + 12, "send", 4)) {
-      ret = api_send_transfer(&ta_core, req, &json_result);
-    }
-  } else if ((p = strstr(api_sub_topic, "tips"))) {
-    if (!strncmp(p + 5, "all", 3)) {
-      ret = api_get_tips(&ta_core.iota_service, &json_result);
-    } else if (!strncmp(p + 5, "pair", 4)) {
-      ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
-    }
+  else if (api_path_matcher(api_sub_topic, "/tag/hashes") == SC_OK) {
+    char tag[NUM_TRYTES_TAG + 1] = {0};
+    mqtt_tag_req_deserialize(req, tag);
+    ret = api_find_transactions_by_tag(&ta_core.iota_service, tag, &json_result);
+  } else if (api_path_matcher(api_sub_topic, "/tag/object") == SC_OK) {
+    char tag[NUM_TRYTES_TAG + 1] = {0};
+    mqtt_tag_req_deserialize(req, tag);
+    ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, tag, &json_result);
+  } else if (api_path_matcher(api_sub_topic, "/transaction/object") == SC_OK) {
+    char hash[NUM_TRYTES_HASH + 1];
+    mqtt_transaction_hash_req_deserialize(req, hash);
+    ret = api_find_transaction_object_single(&ta_core.iota_service, hash, &json_result);
+  } else if (api_path_matcher(api_sub_topic, "/transaction/send") == SC_OK)
+    ret = api_send_transfer(&ta_core, req, &json_result);
+  else if (api_path_matcher(api_sub_topic, "/tips/all") == SC_OK)
+    ret = api_get_tips(&ta_core.iota_service, &json_result);
+  else if (api_path_matcher(api_sub_topic, "/tips/pair") == SC_OK)
+    ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
+  else {
+    cJSON *json_obj = cJSON_CreateObject();
+    cJSON_AddStringToObject(json_obj, "message", api_sub_topic);
+    json_result = cJSON_PrintUnformatted(json_obj);
+    cJSON_Delete(json_obj);
   }
-  if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
+  set_response_content(ret, &json_result);
+
+  // Log results
+  printf("\"%s\" %s", api_sub_topic, ta_error_to_string(ret));
 
   // Set response publishing topic with the topic we got message and the Device ID (client ID) we got in the message
   int res_topic_len = strlen(subscribe_topic) + 1 + ID_LEN + 1;

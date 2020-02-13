@@ -2,6 +2,7 @@
 
 #include "common/logger.h"
 #include "common/ta_errors.h"
+#include "connectivity/common.h"
 #include "connectivity/http/http.h"
 #include "pthread.h"
 #include "time.h"
@@ -98,6 +99,7 @@ int main(int argc, char* argv[]) {
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
+    conn_logger_init();
     // Enable backend_redis logger
     br_logger_init();
   }
@@ -122,6 +124,7 @@ cleanup:
 
   if (quiet_mode == false) {
     http_logger_release();
+    conn_logger_release();
     apis_logger_release();
     cc_logger_release();
     serializer_logger_release();
