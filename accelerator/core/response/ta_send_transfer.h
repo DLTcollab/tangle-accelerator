@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -15,6 +15,7 @@
 #endif
 #include "common/model/transaction.h"
 #include "utils/containers/hash/hash243_queue.h"
+#include "uuid/uuid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,6 +30,9 @@ typedef struct {
   /** Transaction address is a 243 long flex trits hash queue. */
   hash243_queue_t hash;
   transaction_array_t* txn_array;
+  // If the value of `CASS_UUID_STRING_LENGTH` changes, then we may need to modify array length of uuid_string as well,
+  // since UUID_STR_LEN is defined in `uuid/uuid.h`.
+  char uuid[UUID_STR_LEN];
 #ifdef DB_ENABLE
   char uuid_string[DB_UUID_STRING_LENGTH];
 #endif

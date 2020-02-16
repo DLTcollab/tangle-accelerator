@@ -8,6 +8,7 @@
 
 #include "apis.h"
 #include <sys/time.h>
+#include <uuid/uuid.h>
 #include "mam_core.h"
 #include "utils/handles/lock.h"
 
@@ -551,23 +552,52 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
   lock_handle_lock(&cjson_lock);
   ret = ta_send_transfer_req_deserialize(obj, req);
   if (ret) {
+    ta_log_error("%s\n", "ta_send_transfer_req_deserialize failed");
     lock_handle_unlock(&cjson_lock);
     goto done;
   }
 
   ret = ta_send_transfer(&core->iota_conf, &core->iota_service, req, res);
-  if (ret) {
+  if (ret == SC_CCLIENT_FAILED_RESPONSE) {
     lock_handle_unlock(&cjson_lock);
+    ta_log_info("%s\n", "Caching transaction");
+    // TODO generate a UUID as redis key
+    uuid_t binuuid;
+    uuid_generate_random(binuuid);
+    uuid_unparse(binuuid, res->uuid);
+    if (!res->uuid[0]) {
+      ta_log_error("%s\n", "Failed to generate UUID");
+      goto done;
+    }
+
+    // Cache the txn in redis
+    // TODO use a timer to reattach these failed transactions
+    ret = cache_set(res->uuid, UUID_STR_LEN - 1, obj, strlen(obj), CACHE_FAILED_TXN_TIMEOUT);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    // Cache the request and serialize UUID as response directly
+    goto serialize;
+  } else if (ret) {
+    lock_handle_unlock(&cjson_lock);
+    ta_log_error("%s\n", "ta_send_transfer failed");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
+
   // return transaction object
-  hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash));
+  if (hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash))) {
+    ta_log_error("%s\n", "hash243_queue_push failed");
+    goto done;
+  }
 
   lock_handle_lock(&cjson_lock);
   ret = ta_find_transaction_objects(&core->iota_service, txn_obj_req, res_txn_array);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -579,7 +609,12 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
     goto done;
   }
 #endif
+
+serialize:
   ret = ta_send_transfer_res_serialize(res, json_result);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  }
 
 done:
   ta_send_transfer_req_free(&req);

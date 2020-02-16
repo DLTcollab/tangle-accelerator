@@ -18,13 +18,12 @@ extern "C" {
 #define STR_HTTP_BAD_REQUEST "{\"message\": \"Invalid request header\"}"
 #define STR_HTTP_INTERNAL_SERVICE_ERROR "{\"message\": \"Internal service error\"}"
 
-
 /**
  * @brief Match path with given regular expression rule
  * @param[in] path Path
  * @param[in] regex_rule Regex rule
  *
- * @return 
+ * @return
  * - SC_HTTP_NULL if regular expression is NULL
  * - SC_HTTP_INVALID_REGEX if failed to compile regular expression
  * - SC_HTTP_URL_NOT_MATCH if regular expression does not match the given path
@@ -38,7 +37,7 @@ status_t api_path_matcher(char const *const path, char *const regex_rule);
  * @param[in] ret Status code returned from apis
  * @param[out] json_result Response content in json format
  *
- * @return HTTP status code 
+ * @return HTTP status code
  */
 status_t set_response_content(status_t ret, char **json_result);
 void conn_logger_init();
@@ -48,4 +47,4 @@ int conn_logger_release();
 }
 #endif
 
-#endif // CONN_COMMON_H
+#endif  // CONN_COMMON_H
