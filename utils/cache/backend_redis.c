@@ -57,14 +57,15 @@ static status_t redis_del(redisContext* c, const char* const key) {
 
 static status_t redis_get(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
-  if (key == NULL || res[0] != '\0') {
+  if (key == NULL) {
     ta_log_error("%s\n", "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
   redisReply* reply = redisCommand(c, "GET %s", key);
   if (reply->type == REDIS_REPLY_STRING) {
-    strncpy(res, reply->str, FLEX_TRIT_SIZE_8019);
+    strncpy(res, reply->str, reply->len);
+    res[reply->len] = 0;
   } else {
     ret = SC_CACHE_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CACHE_FAILED_RESPONSE");
@@ -74,15 +75,22 @@ static status_t redis_get(redisContext* c, const char* const key, char* res) {
   return ret;
 }
 
-static status_t redis_set(redisContext* c, const char* const key, const char* const value) {
+static status_t redis_set(redisContext* c, const char* const key, const int key_size, const void* const value,
+                          const int value_size, const int timeout) {
   status_t ret = SC_OK;
-  if (key == NULL || value == NULL) {
+  if (c == NULL || key == NULL || value == NULL) {
     ta_log_error("%s\n", "SC_CACHE_NULL");
     return SC_CACHE_NULL;
   }
 
-  redisReply* reply = redisCommand(c, "SETNX %b %b", key, FLEX_TRIT_SIZE_243, value, FLEX_TRIT_SIZE_8019);
-  if (!reply->integer) {
+  redisReply* reply = NULL;
+  if (timeout > 0) {
+    reply = redisCommand(c, "SET %b %b EX %d NX", key, key_size, value, value_size, timeout);
+  } else {
+    reply = redisCommand(c, "SET %b %b NX", key, key_size, value, value_size);
+  }
+
+  if (reply->type != REDIS_REPLY_STATUS) {
     ret = SC_CACHE_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CACHE_FAILED_RESPONSE");
   }
@@ -103,10 +111,11 @@ bool cache_init(bool state, const char* host, int port) {
 
   cache.conn = (connection_private*)malloc(sizeof(connection_private));
   CONN(cache)->rc = redisConnect(host, port);
-  if (CONN(cache)->rc) {
-    return true;
+  if (!CONN(cache)->rc || CONN(cache)->rc->err) {
+    ta_log_error("Failed to initialize redis: %s\n", CONN(cache)->rc->err);
+    return false;
   }
-  return false;
+  return true;
 }
 
 void cache_stop() {
@@ -135,10 +144,11 @@ status_t cache_get(const char* const key, char* res) {
   return redis_get(CONN(cache)->rc, key, res);
 }
 
-status_t cache_set(const char* const key, const char* const value) {
+status_t cache_set(const char* const key, const int key_size, const void* const value, const int value_size,
+                   const int timeout) {
   if (!cache_state) {
     ta_log_info("%s\n", "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
-  return redis_set(CONN(cache)->rc, key, value);
+  return redis_set(CONN(cache)->rc, key, key_size, value, value_size, timeout);
 }

@@ -92,13 +92,17 @@ status_t cache_get(const char* const key, char* res);
  *
  * @param[in] cache Data type for Cache module
  * @param[in] key Key string to store
+ * @param[in] key_size Size of key string to store
  * @param[in] value Value string to store
+ * @param[in] value_size Size of value string to store
+ * @param[in] timeout Set the timeout second of the key. If arg timeout equal less than 0, then no timeout will be set.
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cache_set(const char* const key, const char* const value);
+status_t cache_set(const char* const key, const int key_size, const void* const value, const int value_size,
+                   const int timeout);
 
 #ifdef __cplusplus
 }
