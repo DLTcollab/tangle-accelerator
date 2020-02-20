@@ -68,20 +68,21 @@ typedef struct ta_config_s {
   int port;                               /**< Binding port of tangle-accelerator */
   char* host_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding host of tangle-accelerator */
   int port_list[MAX_IRI_LIST_ELEMENTS];   /**< List of binding port of tangle-accelerator */
-  int health_track_period; /**< The period for checking IRI host connection status */
+  int health_track_period;                /**< The period for checking IRI host connection status */
 #ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
-  uint8_t thread_count;    /**< Thread count of tangle-accelerator instance */
-  bool proxy_passthrough;  /**< Pass proxy api directly without processing */
+  uint8_t thread_count;   /**< Thread count of tangle-accelerator instance */
+  bool proxy_passthrough; /**< Pass proxy api directly without processing */
+  bool gtta;              /**< The option to turn on or off GTTA. The default value is true which enabling GTTA */
 } ta_config_t;
 
 /** struct type of iota configuration */
 typedef struct iota_config_s {
-  uint8_t milestone_depth; /**< Depth of API argument */
-  uint8_t mwm;             /**< Minimum weight magnitude of API argument */
-  const char* seed;        /**< Seed to generate address. This does not do any signature yet. */
+  uint8_t milestone_depth;   /**< Depth of API argument */
+  uint8_t mwm;               /**< Minimum weight magnitude of API argument */
+  const char* seed;          /**< Seed to generate address. This does not do any signature yet. */
   const char* mam_file_path; /**< The MAM file which records the mam config */
 } iota_config_t;
 
