@@ -365,8 +365,9 @@ done:
   return ret;
 }
 
-status_t api_mam_send_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char const* const payload, char** json_result) {
+status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t* const iconf,
+                              const iota_client_service_t* const service, char const* const payload,
+                              char** json_result) {
   status_t ret = SC_OK;
   mam_api_t mam;
   tryte_t chid[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, epid[MAM_CHANNEL_ID_TRYTE_SIZE] = {},
@@ -409,7 +410,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
 
   // Sending bundle
   lock_handle_lock(&cjson_lock);
-  if (ta_send_bundle(iconf, service, bundle) != SC_OK) {
+  if (ta_send_bundle(info, iconf, service, bundle) != SC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_MAM_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
@@ -452,7 +453,7 @@ status_t api_mam_send_message(const iota_config_t* const iconf, const iota_clien
     }
 
     lock_handle_lock(&cjson_lock);
-    if (ta_send_bundle(iconf, service, bundle) != SC_OK) {
+    if (ta_send_bundle(info, iconf, service, bundle) != SC_OK) {
       lock_handle_unlock(&cjson_lock);
       ret = SC_MAM_FAILED_RESPONSE;
       ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
@@ -520,7 +521,7 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
     goto done;
   }
 
-  ret = ta_send_transfer(&core->iota_conf, &core->iota_service, req, res);
+  ret = ta_send_transfer(&core->ta_conf, &core->iota_conf, &core->iota_service, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     goto done;
@@ -554,8 +555,8 @@ done:
   return ret;
 }
 
-status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                         const char* const obj, char** json_result) {
+status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* const iconf,
+                         const iota_client_service_t* const service, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   hash8019_array_p trytes = hash8019_array_new();
 
@@ -572,7 +573,7 @@ status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_ser
     goto done;
   }
 
-  ret = ta_send_trytes(iconf, service, trytes);
+  ret = ta_send_trytes(info, iconf, service, trytes);
   if (ret != SC_OK) {
     lock_handle_unlock(&cjson_lock);
     goto done;

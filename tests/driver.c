@@ -170,7 +170,8 @@ void test_send_trytes(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -277,7 +278,7 @@ void test_send_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    ret = api_mam_send_message(&ta_core.iota_conf, &ta_core.iota_service, json, &json_result);
+    ret = api_mam_send_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result);
     if (ret == SC_OK || ret == SC_MAM_ALL_MSS_KEYS_USED) {
       result = true;
     }

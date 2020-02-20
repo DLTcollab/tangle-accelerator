@@ -238,13 +238,13 @@ static inline int process_find_transaction_by_id_request(ta_http_t *const http, 
 
 static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_mam_send_message(&http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_mam_send_message(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
 static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_trytes(&http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_trytes(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 

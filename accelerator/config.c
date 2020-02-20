@@ -36,7 +36,7 @@ struct option* cli_build_options() {
 }
 
 static status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && key != PROXY_API) {
+  if (value == NULL && (key != PROXY_API && key != GTTA_DISABLE)) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -110,9 +110,11 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
     case QUIET:
       quiet_mode = (toupper(value[0]) == 'T');
       break;
-
     case PROXY_API:
       ta_conf->proxy_passthrough = true;
+      break;
+    case GTTA_DISABLE:
+      ta_conf->gtta_disable = true;
       break;
 
     // File configuration
@@ -146,6 +148,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->port = TA_PORT;
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
+  ta_conf->gtta_disable = false;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;

@@ -78,6 +78,7 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
+ * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] req Request containing address value, message, tag in
@@ -88,8 +89,9 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                          const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res);
+status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* const iconf,
+                          const iota_client_service_t* const service, const ta_send_transfer_req_t* const req,
+                          ta_send_transfer_res_t* res);
 
 /**
  * @brief Send trytes to tangle.
@@ -98,6 +100,7 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
  * bundle and do PoW in `ta_attach_to_tangle` and store and broadcast
  * transaction to tangle.
  *
+ * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] trytes Trytes that will be attached to tangle
@@ -106,8 +109,8 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                        hash8019_array_p trytes);
+status_t ta_send_trytes(const ta_config_t* const info, const iota_config_t* const iconf,
+                        const iota_client_service_t* const service, hash8019_array_p trytes);
 
 /**
  * @brief Return list of transaction hash with given tag.
@@ -187,6 +190,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
  * Send the unpacked bundle which contains transactions. MAM functions should
  * send message with this function.
  *
+ * @param[in] info Tangle-accelerator configuration variables
  * @param[in] service IRI node end point service
  * @param[in] bundle bundle object to send
  * @param[out] bundle Result containing bundle object in bundle_transactions_t
@@ -195,8 +199,8 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                        bundle_transactions_t* const bundle);
+status_t ta_send_bundle(const ta_config_t* const info, const iota_config_t* const iconf,
+                        const iota_client_service_t* const service, bundle_transactions_t* const bundle);
 
 /**
  * @brief Get the bundle that contains assigned address

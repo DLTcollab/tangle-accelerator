@@ -48,6 +48,7 @@ typedef enum ta_cli_arg_value_e {
   CACHE,
   CONF_CLI,
   PROXY_API,
+  GTTA_DISABLE,
 
   /** LOGGER */
   QUIET,
@@ -78,6 +79,7 @@ static struct ta_cli_argument_s {
     {"cache", required_argument, NULL, CACHE, "Enable cache server with Y"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
+    {"gtta_disable", no_argument, NULL, GTTA_DISABLE, "Disable GTTA when sending transacation"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 

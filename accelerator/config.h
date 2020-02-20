@@ -70,6 +70,7 @@ typedef struct ta_config_s {
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
   bool proxy_passthrough; /**< Pass proxy api directly without processing */
+  bool gtta_disable;      /**< Disable GTTA, the default value is false which enabling GTTA */
 } ta_config_t;
 
 /** struct type of iota configuration */

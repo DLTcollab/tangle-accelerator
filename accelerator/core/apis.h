@@ -148,6 +148,7 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
  * There is no need to decode the ascii payload to tryte, since the
  * api_mam_send_message() will take this job.
  *
+ * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] payload message to send undecoded ascii string.
@@ -157,8 +158,9 @@ status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_cl
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_mam_send_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char const* const payload, char** json_result);
+status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t* const iconf,
+                              const iota_client_service_t* const service, char const* const payload,
+                              char** json_result);
 
 /**
  * @brief Send transfer to tangle.
@@ -254,6 +256,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  * This allows for reattachments and prevents key reuse if trytes can't
  * be recovered by querying the network after broadcasting.
  *
+ * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
  * @param[in] obj trytes to attach, store and broadcast in json array
@@ -264,8 +267,8 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_trytes(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                         const char* const obj, char** json_result);
+status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* const iconf,
+                         const iota_client_service_t* const service, const char* const obj, char** json_result);
 #ifdef DB_ENABLE
 /**
  * @brief Return transaction object with given single identity number.
