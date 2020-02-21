@@ -1,5 +1,5 @@
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
-load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
 
 cc_binary(
     name = "accelerator",
@@ -53,17 +53,15 @@ cc_library(
 )
 
 cc_image(
-    name = "docker",
+    name = "docker_base_image",
     binary = ":accelerator",
 )
 
-container_push(
-    name = "push_docker",
-    format = "Docker",
-    image = ":docker",
-    registry = "index.docker.io",
-    repository = "dltcollab/tangle-accelerator",
-    tag = "latest",
+container_image(
+    name = "docker_image",
+    base = ":docker_base_image",
+    repository = "dltcollab",
+    stamp = True,
 )
 
 cc_library(
