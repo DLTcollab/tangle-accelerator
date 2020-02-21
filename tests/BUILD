@@ -1,29 +1,4 @@
 cc_test(
-    name = "test_core",
-    srcs = [
-        "test_core.cc",
-    ],
-    deps = [
-        ":iota_api_mock",
-        "//accelerator/core",
-    ],
-)
-
-cc_library(
-    name = "iota_api_mock",
-    srcs = [
-        "iota_api_mock.cc",
-    ],
-    hdrs = ["iota_api_mock.hh"],
-    deps = [
-        ":test_define",
-        "//accelerator/core",
-        "@com_google_googletest//:gtest_main",
-        "@entangled//cclient/api",
-    ],
-)
-
-cc_test(
     name = "driver",
     srcs = [
         "driver.c",

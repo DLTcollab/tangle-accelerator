@@ -356,8 +356,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
 static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *key, const char *value) {
   UNUSED(kind);
   ta_http_request_t *header = cls;
-
-  if (0 == strcmp(MHD_HTTP_HEADER_CONTENT_TYPE, key)) {
+  if (0 == strncasecmp(MHD_HTTP_HEADER_CONTENT_TYPE, key, strlen(MHD_HTTP_HEADER_CONTENT_TYPE))) {
     header->valid_content_type = !strcmp("application/json", value);
   }
   return MHD_YES;
