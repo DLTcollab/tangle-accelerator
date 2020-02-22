@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -10,7 +10,7 @@
 #include "connectivity/mqtt/mqtt_common.h"
 #endif
 #include "accelerator/core/serializer/serializer.h"
-#include "test_define.h"
+#include "tests/test_define.h"
 
 void test_serialize_ta_generate_address(void) {
   const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
@@ -32,7 +32,7 @@ void test_deserialize_ta_send_transfer(void) {
   const char* json =
       "{\"value\":100,"
       "\"message_format\":\"trytes\","
-      "\"message\":\"" TAG_MSG "\",\"tag\":\"" TAG_MSG
+      "\"message\":\"" TEST_TAG "\",\"tag\":\"" TEST_TAG
       "\","
       "\"address\":\"" TRYTES_81_1 "\"}";
 
@@ -42,7 +42,7 @@ void test_deserialize_ta_send_transfer(void) {
   ta_send_transfer_req_deserialize(json, req);
 
   TEST_ASSERT_EQUAL_INT(100, req->value);
-  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
 
@@ -57,12 +57,12 @@ void test_serialize_ta_find_transaction_objects(void) {
       "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
-      "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
+      "\"obsolete_tag\":\"" TEST_TAG "\",\"timestamp\":" STR(TIMESTAMP) ","
       "\"current_index\":" STR(CURRENT_INDEX) ",\"last_index\":" STR(LAST_INDEX) ","
       "\"bundle_hash\":\"" TRYTES_81_2 "\","
       "\"trunk_transaction_hash\":\"" TRYTES_81_2 "\","
       "\"branch_transaction_hash\":\"" TRYTES_81_1 "\","
-      "\"tag\":\"" TAG_MSG "\","
+      "\"tag\":\"" TEST_TAG "\","
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
@@ -90,7 +90,7 @@ void test_serialize_ta_find_transaction_objects(void) {
   transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
@@ -149,12 +149,12 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
-      "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
+      "\"obsolete_tag\":\"" TEST_TAG "\",\"timestamp\":" STR(TIMESTAMP) ","
       "\"current_index\":" STR(CURRENT_INDEX) ",\"last_index\":" STR(LAST_INDEX) ","
       "\"bundle_hash\":\"" TRYTES_81_2 "\","
       "\"trunk_transaction_hash\":\"" TRYTES_81_2 "\","
       "\"branch_transaction_hash\":\"" TRYTES_81_1 "\","
-      "\"tag\":\"" TAG_MSG "\","
+      "\"tag\":\"" TEST_TAG "\","
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
@@ -181,7 +181,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
@@ -340,11 +340,11 @@ void test_mqtt_device_id_deserialize(void) {
 }
 
 void test_mqtt_tag_req_deserialize(void) {
-  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TAG_MSG "\"}";
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TEST_TAG "\"}";
   char tag[NUM_TRYTES_TAG + 1] = {0};
   TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_tag_req_deserialize(json, tag));
 
-  TEST_ASSERT_EQUAL_STRING(tag, TAG_MSG);
+  TEST_ASSERT_EQUAL_STRING(tag, TEST_TAG);
 }
 
 void test_mqtt_transaction_hash_req_deserialize(void) {

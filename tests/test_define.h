@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -31,9 +31,9 @@ extern "C" {
 #define BUNDLE_HASH                                                            \
   "LVXEVZABVCIFEDSCONKEVEYBSIRMXGHLJDKSKQHTKZC9ULEAPSLKOOWCCZJGWSIISDDSEVUQHV" \
   "GPFOSIW"
-#define TAG_MSG "TANGLEACCELERATOR9999999999"
-#define FIND_TAG_MSG "TAFINDTXN999999999999999999"
-#define TAG_MSG_LEN 27
+#define TEST_TAG "TANGLEACCELERATOR9999999999"
+#define TEST_TRANSFER_MESSAGE "THIS9IS9MESSAGE9FROM9TAGNLEACCELERATOR"
+#define TEST_TAG_LEN 27
 #define VALUE 100
 #define TIMESTAMP 1546436542
 #define CURRENT_INDEX 1

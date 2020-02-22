@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -9,12 +9,19 @@
 #include <time.h>
 #include "accelerator/core/apis.h"
 #include "accelerator/core/proxy_apis.h"
-#include "test_define.h"
+#include "tests/test_define.h"
 
 static ta_core_t ta_core;
 struct timespec start_time, end_time;
 
-char driver_tag_msg[NUM_TRYTES_TAG];
+char* test_txn_hash[2] = {NULL, NULL};
+int test_txn_hash_size = sizeof(test_txn_hash) / sizeof(char*);
+char* test_tag = NULL;
+static struct ta_cli_argument_s driver_cli_arguments_g[] = {
+    {"hash", required_argument, NULL, 's', "testing transaction hashes"},
+    {"tag", required_argument, NULL, 'g', "testing transaction tag"},
+    {NULL, 0, NULL, 0, NULL}};
+
 ta_send_mam_res_t* res;
 
 static struct proxy_apis_s {
@@ -51,14 +58,6 @@ static struct identity_s {
   int8_t status;
 } identities[TEST_COUNT];
 #endif
-
-static void gen_rand_tag(char* tag) {
-  const char tryte_alpahbet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
-
-  for (int i = 0; i < NUM_TRYTES_TAG; i++) {
-    tag[i] = tryte_alpahbet[rand() % 27];
-  }
-}
 
 double diff_time(struct timespec start, struct timespec end) {
   struct timespec diff;
@@ -123,18 +122,15 @@ void test_get_tips(void) {
 }
 
 void test_send_transfer(void) {
-  const char* pre_json =
-      "{\"value\":100,"
-      "\"message\":\"" TAG_MSG
-      "\",\"tag\":\"%s\","
-      "\"address\":\"" TRYTES_81_1 "\"}";
+  const char* json =
+      "{\"value\":100"
+      ",\"tag\":\"" TEST_TAG
+      "\","
+      "\"address\":\"" TRYTES_81_1
+      "\","
+      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
   char* json_result;
   double sum = 0;
-
-  gen_rand_tag(driver_tag_msg);
-  int json_len = strlen(pre_json);
-  char json[json_len + NUM_TRYTES_TAG];
-  snprintf(json, json_len + NUM_TRYTES_TAG, pre_json, driver_tag_msg);
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
@@ -178,7 +174,10 @@ void test_send_trytes(void) {
 }
 
 void test_find_transaction_objects(void) {
-  const char* json = "{\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}";
+  const char* pre_json = "{\"hashes\":[\"%s\",\"%s\"]}";
+  int json_len = (NUM_TRYTES_HASH + 1) * 2 + strlen(pre_json) + 1;
+  char* json = (char*)malloc(sizeof(char) * json_len);
+  snprintf(json, json_len, pre_json, test_txn_hash[0], test_txn_hash[1]);
   char* json_result;
   double sum = 0;
 
@@ -189,6 +188,7 @@ void test_find_transaction_objects(void) {
     free(json_result);
   }
   printf("Average time of find_transaction_objects: %lf\n", sum / TEST_COUNT);
+  free(json);
 }
 
 void test_find_transactions_by_tag(void) {
@@ -198,7 +198,7 @@ void test_find_transactions_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.iota_service, driver_tag_msg, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.iota_service, test_tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -256,13 +256,13 @@ void test_find_transactions_obj_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK,
-                            api_find_transactions_obj_by_tag(&ta_core.iota_service, driver_tag_msg, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.iota_service, test_tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
 }
+
 void test_send_mam_message(void) {
   double sum = 0;
   const char* json =
@@ -337,6 +337,63 @@ void test_proxy_apis() {
     printf("Average time of %s: %lf\n", proxy_apis_g[i].name, sum / TEST_COUNT);
   }
 }
+static inline struct option* driver_cli_build_options() {
+  int driver_cli_arg_size = sizeof(driver_cli_arguments_g) / sizeof(driver_cli_arguments_g[0]);
+  struct option* driver_long_options =
+      (struct option*)realloc(cli_build_options(), (cli_cmd_num + 2) * sizeof(struct option));
+  for (int i = 0; i < driver_cli_arg_size; i++) {
+    driver_long_options[(cli_cmd_num - 1) + i].name = driver_cli_arguments_g[i].name;
+    driver_long_options[(cli_cmd_num - 1) + i].has_arg = driver_cli_arguments_g[i].has_arg;
+    driver_long_options[(cli_cmd_num - 1) + i].flag = driver_cli_arguments_g[i].flag;
+    driver_long_options[(cli_cmd_num - 1) + i].val = driver_cli_arguments_g[i].val;
+  }
+
+  return driver_long_options;
+};
+status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv) {
+  int key = 0;
+  status_t ret = SC_OK;
+  struct option* long_options = driver_cli_build_options();
+
+  while ((key = getopt_long(argc, argv, "hvs:g:", long_options, NULL)) != -1) {
+    switch (key) {
+      case 'h':
+        ta_usage();
+        exit(EXIT_SUCCESS);
+      case 'v':
+        printf("%s\n", TA_VERSION);
+        exit(EXIT_SUCCESS);
+      case QUIET:
+        // Turn on quiet mode
+        quiet_mode = true;
+
+        // Enable backend_redis logger
+        br_logger_init();
+        break;
+      case 's':
+        // Take the arguments as testing transaction hashes
+        for (int i = 0; i < test_txn_hash_size; i++) {
+          if (!test_txn_hash[i]) {
+            test_txn_hash[i] = optarg;
+          }
+        }
+        break;
+      case 'g':
+        // Take the arguments as testing transaction tag
+        test_tag = optarg;
+        break;
+      default:
+        ret = cli_core_set(core, key, optarg);
+        break;
+    }
+    if (ret != SC_OK) {
+      break;
+    }
+  }
+
+  free(long_options);
+  return ret;
+}
 
 int main(int argc, char* argv[]) {
   srand(time(NULL));
@@ -347,9 +404,13 @@ int main(int argc, char* argv[]) {
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
+  apis_logger_init();
+  cc_logger_init();
+  pow_logger_init();
+  timer_logger_init();
 
   ta_core_default_init(&ta_core);
-  ta_core_cli_init(&ta_core, argc, argv);
+  driver_core_cli_init(&ta_core, argc, argv);
   ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
@@ -360,7 +421,7 @@ int main(int argc, char* argv[]) {
   RUN_TEST(test_send_transfer);
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
-  RUN_TEST(test_send_mam_message);
+  // RUN_TEST(test_send_mam_message);
   // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
@@ -369,7 +430,8 @@ int main(int argc, char* argv[]) {
   RUN_TEST(test_api_get_identity_info_by_id);
   RUN_TEST(test_find_transactions_by_id);
 #endif
-  RUN_TEST(test_proxy_apis);
+  // TODO recover proxy tests
+  // RUN_TEST(test_proxy_apis);
   RUN_TEST(test_get_iri_status);
   ta_core_destroy(&ta_core);
   return UNITY_END();

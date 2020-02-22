@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -77,7 +77,7 @@ TEST(SendTransferTest, SendTransferTest) {
   req->value = 0;
   flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   hash243_queue_push(&req->address, hash_trits_1);
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   hash81_queue_push(&req->tag, tag_trits);
   flex_trits_from_trytes(msg_trits, NUM_TRITS_SIGNATURE, (const tryte_t*)TRYTES_2187_1, NUM_TRYTES_SIGNATURE,
                          NUM_TRYTES_SIGNATURE);
