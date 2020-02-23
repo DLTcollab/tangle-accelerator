@@ -101,19 +101,6 @@ typedef struct ta_core_s {
 } ta_core_t;
 
 /**
- * @brief Get corresponding key-value pair in ta_cli_arguments_g structure
- * key : correspond to "name" in ta_cli_arguments_g structure
- * value : correspond to "val" in ta_cli_arguments_g structure
- *
- * @param key[in] Key of the key-value pair in yaml file
- *
- * @return
- * - ZERO on Parsing unknown key
- * - non-zero Corresponding value of key
- */
-int get_conf_key(char const* const key);
-
-/**
  * Initializes configurations with default values
  *
  * @param core[in] Pointer to Tangle-accelerator core configuration structure
