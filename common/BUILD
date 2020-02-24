@@ -10,6 +10,7 @@ cc_library(
 
 cc_library(
     name = "ta_errors",
+    srcs = ["ta_errors.c"],
     hdrs = ["ta_errors.h"],
 )
 

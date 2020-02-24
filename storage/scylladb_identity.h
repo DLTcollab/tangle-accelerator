@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -80,7 +80,7 @@ void db_identity_free(db_identity_t** obj);
  * @param[in] in pointer to CassUuid to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in);
 
@@ -114,7 +114,7 @@ cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj);
  * @param[in] status status to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status);
 
@@ -137,7 +137,7 @@ cass_int8_t db_ret_identity_status(const db_identity_t* obj);
  * @param[in] length size of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_t length);
 
@@ -200,7 +200,7 @@ status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_
  * @param[in] ts timestamp to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts);
 
@@ -261,7 +261,7 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
  * @param[in] obj pointer to db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_show_identity_info(db_identity_t* obj);
 

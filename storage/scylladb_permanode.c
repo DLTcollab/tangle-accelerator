@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -58,8 +58,8 @@ status_t set_transaction_hash(scylla_iota_transaction_t* obj, cass_byte_t* hash,
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_HASH) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->hash, hash, NUM_FLEX_TRITS_HASH);
   return SC_OK;
@@ -83,8 +83,8 @@ status_t set_transaction_address(scylla_iota_transaction_t* obj, cass_byte_t* ha
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_ADDRESS) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->address, hash, length);
   return SC_OK;
@@ -108,8 +108,8 @@ status_t set_transaction_bundle(scylla_iota_transaction_t* obj, cass_byte_t* has
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_BUNDLE) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->bundle, hash, length);
   return SC_OK;
@@ -133,8 +133,8 @@ status_t set_transaction_trunk(scylla_iota_transaction_t* obj, cass_byte_t* hash
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_TRUNK) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->trunk, hash, length);
   return SC_OK;
@@ -158,8 +158,8 @@ status_t set_transaction_branch(scylla_iota_transaction_t* obj, cass_byte_t* has
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_BRANCH) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->branch, hash, length);
   return SC_OK;
@@ -183,8 +183,8 @@ status_t set_transaction_message(scylla_iota_transaction_t* obj, cass_byte_t* ha
     return SC_TA_NULL;
   }
   if (length != NUM_FLEX_TRITS_MESSAGE) {
-    ta_log_error("%s\n", "SC_STORAGE_INVAILD_INPUT");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("%s\n", "SC_STORAGE_INVALID_INPUT");
+    return SC_STORAGE_INVALID_INPUT;
   }
 
   memcpy(obj->message, hash, length);

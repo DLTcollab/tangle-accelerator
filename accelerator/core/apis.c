@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -136,8 +136,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
   ret = ta_generate_address(iconf, service, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
-    ret = SC_TA_ERROR;
-    ta_log_error("%s\n", "SC_TA_ERROR");
+    ta_log_error("%s\n", "Failed in TA core function");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);

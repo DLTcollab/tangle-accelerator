@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -382,7 +382,7 @@ status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
       }
     }
     mosquitto_lib_cleanup();
-    return SC_CLIENT_CONNTECT;
+    return SC_CLIENT_CONNECT;
   }
   return SC_OK;
 }
