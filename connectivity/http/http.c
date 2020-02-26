@@ -459,7 +459,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (options) {
     // header information for OPTIONS request
     MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    MHD_add_response_header(response, "Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
+    MHD_add_response_header(response, "Access-Control-Allow-Headers", "Origin, Content-Type, Accept, X-IOTA-API-Version");
     MHD_add_response_header(response, "Access-Control-Max-Age", "86400");
   } else {
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json");
