@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -123,6 +123,19 @@ int get_conf_key(char const* const key);
  * - non-zero on error
  */
 status_t ta_core_default_init(ta_core_t* const core);
+
+static inline struct option* cli_build_options() {
+  struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
+  for (int i = 0; i < cli_cmd_num; ++i) {
+    long_options[i].name = ta_cli_arguments_g[i].name;
+    long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
+    long_options[i].flag = ta_cli_arguments_g[i].flag;
+    long_options[i].val = ta_cli_arguments_g[i].val;
+  }
+  return long_options;
+};
+
+status_t cli_core_set(ta_core_t* const core, int key, char* const value);
 
 /**
  * Initializes configurations with configuration file

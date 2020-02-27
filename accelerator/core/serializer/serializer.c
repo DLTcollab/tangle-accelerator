@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -644,6 +644,13 @@ done:
 status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateArray();
+
+  if (res == NULL || res->hashes == NULL) {
+    ret = SC_SERIALIZER_NULL;
+    ta_log_error("%s\n", "SC_SERIALIZER_NULL");
+    goto done;
+  }
+
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
     ta_log_error("%s\n", "SC_SERIALIZER_JSON_CREATE");
