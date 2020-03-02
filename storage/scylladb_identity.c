@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -62,7 +62,7 @@ status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in) {
   int version = (in->time_and_version) >> 60;
   if (version != DB_IDENTITY_UUID_VERSION) {
     ta_log_error("input uuid version %d does not match expected version %d\n", version, DB_IDENTITY_UUID_VERSION);
-    return SC_STORAGE_INVAILD_INPUT;
+    return SC_STORAGE_INVALID_INPUT;
   }
   obj->uuid.time_and_version = in->time_and_version;
   obj->uuid.clock_seq_and_node = in->clock_seq_and_node;
@@ -89,7 +89,7 @@ status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status) {
   }
   if (status < 0 || status >= NUM_OF_TXN_STATUS) {
     ta_log_error("invalid status : %d\n", status);
-    return SC_STORAGE_INVAILD_INPUT;
+    return SC_STORAGE_INVALID_INPUT;
   }
   obj->status = status;
   return SC_OK;
@@ -137,8 +137,8 @@ status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_
     ta_log_error("NULL pointer to hash to insert into identity table\n");
   }
   if (length != DB_NUM_TRYTES_HASH) {
-    ta_log_error("SC_STORAGE_INVAILD_INPUT\n");
-    return SC_STORAGE_INVAILD_INPUT;
+    ta_log_error("SC_STORAGE_INVALID_INPUT\n");
+    return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->hash, hash, DB_NUM_TRYTES_HASH);
   return SC_OK;
@@ -355,7 +355,7 @@ exit:
   db_identity_free(&identity);
   if ((db_identity_t*)utarray_front(identity_array) == NULL) {
     ta_log_error("no identity is found\n");
-    return SC_STORAGE_INVAILD_INPUT;
+    return SC_STORAGE_INVALID_INPUT;
   }
   return ret;
 }
