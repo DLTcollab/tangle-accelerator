@@ -107,7 +107,7 @@ Tangle-accelerator supports several different build time options.
 * MQTT connectivity
 * External database
 
-See [docs/build.md](https://github.com/DLTcollab/tangle-accelerator/docs/build.md) for more information.
+See [docs/build.md](docs/build.md) for more information.
 
 ## Developing
 
