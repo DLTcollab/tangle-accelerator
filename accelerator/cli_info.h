@@ -75,7 +75,7 @@ static struct ta_cli_argument_s {
     {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IRI milestone depth"},
     {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
     {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
-    {"cache", required_argument, NULL, CACHE, "Enable cache server with Y"},
+    {"cache", no_argument, NULL, CACHE, "Enable cache server"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
