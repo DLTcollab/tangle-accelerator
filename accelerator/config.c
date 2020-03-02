@@ -14,13 +14,24 @@
 
 static logger_id_t logger_id;
 
-int get_conf_key(char const* const key) {
-  for (int i = 0; i < cli_cmd_num; ++i) {
+/**
+ * @brief Get the corresponding value of the key from ta_cli_arguments_g structure
+ * key : correspond to "name" in ta_cli_arguments_g structure
+ * value : correspond to "val" in ta_cli_arguments_g structure
+ *
+ * @param key[in] Key of the key-value pair in yaml file
+ *
+ * @return
+ * - ZERO on Parsing unknown key
+ * - non-zero Corresponding value of key
+ */
+static int get_conf_key(char const* const key) {
+  for (int i = 0; i < cli_cmd_num - 1; i++) {
     if (!strcmp(ta_cli_arguments_g[i].name, key)) {
       return ta_cli_arguments_g[i].val;
     }
   }
-
+  ta_log_error("Invalid %s setting in the configuration file\n", key);
   return 0;
 }
 
