@@ -78,6 +78,8 @@ int main(int argc, char* argv[]) {
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
+    // Enable backend_redis logger
+    br_logger_init();
   }
 
   /* pause() cause TA to sleep until it catch a signal,
@@ -106,6 +108,7 @@ cleanup:
     pow_logger_release();
     timer_logger_release();
     logger_helper_release(logger_id);
+    br_logger_release();
     if (logger_helper_destroy() != RC_OK) {
       ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
       return EXIT_FAILURE;

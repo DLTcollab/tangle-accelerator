@@ -14,18 +14,29 @@
 
 static logger_id_t logger_id;
 
-int get_conf_key(char const* const key) {
-  for (int i = 0; i < cli_cmd_num; ++i) {
+/**
+ * @brief Get the corresponding value of the key from ta_cli_arguments_g structure
+ * key : correspond to "name" in ta_cli_arguments_g structure
+ * value : correspond to "val" in ta_cli_arguments_g structure
+ *
+ * @param key[in] Key of the key-value pair in yaml file
+ *
+ * @return
+ * - ZERO on Parsing unknown key
+ * - non-zero Corresponding value of key
+ */
+static int get_conf_key(char const* const key) {
+  for (int i = 0; i < cli_cmd_num - 1; i++) {
     if (!strcmp(ta_cli_arguments_g[i].name, key)) {
       return ta_cli_arguments_g[i].val;
     }
   }
-
+  ta_log_error("Invalid %s setting in the configuration file\n", key);
   return 0;
 }
 
 status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && key != PROXY_API) {
+  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET)) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -92,12 +103,12 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       iota_conf->seed = value;
       break;
     case CACHE:
-      cache->cache_state = (toupper(value[0]) == 'T');
+      cache->cache_state = true;
       break;
 
     // Quiet mode configuration
     case QUIET:
-      quiet_mode = (toupper(value[0]) == 'T');
+      quiet_mode = true;
       break;
 
     case PROXY_API:
@@ -292,12 +303,6 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case 'v':
         printf("%s\n", TA_VERSION);
         exit(EXIT_SUCCESS);
-      case QUIET:
-        // Turn on quiet mode
-        quiet_mode = true;
-
-        // Enable backend_redis logger
-        br_logger_init();
         break;
       case CONF_CLI:
         /* Already processed in ta_config_file_init() */

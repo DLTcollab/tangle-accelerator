@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -48,7 +48,7 @@ void free_scylla_iota_transaction(scylla_iota_transaction_t** obj);
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_hash(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -60,7 +60,7 @@ status_t set_transaction_hash(scylla_iota_transaction_t* obj, cass_byte_t* hash,
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_bundle(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -72,7 +72,7 @@ status_t set_transaction_bundle(scylla_iota_transaction_t* obj, cass_byte_t* has
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_address(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -84,7 +84,7 @@ status_t set_transaction_address(scylla_iota_transaction_t* obj, cass_byte_t* ha
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_trunk(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -96,7 +96,7 @@ status_t set_transaction_trunk(scylla_iota_transaction_t* obj, cass_byte_t* hash
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_branch(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -108,7 +108,7 @@ status_t set_transaction_branch(scylla_iota_transaction_t* obj, cass_byte_t* has
  * @param[in] length length of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_message(scylla_iota_transaction_t* obj, cass_byte_t* hash, size_t length);
 
@@ -119,7 +119,7 @@ status_t set_transaction_message(scylla_iota_transaction_t* obj, cass_byte_t* ha
  * @param[in] value input value to be set to member of scylla_iota_transaction_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_value(scylla_iota_transaction_t* obj, int64_t value);
 
@@ -130,7 +130,7 @@ status_t set_transaction_value(scylla_iota_transaction_t* obj, int64_t value);
  * @param[in] timestamp input timestamp to be set to member of scylla_iota_transaction_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVAILD_INPUT on error
+ * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t set_transaction_timestamp(scylla_iota_transaction_t* obj, int64_t timestamp);
 
