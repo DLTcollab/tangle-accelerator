@@ -26,14 +26,18 @@ extern "C" {
 typedef struct {
   /** Transfer value */
   int value;
+  /** IOTA seed of sender. */
+  tryte_t* seed;
   /** Transfer tag is a 81 long flex trits hash queue. */
   hash81_queue_t tag;
-  /** Transfer address is a 243 long flex trits hash queue. */
+  /** Transfer address is the receiver address of transactions. It is a 243 long flex trits hash queue. At least moment,
+   * we support single transaction only */
   hash243_queue_t address;
   /** @name message metadata */
   /* @{ */
-  /** Transfer message is a 6561 long flex trits hash array. */
-  flex_trit_t message[FLEX_TRIT_SIZE_6561];
+  /** Transfer message is a 6561 long flex trits hash array. If this field has avlue (not empty), then the current
+   * transaction will be forcedly set to zero transaction. */
+  flex_trit_t* message;
   /** message length */
   int msg_len;
   /* @} */

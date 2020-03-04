@@ -13,6 +13,8 @@ ta_send_transfer_req_t* ta_send_transfer_req_new() {
   if (req != NULL) {
     req->tag = NULL;
     req->address = NULL;
+    req->message = NULL;
+    req->seed = NULL;
     return req;
   }
   return NULL;
@@ -22,6 +24,8 @@ void ta_send_transfer_req_free(ta_send_transfer_req_t** req) {
   if (*req) {
     hash81_queue_free(&(*req)->tag);
     hash243_queue_free(&(*req)->address);
+    free((*req)->seed);
+    free((*req)->message);
     free(*req);
     *req = NULL;
   }

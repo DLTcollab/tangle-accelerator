@@ -419,12 +419,83 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
     goto done;
   }
 
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "value");
-  if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
-    req->value = json_result->valueint;
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
+  if (json_result != NULL && json_result->valuestring != NULL &&
+      (strlen(json_result->valuestring) == NUM_TRYTES_ADDRESS)) {
+    flex_trits_from_trytes(address_trits, NUM_TRITS_ADDRESS, (const tryte_t*)json_result->valuestring,
+                           NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
   } else {
-    // 'value' does not exist or invalid, set to 0
+    // 'address' does not exists, set to DEFAULT_ADDRESS
+    flex_trits_from_trytes(address_trits, NUM_TRITS_ADDRESS, (const tryte_t*)DEFAULT_ADDRESS, NUM_TRYTES_ADDRESS,
+                           NUM_TRYTES_ADDRESS);
+  }
+  ret = hash243_queue_push(&req->address, address_trits);
+  if (ret) {
+    ret = SC_CCLIENT_HASH;
+    ta_log_error("%s\n", "SC_CCLIENT_HASH");
+    goto done;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "seed");
+  if (json_result != NULL && json_result->valuestring != NULL &&
+      (strlen(json_result->valuestring) == NUM_TRYTES_HASH)) {
+    req->seed = (tryte_t*)malloc(NUM_TRYTES_HASH * sizeof(tryte_t));
+    if (!req->seed) {
+      ret = SC_SERIALIZER_OOM;
+      ta_log_error("%s\n", "SC_SERIALIZER_OOM");
+      goto done;
+    }
+    flex_trits_from_trytes(req->seed, NUM_TRITS_HASH, (const tryte_t*)json_result->valuestring, NUM_TRYTES_HASH,
+                           NUM_TRYTES_HASH);
+  }
+
+  if (req->seed) {
+    json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "value");
+    if ((json_result != NULL) && cJSON_IsNumber(json_result)) {
+      req->value = json_result->valueint;
+    } else {
+      // 'value' does not exist or invalid, set to 0
+      req->value = 0;
+    }
+  } else {
     req->value = 0;
+  }
+
+  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
+  if (json_result != NULL && json_result->valuestring != NULL) {
+    msg_len = strlen(json_result->valuestring);
+
+    // In case the payload is unicode, the character whose ASCII code is beyond 128 result to an
+    // error status_t code
+    for (int i = 0; i < msg_len; i++) {
+      if (json_result->valuestring[i] & 0x80) {
+        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
+        ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE_ASCII");
+        goto done;
+      }
+    }
+    req->message = (flex_trit_t*)malloc(NUM_FLEX_TRITS_MESSAGE * sizeof(flex_trit_t));
+    if (!req->message) {
+      ret = SC_SERIALIZER_OOM;
+      ta_log_error("%s\n", "SC_SERIALIZER_OOM");
+      goto done;
+    }
+
+    if (raw_message) {
+      msg_len = msg_len * 2;
+      req->msg_len = msg_len * 3;
+      tryte_t trytes_buffer[msg_len];
+
+      ascii_to_trytes(json_result->valuestring, trytes_buffer);
+      flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len, msg_len);
+    } else {
+      req->msg_len = msg_len * 3;
+      flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
+    }
+  } else if (req->value == 0) {
+    // When value is equal to 0, and 'message' does not exists, then `message` would be set to `DEFAULT_MSG`.
+    req->msg_len = DEFAULT_MSG_LEN * 3;
+    flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)DEFAULT_MSG, DEFAULT_MSG_LEN, DEFAULT_MSG_LEN);
   }
 
   json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "tag");
@@ -467,53 +538,6 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
     if (!strncmp("trytes", json_result->valuestring, 6)) {
       raw_message = false;
     }
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "message");
-  if (json_result != NULL && json_result->valuestring != NULL) {
-    msg_len = strlen(json_result->valuestring);
-
-    // In case the payload is unicode, the character whose ASCII code is beyond 128 result to an
-    // error status_t code
-    for (int i = 0; i < msg_len; i++) {
-      if (json_result->valuestring[i] & 0x80) {
-        ret = SC_SERIALIZER_JSON_PARSE_ASCII;
-        ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE_ASCII");
-        goto done;
-      }
-    }
-
-    if (raw_message) {
-      msg_len = msg_len * 2;
-      req->msg_len = msg_len * 3;
-      tryte_t trytes_buffer[msg_len];
-
-      ascii_to_trytes(json_result->valuestring, trytes_buffer);
-      flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len, msg_len);
-    } else {
-      req->msg_len = msg_len * 3;
-      flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
-    }
-  } else {
-    // 'message' does not exists, set to DEFAULT_MSG
-    req->msg_len = DEFAULT_MSG_LEN * 3;
-    flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)DEFAULT_MSG, DEFAULT_MSG_LEN, DEFAULT_MSG_LEN);
-  }
-
-  json_result = cJSON_GetObjectItemCaseSensitive(json_obj, "address");
-  if (json_result != NULL && json_result->valuestring != NULL && (strnlen(json_result->valuestring, 81) == 81)) {
-    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH, (const tryte_t*)json_result->valuestring, NUM_TRYTES_HASH,
-                           NUM_TRYTES_HASH);
-  } else {
-    // 'address' does not exists, set to DEFAULT_ADDRESS
-    flex_trits_from_trytes(address_trits, NUM_TRITS_HASH, (const tryte_t*)DEFAULT_ADDRESS, NUM_TRYTES_HASH,
-                           NUM_TRYTES_HASH);
-  }
-  ret = hash243_queue_push(&req->address, address_trits);
-  if (ret) {
-    ret = SC_CCLIENT_HASH;
-    ta_log_error("%s\n", "SC_CCLIENT_HASH");
-    goto done;
   }
 
 done:

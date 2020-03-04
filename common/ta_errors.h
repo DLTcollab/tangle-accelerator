@@ -103,15 +103,17 @@ typedef enum {
   /**< json create object error, might OOM. */
 
   // Serializer module
-  SC_SERIALIZER_JSON_CREATE = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
-  /**< Failed to create JSON object in serializer */
+  SC_SERIALIZER_OOM = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< Failed to create serializer object */
   SC_SERIALIZER_NULL = 0x02 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< NULL object in serializer */
-  SC_SERIALIZER_JSON_PARSE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  SC_SERIALIZER_JSON_CREATE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< Failed to create JSON object in serializer */
+  SC_SERIALIZER_JSON_PARSE = 0x04 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Failed to parse JSON object in serializer */
-  SC_SERIALIZER_JSON_PARSE_ASCII = 0x04 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  SC_SERIALIZER_JSON_PARSE_ASCII = 0x05 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Unicode value in JSON */
-  SC_SERIALIZER_INVALID_REQ = 0x05 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  SC_SERIALIZER_INVALID_REQ = 0x06 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Invald request value in JSON */
 
   // Cache module
