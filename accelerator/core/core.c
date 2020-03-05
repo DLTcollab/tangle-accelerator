@@ -192,26 +192,34 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
     goto done;
   }
 
-  // TODO Maybe we can replace the variable type of message from flex_trit_t to
-  // tryte_t
+  flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
+  transfer_t transfer;
+  if (req->seed) {
+    flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)req->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+    transfer.value = req->value;
+  } else {
+    // No seed provided by client, so we should set transaction value to zero. We use default seed on tangle-accelerator
+    // when there is no seed provided by client, so to avoid transmitting money accidentally, we set value to zero.
+    flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+    transfer.value = 0;
+  }
+  memcpy(transfer.address, hash243_queue_peek(req->address), FLEX_TRIT_SIZE_243);
+  memcpy(transfer.tag, hash81_queue_peek(req->tag), FLEX_TRIT_SIZE_81);
+  transfer.timestamp = current_timestamp_ms();
+  transfer.msg_len = req->msg_len / 3;
+
   tryte_t msg_tryte[NUM_TRYTES_SERIALIZED_TRANSACTION];
   flex_trits_to_trytes(msg_tryte, req->msg_len / 3, req->message, req->msg_len, req->msg_len);
-
-  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len / 3};
-
   if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) != RC_OK) {
     ret = SC_CCLIENT_OOM;
     ta_log_error("%s\n", "SC_CCLIENT_OOM");
     goto done;
   }
-  memcpy(transfer.address, hash243_queue_peek(req->address), FLEX_TRIT_SIZE_243);
-  memcpy(transfer.tag, hash81_queue_peek(req->tag), FLEX_TRIT_SIZE_81);
+
   transfer_array_add(transfers, &transfer);
 
   // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
   // future and declare `security` field in `iota_config_t`
-  flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
-  flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, false, current_timestamp_ms(),
                                     out_bundle) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
@@ -219,19 +227,16 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
     goto done;
   }
 
+  flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
   BUNDLE_FOREACH(out_bundle, txn) {
-    serialized_txn = transaction_serialize(txn);
-    if (serialized_txn == NULL) {
-      ret = SC_CCLIENT_FAILED_RESPONSE;
-      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-      goto done;
-    }
-    hash_array_push(raw_tx, serialized_txn);
-    free(serialized_txn);
+    // tx trytes must be in order, from last to 0.
+    transaction_serialize_on_flex_trits(txn, serialized_value);
+    utarray_insert(raw_tx, serialized_value, 0);
   }
 
   ret = ta_send_trytes(iconf, service, raw_tx);
   if (ret) {
+    ta_log_error("%s\n", "ta_send_trytes failed.");
     goto done;
   }
 

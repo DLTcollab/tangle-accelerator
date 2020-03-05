@@ -88,7 +88,8 @@ void test_generate_address(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK,
+                            api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, TEST_SEED, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -121,14 +122,50 @@ void test_get_tips(void) {
   printf("Average time of get_tips: %lf\n", sum / TEST_COUNT);
 }
 
-void test_send_transfer(void) {
-  const char* json =
-      "{\"value\":100"
-      ",\"tag\":\"" TEST_TAG
-      "\","
-      "\"address\":\"" TRYTES_81_1
-      "\","
-      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+void test_send_transfer_zero(void) {
+  const char* json = "{\"value\":" STR(VALUE) ",\"tag\":\"" TEST_TAG
+                                              "\","
+                                              "\"address\":\"" TRYTES_81_1
+                                              "\","
+                                              "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+  char* json_result;
+  double sum = 0;
+
+  for (size_t count = 0; count < TEST_COUNT; count++) {
+    test_time_start(&start_time);
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core, json, &json_result));
+    test_time_end(&start_time, &end_time, &sum);
+#ifdef DB_ENABLE
+    cJSON* json_obj = cJSON_Parse(json_result);
+    cJSON* json_item = NULL;
+    json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "id");
+
+    TEST_ASSERT(json_item != NULL && json_item->valuestring != NULL &&
+                (strnlen(json_item->valuestring, DB_UUID_STRING_LENGTH - 1) == (DB_UUID_STRING_LENGTH - 1)));
+    memcpy(identities[count].uuid_string, json_item->valuestring, DB_UUID_STRING_LENGTH);
+
+    json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "hash");
+    TEST_ASSERT(json_item != NULL && json_item->valuestring != NULL &&
+                (strnlen(json_item->valuestring, NUM_TRYTES_HASH) == NUM_TRYTES_HASH));
+    memcpy(identities[count].hash, json_item->valuestring, NUM_TRYTES_HASH);
+    identities[count].hash[NUM_TRYTES_HASH] = '\0';
+    identities[count].status = PENDING_TXN;
+
+    cJSON_Delete(json_obj);
+#endif
+    free(json_result);
+  }
+  printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
+}
+
+void test_send_transfer_value(void) {
+  const char* json = "{\"value\":" STR(VALUE) ",\"seed\":\"" TEST_SEED
+                                              "\","
+                                              "\"tag\":\"" TEST_TAG
+                                              "\","
+                                              "\"address\":\"" TRYTES_81_1
+                                              "\","
+                                              "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
   char* json_result;
   double sum = 0;
 
@@ -414,11 +451,11 @@ int main(int argc, char* argv[]) {
   ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
-
   RUN_TEST(test_generate_address);
   RUN_TEST(test_get_tips_pair);
   RUN_TEST(test_get_tips);
-  RUN_TEST(test_send_transfer);
+  RUN_TEST(test_send_transfer_zero);
+  RUN_TEST(test_send_transfer_value);
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
   // RUN_TEST(test_send_mam_message);
