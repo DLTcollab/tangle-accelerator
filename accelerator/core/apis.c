@@ -311,42 +311,77 @@ done:
   return ret;
 }
 
-status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                                 const char* const chid, char** json_result) {
+status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                              const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  char* payload = NULL;
-  mam_api_t mam;
-  bundle_transactions_t* bundle = NULL;
-  bundle_transactions_new(&bundle);
 
-  // TODO We may need to use encryption here
-  // Creating MAM API
-  retcode_t rc = mam_api_load(iconf->mam_file_path, &mam, NULL, 0);
-  if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
-    if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
-      ret = SC_MAM_FAILED_INIT;
-      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
-      goto done;
-    }
-  } else if (rc != RC_OK) {
+  mam_api_t mam;
+  ta_recv_mam_req_t* req = recv_mam_req_new();
+  if (req == NULL) {
+    ta_log_error("%s\n", "SC_TA_OOM");
+    return SC_TA_OOM;
+  }
+  bundle_array_t* bundle_array = NULL;
+  bundle_array_new(&bundle_array);
+  UT_array* payload_array = NULL;
+  utarray_new(payload_array, &ut_str_icd);
+
+  ret = recv_mam_message_req_deserialize(obj, req);
+  if (ret) {
+    ta_log_error("%s\n", "recv_mam_message failed to deserialize.");
+    goto done;
+  }
+
+  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  if (mam_api_init(&mam, (tryte_t*)iconf->seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
   }
 
-  mam_api_add_trusted_channel_pk(&mam, (tryte_t*)chid);
-  ret = ta_get_bundles_by_addr(service, (tryte_t*)chid, bundle);
+  ret = mam_api_add_trusted_channel_pk(&mam, (tryte_t*)data_id->chid);
   if (ret != SC_OK) {
+    ta_log_error("%s\n", "Failed to add trusted channel.");
     goto done;
   }
 
-  if (ta_mam_api_bundle_read(&mam, bundle, &payload) != RC_OK) {
-    ret = SC_MAM_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
-    goto done;
+  if (data_id->bundle_hash) {
+    bundle_transactions_t* bundle = NULL;
+    bundle_transactions_new(&bundle);
+    ret = ta_get_bundle(service, data_id->bundle_hash, bundle);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", "Failed to get bundle by bundle hash");
+      goto done;
+    }
+    bundle_array_add(bundle_array, bundle);
+    bundle_transactions_free(&bundle);
+  } else if (data_id->chid) {
+    ret = ta_get_bundles_by_addr(service, data_id->chid, bundle_array);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", "Failed to get bundle by chid");
+      goto done;
+    }
   }
 
-  ret = receive_mam_message_res_serialize(payload, json_result);
+  bundle_transactions_t* bundle = NULL;
+  BUNDLE_ARRAY_FOREACH(bundle_array, bundle) {
+    char* payload = NULL;
+    retcode_t rc = ta_mam_api_bundle_read(&mam, bundle, &payload);
+    if (rc != RC_OK) {
+      ret = SC_MAM_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
+      goto done;
+    }
+
+    utarray_push_back(payload_array, &payload);
+    free(payload);
+  }
+
+  ret = recv_mam_message_res_serialize(payload_array, json_result);
+  if (ret) {
+    ta_log_error("%s\n", "recv_mam_message failed to serialize.");
+  }
 
 done:
   // Destroying MAM API
@@ -359,8 +394,9 @@ done:
       ta_log_error("%s\n", "SC_MAM_FAILED_DESTROYED");
     }
   }
-  bundle_transactions_free(&bundle);
-  free(payload);
+  bundle_array_free(&bundle_array);
+  recv_mam_req_free(&req);
+  utarray_free(payload_array);
   return ret;
 }
 

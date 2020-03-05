@@ -161,7 +161,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_conf->seed = SEED;
   char mam_file_path[] = MAM_FILE_PREFIX;
   mkstemp(mam_file_path);
-  iota_conf->mam_file_path = mam_file_path;
+  iota_conf->mam_file_path = strdup(mam_file_path);
 
   ta_log_info("Initializing IRI connection\n");
   iota_service->http.path = "/";
@@ -359,7 +359,7 @@ void ta_core_destroy(ta_core_t* const core) {
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
 #endif
-
+  free(core->iota_conf.mam_file_path);
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

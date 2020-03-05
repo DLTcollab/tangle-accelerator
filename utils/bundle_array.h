@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 #include "common/model/bundle.h"
+#include "common/ta_errors.h"
 #include "utarray.h"
 
 /**
@@ -41,15 +42,57 @@ static inline void bundle_array_new(bundle_array_t **const bundle_array) {
        bdl = (bundle_transactions_t *)utarray_next(bundles, bdl))
 
 /**
+ * @brief Gets the number of bundles in the bundle_array.
+ *
+ * @param[in] bundle_array The bundle array object.
+ * @return An number of bundles.
+ */
+static inline size_t bundle_array_size(bundle_array_t const *const bundle_array) {
+  if (bundle_array == NULL) {
+    return 0;
+  }
+
+  return utarray_len(bundle_array);
+}
+
+/**
+ * @brief Adds a bundle to the bundle_array.
+ *
+ * @param[in] bundle_array The bundle array object.
+ * @param[in] bundle A bundle object.
+ * @return #retcode_t
+ */
+static inline status_t bundle_array_add(bundle_array_t *const bundle_array, bundle_transactions_t const *const bundle) {
+  if (!bundle || !bundle_array) {
+    return SC_TA_NULL;
+  }
+
+  utarray_push_back(bundle_array, bundle);
+  return SC_OK;
+}
+
+/**
+ * @brief Gets a bundle from the bundle_array by index.
+ *
+ * @param[in] bundle_array The bundle array object.
+ * @param[in] index The index of a bundle.
+ * @return #bundle_transactions_t
+ */
+static inline bundle_transactions_t *bundle_array_at(bundle_array_t *const bundle_array, size_t index) {
+  if (index < utarray_len(bundle_array)) {
+    return (bundle_transactions_t *)(utarray_eltptr(bundle_array, index));
+  }
+  return NULL;
+}
+
+/**
  * Free memory of bundle_array_t
  */
 static inline void bundle_array_free(bundle_array_t **const bundle_array) {
   // TODO set dtor and use utarray_free() instead.
-  if (bundle_array && *bundle_array) {
-    bundle_transactions_t *bundle = NULL;
-    BUNDLE_ARRAY_FOREACH(*bundle_array, bundle) { bundle_transactions_free(&bundle); }
-    free(*bundle_array);
-  }
+  bundle_transactions_t *bundle = NULL;
+  BUNDLE_ARRAY_FOREACH(*bundle_array, bundle) { utarray_done(bundle); }
+  utarray_free(*bundle_array);
   *bundle_array = NULL;
 }
 

@@ -138,8 +138,8 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                                 const char* const chid, char** json_result);
+status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                              const char* const chid, char** json_result);
 
 /**
  * @brief Send a MAM message with given Payload.

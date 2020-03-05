@@ -301,7 +301,7 @@ void test_receive_mam_message(void) {
     test_time_start(&start_time);
 
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_receive_mam_message(&ta_core.iota_conf, &ta_core.iota_service, (char*)res->chid, &json_result));
+        SC_OK, api_recv_mam_message(&ta_core.iota_conf, &ta_core.iota_service, (char*)res->chid, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }

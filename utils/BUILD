@@ -13,6 +13,7 @@ cc_library(
     name = "bundle_array",
     srcs = ["bundle_array.h"],
     deps = [
+        "//common:ta_errors",
         "@com_github_uthash//:uthash",
         "@entangled//common/model:bundle",
     ],

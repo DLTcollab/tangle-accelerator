@@ -380,6 +380,7 @@ retcode_t ta_mam_api_bundle_read(mam_api_t *const api, bundle_transactions_t *bu
   tryte_t *payload_trytes = NULL;
   size_t payload_size = 0;
   bool is_last_packet = false;
+
   ret = mam_api_bundle_read(api, bundle, &payload_trytes, &payload_size, &is_last_packet);
   if (ret == RC_OK) {
     if (payload_trytes == NULL || payload_size == 0) {
