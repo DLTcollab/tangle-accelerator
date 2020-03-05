@@ -179,7 +179,6 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
   }
 
   status_t ret = SC_OK;
-  flex_trit_t* serialized_txn;
   find_transactions_req_t* find_tx_req = find_transactions_req_new();
   find_transactions_res_t* find_tx_res = find_transactions_res_new();
   hash8019_array_p raw_tx = hash8019_array_new();

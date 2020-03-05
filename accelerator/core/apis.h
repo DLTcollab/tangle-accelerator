@@ -84,6 +84,7 @@ status_t apis_lock_destroy();
  *
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
+ * @param[in] seed Seed to generate address
  * @param[out] json_result Result containing an unused address in json format
  *
  * @return
@@ -91,7 +92,7 @@ status_t apis_lock_destroy();
  * - non-zero on error
  */
 status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char** json_result);
+                              const char* const seed, char** json_result);
 
 /**
  * @brief Get trunk and branch transactions
