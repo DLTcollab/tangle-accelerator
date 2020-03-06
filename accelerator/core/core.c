@@ -564,15 +564,17 @@ status_t ta_get_iri_status(const iota_client_service_t* const service) {
   str_from_char_buffer(res_buff, &iri_result);
 
   // Check whether IRI host is at the latest milestone
-  char latestMilestone[NUM_TRYTES_ADDRESS + 1], latestSolidSubtangleMilestone[NUM_TRYTES_ADDRESS + 1];
-  ret = get_iri_status_milestone_deserialize(iri_result, latestMilestone, latestSolidSubtangleMilestone);
+  int latestMilestoneIndex, latestSolidSubtangleMilestoneIndex;
+  ret = get_iri_status_milestone_deserialize(iri_result, &latestMilestoneIndex, &latestSolidSubtangleMilestoneIndex);
   if (ret != SC_OK) {
     ta_log_error("check iri connection failed deserialized. status code: %d\n", ret);
     goto done;
   }
 
-  if (strcmp(latestMilestone, latestSolidSubtangleMilestone)) {
+  // The tolerant difference between latestSolidSubtangleMilestoneIndex and latestMilestoneIndex is less equal than 1.
+  if ((latestSolidSubtangleMilestoneIndex - latestMilestoneIndex) > 1) {
     ret = SC_CORE_IRI_UNSYNC;
+    ta_log_error("%s\n", "SC_CORE_IRI_UNSYNC");
   }
 
 done:
@@ -580,5 +582,35 @@ done:
   char_buffer_free(req_buff);
   char_buffer_free(res_buff);
 
+  return ret;
+}
+
+status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->host_list[i]; i++) {
+    // update new IRI host
+    ta_conf->host = ta_conf->host_list[i];
+    ta_conf->port = ta_conf->port_list[i];
+    service->http.host = ta_conf->host_list[i];
+    service->http.port = ta_conf->port_list[i];
+    ta_log_info("Try tp connect to %s:%d\n", ta_conf->host, ta_conf->port);
+
+    if (iota_client_core_init(service)) {
+      ta_log_error("Initializing IRI connection failed!\n");
+      return RC_CCLIENT_UNIMPLEMENTED;
+    }
+    iota_client_extended_init();
+
+    // Run from the first one until found a good one.
+    if (ta_get_iri_status(service) == SC_OK) {
+      ta_log_info("Connect to %s:%d\n", ta_conf->host, ta_conf->port);
+      goto done;
+    }
+  }
+  if (ret) {
+    ta_log_error("All IRI host on priority list failed.\n");
+  }
+
+done:
   return ret;
 }
