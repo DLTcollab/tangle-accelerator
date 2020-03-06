@@ -7,6 +7,8 @@
  */
 
 #include "config.h"
+#include <errno.h>
+#include <limits.h>
 #include "utils/macros.h"
 #include "yaml.h"
 
@@ -48,16 +50,28 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
 #endif
+  char* strtol_p = NULL;
+  long int strtol_temp;
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
       ta_conf->host = value;
       break;
     case TA_PORT_CLI:
-      ta_conf->port = atoi(value);
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case TA_THREAD_COUNT_CLI:
-      ta_conf->thread_count = atoi(value);
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->thread_count = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
 
     // IRI configuration
@@ -65,28 +79,52 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       iota_service->http.host = value;
       break;
     case IRI_PORT_CLI:
-      iota_service->http.port = atoi(value);
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_service->http.port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
-    case IRI_URL_LIST_CLI:
+    case IRI_ADDRESS_CLI:
       for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
         if (!ta_conf->host_list[i]) {
           char *host, *port;
           host = strtok(value, ":");
           port = strtok(NULL, "");
+          if (!port) {
+            ta_log_error("Malformed input or illegal input character\n");
+            break;
+          }
 
           if (i == 0) {
             iota_service->http.host = host;
-            iota_service->http.port = atoi(port);
+            strtol_temp = strtol(port, NULL, 10);
+            if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+              iota_service->http.port = (int)strtol_temp;
+            } else {
+              ta_log_error("Malformed input or illegal input character\n");
+            }
           }
           ta_conf->host_list[i] = host;
-          ta_conf->port_list[i] = atoi(port);
+          strtol_temp = strtol(port, NULL, 10);
+          if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+            ta_conf->port_list[i] = (int)strtol_temp;
+          } else {
+            ta_log_error("Malformed input or illegal input character\n");
+          }
           break;
         }
       }
       break;
 
     case HEALTH_TRACK_PERIOD:
-      ta_conf->check_period = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->health_track_period = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
 
 #ifdef MQTT_ENABLE
@@ -104,7 +142,12 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       cache->host = value;
       break;
     case REDIS_PORT_CLI:
-      cache->port = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        cache->port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
 
 #ifdef DB_ENABLE
@@ -117,10 +160,20 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 
     // iota_conf IOTA configuration
     case MILESTONE_DEPTH_CLI:
-      iota_conf->milestone_depth = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_conf->milestone_depth = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case MWM_CLI:
-      iota_conf->mwm = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_conf->mwm = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case SEED_CLI:
       iota_conf->seed = value;
@@ -171,7 +224,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   memset(ta_conf->port_list, 0, sizeof(ta_conf->port_list));
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
-  ta_conf->check_period = IRI_HEALTH_TRACK_PERIOD;
+  ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;

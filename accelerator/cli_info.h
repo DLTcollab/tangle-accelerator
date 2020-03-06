@@ -29,7 +29,7 @@ typedef enum ta_cli_arg_value_e {
   /** IRI */
   IRI_HOST_CLI,
   IRI_PORT_CLI,
-  IRI_URL_LIST_CLI,
+  IRI_ADDRESS_CLI,
 
   /** MQTT */
   MQTT_HOST_CLI,
@@ -71,7 +71,7 @@ static struct ta_cli_argument_s {
     {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
     {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
     {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
-    {"iri_url_list", required_argument, NULL, IRI_URL_LIST_CLI, " List of IRI listening URL"},
+    {"iri_address", required_argument, NULL, IRI_ADDRESS_CLI, " List of IRI listening URL"},
     {"redis_host", required_argument, NULL, REDIS_HOST_CLI, "Redis server listening host"},
     {"redis_port", required_argument, NULL, REDIS_PORT_CLI, "Redis server listening port"},
     {"db_host", required_argument, NULL, DB_HOST_CLI, "DB server listening host"},
@@ -81,7 +81,8 @@ static struct ta_cli_argument_s {
     {"cache", no_argument, NULL, CACHE, "Enable cache server"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
-    {"check_period", no_argument, NULL, HEALTH_TRACK_PERIOD, "The period for checking IRI host connection status"},
+    {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
+     "The period for checking IRI host connection status"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 

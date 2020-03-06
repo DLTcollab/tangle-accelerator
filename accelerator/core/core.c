@@ -597,7 +597,7 @@ status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_servic
 
     if (iota_client_core_init(service)) {
       ta_log_error("Initializing IRI connection failed!\n");
-      return SC_TA_OOM;
+      return RC_CCLIENT_UNIMPLEMENTED;
     }
     iota_client_extended_init();
 

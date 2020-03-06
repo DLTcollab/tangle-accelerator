@@ -30,7 +30,7 @@ void check_iri_connection(ta_core_t* const core) {
       }
     }
 
-    sleep(core->ta_conf.check_period);
+    sleep(core->ta_conf.health_track_period);
   }
 }
 
