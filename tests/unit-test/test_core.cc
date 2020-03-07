@@ -28,7 +28,7 @@ TEST(GenAdressTest, GetNewAddressTest) {
 
   EXPECT_CALL(APIMockObj, iota_client_get_new_address(_, _, _, _)).Times(AtLeast(1));
 
-  EXPECT_EQ(ta_generate_address(&tangle, &service, res), 0);
+  EXPECT_EQ(ta_generate_address(&tangle, &service, NULL, res), 0);
   CDL_FOREACH(res->addresses, q_iter) {
     EXPECT_FALSE(memcmp(q_iter->hash, hash_trits_1, sizeof(flex_trit_t) * FLEX_TRIT_SIZE_243));
   }

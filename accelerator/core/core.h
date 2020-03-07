@@ -53,6 +53,7 @@ int cc_logger_release();
 typedef struct {
   const iota_config_t* iconf;
   const iota_client_service_t* service;
+  char* seed;
   ta_generate_address_res_t* res;
 } ta_generate_address_args_t;
 
@@ -64,6 +65,7 @@ typedef struct {
  *
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
+ * @param[in] seed Root seed to generate new address
  * @param[out] res Result containing an unused address in
  * ta_generate_address_res_t
  *
@@ -72,7 +74,7 @@ typedef struct {
  * - non-zero on error
  */
 status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res);
+                             const char* const seed, ta_generate_address_res_t* res);
 
 /**
  * @brief Send transfer to tangle.

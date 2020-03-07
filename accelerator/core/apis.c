@@ -123,7 +123,7 @@ done:
 }
 
 status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char** json_result) {
+                              const char* const seed, char** json_result) {
   status_t ret = SC_OK;
   ta_generate_address_res_t* res = ta_generate_address_res_new();
   if (res == NULL) {
@@ -133,7 +133,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
   }
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_generate_address(iconf, service, res);
+  ret = ta_generate_address(iconf, service, seed, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     ta_log_error("%s\n", "Failed in TA core function");

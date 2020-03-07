@@ -123,7 +123,7 @@ done:
 }
 
 static status_t ta_generate_address_helper(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                                           ta_generate_address_res_t* res) {
+                                           const char* const seed, ta_generate_address_res_t* res) {
   if (res == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
@@ -132,11 +132,14 @@ static status_t ta_generate_address_helper(const iota_config_t* const iconf, con
   status_t ret = SC_OK;
   hash243_queue_t out_address = NULL;
   flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  address_opt_t opt = {.security = 3, .start = 0, .total = 0};
+  if (seed) {
+    flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  } else {
+    flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  }
+  address_opt_t opt = {.security = 2, .start = 0, .total = 0};
 
   ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
-
   if (ret) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
@@ -148,12 +151,12 @@ static status_t ta_generate_address_helper(const iota_config_t* const iconf, con
 
 static status_t ta_generate_address_thread(void* args) {
   ta_generate_address_args_t* arg = (ta_generate_address_args_t*)args;
-  return ta_generate_address_helper(arg->iconf, arg->service, arg->res);
+  return ta_generate_address_helper(arg->iconf, arg->service, arg->seed, arg->res);
 }
 
 status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res) {
-  ta_generate_address_args_t args = {.iconf = iconf, .service = service, .res = res};
+                             const char* const seed, ta_generate_address_res_t* res) {
+  ta_generate_address_args_t args = {.iconf = iconf, .service = service, .seed = seed, .res = res};
   int* rval;
   const struct itimerspec timeout = {.it_interval = {.tv_sec = 0, .tv_nsec = 0},
                                      .it_value = {.tv_sec = 50, .tv_nsec = 0}};
