@@ -220,12 +220,13 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
 
   // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
   // future and declare `security` field in `iota_config_t`
-  if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, false, current_timestamp_ms(),
+  if (iota_client_prepare_transfers(service, seed, 2, transfers, NULL, NULL, true, current_timestamp_ms(),
                                     out_bundle) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
   }
+  ////////******** TODO free and memset `seed` here ********////////
 
   flex_trit_t serialized_value[FLEX_TRIT_SIZE_8019];
   BUNDLE_FOREACH(out_bundle, txn) {
@@ -241,6 +242,7 @@ status_t ta_send_transfer(const iota_config_t* const iconf, const iota_client_se
   }
 
   txn = (iota_transaction_t*)utarray_front(out_bundle);
+  transaction_obj_dump(txn);
   ret = hash243_queue_push(&find_tx_req->bundles, transaction_bundle(txn));
   if (ret) {
     ret = SC_CCLIENT_HASH;

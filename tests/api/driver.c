@@ -173,6 +173,7 @@ void test_send_transfer_value(void) {
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
+    printf("json_result = %s\n", json_result);
 #ifdef DB_ENABLE
     cJSON* json_obj = cJSON_Parse(json_result);
     cJSON* json_item = NULL;
@@ -451,6 +452,7 @@ int main(int argc, char* argv[]) {
   ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
+  /*
   RUN_TEST(test_generate_address);
   RUN_TEST(test_get_tips_pair);
   RUN_TEST(test_get_tips);
@@ -470,6 +472,8 @@ int main(int argc, char* argv[]) {
   // TODO recover proxy tests
   // RUN_TEST(test_proxy_apis);
   RUN_TEST(test_get_iri_status);
+  */
+  RUN_TEST(test_send_transfer_value);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }
