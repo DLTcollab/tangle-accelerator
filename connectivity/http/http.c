@@ -363,8 +363,12 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *k
   UNUSED(kind);
   ta_http_request_t *header = cls;
 
-  if (0 == strcmp(MHD_HTTP_HEADER_CONTENT_TYPE, key)) {
-    header->valid_content_type = !strcmp("application/json", value);
+  if (0 == strncasecmp(MHD_HTTP_HEADER_CONTENT_TYPE, key, strlen(MHD_HTTP_HEADER_CONTENT_TYPE))) {
+    if (ta_http_url_matcher(value, "application/json(;?\\s*charset=(UTF|utf)-8)?") == SC_OK) {
+      header->valid_content_type = true;
+    } else {
+      header->valid_content_type = false;
+    }
   }
   return MHD_YES;
 }
