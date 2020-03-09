@@ -23,6 +23,7 @@
 #include "cclient/serialization/json/json_serializer.h"
 #include "common/logger.h"
 #include "utils/cache/cache.h"
+#include "utils/handles/lock.h"
 
 #define FILE_PATH_SIZE 128
 
@@ -59,7 +60,8 @@ extern "C" {
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
 #define BUFFER_LIST_NAME "txn_buff_list"
 #define DONE_LIST_NAME "done_txn_buff_list"
-#define IRI_HEALTH_TRACK_PERIOD 1800  // Check every half hour in default
+#define CACHE_MAX_CAPACITY 170 * 1024 * 1024  // default to 170MB
+#define HEALTH_TRACK_PERIOD 1800              // Check every half hour in default
 
 /** @name Redis connection config */
 /** @{ */
@@ -94,12 +96,14 @@ typedef struct iota_config_s {
 
 /** struct type of accelerator cache */
 typedef struct ta_cache_s {
-  char* host;             /**< Binding address of redis server */
-  uint64_t timeout;       /**< Timeout for keys in redis */
-  char* buffer_list_name; /**< Name of the list to buffer transactions */
-  char* done_list_name;   /**< Name of the list to store successfully broadcast transactions from buffer */
-  uint16_t port;          /**< Binding port of redis server */
-  bool cache_state;       /**< Set it true to turn on cache server */
+  char* host;               /**< Binding address of redis server */
+  uint64_t timeout;         /**< Timeout for keys in cache server */
+  char* buffer_list_name;   /**< Name of the list to buffer transactions */
+  char* done_list_name;     /**< Name of the list to store successfully broadcast transactions from buffer */
+  uint16_t port;            /**< Binding port of redis server */
+  bool state;               /**< Set it true to turn on cache server */
+  long int capacity;        /**< The maximum capacity of cache server */
+  pthread_rwlock_t* rwlock; /**< Read/Write lock to avoid data racing in buffering */
 } ta_cache_t;
 
 /** struct type of accelerator core */
@@ -108,6 +112,7 @@ typedef struct ta_core_s {
   ta_cache_t cache;                   /**< redis configuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
+
 #ifdef DB_ENABLE
   db_client_service_t db_service; /**< db connection structure */
 #endif

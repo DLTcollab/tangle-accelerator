@@ -6,6 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include <pthread.h>
 #include "tests/test_define.h"
 #include "utils/cache/cache.h"
 #include "uuid/uuid.h"
@@ -75,9 +76,12 @@ void test_cache_list_pop(void) {
   TEST_ASSERT_EQUAL_STRING(TEST_UUID, res);
 }
 
+void test_cache_occupied_space() { TEST_ASSERT_GREATER_THAN(-1, cache_occupied_space()); }
+
 int main(void) {
   UNITY_BEGIN();
-  cache_init(true, REDIS_HOST, REDIS_PORT);
+  pthread_rwlock_t* rwlock = NULL;
+  cache_init(&rwlock, true, REDIS_HOST, REDIS_PORT);
   RUN_TEST(test_generate_uuid);
   RUN_TEST(test_cache_set);
   RUN_TEST(test_cache_get);
@@ -87,6 +91,7 @@ int main(void) {
   RUN_TEST(test_cache_list_at);
   RUN_TEST(test_cache_list_size);
   RUN_TEST(test_cache_list_pop);
-  cache_stop();
+  RUN_TEST(test_cache_occupied_space);
+  cache_stop(&rwlock);
   return UNITY_END();
 }

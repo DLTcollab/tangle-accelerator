@@ -124,6 +124,10 @@ typedef enum {
   /**< Failed in cache operations */
   SC_CACHE_OFF = 0x03 | SC_MODULE_CACHE | SC_SEVERITY_MINOR,
   /**< Cache server is not turned on */
+  SC_CACHE_INIT_FINI = 0x04 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  /**< Failed to initialize or destroy lock in cache */
+  SC_CACHE_LOCK_FAILURE = 0x05 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
+  /**< Failed to lock or unlock cache operations */
 
   // MAM module
   SC_MAM_NULL = 0x01 | SC_MODULE_MAM | SC_SEVERITY_FATAL,

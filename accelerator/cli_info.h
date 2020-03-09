@@ -54,6 +54,7 @@ typedef enum ta_cli_arg_value_e {
   BUFFER_LIST,
   DONE_LIST,
   HTTP_THREADS_CLI,
+  CACHE_CAPACITY,
 
   /** LOGGER */
   QUIET,
@@ -83,7 +84,7 @@ static struct ta_cli_argument_s {
     {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IRI milestone depth"},
     {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
     {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
-    {"cache", no_argument, NULL, CACHE, "Enable cache server"},
+    {"cache", required_argument, NULL, CACHE, "Enable/Disable cache server. It defaults to off"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
     {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
@@ -91,6 +92,7 @@ static struct ta_cli_argument_s {
     {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transaction"},
     {"buffer_list", required_argument, NULL, BUFFER_LIST, "Set the value of `buffer_list_name`"},
     {"done_list", required_argument, NULL, DONE_LIST, "Set the value of `done_list_name`"},
+    {"cache_capacity", required_argument, NULL, CACHE_CAPACITY, "Set the maximum capacity of caching server"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 

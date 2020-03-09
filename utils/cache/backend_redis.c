@@ -6,7 +6,9 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include <errno.h>
 #include <hiredis/hiredis.h>
+#include <limits.h>
 #include "cache.h"
 #include "common/logger.h"
 
@@ -19,7 +21,7 @@ typedef struct {
 #define CONN(c) ((connection_private*)(c.conn))
 
 static cache_t cache;
-static bool cache_state;
+static bool state = false;
 static logger_id_t logger_id;
 
 /*
@@ -227,12 +229,38 @@ static status_t redis_list_pop(redisContext* c, const char* const key, char* res
   return ret;
 }
 
+long int redis_occupied_space(redisContext* c) {
+  const char size_field[] = "used_memory:";
+  redisReply* reply = redisCommand(c, "INFO");
+  if (reply->type == REDIS_REPLY_STRING) {
+    // Parsing the result returned by redis. Get information from field `used_memory`
+    char* str = strstr(reply->str, size_field);
+    char* size_str = strtok(str, "\n");
+    char* ptr = size_str + strlen(size_field);
+
+    char* strtol_p = NULL;
+    long int strtol_temp;
+    strtol_temp = strtol(ptr, &strtol_p, 10);
+    if (strtol_p != ptr && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+      freeReplyObject(reply);
+      return strtol_temp;
+    } else {
+      ta_log_error("Malformed input\n");
+    }
+  } else {
+    ta_log_error("%s\n", "Failed to operate redis command.");
+  }
+
+  freeReplyObject(reply);
+  return -1;
+}
+
 /*
  * Public functions
  */
 
-bool cache_init(bool state, const char* host, int port) {
-  cache_state = state;
+bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, int port) {
+  state = input_state;
   if (!state) {
     return false;
   }
@@ -243,12 +271,24 @@ bool cache_init(bool state, const char* host, int port) {
     ta_log_error("Failed to initialize redis: %s\n", CONN(cache)->rc->err);
     return false;
   }
+
+  *rwlock = (pthread_rwlock_t*)malloc(sizeof(pthread_rwlock_t));
+  if (pthread_rwlock_init(*rwlock, NULL)) {
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_INIT_FINI));
+    return SC_CACHE_INIT_FINI;
+  }
+
   return true;
 }
 
-void cache_stop() {
-  if (cache_state == true && CONN(cache)->rc) {
+void cache_stop(pthread_rwlock_t** rwlock) {
+  if (state == true && CONN(cache)->rc) {
     redisFree(CONN(cache)->rc);
+
+    if (pthread_rwlock_destroy(*rwlock)) {
+      ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_INIT_FINI));
+    }
+    free(*rwlock);
 
     if (CONN(cache)) {
       free(CONN(cache));
@@ -257,7 +297,7 @@ void cache_stop() {
 }
 
 status_t cache_del(const char* const key) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -265,7 +305,7 @@ status_t cache_del(const char* const key) {
 }
 
 status_t cache_get(const char* const key, char* res) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -274,7 +314,7 @@ status_t cache_get(const char* const key, char* res) {
 
 status_t cache_set(const char* const key, const int key_size, const void* const value, const int value_size,
                    const int timeout) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -282,7 +322,7 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
 }
 
 status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -290,7 +330,7 @@ status_t cache_list_push(const char* const key, const int key_size, const void* 
 }
 
 status_t cache_list_at(const char* const key, const int index, const int res_len, char* res) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -298,7 +338,7 @@ status_t cache_list_at(const char* const key, const int index, const int res_len
 }
 
 status_t cache_list_peek(const char* const key, const int res_len, char* res) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -306,7 +346,7 @@ status_t cache_list_peek(const char* const key, const int res_len, char* res) {
 }
 
 status_t cache_list_size(const char* const key, int* len) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -314,7 +354,7 @@ status_t cache_list_size(const char* const key, int* len) {
 }
 
 status_t cache_list_exist(const char* const key, const char* const value, const int value_len, bool* exist) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
@@ -322,9 +362,18 @@ status_t cache_list_exist(const char* const key, const char* const value, const 
 }
 
 status_t cache_list_pop(const char* const key, char* res) {
-  if (!cache_state) {
+  if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_pop(CONN(cache)->rc, key, res);
+}
+
+long int cache_occupied_space() {
+  if (!state) {
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
+    return SC_CACHE_OFF;
+  }
+
+  return redis_occupied_space(CONN(cache)->rc);
 }
