@@ -160,7 +160,7 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
 
   ta_timer_t* timer_id = ta_timer_start(&timeout, ta_generate_address_thread, (void*)&args);
   if (timer_id != NULL) {
-    if (!ta_timer_stop(timer_id, (void**)&rval)) {
+    if (ta_timer_stop(timer_id, (void**)&rval) != SC_OK) {
       ta_log_error("%s\n", "SC_UTILS_TIMER_ERROR");
     }
   } else {
