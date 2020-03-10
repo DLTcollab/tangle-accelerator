@@ -23,6 +23,8 @@ extern "C" {
  * @brief Macros for tangle-accelerator
  */
 
+typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
+
 #define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
 #define NUM_TRYTES_MAM_NTRU_PK_SIZE MAM_NTRU_PK_SIZE / 3
 #define NUM_TRYTES_MAM_PSK_KEY_SIZE MAM_PSK_KEY_SIZE / 3

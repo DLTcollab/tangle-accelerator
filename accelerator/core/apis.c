@@ -333,8 +333,8 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
     goto done;
   }
 
-  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
-  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
+
   if (mam_api_init(&mam, (tryte_t*)iconf->seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
@@ -350,7 +350,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   if (data_id->bundle_hash) {
     bundle_transactions_t* bundle = NULL;
     bundle_transactions_new(&bundle);
-    ret = ta_get_bundle(service, data_id->bundle_hash, bundle);
+    ret = ta_get_bundle(service, (tryte_t*)data_id->bundle_hash, bundle);
     if (ret != SC_OK) {
       ta_log_error("%s\n", "Failed to get bundle by bundle hash");
       goto done;
@@ -358,7 +358,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
     bundle_array_add(bundle_array, bundle);
     bundle_transactions_free(&bundle);
   } else if (data_id->chid) {
-    ret = ta_get_bundles_by_addr(service, data_id->chid, bundle_array);
+    ret = ta_get_bundles_by_addr(service, (tryte_t*)data_id->chid, bundle_array);
     if (ret != SC_OK) {
       ta_log_error("%s\n", "Failed to get bundle by chid");
       goto done;
@@ -401,7 +401,7 @@ done:
   return ret;
 }
 
-status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t* const iconf,
+status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
                               const iota_client_service_t* const service, char const* const payload,
                               char** json_result) {
   status_t ret = SC_OK;
@@ -427,9 +427,17 @@ status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t
   }
   lock_handle_unlock(&cjson_lock);
 
+  if (req->protocol != MAM_V1) {
+    ta_log_error("%s\n", "Invalid MAM protocol.");
+    goto done;
+  }
+
+  send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
+  send_mam_key_mam_v1_t* key = (send_mam_key_mam_v1_t*)req->key;
+
   // Creating MAM API
-  ret = ta_mam_init(&mam, iconf, req->seed, req->channel_ord, &psks, &ntru_pks, (tryte_t*)req->psk,
-                    (tryte_t*)req->ntru_pk);
+  ret = ta_mam_init(&mam, iconf, data->seed, &psks, &ntru_pks, (tryte_t*)(utarray_front(key->psk_array)),
+                    (tryte_t*)(utarray_front(key->ntru_array)));
   if (ret) {
     ta_log_error("%d\n", ret);
     goto done;
@@ -437,8 +445,8 @@ status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t
 
   // Create epid merkle tree and find the smallest unused secret key.
   // Write both Header and Pakcet into one single bundle.
-  ret = ta_mam_written_msg_to_bundle(service, &mam, req->ch_mss_depth, req->ep_mss_depth, chid, epid, psks, ntru_pks,
-                                     req->message, &bundle, msg_id, &ch_remain_sk, &ep_remain_sk);
+  ret = ta_mam_written_msg_to_bundle(service, &mam, data->ch_mss_depth, data->ep_mss_depth, chid, epid, psks, ntru_pks,
+                                     data->message, &bundle, msg_id, &ch_remain_sk, &ep_remain_sk);
   if (ret) {
     ta_log_error("%d\n", ret);
     goto done;
@@ -481,7 +489,7 @@ status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t
   // Sending bundle
   if (ch_remain_sk == 1 || ep_remain_sk == 1) {
     // Send announcement for the next endpoint or channel
-    ret = ta_mam_announce_next_mss_private_key_to_bundle(&mam, req->ch_mss_depth, req->ep_mss_depth, chid,
+    ret = ta_mam_announce_next_mss_private_key_to_bundle(&mam, data->ch_mss_depth, data->ep_mss_depth, chid,
                                                          &ch_remain_sk, &ep_remain_sk, psks, ntru_pks, chid1, &bundle);
     if (ret) {
       ta_log_error("%d\n", ret);
@@ -521,7 +529,7 @@ done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
     // If `seed` is not assigned, then the local MAM file will be used. Therefore, we need to close the MAM file.
-    if (!req->seed && mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+    if (!data->seed && mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
       ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam)) {

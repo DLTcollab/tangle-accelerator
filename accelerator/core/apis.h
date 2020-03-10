@@ -151,7 +151,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  *
  * Send a MAM message from given Payload(ascii message).
  * There is no need to decode the ascii payload to tryte, since the
- * api_mam_send_message() will take this job.
+ * api_send_mam_message() will take this job.
  *
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
@@ -163,7 +163,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t* const iconf,
+status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
                               const iota_client_service_t* const service, char const* const payload,
                               char** json_result);
 
