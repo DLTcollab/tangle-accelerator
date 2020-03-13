@@ -1,10 +1,10 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <microhttpd.h>
-#include <regex.h>
 #include <string.h>
 #include <time.h>
 
+#include "connectivity/common.h"
 #include "http.h"
 #include "utils/macros.h"
 
@@ -27,33 +27,6 @@ int http_logger_release() {
   }
 
   return 0;
-}
-
-static status_t ta_http_url_matcher(char const *const url, char *const regex_rule) {
-  if (regex_rule == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_NULL");
-    return SC_HTTP_NULL;
-  }
-  regex_t reg;
-  regmatch_t pmatch;
-  status_t ret = SC_OK;
-  int reg_flag = REG_EXTENDED;
-
-  if (regcomp(&reg, regex_rule, reg_flag) != 0) {
-    ta_log_error("%s\n", "SC_HTTP_INVALID_REGEX");
-    return SC_HTTP_INVALID_REGEX;
-  }
-  if (regexec(&reg, url, 1, &pmatch, 0) != 0) {
-    // Did not match pattern
-    ret = SC_HTTP_URL_NOT_MATCH;
-  } else {
-    if ((size_t)(pmatch.rm_eo - pmatch.rm_so) != strlen(url)) {
-      ret = SC_HTTP_URL_NOT_MATCH;
-    }
-  }
-
-  regfree(&reg);
-  return ret;
 }
 
 static status_t ta_get_url_parameter(char const *const url, int index, char **param) {
@@ -91,37 +64,6 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   }
   strncpy(*param, tmp, token_len);
   return SC_OK;
-}
-
-static int set_response_content(status_t ret, char **json_result) {
-  int http_ret;
-  if (ret == SC_OK) {
-    return MHD_HTTP_OK;
-  }
-
-  cJSON *json_obj = cJSON_CreateObject();
-  switch (ret) {
-    case SC_CCLIENT_NOT_FOUND:
-    case SC_MAM_NOT_FOUND:
-      http_ret = MHD_HTTP_NOT_FOUND;
-      ta_log_error("%s\n", "MHD_HTTP_NOT_FOUND");
-      cJSON_AddStringToObject(json_obj, "message", "Request not found");
-      break;
-    case SC_CCLIENT_JSON_KEY:
-    case SC_MAM_NO_PAYLOAD:
-      http_ret = MHD_HTTP_BAD_REQUEST;
-      ta_log_error("%s\n", "MHD_HTTP_BAD_REQUEST");
-      cJSON_AddStringToObject(json_obj, "message", "Invalid request header");
-      break;
-    default:
-      http_ret = MHD_HTTP_INTERNAL_SERVER_ERROR;
-      ta_log_error("%s\n", "MHD_HTTP_INTERNAL_SERVER_ERROR");
-      cJSON_AddStringToObject(json_obj, "message", "Internal service error");
-      break;
-  }
-  *json_result = cJSON_PrintUnformatted(json_obj);
-  cJSON_Delete(json_obj);
-  return http_ret;
 }
 
 static inline int process_find_txns_obj_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
@@ -297,57 +239,57 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_options_request(out);
   }
 
-  if (ta_http_url_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
+  if (api_path_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
     return process_recv_mam_msg_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/mam[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/mam[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_mam_send_msg_request(http, payload, out);
     }
     return process_method_not_allowed_request(out);
 
-  } else if (ta_http_url_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
     return process_find_txn_obj_single_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/transaction/object[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/transaction/object[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_find_txn_obj_request(http, payload, out);
     }
     return process_method_not_allowed_request(out);
 
-  } else if (ta_http_url_matcher(url, "/tips/pair[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/tips/pair[/]?") == SC_OK) {
     return process_get_tips_pair_request(http, out);
-  } else if (ta_http_url_matcher(url, "/tips[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/tips[/]?") == SC_OK) {
     return process_get_tips_request(http, out);
-  } else if (ta_http_url_matcher(url, "/address[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/address[/]?") == SC_OK) {
     return process_generate_address_request(http, out);
-  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
     return process_find_txns_by_tag_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
     return process_find_txns_obj_by_tag_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/status[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/status[/]?") == SC_OK) {
     return process_get_iri_status(http, out);
   }
 #ifdef DB_ENABLE
-  else if (ta_http_url_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
+  else if (api_path_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
     return process_get_identity_info_by_hash_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/identity/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/identity/id/[a-z0-9-]{36}[/]?") == SC_OK) {
     return process_get_identity_info_by_id_request(http, url, out);
-  } else if (ta_http_url_matcher(url, "/transaction/id/[a-z0-9-]{36}[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/transaction/id/[a-z0-9-]{36}[/]?") == SC_OK) {
     return process_find_transaction_by_id_request(http, url, out);
   }
 #endif
-  else if (ta_http_url_matcher(url, "/transaction[/]?") == SC_OK) {
+  else if (api_path_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_transfer_request(http, payload, out);
     }
     return process_method_not_allowed_request(out);
-  } else if (ta_http_url_matcher(url, "/tryte[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/tryte[/]?") == SC_OK) {
     if (payload != NULL) {
       return process_send_trytes_request(http, payload, out);
     }
     return process_method_not_allowed_request(out);
-  } else if (ta_http_url_matcher(url, "/info[/]?") == SC_OK) {
+  } else if (api_path_matcher(url, "/info[/]?") == SC_OK) {
     return process_get_ta_info_request(http, out);
-  } else if (ta_http_url_matcher(url, "/") == SC_OK) {
+  } else if (api_path_matcher(url, "/") == SC_OK) {
     if (payload != NULL) {
       return process_proxy_api_request(http, payload, out);
     }
@@ -364,7 +306,7 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *k
   ta_http_request_t *header = cls;
 
   if (0 == strncasecmp(MHD_HTTP_HEADER_CONTENT_TYPE, key, strlen(MHD_HTTP_HEADER_CONTENT_TYPE))) {
-    if (ta_http_url_matcher(value, "application/json(;?\\s*charset=(UTF|utf)-8)?") == SC_OK) {
+    if (api_path_matcher(value, "application/json(;?\\s*charset=(UTF|utf)-8)?") == SC_OK) {
       header->valid_content_type = true;
     } else {
       header->valid_content_type = false;
