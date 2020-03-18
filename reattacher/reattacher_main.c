@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 #include <getopt.h>
-#include <sys/time.h>"
+#include <sys/time.h>
 #include "accelerator/config.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
