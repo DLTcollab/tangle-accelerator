@@ -17,6 +17,7 @@ extern "C" {
 #define STR_HTTP_NOT_FOUND "{\"message\": \"Request not found\"}"
 #define STR_HTTP_BAD_REQUEST "{\"message\": \"Invalid request header\"}"
 #define STR_HTTP_INTERNAL_SERVICE_ERROR "{\"message\": \"Internal service error\"}"
+#define STR_HTTP_REQUEST_SIZE_EXCEED "{\"message\": \"Request size exceed\"}"
 
 /**
  * @brief Match path with given regular expression rule
