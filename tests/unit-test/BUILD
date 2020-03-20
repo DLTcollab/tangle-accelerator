@@ -28,6 +28,7 @@ cc_test(
     srcs = [
         "test_cache.c",
     ],
+    linkopts = ["-luuid"],
     deps = [
         "//tests:test_define",
         "//utils/cache",

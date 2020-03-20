@@ -2,7 +2,10 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
-    linkopts = ["-lpthread"],
+    linkopts = [
+        "-lpthread",
+        "-luuid",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator:build_option",

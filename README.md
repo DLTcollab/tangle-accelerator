@@ -86,6 +86,7 @@ Tangle-accelerator is built and launched through Bazel, it also requires Redis t
 * [Redis-server](https://redis.io/topics/quickstart)
 * cmake (required by dcurl)
 * openssl-dev (required by mosquitto)
+* uuid-dev
 
 ## Build from Source
 

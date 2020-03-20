@@ -705,13 +705,18 @@ status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj)
     goto done;
   }
 
-  ret = iota_transaction_to_json_object(transaction_array_at(res->txn_array, 0), &json_root);
-  if (ret != SC_OK) {
-    goto done;
-  }
+  if (res->uuid[0]) {
+    cJSON_AddStringToObject(json_root, "uuid", res->uuid);
+  } else {
+    ret = iota_transaction_to_json_object(transaction_array_at(res->txn_array, 0), &json_root);
+    if (ret != SC_OK) {
+      goto done;
+    }
 #ifdef DB_ENABLE
-  cJSON_AddStringToObject(json_root, "id", res->uuid_string);
+    cJSON_AddStringToObject(json_root, "id", res->uuid_string);
 #endif
+  }
+
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;

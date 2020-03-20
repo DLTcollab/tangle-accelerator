@@ -8,32 +8,57 @@
 
 #include "tests/test_define.h"
 #include "utils/cache/cache.h"
+#include "uuid/uuid.h"
+
+char test_uuid[UUID_STR_LEN] = {};
 
 void test_cache_del(void) {
-  const char* key = TRYTES_81_1;
-  cache_del(key);
+  char* key = test_uuid;
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_del(key));
 }
 
 void test_cache_get(void) {
-  const char* key = TRYTES_81_1;
-  char res[TRYTES_2673_LEN + 1] = {0};
-  cache_get(key, res);
-  res[TRYTES_2673_LEN] = '\0';
-  TEST_ASSERT_EQUAL_STRING(res, TRYTES_2673_1);
+  char* key = test_uuid;
+  char res[strlen(CACHE_VALUE) + 1];
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, res));
+  TEST_ASSERT_EQUAL_STRING(CACHE_VALUE, res);
 }
 
 void test_cache_set(void) {
-  const char* key = TRYTES_81_1;
-  const char* value = TRYTES_2673_1;
-  cache_set(key, value);
+  char* key = test_uuid;
+  const char* value = CACHE_VALUE;
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), value, strlen(value), 0));
+}
+
+void test_cache_timeout(void) {
+  char* key = test_uuid;
+  const char* value = CACHE_VALUE;
+  char res[strlen(CACHE_VALUE) + 1];
+  const int timeout = 2;
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), value, strlen(value), timeout));
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, res));
+  sleep(timeout + 1);
+  TEST_ASSERT_EQUAL_INT(SC_CACHE_FAILED_RESPONSE, cache_get(key, res));
+}
+
+void test_generate_uuid(void) {
+  uuid_t binuuid;
+  uuid_generate_random(binuuid);
+  uuid_unparse(binuuid, test_uuid);
+
+  TEST_ASSERT_TRUE(test_uuid[0]);
 }
 
 int main(void) {
   UNITY_BEGIN();
   cache_init(true, REDIS_HOST, REDIS_PORT);
+  RUN_TEST(test_generate_uuid);
   RUN_TEST(test_cache_set);
   RUN_TEST(test_cache_get);
   RUN_TEST(test_cache_del);
+  RUN_TEST(test_cache_timeout);
   cache_stop();
   return UNITY_END();
 }

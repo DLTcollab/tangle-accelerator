@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -30,23 +30,13 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_
   bundle_transactions_t* bundle = NULL;
   iota_transaction_t tx;
   flex_trit_t* elt = NULL;
-  char cache_key[NUM_TRYTES_HASH] = {0};
-  char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
 
+  // TODO Save fetched transaction object in a set.
   // create bundle
   bundle_transactions_new(&bundle);
   HASH_ARRAY_FOREACH(req->trytes, elt) {
     transaction_deserialize_from_trits(&tx, elt, true);
     bundle_transactions_add(bundle, &tx);
-
-    // store transaction to cache
-    flex_trits_to_trytes((tryte_t*)cache_key, NUM_TRYTES_HASH, transaction_hash(&tx), NUM_TRITS_HASH, NUM_TRITS_HASH);
-    flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
-                         NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-    ret = cache_set(cache_key, cache_value);
-    if (ret != SC_OK && ret != SC_CACHE_OFF) {
-      goto done;
-    }
   }
 
   // PoW to bundle
@@ -364,16 +354,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   TX_OBJS_FOREACH(uncached_txn_array, temp) {
     temp_txn_trits = transaction_serialize(temp);
     if (!flex_trits_are_null(temp_txn_trits, FLEX_TRIT_SIZE_8019)) {
-      flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, transaction_hash(temp), NUM_TRITS_HASH, NUM_TRITS_HASH);
-      flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, temp_txn_trits,
-                           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      ret = cache_set(txn_hash, cache_value);
-      if (ret != SC_OK) {
-        if (ret != SC_CACHE_OFF) {
-          goto done;
-        }
-        ret = SC_OK;
-      }
+      // TODO Save fetched transaction object in a set.
 
       iota_transaction_t* append_txn = transaction_deserialize(temp_txn_trits, true);
       transaction_array_push_back(res, append_txn);
