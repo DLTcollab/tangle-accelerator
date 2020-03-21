@@ -104,6 +104,61 @@ status_t cache_get(const char* const key, char* res);
 status_t cache_set(const char* const key, const int key_size, const void* const value, const int value_size,
                    const int timeout);
 
+/**
+ * Push a elements to a list into in-memory cache
+ *
+ * @param[in] key Key string to store
+ * @param[in] key_size Size of key string to store
+ * @param[in] value Value string to store
+ * @param[in] value_size Size of value string to store
+ * @param[in] timeout Set the timeout of the key in second. If arg timeout is equal less than 0, then no timeout will be
+ * set.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size,
+                         const int timeout);
+
+/**
+ * Get an element of a list from in-memory cache
+ *
+ * @param[in] key Key string to search
+ * @param[in] index Assigned index for fetching element
+ * @param[in] res_len Expected length of the respose
+ * @param[out] res The element with assigning index
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_at(const char* const key, const int index, const int res_len, char* res);
+
+/**
+ * Fetch the length of the list in in-memory cache
+ *
+ * @param[in] key Key string to store
+ * @param[out] len The returned length of list
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_size(const char* const key, int* len);
+
+/**
+ * Pop an element from the list in in-memory cache
+ *
+ * @param[in] key Key for key-value starage
+ * @param[out] res The element with assigning index
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_pop(const char* const key, char* res);
+
 #ifdef __cplusplus
 }
 #endif
