@@ -396,8 +396,6 @@ status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv) {
 }
 
 int main(int argc, char* argv[]) {
-  srand(time(NULL));
-
   UNITY_BEGIN();
 
   // Initialize logger
