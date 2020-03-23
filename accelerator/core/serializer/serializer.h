@@ -283,7 +283,7 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
 #ifdef MQTT_ENABLE
 /**
- * @brief Deserialze device ID from MQTT JSON request.
+ * @brief Deserialize device ID from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with device ID
  * @param[out] device_id Device ID in string

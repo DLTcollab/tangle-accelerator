@@ -12,6 +12,7 @@ The format of MQTT request is the same as http request, but MQTT request has one
 | transaction/send        | api_send_transfer                  | POST          |
 | tips/all                | api_get_tips                       | GET           |
 | tips/pair               | api_get_tips_pair                  | GET           |
+| tryte                   | api_send_trytes                    | POST          |
 
 ## API request format
 APIs in POST method have almost the same format as MQTT requests have, there are one more field, `device_id` in MQTT requests.
@@ -40,6 +41,10 @@ However, APIs in GET method would in a more different format, so the following a
 ### api_get_tips_pair
 ```
 {"device_id":"<device_id>"}
+```
+### api_send_trytes
+```
+{"device_id":"<device_id>", "trytes":"<trytes>"}
 ```
 
 ## Examples

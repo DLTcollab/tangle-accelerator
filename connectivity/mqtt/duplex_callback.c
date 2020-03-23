@@ -65,6 +65,8 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     ret = api_get_tips(&ta_core.iota_service, &json_result);
   else if (api_path_matcher(api_sub_topic, "/tips/pair") == SC_OK)
     ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
+  else if (api_path_matcher(api_sub_topic, "/tryte") == SC_OK)
+    ret = api_send_trytes(&ta_core.iota_conf, &ta_core.iota_service, req, &json_result);
   else {
     cJSON *json_obj = cJSON_CreateObject();
     cJSON_AddStringToObject(json_obj, "message", api_sub_topic);
