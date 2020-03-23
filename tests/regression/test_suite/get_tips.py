@@ -41,6 +41,7 @@ class GetTips(unittest.TestCase):
         eval_stat(time_cost, "get_tips")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         rand_tag_27 = gen_rand_trytes(27)
         cls.query_string = ["", rand_tag_27, "飛天義大利麵神教"]

@@ -12,14 +12,14 @@ class GetTransactionsObject(unittest.TestCase):
     def test_81_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[0]]))
-        self._verify_pass(res, 0)
+        self._verify_pass(res, idx=0)
 
     # Multiple 81 trytes transaction hash (pass)
     @test_logger
     def test_mult_81_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[1]]))
-        self._verify_pass(res, 1)
+        self._verify_pass(res, idx=1)
 
     # 20 trytes transaction hash (fail)
     @test_logger
@@ -33,7 +33,7 @@ class GetTransactionsObject(unittest.TestCase):
     def test_100_trytes_hash(self):
         res = API("/transaction/object",
                   post_data=map_field(self.post_field, [self.query_string[3]]))
-        self.assertEqual(STATUS_CODE_500, res["status_code"])
+        self.assertEqual(STATUS_CODE_404, res["status_code"])
 
     # Unicode transaction hash (fail)
     @test_logger
@@ -62,6 +62,7 @@ class GetTransactionsObject(unittest.TestCase):
         eval_stat(time_cost, "find transaction objects")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         sent_txn_tmp = []
         for i in range(3):
@@ -85,8 +86,8 @@ class GetTransactionsObject(unittest.TestCase):
         cls.response_field = []
         cls.query_string = [[sent_txn_tmp[0]["hash"]],
                             [sent_txn_tmp[1]["hash"], sent_txn_tmp[2]["hash"]],
-                            gen_rand_trytes(19),
-                            gen_rand_trytes(100), "工程師批哩趴啦的生活", ""]
+                            [gen_rand_trytes(20)], [gen_rand_trytes(100)],
+                            ["工程師批哩趴啦的生活"], [""]]
 
     def _verify_pass(self, res, idx):
         expected_txns = self.sent_txn[idx]
