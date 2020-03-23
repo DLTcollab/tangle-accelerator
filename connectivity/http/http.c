@@ -9,12 +9,16 @@
 #include "utils/macros.h"
 
 #define HTTP_LOGGER "http"
+#define MAX_REQUEST_LEN 65536
 
 static logger_id_t logger_id;
 
 typedef struct ta_http_request_s {
   bool valid_content_type;
+  char *answer_string;
+  uint32_t answer_code;
   char *request;
+  size_t request_len;
 } ta_http_request_t;
 
 void http_logger_init() { logger_id = logger_helper_enable(HTTP_LOGGER, LOGGER_DEBUG, true); }
@@ -327,16 +331,51 @@ static int request_log(void *cls, const struct sockaddr *addr, socklen_t addrlen
   return MHD_YES;
 }
 
+/*
+ * Append data from the end of ta_http_request_t.request
+ */
+static status_t build_request(ta_http_request_t *req, const char *data, size_t size) {
+  if (req == NULL || data == NULL) {
+    ta_log_error("Illegal NULL pointer\n");
+    return SC_TA_NULL;
+  }
+  if (size == 0) {
+    ta_log_error("Illegal data size : 0\n");
+    return SC_TA_NULL;
+  }
+  if (size + req->request_len >= MAX_REQUEST_LEN) {
+    req->answer_string = strdup(STR_HTTP_REQUEST_SIZE_EXCEED);
+    req->answer_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+    return SC_HTTP_INTERNAL_SERVICE_ERROR;
+  }
+  char *request = malloc(req->request_len + size + 1);
+  if (request == NULL) {
+    req->answer_string = strdup(STR_HTTP_INTERNAL_SERVICE_ERROR);
+    req->answer_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+    return SC_TA_OOM;
+  }
+  if (req->request != NULL) {
+    memcpy(request, req->request, req->request_len);
+  }
+  memcpy(request + req->request_len, data, size);
+  request[req->request_len + size] = 0;
+  free(req->request);
+  req->request = request;
+  req->request_len += size;
+
+  return SC_OK;
+}
+
 static int ta_http_handler(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
                            const char *version, const char *upload_data, size_t *upload_data_size, void **ptr) {
   UNUSED(version);
-  int ret = MHD_NO, req_ret = MHD_HTTP_OK;
+  int ret = MHD_NO;
   int post = 0, options = 0;
   ta_http_t *api = (ta_http_t *)cls;
   ta_http_request_t *http_req = *ptr;
   struct MHD_Response *response = NULL;
-  char *response_buf = NULL;
-
+  ta_log_debug("url = %s, method = %s version = %s upload_data = %s upload_data_size = %ld\n", url, method, version,
+               upload_data, *upload_data_size);
   // Only accept POST, GET, OPTIONS
   if (strncmp(method, MHD_HTTP_METHOD_POST, 4) == 0) {
     post = 1;
@@ -345,16 +384,19 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   } else if (strncmp(method, MHD_HTTP_METHOD_GET, 3) != 0) {
     return MHD_NO;
   }
-
   // if http_req is NULL, that means it's the first call of the connection
   if (http_req == NULL) {
-    http_req = calloc(1, sizeof(ta_http_request_t));
-    *ptr = http_req;
-
+    http_req = malloc(sizeof(ta_http_request_t));
+    http_req->answer_code = MHD_NO;
+    http_req->answer_string = NULL;
+    http_req->request = NULL;
+    http_req->request_len = 0;
     // Only POST request needs to get header information
     if (post) {
       MHD_get_connection_values(connection, MHD_HEADER_KIND, ta_http_header_iter, http_req);
     }
+    *ptr = http_req;
+
     return MHD_YES;
   }
 
@@ -364,23 +406,16 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
     ta_log_error("%s\n", "MHD_NO");
     goto cleanup;
   }
-
   // While upload_data_size > 0 process upload_data
   if (*upload_data_size > 0) {
-    if (http_req->request == NULL) {
-      http_req->request = (char *)malloc((*upload_data_size) + 1);
-      if (http_req->request == NULL) {
-        ta_log_error("%s\n", "Not enough size for allocating HTTP request payload.");
-        goto cleanup;
-      }
-
-      strncpy(http_req->request, upload_data, *upload_data_size);
-      http_req->request[*upload_data_size] = 0;
-    } else {
-      ret = MHD_NO;
-      ta_log_error("%s\n", "MHD_NO");
-      goto cleanup;
+    if (MHD_NO != http_req->answer_code) {
+      *upload_data_size = 0;
+      return MHD_YES;
     }
+    if (build_request(http_req, upload_data, *upload_data_size) != SC_OK) {
+      ta_log_error("Fail to build http request\n");
+    }
+    ta_log_debug("request = %s\n", http_req->request);
 
     *upload_data_size = 0;
     return MHD_YES;
@@ -393,10 +428,12 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
     goto cleanup;
   }
 
-  /* decide which API function should be called */
-  req_ret = ta_http_process_request(api, url, http_req->request, &response_buf, options);
-
-  response = MHD_create_response_from_buffer(strlen(response_buf), response_buf, MHD_RESPMEM_MUST_COPY);
+  if (http_req->answer_code == MHD_NO) {
+    /* decide which API function should be called */
+    http_req->answer_code = ta_http_process_request(api, url, http_req->request, &http_req->answer_string, options);
+  }
+  response =
+      MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_MUST_COPY);
   // Set response header
   MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
   if (options) {
@@ -408,19 +445,16 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   } else {
     MHD_add_response_header(response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json");
   }
-
-  ret = MHD_queue_response(connection, req_ret, response);
+  ret = MHD_queue_response(connection, http_req->answer_code, response);
   MHD_destroy_response(response);
 
 cleanup:
   // Log of incoming request
-  printf(" \"%s %s\" %d\n", method, url, req_ret);
+  printf(" \"%s %s\" %d\n", method, url, http_req->answer_code);
 
-  free(response_buf);
   if (http_req) {
-    if (http_req->request) {
-      free(http_req->request);
-    }
+    free(http_req->answer_string);
+    free(http_req->request);
     free(http_req);
   }
   *ptr = NULL;
