@@ -12,6 +12,7 @@ cc_library(
     deps = [
         ":mqtt_common",
         "//accelerator/core:apis",
+        "//common",
         "//common:ta_errors",
         "//connectivity:common",
         "@entangled//common/model:transaction",

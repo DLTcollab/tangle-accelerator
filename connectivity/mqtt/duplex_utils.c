@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common/logger.h"
+#include "common/macros.h"
 
 #define MQTT_UTILS_LOGGER "mqtt-utils"
 
@@ -104,10 +105,11 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
   char *sub_topic = NULL;
   int sub_topic_len, api_name_len;
   int root_path_len = strlen(root_path);
-  char *api_names[API_NUM] = {"address",          "tag/hashes", "tag/object", "transaction/object",
-                              "transaction/send", "tips/all",   "tips/pair",  "tryte"};
+  char *api_names[] = {"address",     "tag/hashes",       "tag/object", "transaction/object", "tryte",
+                       "transaction", "transaction/send", "tips/all",   "tips/pair"};
 
-  for (int i = 0; i < API_NUM; i++) {
+  const int api_num = ARRAY_SIZE(api_names);
+  for (int i = 0; i < api_num; i++) {
     api_name_len = strlen(api_names[i]);
     sub_topic_len = root_path_len + 1 + api_name_len;
     sub_topic = (char *)malloc(sub_topic_len + 1);

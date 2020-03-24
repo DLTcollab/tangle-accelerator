@@ -202,6 +202,8 @@ typedef enum {
   /**< Error in setting options of `struct mosquitto` object */
   SC_CLIENT_CONNECT = 0x07 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
   /**< Error in connecting to broker */
+  SC_MQTT_INVALID_TAG = 0x08 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Received invalid tag length in MQTT */
 
   // STORAGE module
   SC_STORAGE_OOM = 0x01 | SC_MODULE_STORAGE | SC_SEVERITY_FATAL,

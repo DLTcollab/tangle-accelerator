@@ -10,6 +10,7 @@
 #define ACCELERATOR_CLI_INFO_H_
 
 #include <stdio.h>
+#include "common/macros.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,7 +89,7 @@ static struct ta_cli_argument_s {
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 
-static const int cli_cmd_num = sizeof(ta_cli_arguments_g) / sizeof(struct ta_cli_argument_s);
+static const int cli_cmd_num = ARRAY_SIZE(ta_cli_arguments_g);
 
 static inline void ta_usage() {
   printf("tangle-accelerator usage:\n");
