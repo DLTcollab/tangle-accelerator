@@ -12,7 +12,6 @@ extern "C" {
 #endif
 #include "scylladb_chronicle.h"
 #include "scylladb_identity.h"
-#include "scylladb_permanode.h"
 #include "scylladb_thread_pool.h"
 /**
  * @file storage/ta_storage.h

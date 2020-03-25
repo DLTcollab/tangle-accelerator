@@ -5,7 +5,6 @@ cc_library(
     deps = [
         ":scylladb_chronicle",
         ":scylladb_identity",
-        ":scylladb_permanode",
         ":scylladb_thread_pool",
     ],
 )
@@ -49,18 +48,6 @@ cc_library(
     linkopts = ["-lpthread"],
     deps = [
         ":scylladb_chronicle",
-    ],
-)
-
-cc_library(
-    name = "scylladb_permanode",
-    srcs = ["scylladb_permanode.c"],
-    hdrs = ["scylladb_permanode.h"],
-    linkopts = ["-lcassandra"],
-    deps = [
-        ":scylladb_client",
-        "@com_github_uthash//:uthash",
-        "@entangled//utils/containers/hash:hash243_queue",
     ],
 )
 
