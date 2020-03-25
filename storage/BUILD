@@ -3,8 +3,23 @@ cc_library(
     hdrs = ["ta_storage.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":scylladb_chronicle",
         ":scylladb_identity",
+        ":scylladb_listener",
         ":scylladb_permanode",
+    ],
+)
+
+cc_library(
+    name = "scylladb_listener",
+    srcs = ["scylladb_listener.c"],
+    hdrs = ["scylladb_listener.h"],
+    linkopts = [
+        "-lzmq",
+    ],
+    deps = [
+        ":scylladb_client",
+        "@entangled//cclient/api",
     ],
 )
 
@@ -28,6 +43,21 @@ cc_library(
         ":scylladb_client",
         "@com_github_uthash//:uthash",
         "@entangled//utils/containers/hash:hash243_queue",
+    ],
+)
+
+cc_library(
+    name = "scylladb_chronicle",
+    srcs = ["scylladb_chronicle.c"],
+    hdrs = ["scylladb_chronicle.h"],
+    linkopts = ["-lcassandra"],
+    deps = [
+        ":scylladb_client",
+        "@com_github_uthash//:uthash",
+        "@entangled//cclient/request:requests",
+        "@entangled//cclient/response:responses",
+        "@entangled//utils/containers/hash:hash243_queue",
+        "@entangled//utils/containers/hash:hash8019_queue",
     ],
 )
 

@@ -16,6 +16,8 @@
 static char* host = "localhost";
 static char* keyspace_name;
 
+static iota_transaction_t iota_tx1, iota_tx2;
+
 static struct identity_s {
   char uuid_string[DB_UUID_STRING_LENGTH];
   char* hash;
@@ -96,6 +98,106 @@ void test_get_transactions(db_client_service_t* service) {
   hash243_queue_free(&addresses);
   hash243_queue_free(&approvees);
   hash243_queue_free(&transactions);
+}
+
+void test_db_get_trytes(db_client_service_t* service) {
+  hash8019_queue_t res = NULL;
+
+  db_get_trytes(service, &res, iota_tx1.consensus.hash);
+  db_get_trytes(service, &res, iota_tx2.consensus.hash);
+
+  hash8019_queue_t itr = res;
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_2673_1, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_SERIALIZED_TRANSACTION);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_2673_2, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_SERIALIZED_TRANSACTION);
+
+  hash8019_queue_free(&res);
+  printf("test_db_get_trytes done\n");
+}
+
+void test_db_get_approvees(db_client_service_t* service) {
+  hash243_queue_t res = NULL;
+  db_get_approvee(service, &res, iota_tx1.attachment.trunk);
+  db_get_approvee(service, &res, iota_tx1.attachment.branch);
+  db_get_approvee(service, &res, iota_tx2.attachment.trunk);
+  db_get_approvee(service, &res, iota_tx2.attachment.branch);
+
+  hash243_queue_t itr = res;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx1.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx1.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx2.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx2.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+
+  hash243_queue_free(&res);
+  printf("test_db_get_approvee done\n");
+}
+
+void test_db_get_bundle(db_client_service_t* service) {
+  hash243_queue_t res = NULL;
+
+  db_get_transactions_by_bundle(service, &res, iota_tx1.essence.bundle);
+  db_get_transactions_by_bundle(service, &res, iota_tx2.essence.bundle);
+  hash243_queue_t itr = res;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx1.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx2.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+
+  hash243_queue_free(&res);
+  printf("test_db_get_bundle done\n");
+}
+
+void test_db_get_address(db_client_service_t* service) {
+  hash243_queue_t res = NULL;
+
+  db_get_transactions_by_address(service, &res, iota_tx1.essence.address);
+  db_get_transactions_by_address(service, &res, iota_tx2.essence.address);
+  hash243_queue_t itr = res;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx1.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx2.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+
+  hash243_queue_free(&res);
+  printf("test_db_get_address done\n");
+}
+
+void test_db_get_tag(db_client_service_t* service) {
+  hash243_queue_t res = NULL;
+
+  db_get_transactions_by_tag(service, &res, iota_tx1.essence.obsolete_tag);
+  db_get_transactions_by_tag(service, &res, iota_tx2.essence.obsolete_tag);
+  hash243_queue_t itr = res;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx1.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+  itr = itr->next;
+  TEST_ASSERT_EQUAL_MEMORY(iota_tx2.consensus.hash, itr->hash, sizeof(flex_trit_t) * NUM_FLEX_TRITS_HASH);
+
+  hash243_queue_free(&res);
+  printf("test_db_get_tag done\n");
+}
+
+void test_chronicle(void) {
+  db_client_service_t service;
+  size_t tx_deserialize_offset1, tx_deserialize_offset2;
+  service.host = strdup(host);
+  TEST_ASSERT_EQUAL_INT(db_client_service_init(&service, DB_USAGE_NULL), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_chronicle_keyspace_init(&service, true, keyspace_name), SC_OK);
+
+  db_chronicle_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_1, (const tryte_t*)TRYTES_2673_1);
+  db_chronicle_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_2, (const tryte_t*)TRYTES_2673_2);
+
+  tx_deserialize_offset1 = transaction_deserialize_from_trits(&iota_tx1, (const tryte_t*)TRYTES_2673_1, false);
+  memcpy(iota_tx1.consensus.hash, HASH_OF_TRYTES_1, NUM_FLEX_TRITS_HASH);
+  tx_deserialize_offset2 = transaction_deserialize_from_trits(&iota_tx2, (const tryte_t*)TRYTES_2673_2, false);
+  memcpy(iota_tx2.consensus.hash, HASH_OF_TRYTES_2, NUM_FLEX_TRITS_HASH);
+
+  test_db_get_trytes(&service);
+  test_db_get_approvees(&service);
+  test_db_get_address(&service);
+  test_db_get_bundle(&service);
+  test_db_get_tag(&service);
+  db_client_service_free(&service);
 }
 
 void test_permanode(void) {
@@ -268,6 +370,7 @@ int main(int argc, char** argv) {
   }
   scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
+  RUN_TEST(test_chronicle);
   scylladb_logger_release();
   return UNITY_END();
 #else

@@ -11,7 +11,9 @@
 extern "C" {
 #endif
 
+#include "scylladb_chronicle.h"
 #include "scylladb_identity.h"
+#include "scylladb_listener.h"
 #include "scylladb_permanode.h"
 
 /**
