@@ -136,7 +136,7 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction objects in ta_find_transactions_obj_res_t.
  *
- * @param[in] service IRI node end point service
+ * @param[in] core Tangle-accelerator core configuration structure
  * @param[in] req find_transactions_req_t object which contains tags
  * @param[out] res Result containing list of transaction objects in
  *                 transaction_array_t
@@ -145,8 +145,8 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
-                                         const find_transactions_req_t* const req, transaction_array_t* res);
+status_t ta_find_transactions_obj_by_tag(const ta_core_t* const core, const find_transactions_req_t* const req,
+                                         transaction_array_t* res);
 
 /**
  * @brief Return transaction object with given transaction hashes.
@@ -155,7 +155,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
  * return whole transaction object details in transaction_array_t
  * instead of raw trytes, includes address, value, timestamp, mwm, nonce...
  *
- * @param[in] service IRI node end point service
+ * @param[in] core Tangle-accelerator core configuration structure
  * @param[in] req Given transaction hashes
  * @param[out] res Result containing transaction objects in transaction_array_t.
  *
@@ -163,8 +163,8 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_find_transaction_objects(const iota_client_service_t* const service,
-                                     const ta_find_transaction_objects_req_t* const req, transaction_array_t* res);
+status_t ta_find_transaction_objects(const ta_core_t* const core, const ta_find_transaction_objects_req_t* const req,
+                                     transaction_array_t* res);
 
 /**
  * @brief Return bundle object with given bundle hash.
@@ -207,7 +207,7 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
  * We can get a bundle with any address in the bundle. Moreover, because the channel ID in MAM is actually the address
  * of a transaction, we can use this function to search which bundle contains the message transaction we want to fetch.
  *
- * @param[in] service IRI node end point service
+ * @param[in] core Tangle-accelerator core configuration structure
  * @param[in] addr searched address in tryte_t
  * @param[in] bundle_array a bundle array object that will contain the MAM transacitons
  *
@@ -215,8 +215,7 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
-                                bundle_array_t* bundle_array);
+status_t ta_get_bundles_by_addr(const ta_core_t* const core, tryte_t const* const addr, bundle_array_t* bundle_array);
 
 /**
  * @brief Get current connection status. The status will be responded with return value.

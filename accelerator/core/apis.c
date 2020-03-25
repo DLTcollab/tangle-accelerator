@@ -149,8 +149,7 @@ done:
   return ret;
 }
 
-status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
-                                            char** json_result) {
+status_t api_find_transaction_object_single(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   flex_trit_t txn_hash[NUM_FLEX_TRITS_HASH];
   ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
@@ -165,7 +164,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
   hash243_queue_push(&req->hashes, txn_hash);
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_find_transaction_objects(service, req, res);
+  ret = ta_find_transaction_objects(core, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     ta_log_error("%d\n", ret);
@@ -181,8 +180,7 @@ done:
   return ret;
 }
 
-status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result) {
+status_t api_find_transaction_objects(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
   transaction_array_t* res = transaction_array_new();
@@ -202,7 +200,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
   lock_handle_unlock(&cjson_lock);
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_find_transaction_objects(service, req, res);
+  ret = ta_find_transaction_objects(core, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     ta_log_error("%d\n", ret);
@@ -218,8 +216,7 @@ done:
   return ret;
 }
 
-status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result) {
+status_t api_find_transactions_by_tag(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
   find_transactions_req_t* req = find_transactions_req_new();
@@ -249,7 +246,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
   }
 
   lock_handle_lock(&cjson_lock);
-  if (iota_client_find_transactions(service, req, res) != RC_OK) {
+  if (iota_client_find_transactions(&core->iota_service, req, res) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
@@ -265,8 +262,7 @@ done:
   return ret;
 }
 
-status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                          char** json_result) {
+status_t api_find_transactions_obj_by_tag(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
   find_transactions_req_t* req = find_transactions_req_new();
@@ -296,7 +292,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
   }
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_find_transactions_obj_by_tag(service, req, res);
+  ret = ta_find_transactions_obj_by_tag(core, req, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     ta_log_error("%d\n", ret);
@@ -312,8 +308,7 @@ done:
   return ret;
 }
 
-status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              const char* const obj, char** json_result) {
+status_t api_receive_mam_message(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
 
   mam_api_t mam;
@@ -335,7 +330,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
 
   data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
   key_mam_v1_t* key = (key_mam_v1_t*)req->key;
-  if (mam_api_init(&mam, (tryte_t*)iconf->seed) != RC_OK) {
+  if (mam_api_init(&mam, (tryte_t*)core->iota_conf.seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
@@ -350,7 +345,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   if (data_id->bundle_hash) {
     bundle_transactions_t* bundle = NULL;
     bundle_transactions_new(&bundle);
-    ret = ta_get_bundle(service, data_id->bundle_hash, bundle);
+    ret = ta_get_bundle(&core->iota_service, data_id->bundle_hash, bundle);
     if (ret != SC_OK) {
       ta_log_error("%s\n", "Failed to get bundle by bundle hash");
       goto done;
@@ -358,7 +353,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
     bundle_array_add(bundle_array, bundle);
     bundle_transactions_free(&bundle);
   } else if (data_id->chid) {
-    ret = ta_get_bundles_by_addr(service, data_id->chid, bundle_array);
+    ret = ta_get_bundles_by_addr(&core->iota_service, data_id->chid, bundle_array);
     if (ret != SC_OK) {
       ta_log_error("%s\n", "Failed to get bundle by chid");
       goto done;
@@ -387,7 +382,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
 done:
   // Destroying MAM API
   if (ret != SC_MAM_FAILED_INIT) {
-    if (mam_api_save(&mam, iconf->mam_file_path, NULL, 0) != RC_OK) {
+    if (mam_api_save(&mam, core->iota_conf.mam_file_path, NULL, 0) != RC_OK) {
       ta_log_error("%s\n", "SC_MAM_FILE_SAVE");
     }
     if (mam_api_destroy(&mam) != RC_OK) {
@@ -594,7 +589,7 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
   }
 
   lock_handle_lock(&cjson_lock);
-  ret = ta_find_transaction_objects(&core->iota_service, txn_obj_req, res_txn_array);
+  ret = ta_find_transaction_objects(core, txn_obj_req, res_txn_array);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -657,9 +652,7 @@ done:
 }
 
 #ifdef DB_ENABLE
-status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
-                                     const db_client_service_t* const db_service, const char* const obj,
-                                     char** json_result) {
+status_t api_find_transactions_by_id(const ta_core_t* const core, const char* const obj, char** json_result) {
   if (obj == NULL) {
     ta_log_error("Invalid NULL pointer to uuid string\n");
     return SC_TA_NULL;
@@ -667,7 +660,7 @@ status_t api_find_transactions_by_id(const iota_client_service_t* const iota_ser
   status_t ret = SC_OK;
   ta_log_info("find transaction by uuid string: %s\n", obj);
   db_identity_array_t* db_identity_array = db_identity_array_new();
-  ret = db_get_identity_objs_by_uuid_string(db_service, obj, db_identity_array);
+  ret = db_get_identity_objs_by_uuid_string(&core->db_service, obj, db_identity_array);
   if (ret != SC_OK) {
     ta_log_error("fail to find transaction by uuid string\n");
     goto exit;
@@ -675,7 +668,7 @@ status_t api_find_transactions_by_id(const iota_client_service_t* const iota_ser
 
   db_identity_t* itr = (db_identity_t*)utarray_front(db_identity_array);
   if (itr != NULL) {
-    ret = api_find_transaction_object_single(iota_service, (const char* const)db_ret_identity_hash(itr), json_result);
+    ret = api_find_transaction_object_single(core, (const char* const)db_ret_identity_hash(itr), json_result);
   } else {
     ta_log_error("No corresponding transaction found by uuid string : %s\n", obj);
     ret = SC_TA_WRONG_REQUEST_OBJ;

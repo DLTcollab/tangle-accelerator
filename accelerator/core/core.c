@@ -254,8 +254,8 @@ done:
   return ret;
 }
 
-status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const service,
-                                         const find_transactions_req_t* const req, transaction_array_t* res) {
+status_t ta_find_transactions_obj_by_tag(const ta_core_t* const core, const find_transactions_req_t* const req,
+                                         transaction_array_t* res) {
   if (req == NULL || res == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
@@ -270,7 +270,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
   }
 
   // get transaction hash
-  if (iota_client_find_transactions(service, req, txn_res) != RC_OK) {
+  if (iota_client_find_transactions(&core->iota_service, req, txn_res) != RC_OK) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     goto done;
@@ -278,7 +278,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
 
   hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
 
-  ret = ta_find_transaction_objects(service, obj_req, res);
+  ret = ta_find_transaction_objects(core, obj_req, res);
   if (ret) {
     ta_log_error("%d\n", ret);
     goto done;
@@ -290,8 +290,8 @@ done:
   return ret;
 }
 
-status_t ta_find_transaction_objects(const iota_client_service_t* const service,
-                                     const ta_find_transaction_objects_req_t* const req, transaction_array_t* res) {
+status_t ta_find_transaction_objects(const ta_core_t* const core, const ta_find_transaction_objects_req_t* const req,
+                                     transaction_array_t* res) {
   status_t ret = SC_OK;
   flex_trit_t tx_trits[NUM_TRITS_SERIALIZED_TRANSACTION];
   iota_transaction_t* temp = NULL;
@@ -343,13 +343,20 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   }
 
   if (req_get_trytes->hashes != NULL) {
-    if (iota_client_get_transaction_objects(service, req_get_trytes, uncached_txn_array) != RC_OK) {
-      ret = SC_CCLIENT_FAILED_RESPONSE;
-      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-      goto done;
-    }
+    do {
+#ifdef CHRONICLE_ENABLE
+      if (db_client_get_transaction_objects(&core->cr_service, req_get_trytes, uncached_txn_array) == SC_OK) {
+        ta_log_info("Get transaction obj from db chronicle\n");
+        break;
+      }
+#endif
+      if (iota_client_get_transaction_objects(&core->iota_service, req_get_trytes, uncached_txn_array) != RC_OK) {
+        ret = SC_CCLIENT_FAILED_RESPONSE;
+        ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+        goto done;
+      }
+    } while (0);
   }
-
   // append response of `iota_client_find_transaction_objects` into cache
   TX_OBJS_FOREACH(uncached_txn_array, temp) {
     temp_txn_trits = transaction_serialize(temp);
@@ -458,8 +465,7 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
   return SC_OK;
 }
 
-status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
-                                bundle_array_t* bundle_array) {
+status_t ta_get_bundles_by_addr(const ta_core_t* const core, tryte_t const* const addr, bundle_array_t* bundle_array) {
   status_t ret = SC_OK;
   tryte_t bundle_hash[NUM_TRYTES_BUNDLE + 1] = {0};
   find_transactions_req_t* txn_req = find_transactions_req_new();
@@ -477,7 +483,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
   flex_trits_from_trytes(addr_trits, NUM_TRITS_HASH, (const tryte_t*)addr, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
   find_transactions_req_address_add(txn_req, addr_trits);
 
-  if (iota_client_find_transactions(service, txn_req, txn_res) != RC_OK) {
+  if (iota_client_find_transactions(&core->iota_service, txn_req, txn_res) != RC_OK) {
     ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
     ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
@@ -492,7 +498,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
     goto done;
   }
 
-  ret = ta_find_transaction_objects(service, obj_req, obj_res);
+  ret = ta_find_transaction_objects(core, obj_req, obj_res);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);
     goto done;
@@ -506,7 +512,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
       bundle_transactions_new(&bundle);
       flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
                            NUM_TRITS_BUNDLE);
-      ret = ta_get_bundle(service, bundle_hash, bundle);
+      ret = ta_get_bundle(&core->iota_service, bundle_hash, bundle);
       if (ret != SC_OK) {
         ta_log_error("%d\n", ret);
         goto done;

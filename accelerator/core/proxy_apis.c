@@ -87,8 +87,7 @@ done:
   return ret;
 }
 
-static status_t api_find_transactions(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result) {
+static status_t api_find_transactions(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   find_transactions_req_t* req = find_transactions_req_new();
   find_transactions_res_t* res = find_transactions_res_new();
@@ -99,24 +98,30 @@ static status_t api_find_transactions(const iota_client_service_t* const service
     goto done;
   }
   lock_handle_lock(&cjson_lock);
-  if (service->serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
+  if (core->iota_service.serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-
-  lock_handle_lock(&cjson_lock);
-  if (iota_client_find_transactions(service, req, res) != RC_OK) {
+  do {
+#ifdef CHRONICLE_ENABLE
+    if (db_client_find_transactions(&core->cr_service, req, res) == SC_OK) {
+      ta_log_info("find transactions from ScyllaDB\n");
+      break;
+    }
+#endif
+    lock_handle_lock(&cjson_lock);
+    if (iota_client_find_transactions(&core->iota_service, req, res) != RC_OK) {
+      lock_handle_unlock(&cjson_lock);
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      goto done;
+    }
     lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
-
-  if (service->serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
+  } while (0);
+  if (core->iota_service.serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
@@ -176,8 +181,7 @@ done:
   return ret;
 }
 
-static status_t api_get_inclusion_states(const iota_client_service_t* const service, const char* const obj,
-                                         char** json_result) {
+static status_t api_get_inclusion_states(const ta_core_t* core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   get_inclusion_states_req_t* req = get_inclusion_states_req_new();
   get_inclusion_states_res_t* res = get_inclusion_states_res_new();
@@ -189,24 +193,32 @@ static status_t api_get_inclusion_states(const iota_client_service_t* const serv
   }
 
   lock_handle_lock(&cjson_lock);
-  if (service->serializer.vtable.get_inclusion_states_deserialize_request(obj, req) != RC_OK) {
+  if (core->iota_service.serializer.vtable.get_inclusion_states_deserialize_request(obj, req) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
+  do {
+#ifdef CHRONICLE_ENABLE
+    if (db_client_get_inclusion_states(&core->cr_service, req, res) == SC_OK) {
+      ta_log_debug("get inclusion states from ScyllaDB\n");
+      break;
+    }
+#endif
+    lock_handle_lock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
-  if (iota_client_get_inclusion_states(service, req, res) != RC_OK) {
+    if (iota_client_get_inclusion_states(&core->iota_service, req, res) != RC_OK) {
+      lock_handle_unlock(&cjson_lock);
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      goto done;
+    }
     lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
+  } while (0);
 
-  if (service->serializer.vtable.get_inclusion_states_serialize_response(res, res_buff) != RC_OK) {
+  if (core->iota_service.serializer.vtable.get_inclusion_states_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
@@ -254,7 +266,7 @@ done:
   return ret;
 }
 
-static status_t api_get_trytes(const iota_client_service_t* const service, const char* const obj, char** json_result) {
+static status_t api_get_trytes(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
   get_trytes_req_t* req = get_trytes_req_new();
   get_trytes_res_t* res = get_trytes_res_new();
@@ -266,24 +278,30 @@ static status_t api_get_trytes(const iota_client_service_t* const service, const
   }
 
   lock_handle_lock(&cjson_lock);
-  if (service->serializer.vtable.get_trytes_deserialize_request(obj, req) != RC_OK) {
+  if (core->iota_service.serializer.vtable.get_trytes_deserialize_request(obj, req) != RC_OK) {
     lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
-
-  lock_handle_lock(&cjson_lock);
-  if (iota_client_get_trytes(service, req, res) != RC_OK) {
+  do {
+#ifdef CHRONICLE_ENABLE
+    if (db_client_get_trytes(&core->cr_service, req, res) == SC_OK) {
+      ta_log_info("get trytes from ScyllaDB\n");
+      break;
+    }
+#endif
+    lock_handle_lock(&cjson_lock);
+    if (iota_client_get_trytes(&core->iota_service, req, res) != RC_OK) {
+      lock_handle_unlock(&cjson_lock);
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      goto done;
+    }
     lock_handle_unlock(&cjson_lock);
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
-    goto done;
-  }
-  lock_handle_unlock(&cjson_lock);
-
-  if (service->serializer.vtable.get_trytes_serialize_response(res, res_buff) != RC_OK) {
+  } while (0);
+  if (core->iota_service.serializer.vtable.get_trytes_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", "SC_CCLIENT_JSON_PARSE");
     goto done;
@@ -298,15 +316,14 @@ done:
   return ret;
 }
 
-status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
-                           const char* const obj, char** json_result) {
+status_t proxy_api_wrapper(const ta_core_t* const core, const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  if (iconf->proxy_passthrough) {
+  if (core->ta_conf.proxy_passthrough) {
     char_buffer_t* res_buff = char_buffer_new();
     char_buffer_t* req_buff = char_buffer_new();
     char_buffer_set(req_buff, obj);
 
-    retcode_t result = iota_service_query(service, req_buff, res_buff);
+    retcode_t result = iota_service_query(&core->iota_service, req_buff, res_buff);
     if (result != RC_OK) {
       ta_log_error("%s\n", error_2_string(result));
       ret = SC_CCLIENT_FAILED_RESPONSE;
@@ -335,22 +352,22 @@ status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_ser
     // With DJB2 hash function we could reduce the amount of string comparisons and deterministic execution time
     switch (hash_algo_djb2(command)) {
       case H_checkConsistency:
-        ret = api_check_consistency(service, obj, json_result);
+        ret = api_check_consistency(&core->iota_service, obj, json_result);
         break;
       case H_findTransactions:
-        ret = api_find_transactions(service, obj, json_result);
+        ret = api_find_transactions(core, obj, json_result);
         break;
       case H_getBalances:
-        ret = api_get_balances(service, obj, json_result);
+        ret = api_get_balances(&core->iota_service, obj, json_result);
         break;
       case H_getInclusionStates:
-        ret = api_get_inclusion_states(service, obj, json_result);
+        ret = api_get_inclusion_states(core, obj, json_result);
         break;
       case H_getNodeInfo:
-        ret = api_get_node_info(service, json_result);
+        ret = api_get_node_info(&core->iota_service, json_result);
         break;
       case H_getTrytes:
-        ret = api_get_trytes(service, obj, json_result);
+        ret = api_get_trytes(core, obj, json_result);
         break;
 
       default:

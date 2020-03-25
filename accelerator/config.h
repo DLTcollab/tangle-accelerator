@@ -99,8 +99,12 @@ typedef struct ta_core_s {
   ta_cache_t cache;                   /**< redis configiuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
+
 #ifdef DB_ENABLE
   db_client_service_t db_service; /**< db connection structure */
+#ifdef CHRONICLE_ENABLE
+  db_client_service_t cr_service; /**< db connection structure */
+#endif
 #endif
   char conf_file[FILE_PATH_SIZE]; /**< path to the configuration file */
 } ta_core_t;

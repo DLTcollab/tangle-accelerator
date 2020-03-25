@@ -5,6 +5,9 @@
 #include "connectivity/common.h"
 #include "connectivity/http/http.h"
 #include "pthread.h"
+#ifdef DB_ENABLE
+#include "storage/ta_storage.h"
+#endif
 #include "time.h"
 #include "utils/handles/signal.h"
 
@@ -102,6 +105,9 @@ int main(int argc, char* argv[]) {
     conn_logger_init();
     // Enable backend_redis logger
     br_logger_init();
+#ifdef DB_ENABLE
+    scylladb_logger_init();
+#endif
   }
 
   /* pause() cause TA to sleep until it catch a signal,
@@ -130,6 +136,9 @@ cleanup:
     serializer_logger_release();
     pow_logger_release();
     timer_logger_release();
+#ifdef DB_ENABLE
+    scylladb_logger_release();
+#endif
     logger_helper_release(logger_id);
     br_logger_release();
     if (logger_helper_destroy() != RC_OK) {

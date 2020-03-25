@@ -143,8 +143,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              const char* const chid, char** json_result);
+status_t api_receive_mam_message(const ta_core_t* const core, const char* const chid, char** json_result);
 
 /**
  * @brief Send a MAM message with given Payload.
@@ -196,8 +195,7 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
-                                            char** json_result);
+status_t api_find_transaction_object_single(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Return transaction object with given transaction hash.
@@ -213,8 +211,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result);
+status_t api_find_transaction_objects(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Return list of transaction hash with given tag.
@@ -231,8 +228,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result);
+status_t api_find_transactions_by_tag(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Return list of transaction objects with given tag.
@@ -249,8 +245,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                          char** json_result);
+status_t api_find_transactions_obj_by_tag(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Attach trytes to Tangle and return transaction hashes
@@ -300,9 +295,7 @@ status_t api_get_iri_status(const iota_client_service_t* const service, char** j
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
-                                     const db_client_service_t* const db_service, const char* const obj,
-                                     char** json_result);
+status_t api_find_transactions_by_id(const ta_core_t* const core, const char* const obj, char** json_result);
 
 /**
  * @brief Return db identity object with given single transaction hash.

@@ -49,6 +49,9 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   char* conf_file = core->conf_file;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
+#ifdef CHRONICLE_ENABLE
+  db_client_service_t* const cr_service = &core->cr_service;
+#endif
 #endif
   char* strtol_p = NULL;
   long int strtol_temp;
@@ -155,6 +158,10 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case DB_HOST_CLI:
       free(db_service->host);
       db_service->host = strdup(value);
+#ifdef CHRONICLE_ENABLE
+      free(cr_service->host);
+      cr_service->host = strdup(value);
+#endif
       break;
 #endif
 
@@ -214,6 +221,9 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_client_service_t* const iota_service = &core->iota_service;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
+#ifdef CHRONICLE_ENABLE
+  db_client_service_t* const cr_service = &core->cr_service;
+#endif
 #endif
 
   ta_log_info("Initializing TA information\n");
@@ -253,6 +263,9 @@ status_t ta_core_default_init(ta_core_t* const core) {
 #ifdef DB_ENABLE
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
+#ifdef CHRONICLE_ENABLE
+  cr_service->host = strdup(DB_HOST);
+#endif
 #endif
   // Turn off quiet mode default
   quiet_mode = false;
@@ -351,6 +364,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv) {
   } while (token.type != YAML_STREAM_END_TOKEN);
 
 done:
+
   yaml_token_delete(&token);
   yaml_parser_delete(&parser);
   if (file) {
@@ -403,11 +417,8 @@ status_t ta_core_set(ta_core_t* core) {
   status_t ret = SC_OK;
 
   ta_cache_t* const cache = &core->cache;
-  iota_client_service_t* const iota_service = &core->iota_service;
-#ifdef DB_ENABLE
-  db_client_service_t* const db_service = &core->db_service;
-#endif
-  if (iota_client_core_init(iota_service)) {
+
+  if (iota_client_core_init(&core->iota_service)) {
     ta_log_error("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
     goto exit;
@@ -421,9 +432,18 @@ status_t ta_core_set(ta_core_t* core) {
   cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
-  if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
+  if ((ret = db_client_service_init(&core->db_service, DB_USAGE_REATTACH)) != SC_OK) {
     ta_log_error("Initializing DB connection failed\n");
+    goto exit;
   }
+#ifdef CHRONICLE_ENABLE
+  ta_log_info("Initializing db cr client service\n");
+  if ((ret = db_client_service_init(&core->cr_service, DB_USAGE_CHRONICLE)) != SC_OK) {
+    ta_log_error("Initializing cr DB connection failed\n");
+    goto exit;
+  }
+#endif
+
 #endif
 
 exit:
@@ -437,6 +457,9 @@ void ta_core_destroy(ta_core_t* const core) {
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
+#ifdef CHRONICLE_ENABLE
+  db_client_service_free(&core->cr_service);
+#endif
 #endif
   free(core->iota_conf.mam_file_path);
   pow_destroy();

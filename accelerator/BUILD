@@ -70,7 +70,10 @@ cc_library(
         ":mqtt_enable": ["MQTT_ENABLE"],
         "//conditions:default": [],
     }) + select({
-        ":db_enable": ["DB_ENABLE"],
+        ":db_enable": [
+            "DB_ENABLE",
+            "CHRONICLE_ENABLE",
+        ],
         "//conditions:default": [],
     }) + select({
         ":debug_mode": [],

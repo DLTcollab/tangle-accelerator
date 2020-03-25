@@ -281,7 +281,7 @@ static status_t ta_json_get_string(cJSON const* const json_obj, char const* cons
 
 status_t iota_transaction_to_json_object(iota_transaction_t const* const txn, cJSON** txn_json) {
   if (txn == NULL) {
-    ta_log_error("%s\n", "SC_CCLIENT_NOT_FOUND");
+    ta_log_error("Transactions not found\n");
     return SC_CCLIENT_NOT_FOUND;
   }
   char msg_trytes[NUM_TRYTES_SIGNATURE + 1], hash_trytes[NUM_TRYTES_HASH + 1], tag_trytes[NUM_TRYTES_TAG + 1];

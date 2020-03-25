@@ -9,6 +9,7 @@
 #ifndef CORE_PROXY_APIS_H_
 #define CORE_PROXY_APIS_H_
 
+#include "accelerator/config.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/request/requests.h"
 #include "cclient/response/responses.h"
@@ -70,8 +71,7 @@ status_t proxy_apis_lock_destroy();
  * - SC_OK on success
  * - non-zero on error
  */
-status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
-                           const char* const obj, char** json_result);
+status_t proxy_api_wrapper(const ta_core_t* const core, const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }
