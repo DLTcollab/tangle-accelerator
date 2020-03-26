@@ -344,9 +344,9 @@ status_t ta_find_transaction_objects(const ta_core_t* const core, const ta_find_
 
   if (req_get_trytes->hashes != NULL) {
     do {
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
       if (db_client_get_transaction_objects(&core->cr_service, req_get_trytes, uncached_txn_array) == SC_OK) {
-        ta_log_info("Get transaction obj from db chronicle\n");
+        ta_log_info("Get transaction obj from db permanode\n");
         break;
       }
 #endif

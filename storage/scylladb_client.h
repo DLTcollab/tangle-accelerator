@@ -26,7 +26,7 @@ extern "C" {
  * This method could be enhanced by supporting user-defined keyspace name when
  * specific the preserved usage.
  */
-typedef enum { DB_USAGE_REATTACH = 0, DB_USAGE_CHRONICLE, DB_USAGE_NULL, NUM_DB_USAGE } db_client_usage_t;
+typedef enum { DB_USAGE_REATTACH = 0, DB_USAGE_PERMANODE, DB_USAGE_NULL, NUM_DB_USAGE } db_client_usage_t;
 typedef struct {
   CassCluster* cluster;
   CassSession* session;

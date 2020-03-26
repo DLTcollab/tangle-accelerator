@@ -13,11 +13,11 @@
 
 typedef struct {
   pthread_mutex_t thread_mutex;
-  db_chronicle_pool_t* pool;
+  db_permanode_pool_t* pool;
   char* file_path;
 } db_importer_thread_t;
 
-static status_t init_importer_data(db_importer_thread_t* thread_data, db_chronicle_pool_t* pool, char* file_list) {
+static status_t init_importer_data(db_importer_thread_t* thread_data, db_permanode_pool_t* pool, char* file_list) {
   status_t ret = SC_OK;
   pthread_mutex_init(&thread_data->thread_mutex, NULL);
   thread_data->pool = pool;
@@ -71,7 +71,7 @@ static void* importer_handler(void* data) {
       }
 
       do {
-        ret = db_chronicle_thpool_add((tryte_t*)input_buffer, (tryte_t*)input_buffer + NUM_FLEX_TRITS_HASH + 1,
+        ret = db_permanode_thpool_add((tryte_t*)input_buffer, (tryte_t*)input_buffer + NUM_FLEX_TRITS_HASH + 1,
                                       thread_data->pool);
         if (ret != SC_OK) {
           pthread_cond_wait(&thread_data->pool->finish_request, &thread_data->thread_mutex);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
   pthread_t importer_thread;
   db_worker_thread_t* worker_data;
   db_importer_thread_t importer_data;
-  db_chronicle_pool_t pool;
+  db_permanode_pool_t pool;
 
   char* db_host = "localhost";
   char* file_path = NULL;
@@ -138,11 +138,11 @@ int main(int argc, char* argv[]) {
   worker_threads = malloc(thread_num * sizeof(pthread_t));
   worker_data = malloc(thread_num * sizeof(db_worker_thread_t));
 
-  db_init_chronicle_threadpool(&pool);
+  db_init_permanode_threadpool(&pool);
   /* create the request-handling threads */
   for (int i = 0; i < thread_num; i++) {
     db_init_worker_thread_data(worker_data + i, &pool, db_host);
-    pthread_create(&worker_threads[i], NULL, db_chronicle_worker_handler, (void*)&worker_data[i]);
+    pthread_create(&worker_threads[i], NULL, db_permanode_worker_handler, (void*)&worker_data[i]);
   }
   init_importer_data(&importer_data, &pool, file_path);
   pthread_create(&importer_thread, NULL, (void*)importer_handler, (void*)&importer_data);

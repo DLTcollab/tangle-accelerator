@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "scylladb_chronicle.h"
+#include "scylladb_Permanode.h"
 #include "scylladb_identity.h"
 #include "scylladb_thread_pool.h"
 /**

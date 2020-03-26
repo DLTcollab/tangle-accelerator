@@ -72,7 +72,7 @@ cc_library(
     }) + select({
         ":db_enable": [
             "DB_ENABLE",
-            "CHRONICLE_ENABLE",
+            "PERMANODE_ENABLE",
         ],
         "//conditions:default": [],
     }) + select({

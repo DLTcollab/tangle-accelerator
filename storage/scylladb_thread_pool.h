@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 #include <pthread.h>
-#include "scylladb_chronicle.h"
+#include "scylladb_Permanode.h"
 
 /**
  * @file storage/scylladb_thread_pool.h
@@ -33,23 +33,23 @@ typedef struct {
   struct request* requests;     /* head of linked list of requests. */
   struct request* last_request; /* pointer to last request.         */
 
-} db_chronicle_pool_t;
+} db_permanode_pool_t;
 
 typedef struct {
   pthread_mutex_t thread_mutex;
-  db_chronicle_pool_t* pool;
+  db_permanode_pool_t* pool;
   db_client_service_t service;
 } db_worker_thread_t;
 
 /**
  * @brief Initialize request, pthread mutex, pthread cond in threadpool struct
  *
- * @param[in] poll pointer to db_chronicle_pool_t
+ * @param[in] poll pointer to db_permanode_pool_t
  *
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_init_chronicle_threadpool(db_chronicle_pool_t* pool);
+status_t db_init_permanode_threadpool(db_permanode_pool_t* pool);
 
 /**
  * @brief Initialize work thread data
@@ -61,10 +61,10 @@ status_t db_init_chronicle_threadpool(db_chronicle_pool_t* pool);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_init_worker_thread_data(db_worker_thread_t* thread_data, db_chronicle_pool_t* pool, char* host);
+status_t db_init_worker_thread_data(db_worker_thread_t* thread_data, db_permanode_pool_t* pool, char* host);
 
 /**
- * @brief Add request into chronicle request threadpoll
+ * @brief Add request into permanode request threadpoll
  *
  * @param[in] hash input transaction hash
  * @param[in] tryte input transaction trytes
@@ -73,7 +73,7 @@ status_t db_init_worker_thread_data(db_worker_thread_t* thread_data, db_chronicl
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_chronicle_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_chronicle_pool_t* pool);
+status_t db_permanode_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_permanode_pool_t* pool);
 
 /**
  * @brief infinite loop of requests handling
@@ -81,11 +81,11 @@ status_t db_chronicle_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_
  * Loop forever, if there are requests to handle, take the first and handle it.
  * Then wait on the given condition variable, and when it is signaled, re-do the loop.
  *
- * @param[in] data pointer to db_chronicle_pool_t
+ * @param[in] data pointer to db_permanode_pool_t
  *
  * @return NULL
  */
-void* db_chronicle_worker_handler(void* data);
+void* db_permanode_worker_handler(void* data);
 
 #ifdef __cplusplus
 }

@@ -3,8 +3,8 @@ cc_library(
     hdrs = ["ta_storage.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":scylladb_chronicle",
         ":scylladb_identity",
+        ":scylladb_permanode",
         ":scylladb_thread_pool",
     ],
 )
@@ -47,14 +47,14 @@ cc_library(
     hdrs = ["scylladb_thread_pool.h"],
     linkopts = ["-lpthread"],
     deps = [
-        ":scylladb_chronicle",
+        ":scylladb_permanode",
     ],
 )
 
 cc_library(
-    name = "scylladb_chronicle",
-    srcs = ["scylladb_chronicle.c"],
-    hdrs = ["scylladb_chronicle.h"],
+    name = "scylladb_permanode",
+    srcs = ["scylladb_Permanode.c"],
+    hdrs = ["scylladb_Permanode.h"],
     linkopts = ["-lcassandra"],
     deps = [
         ":scylladb_client",

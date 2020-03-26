@@ -5,8 +5,8 @@
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
-#ifndef STORAGE_SCYLLADB_CHRONICLE_H_
-#define STORAGE_SCYLLADB_CHRONICLE_H_
+#ifndef STORAGE_SCYLLADB_PERMANODE_H_
+#define STORAGE_SCYLLADB_PERMANODE_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,14 +22,14 @@ extern "C" {
 #include "utils/containers/hash/hash8019_queue.h"
 
 /**
- * @file storage/scylladb_chronicle.h
- * @brief c implement ch.
+ * @file storage/scylladb_Permanode.h
+ * @brief Scylladb backend interface for permanode
  */
 
 /**
  * @brief connect to ScyllaDB node and create table
  *
- * @param[in] service ScyllaDB db client service
+ * @param[in] service ScyllaDB client service
  * @param[in] need_truncate true : clear all data, false : keep old data
  * @param[in] keyspace_name keyspace name the session should use
  *
@@ -37,7 +37,7 @@ extern "C" {
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_chronicle_keyspace_init(const db_client_service_t* service, bool need_truncate, const char* keyspace_name);
+status_t db_permanode_keyspace_init(const db_client_service_t* service, bool need_truncate, const char* keyspace_name);
 
 /**
  * @brief insert transactions into bundle table
@@ -49,15 +49,15 @@ status_t db_chronicle_keyspace_init(const db_client_service_t* service, bool nee
  * - SC_OK on success
  * - non-zero on error
  */
-status_t db_chronicle_insert_transaction(const db_client_service_t* service, const tryte_t* hash,
+status_t db_permanode_insert_transaction(const db_client_service_t* service, const tryte_t* hash,
                                          const tryte_t* trytes);
 
 /**
  * @brief get transaction hash by given bundle
  *
  * @param[in] service ScyllaDB client service
- * @param[out] res result hash queue for transaction hash
  * @param[in] bundle target bundle hash
+ * @param[out] res result hash queue for transaction hash
  *
  * @return
  * - SC_OK on success
@@ -70,8 +70,8 @@ status_t db_get_transactions_by_bundle(const db_client_service_t* service, hash2
  * @brief get transaction hash by given address
  *
  * @param[in] service ScyllaDB client service
- * @param[out] res result hash queue for transaction hash
  * @param[in] address target address hash
+ * @param[out] res result hash queue for transaction hash
  *
  * @return
  * - SC_OK on success
@@ -84,8 +84,8 @@ status_t db_get_transactions_by_address(const db_client_service_t* service, hash
  * @brief get transaction hash by given tag
  *
  * @param[in] service ScyllaDB client service
- * @param[out] res result hash queue for transaction hash
  * @param[in] tag target tag
+ * @param[out] res result hash queue for transaction hash
  *
  * @return
  * - SC_OK on success
@@ -97,8 +97,8 @@ status_t db_get_transactions_by_tag(const db_client_service_t* service, hash243_
  * @brief get transaction approvees
  *
  * @param[in] service ScyllaDB client service
- * @param[out] res result hash queue for approvees
  * @param[in] hash target transaction hash
+ * @param[out] res result hash queue for approvees
  *
  * @return
  * - SC_OK on success
@@ -110,8 +110,8 @@ status_t db_get_approvee(const db_client_service_t* service, hash243_queue_t* re
  * @brief get transaction trytes
  *
  * @param[in] service ScyllaDB client service
- * @param[out] res result hash queue for trytes
  * @param[in] hash target transaction hash
+ * @param[out] res result hash queue for trytes
  *
  * @return
  * - SC_OK on success
@@ -122,6 +122,7 @@ status_t db_get_trytes(const db_client_service_t* service, hash8019_queue_t* res
 /**
  * @brief Finds transactions that contain the given values in their transaction fields. The parameters define
  *        the transaction fields to search for, including bundles, addresses, tags, and approvees
+ *
  * @param[in] service ScyllaDB client service
  * @param[in] req request transaction fields
  * @param[out] res result of transaction hashes
@@ -135,6 +136,7 @@ status_t db_client_find_transactions(const db_client_service_t* service, const f
 
 /**
  * @brief Finds transaction objects by given hashes
+ *
  * @param[in] service ScyllaDB client service
  * @param[in] tx_hashes request transaction hashes
  * @param[out] out_tx_objs result of transaction objects
@@ -148,6 +150,7 @@ status_t db_client_get_transaction_objects(const db_client_service_t* service, c
 
 /**
  * @brief Finds transaction trytes by given hashes
+ *
  * @param[in] service ScyllaDB client service
  * @param[in] req request transaction hashes
  * @param[out] res result of trytes
@@ -160,6 +163,7 @@ status_t db_client_get_trytes(const db_client_service_t* service, const get_tryt
 
 /**
  * @brief get inclustion status by given hashes
+ *
  * @param[in] service ScyllaDB client service
  * @param[in] req request transaction hashes
  * @param[out] res result of trytes
@@ -175,4 +179,4 @@ status_t db_client_get_inclusion_states(const db_client_service_t* service, get_
 }
 #endif
 
-#endif  // STORAGE_SCYLLADB_CHRONICLE_H_
+#endif  // STORAGE_SCYLLADB_PERMANODE_H_

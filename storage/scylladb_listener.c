@@ -44,11 +44,11 @@ static void init_iota_client_service(iota_client_service_t* const serv, char con
 
 typedef struct {
   pthread_mutex_t thread_mutex;
-  db_chronicle_pool_t* pool;
+  db_permanode_pool_t* pool;
   iota_client_service_t* service;
 } db_listener_data_t;
 
-static status_t db_init_listener_data(db_listener_data_t* data, db_chronicle_pool_t* pool,
+static status_t db_init_listener_data(db_listener_data_t* data, db_permanode_pool_t* pool,
                                       iota_client_service_t* service) {
   status_t ret = SC_OK;
   pthread_mutex_init(&data->thread_mutex, NULL);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
   pthread_t listener_thread;
   db_worker_thread_t* worker_data;
   db_listener_data_t listener_data;
-  db_chronicle_pool_t pool;
+  db_permanode_pool_t pool;
 
   const struct option longOpt[] = {{"db_host", required_argument, NULL, 's'},
                                    {"iri_host", required_argument, NULL, 'i'},
@@ -183,17 +183,17 @@ int main(int argc, char* argv[]) {
   worker_threads = malloc(thread_num * sizeof(pthread_t));
   worker_data = malloc(thread_num * sizeof(db_worker_thread_t));
 
-  if (db_init_chronicle_threadpool(&pool) != SC_OK) {
-    ta_log_error("Fail to init chronicle threadpool\n");
+  if (db_init_permanode_threadpool(&pool) != SC_OK) {
+    ta_log_error("Fail to init permanode threadpool\n");
     return EXIT_FAILURE;
   }
   /* create the request-handling threads */
   for (int i = 0; i < thread_num; i++) {
     if (db_init_worker_thread_data(worker_data + i, &pool, db_host) != SC_OK) {
-      ta_log_error("Fail to init chronicle thpool worker\n");
+      ta_log_error("Fail to init permanode thpool worker\n");
       return EXIT_FAILURE;
     }
-    pthread_create(&worker_threads[i], NULL, (void*)db_chronicle_worker_handler, (void*)&worker_data[i]);
+    pthread_create(&worker_threads[i], NULL, (void*)db_permanode_worker_handler, (void*)&worker_data[i]);
   }
   db_init_listener_data(&listener_data, &pool, &iota_service);
   pthread_create(&listener_thread, NULL, (void*)listener_handler, (void*)&listener_data);

@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
  * "LICENSE" at the root of this distribution.
  */
 
-#include "scylladb_chronicle.h"
+#include "scylladb_Permanode.h"
 #include "common/trinary/trit_long.h"
 #define logger_id scylladb_logger_id
 
@@ -28,8 +28,6 @@ static void print_error(CassFuture* future) {
 }
 
 static status_t create_transaction_table(CassSession* session, bool need_truncate) {
-  status_t ret = SC_OK;
-
   if (execute_query(session,
                     "CREATE TABLE IF NOT EXISTS transaction ("
                     "hash blob PRIMARY KEY,"
@@ -39,8 +37,7 @@ static status_t create_transaction_table(CassSession* session, bool need_truncat
                     "approvees set<blob>,"
                     "trytes blob );") != CASS_OK) {
     ta_log_error("Fail to create table : transaction\n");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
-    goto exit;
+    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
   }
 
   if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON transaction(bundle);") != CASS_OK) {
@@ -64,8 +61,7 @@ static status_t create_transaction_table(CassSession* session, bool need_truncat
       return SC_STORAGE_CASSANDRA_QUREY_FAIL;
     }
   }
-exit:
-  return ret;
+  return SC_OK;
 }
 
 static CassStatement* ret_insert_transaction_statement(const CassPrepared* prepared, const tryte_t* hash,
@@ -409,7 +405,7 @@ static status_t get_trytes_from_transaction_table(CassSession* session, hash8019
   return ret;
 }
 
-status_t db_chronicle_insert_transaction(const db_client_service_t* service, const tryte_t* hash,
+status_t db_permanode_insert_transaction(const db_client_service_t* service, const tryte_t* hash,
                                          const tryte_t* trytes) {
   status_t ret = SC_OK;
 
@@ -567,6 +563,7 @@ status_t db_client_get_transaction_objects(const db_client_service_t* service, c
       if (tx_deserialize_offset) {
         transaction_array_push_back(out_tx_objs, &tx);
       } else {
+        ta_log_error("Failed to deserialize transactions from tirts\n");
         goto done;
       }
     }
@@ -577,7 +574,7 @@ done:
   return ret;
 }
 
-status_t db_chronicle_keyspace_init(const db_client_service_t* service, bool need_truncate, const char* keyspace_name) {
+status_t db_permanode_keyspace_init(const db_client_service_t* service, bool need_truncate, const char* keyspace_name) {
   status_t ret = SC_OK;
   CassStatement* use_statement = NULL;
   char* use_query = NULL;

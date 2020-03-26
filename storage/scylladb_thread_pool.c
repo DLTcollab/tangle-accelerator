@@ -6,7 +6,7 @@
 
 #define logger_id scylladb_logger_id
 
-status_t db_init_chronicle_threadpool(db_chronicle_pool_t* pool) {
+status_t db_init_permanode_threadpool(db_permanode_pool_t* pool) {
   if (pthread_mutex_init(&pool->request_mutex, NULL)) {
     ta_log_error("fail to init pthread mutex\n");
     return SC_PTHREAD_ERROR;
@@ -20,16 +20,16 @@ status_t db_init_chronicle_threadpool(db_chronicle_pool_t* pool) {
   return SC_OK;
 }
 
-status_t db_init_worker_thread_data(db_worker_thread_t* thread_data, db_chronicle_pool_t* pool, char* host) {
+status_t db_init_worker_thread_data(db_worker_thread_t* thread_data, db_permanode_pool_t* pool, char* host) {
   status_t ret;
   pthread_mutex_init(&thread_data->thread_mutex, NULL);
   thread_data->pool = pool;
   thread_data->service.host = strdup(host);
-  ret = db_client_service_init(&thread_data->service, DB_USAGE_CHRONICLE);
+  ret = db_client_service_init(&thread_data->service, DB_USAGE_PERMANODE);
   return ret;
 }
 
-status_t db_chronicle_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_chronicle_pool_t* pool) {
+status_t db_permanode_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_permanode_pool_t* pool) {
   status_t ret = SC_OK;
   int rc;                    /* return code of pthreads functions.  */
   struct request* a_request; /* pointer to newly added request.     */
@@ -44,7 +44,7 @@ status_t db_chronicle_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_
   /* create structure with new request */
   a_request = (struct request*)malloc(sizeof(struct request));
   if (!a_request) { /* malloc failed?? */
-    ta_log_error("db_chronicle_thpool_add: out of memory\n");
+    ta_log_error("db_permanode_thpool_add: out of memory\n");
     return SC_TA_OOM;
   }
   memcpy(a_request->hash, hash, sizeof(a_request->hash));
@@ -72,7 +72,7 @@ status_t db_chronicle_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_
   return ret;
 }
 
-static struct request* get_request(db_chronicle_pool_t* pool) {
+static struct request* get_request(db_permanode_pool_t* pool) {
   int rc;                    /* return code of pthreads functions.  */
   struct request* a_request; /* pointer to request.                 */
 
@@ -103,7 +103,7 @@ static void handle_request(struct request* a_request, db_client_service_t* servi
     status_t ret;
     int retry_cnt = 0;
     do {
-      ret = db_chronicle_insert_transaction(service, a_request->hash, a_request->trytes);
+      ret = db_permanode_insert_transaction(service, a_request->hash, a_request->trytes);
       if (ret != SC_OK) {
         ta_log_error("Fail to insert transaction %s\n", a_request->hash);
         retry_cnt++;
@@ -114,8 +114,9 @@ static void handle_request(struct request* a_request, db_client_service_t* servi
             db_client_service_free(service);
             service->host = host;
 
-          } while (db_client_service_init(service, DB_USAGE_PERMANODE) != SC_OK);
-
+          while (db_client_service_init(service, DB_USAGE_PERMANODE) != SC_OK) {
+            sleep(10);
+          }
           ta_log_info("init db service done\n");
           retry_cnt = 0;
         }
@@ -124,7 +125,7 @@ static void handle_request(struct request* a_request, db_client_service_t* servi
   }
 }
 
-void* db_chronicle_worker_handler(void* data) {
+void* db_permanode_worker_handler(void* data) {
   struct request* a_request; /* pointer to a request.               */
   db_worker_thread_t* thread_data = (db_worker_thread_t*)data;
   pthread_mutex_lock(&thread_data->thread_mutex);

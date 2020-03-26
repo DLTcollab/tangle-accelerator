@@ -102,7 +102,7 @@ typedef struct ta_core_s {
 
 #ifdef DB_ENABLE
   db_client_service_t db_service; /**< db connection structure */
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   db_client_service_t cr_service; /**< db connection structure */
 #endif
 #endif

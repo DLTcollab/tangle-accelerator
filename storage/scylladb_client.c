@@ -12,7 +12,7 @@
 static struct db_keyspace_names_s {
   db_client_usage_t usage;
   const char* name;
-} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}, {DB_USAGE_CHRONICLE, "db_chronicle"}};
+} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}, {DB_USAGE_PERMANODE, "db_chronicle"}};
 static const int db_keyspace_name_nums = sizeof(db_keyspace_names) / sizeof(struct db_keyspace_names_s);
 
 static const char* get_keyspace_name(db_client_usage_t usage) {

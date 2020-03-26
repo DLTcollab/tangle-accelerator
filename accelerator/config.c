@@ -49,7 +49,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   char* conf_file = core->conf_file;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   db_client_service_t* const cr_service = &core->cr_service;
 #endif
 #endif
@@ -158,7 +158,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case DB_HOST_CLI:
       free(db_service->host);
       db_service->host = strdup(value);
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
       free(cr_service->host);
       cr_service->host = strdup(value);
 #endif
@@ -221,7 +221,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_client_service_t* const iota_service = &core->iota_service;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   db_client_service_t* const cr_service = &core->cr_service;
 #endif
 #endif
@@ -263,7 +263,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
 #ifdef DB_ENABLE
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   cr_service->host = strdup(DB_HOST);
 #endif
 #endif
@@ -436,9 +436,9 @@ status_t ta_core_set(ta_core_t* core) {
     ta_log_error("Initializing DB connection failed\n");
     goto exit;
   }
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   ta_log_info("Initializing db cr client service\n");
-  if ((ret = db_client_service_init(&core->cr_service, DB_USAGE_CHRONICLE)) != SC_OK) {
+  if ((ret = db_client_service_init(&core->cr_service, DB_USAGE_PERMANODE)) != SC_OK) {
     ta_log_error("Initializing cr DB connection failed\n");
     goto exit;
   }
@@ -457,7 +457,7 @@ void ta_core_destroy(ta_core_t* const core) {
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
   db_client_service_free(&core->cr_service);
 #endif
 #endif

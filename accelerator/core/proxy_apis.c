@@ -106,7 +106,7 @@ static status_t api_find_transactions(const ta_core_t* const core, const char* c
   }
   lock_handle_unlock(&cjson_lock);
   do {
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
     if (db_client_find_transactions(&core->cr_service, req, res) == SC_OK) {
       ta_log_info("find transactions from ScyllaDB\n");
       break;
@@ -201,7 +201,7 @@ static status_t api_get_inclusion_states(const ta_core_t* core, const char* cons
   }
   lock_handle_unlock(&cjson_lock);
   do {
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
     if (db_client_get_inclusion_states(&core->cr_service, req, res) == SC_OK) {
       ta_log_debug("get inclusion states from ScyllaDB\n");
       break;
@@ -286,7 +286,7 @@ static status_t api_get_trytes(const ta_core_t* const core, const char* const ob
   }
   lock_handle_unlock(&cjson_lock);
   do {
-#ifdef CHRONICLE_ENABLE
+#ifdef PERMANODE_ENABLE
     if (db_client_get_trytes(&core->cr_service, req, res) == SC_OK) {
       ta_log_info("get trytes from ScyllaDB\n");
       break;

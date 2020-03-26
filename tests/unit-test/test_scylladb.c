@@ -107,15 +107,15 @@ void test_db_get_tag(db_client_service_t* service) {
   printf("test_db_get_tag done\n");
 }
 
-void test_chronicle(void) {
+void test_permanode(void) {
   db_client_service_t service;
   size_t tx_deserialize_offset1, tx_deserialize_offset2;
   service.host = strdup(host);
   TEST_ASSERT_EQUAL_INT(db_client_service_init(&service, DB_USAGE_NULL), SC_OK);
-  TEST_ASSERT_EQUAL_INT(db_chronicle_keyspace_init(&service, true, keyspace_name), SC_OK);
+  TEST_ASSERT_EQUAL_INT(db_permanode_keyspace_init(&service, true, keyspace_name), SC_OK);
 
-  db_chronicle_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_1, (const tryte_t*)TRYTES_2673_1);
-  db_chronicle_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_2, (const tryte_t*)TRYTES_2673_2);
+  db_permanode_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_1, (const tryte_t*)TRYTES_2673_1);
+  db_permanode_insert_transaction(&service, (const tryte_t*)HASH_OF_TRYTES_2, (const tryte_t*)TRYTES_2673_2);
 
   tx_deserialize_offset1 = transaction_deserialize_from_trits(&iota_tx1, (const tryte_t*)TRYTES_2673_1, false);
   memcpy(iota_tx1.consensus.hash, HASH_OF_TRYTES_1, NUM_FLEX_TRITS_HASH);
@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
   }
   scylladb_logger_init();
   RUN_TEST(test_db_identity_table);
-  RUN_TEST(test_chronicle);
+  RUN_TEST(test_permanode);
   scylladb_logger_release();
   return UNITY_END();
 #else
