@@ -429,7 +429,6 @@ void ta_core_destroy(ta_core_t* const core) {
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
 #endif
-  free(core->iota_conf.mam_file_path);
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

@@ -227,7 +227,6 @@ void test_recv_mam_message_request_psk_deserialize(void) {
   recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   TEST_ASSERT_NULL(data_id->bundle_hash);
   TEST_ASSERT_EQUAL_STRING(TEST_CHID, data_id->chid);
-  TEST_ASSERT_EQUAL_STRING(TEST_EPID, data_id->epid);
   TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
 
   recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
@@ -247,7 +246,6 @@ void test_recv_mam_message_request_ntru_deserialize(void) {
   recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   TEST_ASSERT_EQUAL_STRING(TEST_BUNDLE_HASH, data_id->bundle_hash);
   TEST_ASSERT_NULL(data_id->chid);
-  TEST_ASSERT_NULL(data_id->epid);
   TEST_ASSERT_NULL(data_id->msg_id);
 
   recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
@@ -284,8 +282,6 @@ void test_send_mam_message_response_serialize(void) {
                      "\","
                      "\"chid\":\"" TRYTES_81_2
                      "\","
-                     "\"epid\":\"" TRYTES_81_3
-                     "\","
                      "\"msg_id\":\"" TEST_MSG_ID
                      "\","
                      "\"announcement_bundle_hash\":\"" ADDRESS_1
@@ -296,7 +292,6 @@ void test_send_mam_message_response_serialize(void) {
 
   send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_1);
   send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_2);
-  send_mam_res_set_endpoint_id(res, (tryte_t*)TRYTES_81_3);
   send_mam_res_set_msg_id(res, (tryte_t*)TEST_MSG_ID);
   send_mam_res_set_announcement_bundle_hash(res, (tryte_t*)ADDRESS_1);
   send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
@@ -313,8 +308,6 @@ void test_send_mam_message_response_deserialize(void) {
                      "\","
                      "\"chid\":\"" TRYTES_81_2
                      "\","
-                     "\"epid\":\"" TRYTES_81_3
-                     "\","
                      "\"msg_id\":\"" TEST_MSG_ID
                      "\","
                      "\"announcement_bundle_hash\":\"" ADDRESS_1
@@ -326,7 +319,6 @@ void test_send_mam_message_response_deserialize(void) {
 
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, res->bundle_hash, NUM_TRYTES_HASH);
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, res->chid, NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_3, res->epid, NUM_TRYTES_HASH);
   TEST_ASSERT_EQUAL_MEMORY(TEST_MSG_ID, res->msg_id, MAM_MSG_ID_SIZE / 3);
   TEST_ASSERT_EQUAL_MEMORY(ADDRESS_1, res->announcement_bundle_hash, NUM_TRYTES_HASH);
   TEST_ASSERT_EQUAL_MEMORY(ADDRESS_2, res->chid1, NUM_TRYTES_HASH);
@@ -511,9 +503,9 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
   RUN_TEST(test_recv_mam_message_request_psk_deserialize);
   RUN_TEST(test_recv_mam_message_request_ntru_deserialize);
+  RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_send_mam_message_response_serialize);
   RUN_TEST(test_send_mam_message_response_deserialize);
-  RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_deserialize_ta_send_trytes_req);
   RUN_TEST(test_serialize_ta_send_trytes_res);
 #ifdef MQTT_ENABLE

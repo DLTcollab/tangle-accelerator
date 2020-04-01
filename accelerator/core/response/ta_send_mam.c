@@ -10,8 +10,11 @@
 
 ta_send_mam_res_t* send_mam_res_new() {
   ta_send_mam_res_t* res = (ta_send_mam_res_t*)malloc(sizeof(ta_send_mam_res_t));
-  res->announcement_bundle_hash[0] = 0;
-  res->chid1[0] = 0;
+  memset(res->chid, 0, NUM_TRYTES_ADDRESS + 1);
+  memset(res->chid1, 0, NUM_TRYTES_ADDRESS + 1);
+  memset(res->bundle_hash, 0, NUM_TRYTES_BUNDLE + 1);
+  memset(res->msg_id, 0, NUM_TRYTES_MAM_MSG_ID + 1);
+  memset(res->announcement_bundle_hash, 0, NUM_TRYTES_BUNDLE + 1);
   return res;
 }
 
@@ -32,16 +35,6 @@ status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* chan
 
   memcpy(res->chid, channel_id, NUM_TRYTES_HASH);
   res->chid[NUM_TRYTES_HASH] = '\0';
-  return SC_OK;
-}
-
-status_t send_mam_res_set_endpoint_id(ta_send_mam_res_t* res, const tryte_t* endpoint_id) {
-  if (!endpoint_id || !res) {
-    return SC_RES_NULL;
-  }
-
-  memcpy(res->epid, endpoint_id, NUM_TRYTES_HASH);
-  res->epid[NUM_TRYTES_HASH] = '\0';
   return SC_OK;
 }
 

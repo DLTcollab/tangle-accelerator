@@ -319,8 +319,9 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   mam_api_t mam;
   ta_recv_mam_req_t* req = recv_mam_req_new();
   if (req == NULL) {
+    ret = SC_TA_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
-    return SC_TA_OOM;
+    return ret;
   }
   bundle_array_t* bundle_array = NULL;
   bundle_array_new(&bundle_array);
@@ -329,7 +330,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
 
   ret = recv_mam_message_req_deserialize(obj, req);
   if (ret) {
-    ta_log_error("%s\n", "recv_mam_message failed to deserialize.");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -340,10 +341,12 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
     goto done;
   }
 
-  ret = mam_api_add_trusted_channel_pk(&mam, (tryte_t*)data_id->chid);
-  if (ret != SC_OK) {
-    ta_log_error("%s\n", "Failed to add trusted channel.");
-    goto done;
+  if (data_id->chid) {
+    if (mam_api_add_trusted_channel_pk(&mam, (tryte_t*)data_id->chid) != RC_OK) {
+      ret = SC_MAM_INVAID_CHID_OR_EPID;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
   }
 
   if (data_id->bundle_hash) {
@@ -367,10 +370,10 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   bundle_transactions_t* bundle = NULL;
   BUNDLE_ARRAY_FOREACH(bundle_array, bundle) {
     char* payload = NULL;
-    retcode_t rc = ta_mam_api_bundle_read(&mam, bundle, &payload);
-    if (rc != RC_OK) {
-      ret = SC_MAM_FAILED_RESPONSE;
-      ta_log_error("%s\n", ta_error_to_string(ret));
+    status_t read_ret = ta_mam_api_bundle_read(&mam, bundle, &payload);
+    if (read_ret != SC_OK && read_ret != SC_MAM_NO_PAYLOAD) {
+      // If we read a bundle which contains MAM announcement, then it will return "SC_MAM_NO_PAYLOAD"
+      ta_log_error("%s\n", ta_error_to_string(read_ret));
       goto done;
     }
 
@@ -380,7 +383,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
 
   ret = recv_mam_message_res_serialize(payload_array, json_result);
   if (ret) {
-    ta_log_error("%s\n", "recv_mam_message failed to serialize.");
+    ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:
@@ -405,18 +408,15 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
                               char** json_result) {
   status_t ret = SC_OK;
   mam_api_t mam;
-  tryte_t chid[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, epid[MAM_CHANNEL_ID_TRYTE_SIZE] = {},
-          chid1[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, msg_id[NUM_TRYTES_MAM_MSG_ID] = {};
-  uint32_t ch_remain_sk, ep_remain_sk;
+  tryte_t chid[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, chid1[MAM_CHANNEL_ID_TRYTE_SIZE] = {},
+          msg_id[NUM_TRYTES_MAM_MSG_ID] = {};
   mam_psk_t_set_t psks = NULL;
   mam_ntru_pk_t_set_t ntru_pks = NULL;
 
   bundle_transactions_t* bundle = NULL;
-  bundle_transactions_new(&bundle);
 
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
-
   lock_handle_lock(&cjson_lock);
   if (send_mam_req_deserialize(payload, req)) {
     lock_handle_unlock(&cjson_lock);
@@ -426,102 +426,99 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
   }
   lock_handle_unlock(&cjson_lock);
 
-  if (req->protocol != MAM_V1) {
-    ta_log_error("%s\n", "Invalid MAM protocol.");
-    goto done;
-  }
-
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
-  send_mam_key_mam_v1_t* key = (send_mam_key_mam_v1_t*)req->key;
-
+  bool msg_sent = false;
   // Creating MAM API
-  ret = ta_mam_init(&mam, iconf, data->seed, &psks, &ntru_pks, (tryte_t*)(utarray_front(key->psk_array)),
-                    (tryte_t*)(utarray_front(key->ntru_array)));
+  ret = ta_mam_init(&mam, iconf, data->seed);
   if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-
-  // Create epid merkle tree and find the smallest unused secret key.
-  // Write both Header and Pakcet into one single bundle.
-  ret = ta_mam_written_msg_to_bundle(service, &mam, data->ch_mss_depth, data->ep_mss_depth, chid, epid, psks, ntru_pks,
-                                     data->message, &bundle, msg_id, &ch_remain_sk, &ep_remain_sk);
-  if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-
-  // Sending bundle
-  lock_handle_lock(&cjson_lock);
-  if (ta_send_bundle(info, iconf, service, bundle) != SC_OK) {
-    lock_handle_unlock(&cjson_lock);
-    ret = SC_MAM_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
+  mam_mss_key_status_t key_status;
+  while (!msg_sent) {
+    bundle_transactions_renew(&bundle);
 
-  ret = send_mam_res_set_channel_id(res, chid);
-  if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-  ret = send_mam_res_set_endpoint_id(res, epid);
-  if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-  ret = send_mam_res_set_msg_id(res, msg_id);
-  if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-  ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
-  if (ret) {
-    ta_log_error("%d\n", ret);
-    goto done;
-  }
-
-  bundle_transactions_free(&bundle);
-  bundle_transactions_new(&bundle);
-
-  // Sending bundle
-  if (ch_remain_sk == 1 || ep_remain_sk == 1) {
-    // Send announcement for the next endpoint or channel
-    ret = ta_mam_announce_next_mss_private_key_to_bundle(&mam, data->ch_mss_depth, data->ep_mss_depth, chid,
-                                                         &ch_remain_sk, &ep_remain_sk, psks, ntru_pks, chid1, &bundle);
-    if (ret) {
-      ta_log_error("%d\n", ret);
+    // Create epid merkle tree and find the smallest unused secret key.
+    // Write both Header and Pakcet into one single bundle.
+    ret = ta_mam_written_msg_to_bundle(service, &mam, data->ch_mss_depth, chid, psks, ntru_pks, data->message, &bundle,
+                                       msg_id, &key_status);
+    if (ret == SC_OK) {
+      msg_sent = true;
+    } else if (ret == SC_MAM_ALL_MSS_KEYS_USED) {
+      ta_log_debug("%s\n", ta_error_to_string(ret));
+      goto mam_announce;
+    } else {
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
+    // Sending bundle
     lock_handle_lock(&cjson_lock);
-    if (ta_send_bundle(info, iconf, service, bundle) != SC_OK) {
+    ret = ta_send_bundle(info, iconf, service, bundle);
+    if (ret != SC_OK) {
       lock_handle_unlock(&cjson_lock);
-      ret = SC_MAM_FAILED_RESPONSE;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
     lock_handle_unlock(&cjson_lock);
 
-    ret =
-        send_mam_res_set_announcement_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+    ret = send_mam_res_set_channel_id(res, chid);
     if (ret) {
-      ta_log_error("%d\n", ret);
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
-    ret = send_mam_res_set_chid1(res, chid1);
+    ret = send_mam_res_set_msg_id(res, msg_id);
     if (ret) {
-      ta_log_error("%d\n", ret);
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
+    }
+
+    tryte_t bundle_hash[NUM_TRYTES_BUNDLE] = {};
+    flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle((iota_transaction_t*)utarray_front(bundle)),
+                         NUM_TRITS_BUNDLE, NUM_TRITS_BUNDLE);
+    ret = send_mam_res_set_bundle_hash(res, bundle_hash);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+  mam_announce:
+    if (key_status == ANNOUNCE_CHID) {
+      bundle_transactions_renew(&bundle);
+      // Send announcement for the next endpoint (epid1) or next channel (chid1)
+      ret = ta_mam_write_announce_to_bundle(&mam, data->ch_mss_depth, key_status, chid, psks, ntru_pks, chid1, &bundle);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      lock_handle_lock(&cjson_lock);
+      ret = ta_send_bundle(info, iconf, service, bundle);
+      if (ret) {
+        lock_handle_unlock(&cjson_lock);
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      lock_handle_unlock(&cjson_lock);
+
+      ret = send_mam_res_set_announcement_bundle_hash(res,
+                                                      transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+
+      ret = send_mam_res_set_chid1(res, chid1);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
     }
   }
 
   ret = send_mam_res_serialize(res, json_result);
   if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
-    goto done;
+    ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:

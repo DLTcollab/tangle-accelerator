@@ -46,3 +46,17 @@ cc_test(
         "//tests/api:common",
     ],
 )
+
+cc_test(
+    name = "mam_test",
+    srcs = [
+        "mam_test.c",
+    ],
+    deps = [
+        ":common",
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
+        "//common",
+        "//tests:test_define",
+    ],
+)
