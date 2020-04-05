@@ -93,7 +93,6 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   }
 
 done:
-  free(json_result);
   return ret;
 }
 

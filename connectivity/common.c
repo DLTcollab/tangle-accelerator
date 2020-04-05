@@ -59,18 +59,18 @@ status_t set_response_content(status_t ret, char **json_result) {
     case SC_MAM_NOT_FOUND:
       http_ret = SC_HTTP_NOT_FOUND;
       ta_log_error("%s\n", "SC_HTTP_NOT_FOUND");
-      *json_result = strdup(STR_HTTP_NOT_FOUND);
+      *json_result = STR_HTTP_NOT_FOUND;
       break;
     case SC_CCLIENT_JSON_KEY:
     case SC_MAM_NO_PAYLOAD:
       http_ret = SC_HTTP_BAD_REQUEST;
       ta_log_error("%s\n", "SC_HTTP_BAD_REQUEST");
-      *json_result = strdup(STR_HTTP_BAD_REQUEST);
+      *json_result = STR_HTTP_BAD_REQUEST;
       break;
     default:
       http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
       ta_log_error("%s\n", "SC_HTTP_INTERNAL_SERVICE_ERROR");
-      *json_result = strdup(STR_HTTP_INTERNAL_SERVICE_ERROR);
+      *json_result = STR_HTTP_INTERNAL_SERVICE_ERROR;
       break;
   }
   return http_ret;

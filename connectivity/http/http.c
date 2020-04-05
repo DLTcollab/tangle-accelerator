@@ -344,13 +344,13 @@ static status_t build_request(ta_http_request_t *req, const char *data, size_t s
     return SC_TA_NULL;
   }
   if (size + req->request_len >= MAX_REQUEST_LEN) {
-    req->answer_string = strdup(STR_HTTP_REQUEST_SIZE_EXCEED);
+    req->answer_string = STR_HTTP_REQUEST_SIZE_EXCEED;
     req->answer_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     return SC_HTTP_INTERNAL_SERVICE_ERROR;
   }
   char *request = malloc(req->request_len + size + 1);
   if (request == NULL) {
-    req->answer_string = strdup(STR_HTTP_INTERNAL_SERVICE_ERROR);
+    req->answer_string = STR_HTTP_INTERNAL_SERVICE_ERROR;
     req->answer_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
     return SC_TA_OOM;
   }
@@ -433,7 +433,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
     http_req->answer_code = ta_http_process_request(api, url, http_req->request, &http_req->answer_string, options);
   }
   response =
-      MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_MUST_COPY);
+      MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_PERSISTENT);
   // Set response header
   MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
   if (options) {
@@ -453,7 +453,6 @@ cleanup:
   printf(" \"%s %s\" %d\n", method, url, http_req->answer_code);
 
   if (http_req) {
-    free(http_req->answer_string);
     free(http_req->request);
     free(http_req);
   }
