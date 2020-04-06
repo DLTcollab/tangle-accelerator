@@ -24,14 +24,16 @@ BAZEL_BUILD_CMDS = ""
 # Send a transaction with IRI core API.
 def parse_cli_arg():
     global URL
+    global TESTNET
     global BAZEL_BUILD_CMDS
     global BAZEL_TEST_ARGS
 
     logging.basicConfig(level=logging.DEBUG)
 
     URL = f"http://{sys.argv[1]}"
-    BAZEL_BUILD_CMDS = sys.argv[2]
-    BAZEL_TEST_ARGS = sys.argv[3]
+    TESTNET = (sys.argv[2].lower() == "testnet") or (sys.argv[2].lower() == "devnet")
+    BAZEL_BUILD_CMDS = sys.argv[3]
+    BAZEL_TEST_ARGS = sys.argv[4]
 
 
 def gen_rand_trytes(tryte_len):
@@ -43,7 +45,7 @@ def gen_rand_trytes(tryte_len):
 
 if __name__ == '__main__':
     parse_cli_arg()
-    api = Iota(f'{URL}', testnet=True)
+    api = Iota(f'{URL}', testnet=TESTNET)
     txn_array = []
     tag = gen_rand_trytes(27)
     address = []
