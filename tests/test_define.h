@@ -298,6 +298,7 @@ extern "C" {
   "EXKAOTLTLEVBMCCFNJMTVAPUCKHNYIU9Z9ZPFYYYFLZCANXNNZPNDWYTBYSXWYCWHPBXFZGEKBOMBSXIJBWVOKGWIHHYRIUMAQZ9UUHEYPOP"
 
 #define TEST_UUID "123e4567-e89b-12d3-a456-426655440000"
+#define TEST_UUID_LIST_NAME "test_uuid_list"
 #define CACHE_VALUE                                                                                     \
   "{\"value\": 0,\"message\": \"ZBCDKDTCFDTCSCEAQCMDEAHDPCBDVC9DTCRAPCRCRCTC9DTCFDPCHDCDFD\",\"tag\": " \
   "\"POWEREDBYTANGLEACCELERATOR9\",\"address\": "                                                       \

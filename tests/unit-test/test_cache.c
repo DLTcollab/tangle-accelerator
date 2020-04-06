@@ -27,17 +27,15 @@ void test_cache_get(void) {
 
 void test_cache_set(void) {
   char* key = test_uuid;
-  const char* value = CACHE_VALUE;
 
-  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), value, strlen(value), 0));
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), CACHE_VALUE, strlen(CACHE_VALUE), 0));
 }
 
 void test_cache_timeout(void) {
   char* key = test_uuid;
-  const char* value = CACHE_VALUE;
   char res[strlen(CACHE_VALUE) + 1];
   const int timeout = 2;
-  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), value, strlen(value), timeout));
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), CACHE_VALUE, strlen(CACHE_VALUE), timeout));
   TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, res));
   sleep(timeout + 1);
   TEST_ASSERT_EQUAL_INT(SC_CACHE_FAILED_RESPONSE, cache_get(key, res));
@@ -51,6 +49,32 @@ void test_generate_uuid(void) {
   TEST_ASSERT_TRUE(test_uuid[0]);
 }
 
+void test_cache_list_push(void) {
+  TEST_ASSERT_EQUAL_INT(
+      SC_OK, cache_list_push(TEST_UUID_LIST_NAME, strlen(TEST_UUID_LIST_NAME), TEST_UUID, strlen(TEST_UUID), 0));
+}
+
+void test_cache_list_at(void) {
+  char res[UUID_STR_LEN];
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_list_at(TEST_UUID_LIST_NAME, -1, UUID_STR_LEN, res));
+  TEST_ASSERT_EQUAL_STRING(TEST_UUID, res);
+}
+
+void test_cache_list_size(void) {
+  int len = 0;
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_list_size(TEST_UUID_LIST_NAME, &len));
+  TEST_ASSERT_EQUAL_INT(1, len);
+}
+
+void test_cache_list_pop(void) {
+  char res[UUID_STR_LEN];
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_list_pop(TEST_UUID_LIST_NAME, res));
+  TEST_ASSERT_EQUAL_STRING(TEST_UUID, res);
+}
+
 int main(void) {
   UNITY_BEGIN();
   cache_init(true, REDIS_HOST, REDIS_PORT);
@@ -59,6 +83,10 @@ int main(void) {
   RUN_TEST(test_cache_get);
   RUN_TEST(test_cache_del);
   RUN_TEST(test_cache_timeout);
+  RUN_TEST(test_cache_list_push);
+  RUN_TEST(test_cache_list_at);
+  RUN_TEST(test_cache_list_size);
+  RUN_TEST(test_cache_list_pop);
   cache_stop();
   return UNITY_END();
 }
