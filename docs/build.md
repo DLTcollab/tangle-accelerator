@@ -5,16 +5,18 @@
 If you prefer building a docker image, tangle-accelerator also provides build rules for it. Note that you still have to edit configurations in `accelerator/config.h`.
 
 ```
-$ make && bazel run //accelerator:ta_image
+$ make && bazel run //accelerator:docker_image
 ```
 
-There's also an easier option to pull image from docker hub then simply run with default configs. Please do remember a redis-server is still required in this way.
+The docker image will be gernerated in local machine.
 
-```
-$ docker run -d --net=host --name tangle-accelerator dltcollab/tangle-accelerator
+```bash
+$ docker images
+REPOSITORY                    TAG                 IMAGE ID
+dltcollab/accelerator         docker_image        71ea01606000
 ```
 
-## Build and Push Docker Image to Docker Hub
+## Push Docker Image to Docker Hub
 
 Before pushing the docker image to Docker Hub, you need to log in the docker registry:
 
@@ -22,27 +24,20 @@ Before pushing the docker image to Docker Hub, you need to log in the docker reg
 $ docker login
 ```
 
-Then you could push the docker image with the following command:
+Then you could modify docker image `REPOSITORY` and `TAG` as you like.
 
 ```
-$ make && bazel run //accelerator:push_docker
+$ docker tag dltcollab/accelerator:docker_image dltcollab/tangle-accelerator:v0.9.1
+$ docker images
+REPOSITORY                    TAG                 IMAGE ID
+dltcollab/tangle-accelerator  v0.9.1              71ea01606000
+dltcollab/accelerator         docker_image        71ea01606000
 ```
 
-If you get the following error message:
+Then you could push the docker image to Docker Hub.
 
 ```
-SyntaxError: invalid syntax
-----------------
-Note: The failure of target @containerregistry//:digester (with exit code 1) may have been caused by the fact that it is running under Python 3 instead of Python 2. Examine the error to determine if that appears to be the problem. Since this target is built in the host configuration, the only way to change its version is to set --host_force_python=PY2, which affects the entire build.
-
-If this error started occurring in Bazel 0.27 and later, it may be because the Python toolchain now enforces that targets analyzed as PY2 and PY3 run under a Python 2 and Python 3 interpreter, respectively. See https://github.com/bazelbuild/bazel/issues/7899 for more information.
-------------
-```
-
-Use the `--host_force_python=PY2` parameter to force the Bazel to use the Python2 in entire build.
-
-```
-$ make && bazel run //accelerator:push_docker --host_force_python=PY2
+$ docker push dltcollab/tangle-accelerator:v0.9.1
 ```
 
 ## Enable MQTT connectivity

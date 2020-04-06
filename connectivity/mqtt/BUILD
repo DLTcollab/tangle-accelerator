@@ -13,6 +13,7 @@ cc_library(
         ":mqtt_common",
         "//accelerator/core:apis",
         "//common:ta_errors",
+        "//connectivity:common",
         "@entangled//common/model:transaction",
     ],
 )

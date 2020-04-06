@@ -6,6 +6,7 @@ cc_library(
     deps = [
         "//accelerator/core:apis",
         "//accelerator/core:proxy_apis",
+        "//connectivity:common",
         "@entangled//utils:macros",
         "@libmicrohttpd",
     ],

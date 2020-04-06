@@ -2,7 +2,10 @@ cc_library(
     name = "apis",
     srcs = ["apis.c"],
     hdrs = ["apis.h"],
-    linkopts = ["-lpthread"],
+    linkopts = [
+        "-lpthread",
+        "-luuid",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator:build_option",
@@ -20,6 +23,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator/core/serializer",
+        "//utils:char_buffer_str",
         "//utils:hash_algo_djb2",
         "@entangled//cclient/api",
         "@entangled//cclient/request:requests",
@@ -36,11 +40,14 @@ cc_library(
         "//accelerator:ta_config",
         "//accelerator/core/request",
         "//accelerator/core/response",
+        "//accelerator/core/serializer",
         "//utils:bundle_array",
+        "//utils:char_buffer_str",
         "//utils:timer",
         "@com_github_uthash//:uthash",
         "@entangled//cclient/api",
         "@entangled//utils:time",
+        "@entangled//utils/containers/hash:hash243_set",
     ],
 )
 

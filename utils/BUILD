@@ -13,6 +13,7 @@ cc_library(
     name = "bundle_array",
     srcs = ["bundle_array.h"],
     deps = [
+        "//common:ta_errors",
         "@com_github_uthash//:uthash",
         "@entangled//common/model:bundle",
     ],
@@ -35,4 +36,10 @@ cc_library(
         "//common:ta_errors",
         "//common:ta_logger",
     ],
+)
+
+cc_library(
+    name = "char_buffer_str",
+    srcs = ["char_buffer_str.h"],
+    deps = ["@entangled//utils:char_buffer"],
 )

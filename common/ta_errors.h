@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -55,6 +55,7 @@ extern "C" {
 #define SC_MODULE_HTTP (0x09 << SC_MODULE_SHIFT)
 #define SC_MODULE_MQTT (0x0A << SC_MODULE_SHIFT)
 #define SC_MODULE_STORAGE (0x0B << SC_MODULE_SHIFT)
+#define SC_MODULE_CORE (0x0C << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -73,24 +74,23 @@ typedef enum {
   /**< HTTP response, other errors in TA */
 
   SC_TA_OOM = 0x01 | SC_MODULE_TA | SC_SEVERITY_FATAL,
-  /**< Fail to create TA object */
+  /**< Failed to create TA object */
   SC_TA_NULL = 0x02 | SC_MODULE_TA | SC_SEVERITY_FATAL,
   /**< NULL TA objects */
   SC_TA_WRONG_REQUEST_OBJ = 0x03 | SC_MODULE_TA | SC_SEVERITY_FATAL,
   /**< wrong TA request object */
   SC_TA_LOGGER_INIT_FAIL = 0x04 | SC_MODULE_TA | SC_SEVERITY_MAJOR,
-  /**< fail to init ta logger */
-  SC_TA_ERROR = 0x05 | SC_MODULE_TA | SC_SEVERITY_MAJOR,
+  /**< Failed to init TA logger */
 
   // CClient module
   SC_CCLIENT_OOM = 0x01 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
-  /**< Fail to create cclient object */
+  /**< Failed to create cclient object */
   SC_CCLIENT_NOT_FOUND = 0x02 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Empty result from cclient */
   SC_CCLIENT_FAILED_RESPONSE = 0x03 | SC_MODULE_CCLIENT | SC_SEVERITY_FATAL,
   /**< Error in cclient response */
   SC_CCLIENT_INVALID_FLEX_TRITS = 0x04 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
-  /**< flex_trits conversion error */
+  /**< Invalid flex trits */
   SC_CCLIENT_HASH = 0x05 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
   /**< hash container operation error */
   SC_CCLIENT_JSON_KEY = 0x06 | SC_MODULE_CCLIENT | SC_SEVERITY_MAJOR,
@@ -104,84 +104,80 @@ typedef enum {
 
   // Serializer module
   SC_SERIALIZER_JSON_CREATE = 0x01 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
-  /**< Fail to create JSON object in serializer */
+  /**< Failed to create JSON object in serializer */
   SC_SERIALIZER_NULL = 0x02 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< NULL object in serializer */
   SC_SERIALIZER_JSON_PARSE = 0x03 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
-  /**< Fail to parse JSON object in serializer */
+  /**< Failed to parse JSON object in serializer */
   SC_SERIALIZER_JSON_PARSE_ASCII = 0x04 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
-  /**< unicode value in JSON */
+  /**< Unicode value in JSON */
   SC_SERIALIZER_INVALID_REQ = 0x05 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
-  /**< invald request value in JSON */
+  /**< Invald request value in JSON */
 
   // Cache module
   SC_CACHE_NULL = 0x01 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
-  /**< NULL parameters in cache */
+  /**< NULL object in cache */
   SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
-  /**< Fail in cache operations */
+  /**< Failed in cache operations */
   SC_CACHE_OFF = 0x03 | SC_MODULE_CACHE | SC_SEVERITY_MINOR,
-  /**< Cache server doesn't turn on */
+  /**< Cache server is not turned on */
 
   // MAM module
-  SC_MAM_OOM = 0x01 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< Fail to create mam object */
-  SC_MAM_NULL = 0x02 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_NULL = 0x01 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< NULL object in mam */
-  SC_MAM_NOT_FOUND = 0x03 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_NOT_FOUND = 0x02 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Empty result from mam */
-  SC_MAM_FAILED_INIT = 0x04 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_FAILED_INIT = 0x03 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Error in mam initialization */
-  SC_MAM_FAILED_RESPONSE = 0x05 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_FAILED_RESPONSE = 0x04 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Error in mam response */
-  SC_MAM_FAILED_DESTROYED = 0x06 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_FAILED_DESTROYED = 0x05 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Error in mam destroy */
-  SC_MAM_NO_PAYLOAD = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< No payload or no chid */
-  SC_MAM_FAILED_WRITE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< Failed to write */
-  SC_MAM_FILE_SAVE = 0x09 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_NO_PAYLOAD = 0x06 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< No payload or no chid in MAM */
+  SC_MAM_FAILED_WRITE = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to write in MAM */
+  SC_MAM_FILE_SAVE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to save MAM file */
-  SC_MAM_ALL_MSS_KEYS_USED = 0x0A | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  SC_MAM_ALL_MSS_KEYS_USED = 0x09 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< All MSS private keys of current given parameters are used */
-  SC_MAM_FAILED_CREATE_OR_GET_ID = 0x0B | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< Failed to created/get chid or epid or msg_id */
-  SC_MAM_FAILED_WRITE_HEADER = 0x0C | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< Failed to write on header */
+  SC_MAM_FAILED_CREATE_OR_GET_ID = 0x0A | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to created/get chid or epid or msg_id in MAM */
+  SC_MAM_FAILED_WRITE_HEADER = 0x0B | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to write header in MAM */
 
   // response module
-  SC_RES_OOM = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,
-  /**< Fail to create response object */
-  SC_RES_NULL = 0x02 | SC_MODULE_RES | SC_SEVERITY_FATAL,
+  SC_RES_NULL = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,
   /**< NULL object in response */
 
   // configuration module
   SC_CONF_NULL = 0x01 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
-  /**< NULL object in response */
+  /**< NULL object in configuration */
   SC_CONF_MISSING_ARGUMENT = 0x02 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< No argument in CLI */
   SC_CONF_UNKNOWN_OPTION = 0x03 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
   /**< undefined option in CLI */
   SC_CONF_LOCK_INIT = 0x04 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
-  /**< fail to init lock */
+  /**< Failed to init lock */
   SC_CONF_LOCK_DESTROY = 0x05 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
-  /**< fail to destroy lock */
+  /**< Failed to destroy lock */
   SC_CONF_PARSER_ERROR = 0x06 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
-  /**< fail to initialize yaml parser */
+  /**< Failed to initialize yaml parser */
   SC_CONF_FOPEN_ERROR = 0x07 | SC_MODULE_CONF | SC_SEVERITY_FATAL,
-  /**< fail to open file */
+  /**< Failed to open file */
 
   // UTILS module
-  SC_UTILS_NULL = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
-  SC_UTILS_WRONG_REQUEST_OBJ = 0x02 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  /**< NULL object in utils */
+  SC_UTILS_WRONG_REQUEST_OBJ = 0x01 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Wrong TA request object */
-  SC_UTILS_TIMER_ERROR = 0x03 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  SC_UTILS_TIMER_ERROR = 0x02 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Errors occurred in timer function */
-  SC_UTILS_TIMER_EXPIRED = 0x04 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
+  SC_UTILS_TIMER_EXPIRED = 0x03 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Timer expired */
 
   // HTTP module
   SC_HTTP_OOM = 0x01 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
-  /**< Fail to create http object */
+  /**< Failed to create http object */
   SC_HTTP_NULL = 0x02 | SC_MODULE_HTTP | SC_SEVERITY_FATAL,
   /**< NULL object in http */
   SC_HTTP_INVALID_REGEX = 0x03 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
@@ -193,37 +189,37 @@ typedef enum {
 
   // MQTT module
   SC_MQTT_OOM = 0x01 | SC_MODULE_MQTT | SC_SEVERITY_FATAL,
-  /**< Fail to create MQTT object */
+  /**< Failed to create MQTT object */
   SC_MQTT_NULL = 0x02 | SC_MODULE_MQTT | SC_SEVERITY_FATAL,
   /**< NULL object in MQTT */
-  SC_MQTT_INVALID_REGEX = 0x03 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
-  /**< Invalid URL regular expression rule in MQTT */
-  SC_MQTT_TOPIC_NOT_MATCH = 0x04 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
-  /**< Topic doesn't match regular expression rule */
-  SC_MQTT_URL_PARSE_ERROR = 0x05 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
-  /**< Topic parameter parsing error */
-  SC_MQTT_INIT = 0x06 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
-  /**< Error during initialization*/
-  SC_MOSQ_OBJ_INIT_ERROR = 0x07 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  SC_MQTT_INIT = 0x03 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error during initialization in MQTT */
+  SC_MOSQ_OBJ_INIT_ERROR = 0x04 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
   /**< Error in initializing mosquitto object */
-  SC_MQTT_TOPIC_SET = 0x08 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
-  /**< Error in setting topic */
-  SC_MQTT_OPT_SET = 0x09 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  SC_MQTT_TOPIC_SET = 0x05 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  /**< Error in setting topic in MQTT */
+  SC_MQTT_OPT_SET = 0x06 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
   /**< Error in setting options of `struct mosquitto` object */
-  SC_CLIENT_CONNTECT = 0x0A | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
+  SC_CLIENT_CONNECT = 0x07 | SC_MODULE_MQTT | SC_SEVERITY_MAJOR,
   /**< Error in connecting to broker */
 
   // STORAGE module
   SC_STORAGE_OOM = 0x01 | SC_MODULE_STORAGE | SC_SEVERITY_FATAL,
-  /**< Fail to malloc space for transactions */
+  /**< Failed to create storage object */
   SC_STORAGE_CONNECT_FAIL = 0x02 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Fail to connect ScyllaDB node */
-  SC_STORAGE_INVAILD_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< invaild input parameter, e.g., null pointer or   */
+  /**< Failed to connect ScyllaDB node */
+  SC_STORAGE_INVALID_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Invaild input parameter, e.g., null pointer */
   SC_STORAGE_CASSANDRA_QUREY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Fail to execute Cassandra query   */
-  SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< ZeroMQ process error   */
+  /**< Failed to execute Cassandra query */
+
+  // Core module
+  SC_CORE_OOM = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< Failed to create core object */
+  SC_CORE_NULL = 0x02 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< NULL object in core */
+  SC_CORE_IRI_UNSYNC = 0x03 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< IRI host is unsynchronized */
 
 } status_t;
 
@@ -232,6 +228,14 @@ typedef enum {
   HTTP_METHOD_POST = 1,    /**< HTTP POST method */
   HTTP_METHOD_OPTIONS = 2, /**< HTTP OPTIONS method */
 } http_method_t;
+
+/**
+ * @brief error code to string
+ *
+ * @param err error code
+ * @return string
+ */
+const char* ta_error_to_string(status_t err);
 
 #ifdef __cplusplus
 }

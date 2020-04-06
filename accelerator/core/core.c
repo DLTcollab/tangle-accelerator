@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -30,23 +30,13 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_
   bundle_transactions_t* bundle = NULL;
   iota_transaction_t tx;
   flex_trit_t* elt = NULL;
-  char cache_key[NUM_TRYTES_HASH] = {0};
-  char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = {0};
 
+  // TODO Save fetched transaction object in a set.
   // create bundle
   bundle_transactions_new(&bundle);
   HASH_ARRAY_FOREACH(req->trytes, elt) {
     transaction_deserialize_from_trits(&tx, elt, true);
     bundle_transactions_add(bundle, &tx);
-
-    // store transaction to cache
-    flex_trits_to_trytes((tryte_t*)cache_key, NUM_TRYTES_HASH, transaction_hash(&tx), NUM_TRITS_HASH, NUM_TRITS_HASH);
-    flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, elt,
-                         NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-    ret = cache_set(cache_key, cache_value);
-    if (ret != SC_OK && ret != SC_CACHE_OFF) {
-      goto done;
-    }
   }
 
   // PoW to bundle
@@ -160,7 +150,7 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
 
   ta_timer_t* timer_id = ta_timer_start(&timeout, ta_generate_address_thread, (void*)&args);
   if (timer_id != NULL) {
-    if (!ta_timer_stop(timer_id, (void**)&rval)) {
+    if (ta_timer_stop(timer_id, (void**)&rval) != SC_OK) {
       ta_log_error("%s\n", "SC_UTILS_TIMER_ERROR");
     }
   } else {
@@ -364,16 +354,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   TX_OBJS_FOREACH(uncached_txn_array, temp) {
     temp_txn_trits = transaction_serialize(temp);
     if (!flex_trits_are_null(temp_txn_trits, FLEX_TRIT_SIZE_8019)) {
-      flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, transaction_hash(temp), NUM_TRITS_HASH, NUM_TRITS_HASH);
-      flex_trits_to_trytes((tryte_t*)cache_value, NUM_TRYTES_SERIALIZED_TRANSACTION, temp_txn_trits,
-                           NUM_TRITS_SERIALIZED_TRANSACTION, NUM_TRITS_SERIALIZED_TRANSACTION);
-      ret = cache_set(txn_hash, cache_value);
-      if (ret != SC_OK) {
-        if (ret != SC_CACHE_OFF) {
-          goto done;
-        }
-        ret = SC_OK;
-      }
+      // TODO Save fetched transaction object in a set.
 
       iota_transaction_t* append_txn = transaction_deserialize(temp_txn_trits, true);
       transaction_array_push_back(res, append_txn);
@@ -480,7 +461,7 @@ status_t ta_send_bundle(const iota_config_t* const iconf, const iota_client_serv
 status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryte_t const* const addr,
                                 bundle_array_t* bundle_array) {
   status_t ret = SC_OK;
-  tryte_t bundle_hash[NUM_TRYTES_BUNDLE];
+  tryte_t bundle_hash[NUM_TRYTES_BUNDLE + 1] = {0};
   find_transactions_req_t* txn_req = find_transactions_req_new();
   find_transactions_res_t* txn_res = find_transactions_res_new();
   ta_find_transaction_objects_req_t* obj_req = ta_find_transaction_objects_req_new();
@@ -504,7 +485,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 
   // In case the requested transction hashes is an empty one
   if (hash243_queue_count(txn_res->hashes) > 0) {
-    hash243_queue_push(&obj_req->hashes, find_transactions_res_hashes_get(txn_res, 0));
+    hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
   } else {
     ta_log_error("%s\n", "SC_MAM_NOT_FOUND");
     ret = SC_MAM_NOT_FOUND;
@@ -519,28 +500,98 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 
   iota_transaction_t* curr_tx = NULL;
   bundle_transactions_t* bundle = NULL;
+  hash243_set_t bundle_hash_set = NULL;
   TX_OBJS_FOREACH(obj_res, curr_tx) {
-    bundle_transactions_new(&bundle);
-    flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
-                         NUM_TRITS_BUNDLE);
+    if (!hash243_set_contains(bundle_hash_set, transaction_bundle(curr_tx))) {
+      bundle_transactions_new(&bundle);
+      flex_trits_to_trytes(bundle_hash, NUM_TRYTES_BUNDLE, transaction_bundle(curr_tx), NUM_TRITS_BUNDLE,
+                           NUM_TRITS_BUNDLE);
+      ret = ta_get_bundle(service, bundle_hash, bundle);
+      if (ret != SC_OK) {
+        ta_log_error("%d\n", ret);
+        goto done;
+      }
 
-    ret = ta_get_bundle(service, bundle_hash, bundle);
-    if (ret != SC_OK) {
-      ta_log_error("%d\n", ret);
-      goto done;
+      bundle_array_add(bundle_array, bundle);
+      hash243_set_add(&bundle_hash_set, transaction_bundle(curr_tx));
+      free(bundle);
     }
-
-    // TODO We need to check out if the current bundle is already in bundle_array
-    utarray_push_back(bundle_array, bundle);
-
-    bundle_transactions_free(&bundle);
   }
 
 done:
-  bundle_transactions_free(&bundle);
   find_transactions_req_free(&txn_req);
   find_transactions_res_free(&txn_res);
   ta_find_transaction_objects_req_free(&obj_req);
   transaction_array_free(obj_res);
+  hash243_set_free(&bundle_hash_set);
+  return ret;
+}
+
+status_t ta_get_iri_status(const iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  char const* const getnodeinfo = "{\"command\": \"getNodeInfo\"}";
+  char* iri_result = NULL;
+  char_buffer_t* res_buff = char_buffer_new();
+  char_buffer_t* req_buff = char_buffer_new();
+  char_buffer_set(req_buff, getnodeinfo);
+
+  // Check IRI host connection
+  retcode_t result = iota_service_query(service, req_buff, res_buff);
+  if (result != RC_OK) {
+    ta_log_error("%s\n", error_2_string(result));
+    ret = SC_CCLIENT_FAILED_RESPONSE;
+    goto done;
+  }
+  str_from_char_buffer(res_buff, &iri_result);
+
+  // Check whether IRI host is at the latest milestone
+  int latestMilestoneIndex, latestSolidSubtangleMilestoneIndex;
+  ret = get_iri_status_milestone_deserialize(iri_result, &latestMilestoneIndex, &latestSolidSubtangleMilestoneIndex);
+  if (ret != SC_OK) {
+    ta_log_error("check iri connection failed deserialized. status code: %d\n", ret);
+    goto done;
+  }
+
+  // The tolerant difference between latestSolidSubtangleMilestoneIndex and latestMilestoneIndex is less equal than 1.
+  if ((latestSolidSubtangleMilestoneIndex - latestMilestoneIndex) > 1) {
+    ret = SC_CORE_IRI_UNSYNC;
+    ta_log_error("%s\n", "SC_CORE_IRI_UNSYNC");
+  }
+
+done:
+  free(iri_result);
+  char_buffer_free(req_buff);
+  char_buffer_free(res_buff);
+
+  return ret;
+}
+
+status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+  status_t ret = SC_OK;
+  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->host_list[i]; i++) {
+    // update new IRI host
+    ta_conf->host = ta_conf->host_list[i];
+    ta_conf->port = ta_conf->port_list[i];
+    service->http.host = ta_conf->host_list[i];
+    service->http.port = ta_conf->port_list[i];
+    ta_log_info("Try tp connect to %s:%d\n", ta_conf->host, ta_conf->port);
+
+    if (iota_client_core_init(service)) {
+      ta_log_error("Initializing IRI connection failed!\n");
+      return RC_CCLIENT_UNIMPLEMENTED;
+    }
+    iota_client_extended_init();
+
+    // Run from the first one until found a good one.
+    if (ta_get_iri_status(service) == SC_OK) {
+      ta_log_info("Connect to %s:%d\n", ta_conf->host, ta_conf->port);
+      goto done;
+    }
+  }
+  if (ret) {
+    ta_log_error("All IRI host on priority list failed.\n");
+  }
+
+done:
   return ret;
 }

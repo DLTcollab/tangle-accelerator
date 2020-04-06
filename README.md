@@ -12,7 +12,7 @@ Being at the edge as a key-value store, an edge-caching node powered by `Tangle-
 does not have to communicate to typical [IOTA](https://www.iota.org/) full nodes for every API
 calls. Instead, the cached transaction data being sought is available as needed.
 
-As an intermediate server accelerateing interactions with the Tangle, it faciliates
+As an intermediate server accelerating interactions with the Tangle, it facilitates
 [dcurl](https://github.com/DLTcollab/dcurl) to perform hardware-accelerated PoW operations
 on edge devices. In the meanwhile, `Tangle-accelerator` provides shortcuts for certain
 use scenarios such as MAM and [TangleID](https://tangleid.github.io/).
@@ -52,7 +52,7 @@ both footprint and startup time are behaved pretty well.
 
 `Tangle-accelerator` helps to reattach pending transactions were attached from `Tangle-accelerator`.
 Reattachment increases chances of confirmation and prevents messages being pruned when full nodes perform snapshot.
-Clients should provide a uniqle ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachement. 
+Clients should provide a unique ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachment. 
 
 `Tangle-accelerator` uses ScyllaDB to store each transaction's ID, hash and status(Pending or confirmed). `Tangle-accelerator` will periodically check the status of pending transactions and reattach transactions which have been pended too long. Confirmed transactions will be stored into permanodes.
 
@@ -86,6 +86,7 @@ Tangle-accelerator is built and launched through Bazel, it also requires Redis t
 * [Redis-server](https://redis.io/topics/quickstart)
 * cmake (required by dcurl)
 * openssl-dev (required by mosquitto)
+* uuid-dev
 
 ## Build from Source
 
@@ -107,7 +108,7 @@ Tangle-accelerator supports several different build time options.
 * MQTT connectivity
 * External database
 
-See [docs/build.md](https://github.com/DLTcollab/tangle-accelerator/docs/build.md) for more information.
+See [docs/build.md](docs/build.md) for more information.
 
 ## Developing
 
@@ -145,10 +146,10 @@ clang-format can be installed by command:
 
 ## Usage
 `Tangle-accelerator` currently supports two categories of APIs
-* direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
+* Direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
 * Proxy API to IRI core functionalities
 
-### IRI Porxy API
+### IRI Proxy API
 `tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help users forward the request to IRI and forward the response back to users.
 We support two way to forward Proxy APIs to IRI:
 1. Bypass Proxy APIs directly to IRI.

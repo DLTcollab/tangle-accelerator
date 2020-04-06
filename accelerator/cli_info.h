@@ -29,6 +29,7 @@ typedef enum ta_cli_arg_value_e {
   /** IRI */
   IRI_HOST_CLI,
   IRI_PORT_CLI,
+  IRI_ADDRESS_CLI,
 
   /** MQTT */
   MQTT_HOST_CLI,
@@ -48,6 +49,7 @@ typedef enum ta_cli_arg_value_e {
   CACHE,
   CONF_CLI,
   PROXY_API,
+  HEALTH_TRACK_PERIOD,
 
   /** LOGGER */
   QUIET,
@@ -69,15 +71,18 @@ static struct ta_cli_argument_s {
     {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
     {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
     {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
+    {"iri_address", required_argument, NULL, IRI_ADDRESS_CLI, " List of IRI listening URL"},
     {"redis_host", required_argument, NULL, REDIS_HOST_CLI, "Redis server listening host"},
     {"redis_port", required_argument, NULL, REDIS_PORT_CLI, "Redis server listening port"},
     {"db_host", required_argument, NULL, DB_HOST_CLI, "DB server listening host"},
     {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IRI milestone depth"},
     {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
     {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
-    {"cache", required_argument, NULL, CACHE, "Enable cache server with Y"},
+    {"cache", no_argument, NULL, CACHE, "Enable cache server"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
+    {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
+     "The period for checking IRI host connection status"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 

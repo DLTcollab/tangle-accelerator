@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -33,7 +33,7 @@ extern "C" {
  * @brief Configuration of tangle-accelerator
  */
 
-#define TA_VERSION "tangle-accelerator/0.9.0"
+#define TA_VERSION "tangle-accelerator/0.9.1"
 #define TA_HOST "localhost"
 
 #ifdef MQTT_ENABLE
@@ -41,10 +41,11 @@ extern "C" {
 #define TOPIC_ROOT "root/topics"
 #endif
 
-#define TA_PORT "8000"
+#define TA_PORT 8000
 #define TA_THREAD_COUNT 10
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
+#define MAX_IRI_LIST_ELEMENTS 5
 #define DB_HOST "localhost"
 #define MILESTONE_DEPTH 3
 #define MWM 14
@@ -52,6 +53,7 @@ extern "C" {
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
+#define IRI_HEALTH_TRACK_PERIOD 1800  // Check every half hour in default
 
 /** @name Redis connection config */
 /** @{ */
@@ -61,15 +63,18 @@ extern "C" {
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
-  char* version;        /**< Binding version of tangle-accelerator */
-  char* host;           /**< Binding address of tangle-accelerator */
-  char* port;           /**< Binding port of tangle-accelerator */
-  uint8_t thread_count; /**< Thread count of tangle-accelerator instance */
+  char* version;                          /**< Binding version of tangle-accelerator */
+  char* host;                             /**< Binding address of tangle-accelerator */
+  int port;                               /**< Binding port of tangle-accelerator */
+  char* host_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding host of tangle-accelerator */
+  int port_list[MAX_IRI_LIST_ELEMENTS];   /**< List of binding port of tangle-accelerator */
+  uint8_t thread_count;                   /**< Thread count of tangle-accelerator instance */
 #ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
-  bool proxy_passthrough; /**< Pass proxy api directly without processing */
+  bool proxy_passthrough;  /**< Pass proxy api directly without processing */
+  int health_track_period; /**< The period for checking IRI host connection status */
 } ta_config_t;
 
 /** struct type of iota configuration */
@@ -101,19 +106,6 @@ typedef struct ta_core_s {
 } ta_core_t;
 
 /**
- * @brief Get corresponding key-value pair in ta_cli_arguments_g structure
- * key : correspond to "name" in ta_cli_arguments_g structure
- * value : correspond to "val" in ta_cli_arguments_g structure
- *
- * @param key[in] Key of the key-value pair in yaml file
- *
- * @return
- * - ZERO on Parsing unknown key
- * - non-zero Corresponding value of key
- */
-int get_conf_key(char const* const key);
-
-/**
  * Initializes configurations with default values
  *
  * @param core[in] Pointer to Tangle-accelerator core configuration structure
@@ -123,6 +115,19 @@ int get_conf_key(char const* const key);
  * - non-zero on error
  */
 status_t ta_core_default_init(ta_core_t* const core);
+
+static inline struct option* cli_build_options() {
+  struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
+  for (int i = 0; i < cli_cmd_num; ++i) {
+    long_options[i].name = ta_cli_arguments_g[i].name;
+    long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
+    long_options[i].flag = ta_cli_arguments_g[i].flag;
+    long_options[i].val = ta_cli_arguments_g[i].val;
+  }
+  return long_options;
+};
+
+status_t cli_core_set(ta_core_t* const core, int key, char* const value);
 
 /**
  * Initializes configurations with configuration file

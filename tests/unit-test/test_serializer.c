@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -10,7 +10,7 @@
 #include "connectivity/mqtt/mqtt_common.h"
 #endif
 #include "accelerator/core/serializer/serializer.h"
-#include "test_define.h"
+#include "tests/test_define.h"
 
 void test_serialize_ta_generate_address(void) {
   const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
@@ -32,7 +32,7 @@ void test_deserialize_ta_send_transfer(void) {
   const char* json =
       "{\"value\":100,"
       "\"message_format\":\"trytes\","
-      "\"message\":\"" TAG_MSG "\",\"tag\":\"" TAG_MSG
+      "\"message\":\"" TEST_TAG "\",\"tag\":\"" TEST_TAG
       "\","
       "\"address\":\"" TRYTES_81_1 "\"}";
 
@@ -42,7 +42,7 @@ void test_deserialize_ta_send_transfer(void) {
   ta_send_transfer_req_deserialize(json, req);
 
   TEST_ASSERT_EQUAL_INT(100, req->value);
-  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
   TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
 
@@ -57,12 +57,12 @@ void test_serialize_ta_find_transaction_objects(void) {
       "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
-      "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
+      "\"obsolete_tag\":\"" TEST_TAG "\",\"timestamp\":" STR(TIMESTAMP) ","
       "\"current_index\":" STR(CURRENT_INDEX) ",\"last_index\":" STR(LAST_INDEX) ","
       "\"bundle_hash\":\"" TRYTES_81_2 "\","
       "\"trunk_transaction_hash\":\"" TRYTES_81_2 "\","
       "\"branch_transaction_hash\":\"" TRYTES_81_1 "\","
-      "\"tag\":\"" TAG_MSG "\","
+      "\"tag\":\"" TEST_TAG "\","
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
@@ -90,7 +90,7 @@ void test_serialize_ta_find_transaction_objects(void) {
   transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
@@ -149,12 +149,12 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
       "[{\"hash\":\"" TRYTES_81_1 "\","
       "\"signature_and_message_fragment\":\"" TRYTES_2187_1 "\","
       "\"address\":\"" TRYTES_81_1 "\",\"value\":" STR(VALUE) ","
-      "\"obsolete_tag\":\"" TAG_MSG "\",\"timestamp\":" STR(TIMESTAMP) ","
+      "\"obsolete_tag\":\"" TEST_TAG "\",\"timestamp\":" STR(TIMESTAMP) ","
       "\"current_index\":" STR(CURRENT_INDEX) ",\"last_index\":" STR(LAST_INDEX) ","
       "\"bundle_hash\":\"" TRYTES_81_2 "\","
       "\"trunk_transaction_hash\":\"" TRYTES_81_2 "\","
       "\"branch_transaction_hash\":\"" TRYTES_81_1 "\","
-      "\"tag\":\"" TAG_MSG "\","
+      "\"tag\":\"" TEST_TAG "\","
       "\"attachment_timestamp\":" STR(TIMESTAMP) ","
       "\"attachment_timestamp_lower_bound\":" STR(TIMESTAMP)","
       "\"attachment_timestamp_upper_bound\":" STR(TIMESTAMP)","
@@ -181,7 +181,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   transaction_set_value(txn, VALUE);
 
   // set obsolete_tag
-  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TAG_MSG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
   transaction_set_obsolete_tag(txn, tag_trits);
 
   // set timestamp
@@ -215,6 +215,45 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
   ta_find_transactions_obj_res_free(&res);
   transaction_free(txn);
   free(json_result);
+}
+
+void test_recv_mam_message_request_psk_deserialize(void) {
+  const char* json = "{\"data_id\":{\"chid\":\"" TEST_CHID "\",\"epid\":\"" TEST_EPID "\",\"msg_id\":\"" TEST_MSG_ID
+                     "\"},"
+                     "\"key\":\"" TRYTES_81_1 "\",\"protocol\":\"MAM_V1\"}";
+  ta_recv_mam_req_t* req = recv_mam_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
+  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  TEST_ASSERT_NULL(data_id->bundle_hash);
+  TEST_ASSERT_EQUAL_STRING(TEST_CHID, data_id->chid);
+  TEST_ASSERT_EQUAL_STRING(TEST_EPID, data_id->epid);
+  TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
+
+  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, key->enc_key, NUM_TRYTES_MAM_PSK_KEY_SIZE);
+
+  recv_mam_req_free(&req);
+}
+
+void test_recv_mam_message_request_ntru_deserialize(void) {
+  const char* json = "{\"data_id\":{\"bundle_hash\":\"" TEST_BUNDLE_HASH "\",\"chid\":\"" TEST_CHID
+                     "\",\"epid\":\"" TEST_EPID "\",\"msg_id\":\"" TEST_MSG_ID
+                     "\"},"
+                     "\"key\":\"" TEST_NTRU_PK "\",\"protocol\":\"MAM_V1\"}";
+  ta_recv_mam_req_t* req = recv_mam_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
+  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  TEST_ASSERT_EQUAL_STRING(TEST_BUNDLE_HASH, data_id->bundle_hash);
+  TEST_ASSERT_NULL(data_id->chid);
+  TEST_ASSERT_NULL(data_id->epid);
+  TEST_ASSERT_NULL(data_id->msg_id);
+
+  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, key->enc_key, NUM_TRYTES_MAM_NTRU_PK_SIZE);
+
+  recv_mam_req_free(&req);
 }
 
 void test_send_mam_message_request_deserialize(void) {
@@ -340,11 +379,11 @@ void test_mqtt_device_id_deserialize(void) {
 }
 
 void test_mqtt_tag_req_deserialize(void) {
-  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TAG_MSG "\"}";
+  const char* json = "{\"device_id\":\"" DEVICE_ID "\", \"tag\":\"" TEST_TAG "\"}";
   char tag[NUM_TRYTES_TAG + 1] = {0};
   TEST_ASSERT_EQUAL_INT(SC_OK, mqtt_tag_req_deserialize(json, tag));
 
-  TEST_ASSERT_EQUAL_STRING(tag, TAG_MSG);
+  TEST_ASSERT_EQUAL_STRING(tag, TEST_TAG);
 }
 
 void test_mqtt_transaction_hash_req_deserialize(void) {
@@ -365,6 +404,38 @@ void test_proxy_apis_command_req_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(command, TEST_PROXY_API(addNeighbors));
 }
 
+void test_get_iri_status_milestone_deserialize(void) {
+  const char* json =
+      "{\"appName\": \"IRI\",\"appVersion\": \"1.7.0-RELEASE\",\"jreAvailableProcessors\": 8,\"jreFreeMemory\": "
+      "2115085674,\"jreVersion\": \"1.8.0_191\",\"jreMaxMemory\": 20997734400,\"jreTotalMemory\": "
+      "4860129502,\"latestMilestone\": "
+      "\"CUOENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999\",\"latestMilestoneIndex\": "
+      "1050373,\"latestSolidSubtangleMilestone\": "
+      "\"999ENIPTRCNECMVOXSWKOONGZJICAPH9FIG9F9KYXF9VYXFUKTNDCCLLWRZNUHZIGLJZFWPOVCIZA9999\", "
+      "\"latestSolidSubtangleMilestoneIndex\": 1050373, \"milestoneStartIndex\": 1050101, "
+      "\"lastSnapshottedMilestoneIndex\": 1039138, \"neighbors\": 7, \"packetsQueueSize\": 0, \"time\": 1554970558971, "
+      "\"tips\": 9018, \"transactionsToRequest\": 0, \"features\": [  \"snapshotPruning\",  \"dnsRefresher\",  "
+      "\"tipSolidification\" ],\"coordinatorAddress\": "
+      "\"EQSAUZXULTTYZCLNJNTXQTQHOMOFZERHTCGTXOLTVAHKSA9OGAZDEKECURBRIXIJWNPFCQIOVFVVXJVD9\",\"duration\": 0}";
+  const int latestMilestoneIndex = 1050373;
+  const int latestSolidSubtangleMilestoneIndex = 1050373;
+  int deserialize_latestMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex;
+
+  TEST_ASSERT_EQUAL_INT(SC_OK, get_iri_status_milestone_deserialize(json, &deserialize_latestMilestoneIndex,
+                                                                    &deserialize_latestSolidSubtangleMilestoneIndex));
+  TEST_ASSERT_EQUAL_INT(latestMilestoneIndex, deserialize_latestMilestoneIndex);
+  TEST_ASSERT_EQUAL_INT(latestSolidSubtangleMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex);
+}
+
+void test_get_iri_status_res_serialize(void) {
+  const char* json = "{\"status\":false,\"status_code\":\"SC_CORE_IRI_UNSYNC\"}";
+  char* json_result = NULL;
+  TEST_ASSERT_EQUAL_STRING(SC_OK, get_iri_status_res_serialize(SC_CORE_IRI_UNSYNC, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -379,6 +450,8 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
+  RUN_TEST(test_recv_mam_message_request_psk_deserialize);
+  RUN_TEST(test_recv_mam_message_request_ntru_deserialize);
   RUN_TEST(test_send_mam_message_response_serialize);
   RUN_TEST(test_send_mam_message_response_deserialize);
   RUN_TEST(test_send_mam_message_request_deserialize);
@@ -390,6 +463,8 @@ int main(void) {
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
 #endif
   RUN_TEST(test_proxy_apis_command_req_deserialize);
+  RUN_TEST(test_get_iri_status_milestone_deserialize);
+  RUN_TEST(test_get_iri_status_res_serialize);
   serializer_logger_release();
   return UNITY_END();
 }

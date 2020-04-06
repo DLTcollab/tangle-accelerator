@@ -2,7 +2,10 @@
 
 #include "common/logger.h"
 #include "common/ta_errors.h"
+#include "connectivity/common.h"
 #include "connectivity/http/http.h"
+#include "pthread.h"
+#include "time.h"
 #include "utils/handles/signal.h"
 
 #define MAIN_LOGGER "main"
@@ -14,6 +17,21 @@ static logger_id_t logger_id;
 static void ta_stop(int signal) {
   if (signal == SIGINT || signal == SIGTERM) {
     ta_http_stop(&ta_http);
+  }
+}
+
+void check_iri_connection(ta_core_t* const core) {
+  while (true) {
+    status_t ret = ta_get_iri_status(&core->iota_service);
+    if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
+      ta_log_error("IRI status error %d. Try to connect to another IRI host on priority list\n", ret);
+      ret = ta_update_iri_conneciton(&core->ta_conf, &core->iota_service);
+      if (ret) {
+        ta_log_error("Update IRI host failed: %d\n", ret);
+      }
+    }
+
+    sleep(core->ta_conf.health_track_period);
   }
 }
 
@@ -49,6 +67,9 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
+  pthread_t thread;
+  pthread_create(&thread, NULL, check_iri_connection, &ta_core);
+
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {
     ta_log_error("Lock initialization failed %s.\n", MAIN_LOGGER);
@@ -78,6 +99,9 @@ int main(int argc, char* argv[]) {
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
+    conn_logger_init();
+    // Enable backend_redis logger
+    br_logger_init();
   }
 
   /* pause() cause TA to sleep until it catch a signal,
@@ -100,12 +124,14 @@ cleanup:
 
   if (quiet_mode == false) {
     http_logger_release();
+    conn_logger_release();
     apis_logger_release();
     cc_logger_release();
     serializer_logger_release();
     pow_logger_release();
     timer_logger_release();
     logger_helper_release(logger_id);
+    br_logger_release();
     if (logger_helper_destroy() != RC_OK) {
       ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
       return EXIT_FAILURE;

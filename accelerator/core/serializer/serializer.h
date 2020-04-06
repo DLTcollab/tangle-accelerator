@@ -222,16 +222,28 @@ status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* co
 status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj);
 
 /**
- * @brief Serialize response of mam message
+ * @brief Deserialize request of recv_mam_message
  *
- * @param[out] obj message formed in JSON
- * @param[in] message Response of payload message
+ * @param[in] obj message formed in JSON
+ * @param[out] req ta_recv_mam_req_t object
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t receive_mam_message_res_serialize(char* const message, char** obj);
+status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req);
+
+/**
+ * @brief Serialize response of mam message
+ *
+ * @param[in] payload_array Response of payload message in utarray
+ * @param[out] obj message array formed in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj);
 
 /**
  * @brief Deserialze JSON string to type of ta_send_mam_req_t
@@ -318,6 +330,32 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
  * - non-zero on error
  */
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
+
+/**
+ * @brief Deserialze latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
+ *
+ * @param[in] obj getNodeInfo response in JSON.
+ * @param[out] latestMilestoneIndex Index of latestMilestone
+ * @param[out] latestSolidSubtangleMilestoneIndex Index of latestSolidSubtangleMilestone
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
+                                              int* const latestSolidSubtangleMilestone);
+
+/**
+ * @brief Serialze the response of IRI connection status.
+ *
+ * @param[in] status Reponse status code
+ * @param[out] obj Serialized API response
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t get_iri_status_res_serialize(const status_t status, char** obj);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -7,6 +7,8 @@
  */
 
 #include "config.h"
+#include <errno.h>
+#include <limits.h>
 #include "utils/macros.h"
 #include "yaml.h"
 
@@ -14,29 +16,29 @@
 
 static logger_id_t logger_id;
 
-int get_conf_key(char const* const key) {
-  for (int i = 0; i < cli_cmd_num; ++i) {
+/**
+ * @brief Get the corresponding value of the key from ta_cli_arguments_g structure
+ * key : correspond to "name" in ta_cli_arguments_g structure
+ * value : correspond to "val" in ta_cli_arguments_g structure
+ *
+ * @param key[in] Key of the key-value pair in yaml file
+ *
+ * @return
+ * - ZERO on Parsing unknown key
+ * - non-zero Corresponding value of key
+ */
+static int get_conf_key(char const* const key) {
+  for (int i = 0; i < cli_cmd_num - 1; i++) {
     if (!strcmp(ta_cli_arguments_g[i].name, key)) {
       return ta_cli_arguments_g[i].val;
     }
   }
-
+  ta_log_error("Invalid %s setting in the configuration file\n", key);
   return 0;
 }
 
-struct option* cli_build_options() {
-  struct option* long_options = (struct option*)malloc(cli_cmd_num * sizeof(struct option));
-  for (int i = 0; i < cli_cmd_num; ++i) {
-    long_options[i].name = ta_cli_arguments_g[i].name;
-    long_options[i].has_arg = ta_cli_arguments_g[i].has_arg;
-    long_options[i].flag = ta_cli_arguments_g[i].flag;
-    long_options[i].val = ta_cli_arguments_g[i].val;
-  }
-  return long_options;
-}
-
-static status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && key != PROXY_API) {
+status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
+  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET)) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -48,16 +50,28 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
 #endif
+  char* strtol_p = NULL;
+  long int strtol_temp;
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
       ta_conf->host = value;
       break;
     case TA_PORT_CLI:
-      ta_conf->port = value;
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case TA_THREAD_COUNT_CLI:
-      ta_conf->thread_count = atoi(value);
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->thread_count = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
 
     // IRI configuration
@@ -65,7 +79,52 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       iota_service->http.host = value;
       break;
     case IRI_PORT_CLI:
-      iota_service->http.port = atoi(value);
+      strtol_temp = strtol(value, &strtol_p, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_service->http.port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
+      break;
+    case IRI_ADDRESS_CLI:
+      for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
+        if (!ta_conf->host_list[i]) {
+          char *host, *port;
+          host = strtok(value, ":");
+          port = strtok(NULL, "");
+          if (!port) {
+            ta_log_error("Malformed input or illegal input character\n");
+            break;
+          }
+
+          if (i == 0) {
+            iota_service->http.host = host;
+            strtol_temp = strtol(port, NULL, 10);
+            if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+              iota_service->http.port = (int)strtol_temp;
+            } else {
+              ta_log_error("Malformed input or illegal input character\n");
+            }
+          }
+          ta_conf->host_list[i] = host;
+          strtol_temp = strtol(port, NULL, 10);
+          if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+            ta_conf->port_list[i] = (int)strtol_temp;
+          } else {
+            ta_log_error("Malformed input or illegal input character\n");
+          }
+          break;
+        }
+      }
+      break;
+
+    case HEALTH_TRACK_PERIOD:
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        ta_conf->health_track_period = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
 
 #ifdef MQTT_ENABLE
@@ -83,8 +142,14 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       cache->host = value;
       break;
     case REDIS_PORT_CLI:
-      cache->port = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        cache->port = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
+
 #ifdef DB_ENABLE
     // DB configuration
     case DB_HOST_CLI:
@@ -92,23 +157,34 @@ static status_t cli_core_set(ta_core_t* const core, int key, char* const value) 
       db_service->host = strdup(value);
       break;
 #endif
+
     // iota_conf IOTA configuration
     case MILESTONE_DEPTH_CLI:
-      iota_conf->milestone_depth = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_conf->milestone_depth = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case MWM_CLI:
-      iota_conf->mwm = atoi(value);
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        iota_conf->mwm = (int)strtol_temp;
+      } else {
+        ta_log_error("Malformed input or illegal input character\n");
+      }
       break;
     case SEED_CLI:
       iota_conf->seed = value;
       break;
     case CACHE:
-      cache->cache_state = (toupper(value[0]) == 'T');
+      cache->cache_state = true;
       break;
 
     // Quiet mode configuration
     case QUIET:
-      quiet_mode = (toupper(value[0]) == 'T');
+      quiet_mode = true;
       break;
 
     case PROXY_API:
@@ -144,8 +220,11 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->version = TA_VERSION;
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
+  memset(ta_conf->host_list, 0, sizeof(ta_conf->host_list));
+  memset(ta_conf->port_list, 0, sizeof(ta_conf->port_list));
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
+  ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
@@ -161,7 +240,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_conf->seed = SEED;
   char mam_file_path[] = MAM_FILE_PREFIX;
   mkstemp(mam_file_path);
-  iota_conf->mam_file_path = mam_file_path;
+  iota_conf->mam_file_path = strdup(mam_file_path);
 
   ta_log_info("Initializing IRI connection\n");
   iota_service->http.path = "/";
@@ -303,12 +382,6 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
       case 'v':
         printf("%s\n", TA_VERSION);
         exit(EXIT_SUCCESS);
-      case QUIET:
-        // Turn on quiet mode
-        quiet_mode = true;
-
-        // Enable backend_redis logger
-        br_logger_init();
         break;
       case CONF_CLI:
         /* Already processed in ta_config_file_init() */
@@ -365,7 +438,7 @@ void ta_core_destroy(ta_core_t* const core) {
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
 #endif
-
+  free(core->iota_conf.mam_file_path);
   pow_destroy();
   cache_stop();
   logger_helper_release(logger_id);

@@ -9,6 +9,7 @@
 #ifndef RESPONSE_TA_SEND_MAM_H_
 #define RESPONSE_TA_SEND_MAM_H_
 
+#include "common/macros.h"
 #include "common/model/transaction.h"
 #include "common/ta_errors.h"
 #include "common/trinary/tryte.h"
@@ -21,8 +22,6 @@ extern "C" {
 /**
  * @file accelerator/core/response/ta_send_mam.h
  */
-
-#define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
 
 /** struct of ta_send_mam_res_t */
 typedef struct send_mam_res_s {

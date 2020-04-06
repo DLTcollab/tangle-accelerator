@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -8,6 +8,7 @@
 
 #include "apis.h"
 #include <sys/time.h>
+#include <uuid/uuid.h>
 #include "mam_core.h"
 #include "utils/handles/lock.h"
 
@@ -136,8 +137,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
   ret = ta_generate_address(iconf, service, res);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
-    ret = SC_TA_ERROR;
-    ta_log_error("%s\n", "SC_TA_ERROR");
+    ta_log_error("%s\n", "Failed in TA core function");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -312,42 +312,77 @@ done:
   return ret;
 }
 
-status_t api_receive_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                                 const char* const chid, char** json_result) {
+status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                              const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  char* payload = NULL;
-  mam_api_t mam;
-  bundle_transactions_t* bundle = NULL;
-  bundle_transactions_new(&bundle);
 
-  // TODO We may need to use encryption here
-  // Creating MAM API
-  retcode_t rc = mam_api_load(iconf->mam_file_path, &mam, NULL, 0);
-  if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
-    if (mam_api_init(&mam, (tryte_t*)SEED) != RC_OK) {
-      ret = SC_MAM_FAILED_INIT;
-      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
-      goto done;
-    }
-  } else if (rc != RC_OK) {
+  mam_api_t mam;
+  ta_recv_mam_req_t* req = recv_mam_req_new();
+  if (req == NULL) {
+    ta_log_error("%s\n", "SC_TA_OOM");
+    return SC_TA_OOM;
+  }
+  bundle_array_t* bundle_array = NULL;
+  bundle_array_new(&bundle_array);
+  UT_array* payload_array = NULL;
+  utarray_new(payload_array, &ut_str_icd);
+
+  ret = recv_mam_message_req_deserialize(obj, req);
+  if (ret) {
+    ta_log_error("%s\n", "recv_mam_message failed to deserialize.");
+    goto done;
+  }
+
+  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  if (mam_api_init(&mam, (tryte_t*)iconf->seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
     goto done;
   }
 
-  mam_api_add_trusted_channel_pk(&mam, (tryte_t*)chid);
-  ret = ta_get_bundles_by_addr(service, (tryte_t*)chid, bundle);
+  ret = mam_api_add_trusted_channel_pk(&mam, (tryte_t*)data_id->chid);
   if (ret != SC_OK) {
+    ta_log_error("%s\n", "Failed to add trusted channel.");
     goto done;
   }
 
-  if (ta_mam_api_bundle_read(&mam, bundle, &payload) != RC_OK) {
-    ret = SC_MAM_FAILED_RESPONSE;
-    ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
-    goto done;
+  if (data_id->bundle_hash) {
+    bundle_transactions_t* bundle = NULL;
+    bundle_transactions_new(&bundle);
+    ret = ta_get_bundle(service, data_id->bundle_hash, bundle);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", "Failed to get bundle by bundle hash");
+      goto done;
+    }
+    bundle_array_add(bundle_array, bundle);
+    bundle_transactions_free(&bundle);
+  } else if (data_id->chid) {
+    ret = ta_get_bundles_by_addr(service, data_id->chid, bundle_array);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", "Failed to get bundle by chid");
+      goto done;
+    }
   }
 
-  ret = receive_mam_message_res_serialize(payload, json_result);
+  bundle_transactions_t* bundle = NULL;
+  BUNDLE_ARRAY_FOREACH(bundle_array, bundle) {
+    char* payload = NULL;
+    retcode_t rc = ta_mam_api_bundle_read(&mam, bundle, &payload);
+    if (rc != RC_OK) {
+      ret = SC_MAM_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_MAM_FAILED_RESPONSE");
+      goto done;
+    }
+
+    utarray_push_back(payload_array, &payload);
+    free(payload);
+  }
+
+  ret = recv_mam_message_res_serialize(payload_array, json_result);
+  if (ret) {
+    ta_log_error("%s\n", "recv_mam_message failed to serialize.");
+  }
 
 done:
   // Destroying MAM API
@@ -360,8 +395,9 @@ done:
       ta_log_error("%s\n", "SC_MAM_FAILED_DESTROYED");
     }
   }
-  bundle_transactions_free(&bundle);
-  free(payload);
+  bundle_array_free(&bundle_array);
+  recv_mam_req_free(&req);
+  utarray_free(payload_array);
   return ret;
 }
 
@@ -516,23 +552,52 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
   lock_handle_lock(&cjson_lock);
   ret = ta_send_transfer_req_deserialize(obj, req);
   if (ret) {
+    ta_log_error("%s\n", "ta_send_transfer_req_deserialize failed");
     lock_handle_unlock(&cjson_lock);
     goto done;
   }
 
   ret = ta_send_transfer(&core->iota_conf, &core->iota_service, req, res);
-  if (ret) {
+  if (ret == SC_CCLIENT_FAILED_RESPONSE) {
     lock_handle_unlock(&cjson_lock);
+    ta_log_info("%s\n", "Caching transaction");
+    // TODO generate a UUID as redis key
+    uuid_t binuuid;
+    uuid_generate_random(binuuid);
+    uuid_unparse(binuuid, res->uuid);
+    if (!res->uuid[0]) {
+      ta_log_error("%s\n", "Failed to generate UUID");
+      goto done;
+    }
+
+    // Cache the txn in redis
+    // TODO use a timer to reattach these failed transactions
+    ret = cache_set(res->uuid, UUID_STR_LEN - 1, obj, strlen(obj), CACHE_FAILED_TXN_TIMEOUT);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    // Cache the request and serialize UUID as response directly
+    goto serialize;
+  } else if (ret) {
+    lock_handle_unlock(&cjson_lock);
+    ta_log_error("%s\n", "ta_send_transfer failed");
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
+
   // return transaction object
-  hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash));
+  if (hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash))) {
+    ta_log_error("%s\n", "hash243_queue_push failed");
+    goto done;
+  }
 
   lock_handle_lock(&cjson_lock);
   ret = ta_find_transaction_objects(&core->iota_service, txn_obj_req, res_txn_array);
   if (ret) {
     lock_handle_unlock(&cjson_lock);
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   lock_handle_unlock(&cjson_lock);
@@ -544,7 +609,12 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
     goto done;
   }
 #endif
+
+serialize:
   ret = ta_send_transfer_res_serialize(res, json_result);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  }
 
 done:
   ta_send_transfer_req_free(&req);
@@ -672,3 +742,35 @@ exit:
   return ret;
 }
 #endif
+
+status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result) {
+  status_t ret = SC_OK;
+
+  ret = ta_get_iri_status(service);
+  switch (ret) {
+    /*
+     * The statuses of each status_t are listed as the following. Not listed status code are unexpected errors which
+     * would cause TA return error.
+     *
+     * SC_CCLIENT_FAILED_RESPONSE: Can't connect to IRI host
+     * SC_CORE_IRI_UNSYNC: IRI host is not at the latest milestone
+     * SC_OK: IRI host works fine.
+     **/
+    case SC_CCLIENT_FAILED_RESPONSE:
+    case SC_CORE_IRI_UNSYNC:
+    case SC_OK:
+      break;
+
+    default:
+      ta_log_error("check IRI connection failed. status code: %d\n", ret);
+      goto done;
+  }
+
+  ret = get_iri_status_res_serialize(ret, json_result);
+  if (ret) {
+    ta_log_error("failed to serialize. status code: %d\n", ret);
+  }
+
+done:
+  return ret;
+}

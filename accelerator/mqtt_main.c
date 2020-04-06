@@ -57,6 +57,8 @@ int main(int argc, char *argv[]) {
     cc_logger_init();
     pow_logger_init();
     timer_logger_init();
+    // Enable backend_redis logger
+    br_logger_init();
   }
 
   // Initialize `mosq` and `cfg`
@@ -110,6 +112,7 @@ done:
     serializer_logger_release();
     pow_logger_release();
     timer_logger_release();
+    br_logger_release();
     logger_helper_release(logger_id);
     if (logger_helper_destroy() != RC_OK) {
       return EXIT_FAILURE;
