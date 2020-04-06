@@ -22,7 +22,7 @@ git_repository(
 git_repository(
     name = "io_bazel_rules_docker",
     remote = "https://github.com/bazelbuild/rules_docker.git",
-    tag = "v0.7.0",
+    tag = "v0.9.0",
 )
 
 load("@rules_iota//:defs.bzl", "iota_deps")
@@ -31,6 +31,15 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 container_repositories()
 
 load("@io_bazel_rules_docker//cc:image.bzl", _cc_image_repos = "repositories")
+
+load("@io_bazel_rules_docker//container:pull.bzl", "container_pull")
+
+container_pull(
+    name = "ubuntu1804",
+    registry = "l.gcr.io",
+    repository = "google/ubuntu1804",
+    tag = "latest",
+)
 
 iota_deps()
 

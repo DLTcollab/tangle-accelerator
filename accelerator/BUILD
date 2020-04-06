@@ -1,5 +1,7 @@
 load("@io_bazel_rules_docker//cc:image.bzl", "cc_image")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
+load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
 
 cc_binary(
     name = "accelerator",
@@ -52,8 +54,25 @@ cc_library(
     srcs = ["cli_info.h"],
 )
 
+download_pkgs(
+    name = "docker_runtime_pkgs",
+    image_tar = "@ubuntu1804//image",
+    packages = [
+        "uuid-runtime",
+    ],
+)
+
+install_pkgs(
+    name = "docker_runtime_image",
+    image_tar = "@ubuntu1804//image",
+    installables_tar = ":docker_runtime_pkgs.tar",
+    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
+    output_image_name = "docker_runtime_image",
+)
+
 cc_image(
     name = "docker_base_image",
+    base = ":docker_runtime_image",
     binary = ":accelerator",
 )
 
