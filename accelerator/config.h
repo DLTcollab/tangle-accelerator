@@ -21,6 +21,7 @@
 #endif
 #include "common/logger.h"
 #include "utils/cache/cache.h"
+#include "utils/handles/lock.h"
 
 #define FILE_PATH_SIZE 128
 
@@ -99,6 +100,7 @@ typedef struct ta_core_s {
   ta_cache_t cache;                   /**< redis configiuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
+  lock_handle_t iota_service_lock;    /**< mutex lock for iota_service */
 #ifdef DB_ENABLE
   db_client_service_t db_service; /**< db connection structure */
 #endif

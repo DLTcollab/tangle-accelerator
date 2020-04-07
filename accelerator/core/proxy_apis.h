@@ -71,7 +71,7 @@ status_t proxy_apis_lock_destroy();
  * - non-zero on error
  */
 status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
-                           const char* const obj, char** json_result);
+                           lock_handle_t* service_lock, const char* const obj, char** json_result);
 
 #ifdef __cplusplus
 }

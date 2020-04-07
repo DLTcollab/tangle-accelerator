@@ -96,7 +96,7 @@ status_t apis_lock_destroy();
  * - non-zero on error
  */
 status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char** json_result);
+                              lock_handle_t* service_lock, char** json_result);
 
 /**
  * @brief Get trunk and branch transactions
@@ -113,7 +113,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
  * - non-zero on error
  */
 status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                           char** json_result);
+                           lock_handle_t* service_lock, char** json_result);
 
 /**
  * @brief Get list of all tips from IRI node.
@@ -128,7 +128,7 @@ status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_s
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_tips(const iota_client_service_t* const service, char** json_result);
+status_t api_get_tips(const iota_client_service_t* const service, lock_handle_t* service_lock, char** json_result);
 
 /**
  * @brief Receive a MAM message.
@@ -144,7 +144,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
  * - non-zero on error
  */
 status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              const char* const chid, char** json_result);
+                              lock_handle_t* service_lock, const char* const chid, char** json_result);
 
 /**
  * @brief Send a MAM message with given Payload.
@@ -164,8 +164,8 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  * - non-zero on error
  */
 status_t api_mam_send_message(const ta_config_t* const info, const iota_config_t* const iconf,
-                              const iota_client_service_t* const service, char const* const payload,
-                              char** json_result);
+                              const iota_client_service_t* const service, lock_handle_t* service_lock,
+                              char const* const payload, char** json_result);
 
 /**
  * @brief Send transfer to tangle.
@@ -198,8 +198,8 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transaction_object_single(const iota_client_service_t* const service, const char* const obj,
-                                            char** json_result);
+status_t api_find_transaction_object_single(const iota_client_service_t* const service, lock_handle_t* service_lock,
+                                            const char* const obj, char** json_result);
 
 /**
  * @brief Return transaction object with given transaction hash.
@@ -215,8 +215,8 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transaction_objects(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result);
+status_t api_find_transaction_objects(const iota_client_service_t* const service, lock_handle_t* service_lock,
+                                      const char* const obj, char** json_result);
 
 /**
  * @brief Return list of transaction hash with given tag.
@@ -233,8 +233,8 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                      char** json_result);
+status_t api_find_transactions_by_tag(const iota_client_service_t* const service, lock_handle_t* service_lock,
+                                      const char* const obj, char** json_result);
 
 /**
  * @brief Return list of transaction objects with given tag.
@@ -251,8 +251,8 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, const char* const obj,
-                                          char** json_result);
+status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const service, lock_handle_t* service_lock,
+                                          const char* const obj, char** json_result);
 
 /**
  * @brief Attach trytes to Tangle and return transaction hashes
@@ -273,7 +273,8 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  * - non-zero on error
  */
 status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* const iconf,
-                         const iota_client_service_t* const service, const char* const obj, char** json_result);
+                         const iota_client_service_t* const service, lock_handle_t* service_lock, const char* const obj,
+                         char** json_result);
 
 /**
  * @brief Check the connection status between tangle-accelerator and IRI host.
@@ -285,7 +286,8 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result);
+status_t api_get_iri_status(const iota_client_service_t* const service, lock_handle_t* service_lock,
+                            char** json_result);
 
 #ifdef DB_ENABLE
 /**
@@ -303,7 +305,7 @@ status_t api_get_iri_status(const iota_client_service_t* const service, char** j
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
+status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service, lock_handle_t* iota_service_lock,
                                      const db_client_service_t* const db_service, const char* const obj,
                                      char** json_result);
 

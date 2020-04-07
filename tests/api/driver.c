@@ -88,7 +88,8 @@ void test_generate_address(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iota_conf, &ta_core.iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iota_conf, &ta_core.iota_service,
+                                                        &ta_core.iota_service_lock, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -101,7 +102,8 @@ void test_get_tips_pair(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &ta_core.iota_service_lock, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -114,7 +116,7 @@ void test_get_tips(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&ta_core.iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&ta_core.iota_service, &ta_core.iota_service_lock, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -166,8 +168,8 @@ void test_send_trytes(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service,
+                                                   &ta_core.iota_service_lock, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -184,7 +186,8 @@ void test_find_transaction_objects(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transaction_objects(&ta_core.iota_service, json, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_find_transaction_objects(&ta_core.iota_service, &ta_core.iota_service_lock, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -199,7 +202,8 @@ void test_find_transactions_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&ta_core.iota_service, test_tag, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_find_transactions_by_tag(&ta_core.iota_service, &ta_core.iota_service_lock, test_tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -213,8 +217,9 @@ void test_find_transactions_by_id(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_id(&ta_core.iota_service, &ta_core.db_service,
-                                                               identities[count].uuid_string, &json_result));
+    TEST_ASSERT_EQUAL_INT32(
+        SC_OK, api_find_transactions_by_id(&ta_core.iota_service, &ta_core.iota_service_lock, &ta_core.db_service,
+                                           identities[count].uuid_string, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -257,7 +262,8 @@ void test_find_transactions_obj_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.iota_service, test_tag, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&ta_core.iota_service, &ta_core.iota_service_lock,
+                                                                    test_tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -278,7 +284,8 @@ void test_send_mam_message(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
-    ret = api_mam_send_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result);
+    ret = api_mam_send_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, &ta_core.iota_service_lock,
+                               json, &json_result);
     if (ret == SC_OK || ret == SC_MAM_ALL_MSS_KEYS_USED) {
       result = true;
     }
@@ -301,8 +308,8 @@ void test_receive_mam_message(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_recv_mam_message(&ta_core.iota_conf, &ta_core.iota_service, (char*)res->chid, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_recv_mam_message(&ta_core.iota_conf, &ta_core.iota_service,
+                                                        &ta_core.iota_service_lock, (char*)res->chid, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -316,7 +323,7 @@ void test_get_iri_status() {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_iri_status(&ta_core.iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_iri_status(&ta_core.iota_service, &ta_core.iota_service_lock, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -330,8 +337,8 @@ void test_proxy_apis() {
 
     for (size_t count = 0; count < TEST_COUNT; count++) {
       test_time_start(&start_time);
-      TEST_ASSERT_EQUAL_INT32(
-          SC_OK, proxy_api_wrapper(&ta_core.ta_conf, &ta_core.iota_service, proxy_apis_g[i].json, &json_result));
+      TEST_ASSERT_EQUAL_INT32(SC_OK, proxy_api_wrapper(&ta_core.ta_conf, &ta_core.iota_service,
+                                                       &ta_core.iota_service_lock, proxy_apis_g[i].json, &json_result));
       test_time_end(&start_time, &end_time, &sum);
       free(json_result);
     }

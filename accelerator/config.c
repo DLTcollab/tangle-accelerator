@@ -217,7 +217,10 @@ status_t ta_core_default_init(ta_core_t* const core) {
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
 #endif
-
+  if (lock_handle_init(&core->iota_service_lock)) {
+    ta_log_error("Fail to init IOTA service mutex lock\n");
+    return SC_CONF_LOCK_INIT;
+  }
   ta_log_info("Initializing TA information\n");
   ta_conf->version = TA_VERSION;
   ta_conf->host = TA_HOST;
@@ -436,7 +439,9 @@ exit:
 void ta_core_destroy(ta_core_t* const core) {
   ta_log_info("Destroying IRI connection\n");
   iota_client_extended_destroy();
+  lock_handle_destroy(&core->iota_service_lock);
   iota_client_core_destroy(&core->iota_service);
+
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
