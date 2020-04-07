@@ -37,7 +37,6 @@ typedef struct mosq_general_config_s {
   int port;
   int qos;
   int last_mid;
-  bool retain;
   client_type_t client_type;
   unsigned int max_inflight;
   char *username;
@@ -46,6 +45,7 @@ typedef struct mosq_general_config_s {
   char *will_payload;
   long will_payloadlen;
   int will_qos;
+  bool retain;
   bool will_retain;
   bool clean_session;
 } mosq_general_config_t;
