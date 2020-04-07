@@ -14,6 +14,8 @@ before_install:
   - echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
   # Install and update Bazel
   - sudo apt update && sudo apt install bazel
+  # Install UUID library
+  - sudo apt install uuid-dev
 
 addons:
   coverity_scan:
