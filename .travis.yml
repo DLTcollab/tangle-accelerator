@@ -1,3 +1,5 @@
+dist: bionic
+
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -27,4 +29,4 @@ addons:
     build_command: "bash tests/coverity_analysis.sh"
     branch_pattern: develop
 
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then bash -e tests/coverity_analysis.sh; fi
