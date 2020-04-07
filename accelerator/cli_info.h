@@ -50,6 +50,7 @@ typedef enum ta_cli_arg_value_e {
   CONF_CLI,
   PROXY_API,
   HEALTH_TRACK_PERIOD,
+  NO_GTTA,
 
   /** LOGGER */
   QUIET,
@@ -83,6 +84,7 @@ static struct ta_cli_argument_s {
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
     {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
      "The period for checking IRI host connection status"},
+    {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transacation"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {NULL, 0, NULL, 0, NULL}};
 
