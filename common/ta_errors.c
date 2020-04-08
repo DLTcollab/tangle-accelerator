@@ -120,6 +120,8 @@ const char* ta_error_to_string(status_t err) {
       return "Error setting topic in MQTT\n";
     case SC_MQTT_OPT_SET:
       return "Error setting options of mosquitto object\n";
+    case SC_MQTT_INVALID_TAG:
+      return "Received invalid tag length in MQTT\n";
     case SC_CLIENT_CONNECT:
       return "Error in connecting to broker\n";
     case SC_STORAGE_OOM:
