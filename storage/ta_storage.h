@@ -10,12 +10,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #include "scylladb_chronicle.h"
 #include "scylladb_identity.h"
-#include "scylladb_listener.h"
 #include "scylladb_permanode.h"
-
+#include "scylladb_thread_pool.h"
 /**
  * @file storage/ta_storage.h
  * @brief The high level header for TA storage driver.

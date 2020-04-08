@@ -119,6 +119,17 @@ status_t db_get_approvee(const db_client_service_t* service, hash243_queue_t* re
  */
 status_t db_get_trytes(const db_client_service_t* service, hash8019_queue_t* res, const flex_trit_t* hash);
 
+/**
+ * @brief Finds transactions that contain the given values in their transaction fields. The parameters define
+ *        the transaction fields to search for, including bundles, addresses, tags, and approvees
+ * @param[in] service ScyllaDB client service
+ * @param[in] req request transaction fields
+ * @param[out] res result of transaction hashes
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
 status_t db_client_find_transactions(const db_client_service_t* service, const find_transactions_req_t* req,
                                      find_transactions_res_t* const res);
 

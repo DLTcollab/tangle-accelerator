@@ -56,6 +56,7 @@ extern "C" {
 #define SC_MODULE_MQTT (0x0A << SC_MODULE_SHIFT)
 #define SC_MODULE_STORAGE (0x0B << SC_MODULE_SHIFT)
 #define SC_MODULE_CORE (0x0C << SC_MODULE_SHIFT)
+#define SC_MODULE_COMMON (0X0D << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -211,7 +212,15 @@ typedef enum {
   SC_STORAGE_INVALID_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< Invaild input parameter, e.g., null pointer */
   SC_STORAGE_CASSANDRA_QUREY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Failed to execute Cassandra query */
+  /**< Fail to execute Cassandra query   */
+  SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< ZeroMQ process error   */
+  SC_STORAGE_REQUEST_EXCEEDED = 0x06 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< REQUEST_EXCEEDED   */
+
+  // Common
+  SC_PTHREAD_ERROR = 0x01 | SC_MODULE_COMMON | SC_SEVERITY_MAJOR,
+  /**< Fail when calling pthread library */
 
   // Core module
   SC_CORE_OOM = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,

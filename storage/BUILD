@@ -5,20 +5,28 @@ cc_library(
     deps = [
         ":scylladb_chronicle",
         ":scylladb_identity",
-        ":scylladb_listener",
         ":scylladb_permanode",
+        ":scylladb_thread_pool",
     ],
 )
 
-cc_library(
+cc_binary(
+    name = "scylladb_importer",
+    srcs = ["scylladb_importer.c"],
+    deps = [
+        ":storage",
+    ],
+)
+
+cc_binary(
     name = "scylladb_listener",
     srcs = ["scylladb_listener.c"],
-    hdrs = ["scylladb_listener.h"],
     linkopts = [
         "-lzmq",
     ],
     deps = [
-        ":scylladb_client",
+        ":storage",
+        "//accelerator:ta_config",
         "@entangled//cclient/api",
     ],
 )
@@ -31,6 +39,16 @@ cc_library(
     deps = [
         ":scylladb_client",
         "@com_github_uthash//:uthash",
+    ],
+)
+
+cc_library(
+    name = "scylladb_thread_pool",
+    srcs = ["scylladb_thread_pool.c"],
+    hdrs = ["scylladb_thread_pool.h"],
+    linkopts = ["-lpthread"],
+    deps = [
+        ":scylladb_chronicle",
     ],
 )
 
