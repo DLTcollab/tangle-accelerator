@@ -48,6 +48,9 @@ static void* importer_handler(void* data) {
     int name_len = strlen(file_name_buffer);
     if (name_len > 0) {
       file_name_buffer[name_len - 1] = 0;
+    } else {
+      ta_log_warning("Empty file name\n");
+      continue;
     }
 
     if ((file = fopen(file_name_buffer, "r")) == NULL) {
@@ -80,6 +83,7 @@ static void* importer_handler(void* data) {
 
       cnt++;
     }
+
     ta_log_info("Successfully import file : %s\n", file_name_buffer);
   }
 
@@ -148,6 +152,7 @@ int main(int argc, char* argv[]) {
   pthread_create(&importer_thread, NULL, (void*)importer_handler, (void*)&importer_data);
 
   pthread_join(importer_thread, NULL);
+  db_permanode_tpool_wait(&pool);
   free(worker_data);
   free(worker_threads);
 

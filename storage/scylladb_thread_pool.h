@@ -29,7 +29,8 @@ typedef struct {
   pthread_mutex_t request_mutex;
   pthread_cond_t got_request;
   pthread_cond_t finish_request;
-  int num_requests;             /* number of pending requests, initially none */
+  int num_requests; /* number of pending requests, initially none */
+  int working_thread_num;
   struct request* requests;     /* head of linked list of requests. */
   struct request* last_request; /* pointer to last request.         */
 
@@ -86,6 +87,15 @@ status_t db_permanode_thpool_add(const tryte_t* hash, const tryte_t* trytes, db_
  * @return NULL
  */
 void* db_permanode_worker_handler(void* data);
+
+/**
+ * @brief Wait until the pool is empty and all workers are idle
+ *
+ * @param[in] data pointer to db_permanode_pool_t
+ *
+ * @return NULL
+ */
+void db_permanode_tpool_wait(db_permanode_pool_t* pool);
 
 #ifdef __cplusplus
 }

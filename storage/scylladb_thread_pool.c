@@ -13,7 +13,7 @@ status_t db_init_permanode_threadpool(db_permanode_pool_t* pool) {
   }
   pthread_cond_init(&pool->got_request, NULL);
   pthread_cond_init(&pool->finish_request, NULL);
-
+  pool->working_thread_num = 0;
   pool->num_requests = 0;
   pool->requests = NULL;
   pool->last_request = NULL;
@@ -87,6 +87,7 @@ static struct request* get_request(db_permanode_pool_t* pool) {
     }
     /* decrease the total number of pending requests */
     pool->num_requests--;
+    pool->working_thread_num++;
   } else { /* requests list is empty */
     a_request = NULL;
   }
@@ -114,9 +115,8 @@ static void handle_request(struct request* a_request, db_client_service_t* servi
             db_client_service_free(service);
             service->host = host;
 
-          while (db_client_service_init(service, DB_USAGE_PERMANODE) != SC_OK) {
-            sleep(10);
-          }
+          } while (db_client_service_init(service, DB_USAGE_PERMANODE) != SC_OK);
+
           ta_log_info("init db service done\n");
           retry_cnt = 0;
         }
@@ -136,10 +136,28 @@ void* db_permanode_worker_handler(void* data) {
 
       handle_request(a_request, &thread_data->service);
       free(a_request);
+      pthread_mutex_lock(&thread_data->pool->request_mutex);
+      thread_data->pool->working_thread_num--;
+      pthread_mutex_unlock(&thread_data->pool->request_mutex);
+
       pthread_cond_signal(&thread_data->pool->finish_request);
     } else {
       pthread_cond_wait(&thread_data->pool->got_request, &thread_data->thread_mutex);
     }
   }
   return NULL;
+}
+
+void db_permanode_tpool_wait(db_permanode_pool_t* pool) {
+  if (pool == NULL) return;
+
+  pthread_mutex_lock(&(pool->request_mutex));
+  while (1) {
+    if (pool->num_requests != 0 || pool->working_thread_num != 0) {
+      pthread_cond_wait(&(pool->finish_request), &(pool->request_mutex));
+    } else {
+      break;
+    }
+  }
+  pthread_mutex_unlock(&(pool->request_mutex));
 }
