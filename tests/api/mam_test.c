@@ -23,29 +23,6 @@ ta_send_mam_res_t* res;
 #define TEST_COUNT 1
 #endif
 
-double diff_time(struct timespec start, struct timespec end) {
-  struct timespec diff;
-  if (end.tv_nsec - start.tv_nsec < 0) {
-    diff.tv_sec = end.tv_sec - start.tv_sec - 1;
-    diff.tv_nsec = end.tv_nsec - start.tv_nsec + 1000000000;
-  } else {
-    diff.tv_sec = end.tv_sec - start.tv_sec;
-    diff.tv_nsec = end.tv_nsec - start.tv_nsec;
-  }
-  return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
-}
-
-void test_time_start(struct timespec* start) { clock_gettime(CLOCK_REALTIME, start); }
-
-void test_time_end(struct timespec* start, struct timespec* end, double* sum) {
-  clock_gettime(CLOCK_REALTIME, end);
-  double difference = diff_time(*start, *end);
-#if defined(ENABLE_STAT)
-  printf("%lf\n", difference);
-#endif
-  *sum += difference;
-}
-
 void test_receive_mam_message(void) {
   const char* json =
       "{\"data_id\":{\"chid\":\"SYZJOQCGWGOTGGZUCZYQGHWWHQVIVBHJFHNXYXZQSGJXIHL9KMXNOBULIPTPGMBJSMFNBSAGCVVZ9MDMX\"},"
