@@ -74,7 +74,7 @@ void test_broadcast_buffered_txn(void) {
       "{\"value\":100"
       ",\"tag\":\"" TEST_TAG
       "\","
-      "\"address\":\"" TRYTES_81_1
+      "\"address\":\"" TEST_ADDRESS
       "\","
       "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
 
@@ -92,6 +92,10 @@ void test_broadcast_buffered_txn(void) {
   // Push transaction trytes to redis server
   TEST_ASSERT_EQUAL_INT32(SC_OK, push_txn_to_buffer(&ta_core.cache, raw_txn_array, uuid));
 
+  flex_trit_t txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1] = {};
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_get(uuid, (char*)txn_flex_trits));
+  TEST_ASSERT_FALSE(flex_trits_are_null(txn_flex_trits, NUM_FLEX_TRITS_SERIALIZED_TRANSACTION));
+
   TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.buffer_list_name, &list_len));
   TEST_ASSERT_EQUAL_INT32(init_list_len + 1, list_len);
 
@@ -102,8 +106,61 @@ void test_broadcast_buffered_txn(void) {
   TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.buffer_list_name, &list_len));
   TEST_ASSERT_EQUAL_INT32(init_list_len, list_len);
 
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_get(uuid, (char*)txn_flex_trits));
+  TEST_ASSERT_FALSE(flex_trits_are_null(txn_flex_trits, NUM_FLEX_TRITS_SERIALIZED_TRANSACTION));
+
   ta_send_transfer_req_free(&req);
   hash_array_free(raw_txn_array);
+}
+
+void test_fetch_txn_with_uuid(void) {
+  // Generate transaction trytes, and don't send them
+  const char* json =
+      "{\"value\":100"
+      ",\"tag\":\"" TEST_TAG
+      "\","
+      "\"address\":\"" TEST_ADDRESS
+      "\","
+      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+
+  char uuid[UUID_STR_LEN];
+  ta_send_transfer_req_t* req = ta_send_transfer_req_new();
+  hash8019_array_p raw_txn_array = hash8019_array_new();
+  ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
+  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, TEST_UUID, res));
+  TEST_ASSERT_EQUAL_INT32(NOT_EXIST, res->status);
+
+  // Preparing transaction
+  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_send_transfer_req_deserialize(json, req));
+  TEST_ASSERT_EQUAL_INT32(SC_OK, prepare_transfer(&ta_core.iota_conf, &ta_core.iota_service, req, raw_txn_array));
+
+  // Push transaction trytes to redis server
+  TEST_ASSERT_EQUAL_INT32(SC_OK, push_txn_to_buffer(&ta_core.cache, raw_txn_array, uuid));
+  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, uuid, res));
+  TEST_ASSERT_EQUAL_INT32(UNSENT, res->status);
+
+  // Take action to broadcast transctions in buffer
+  TEST_ASSERT_EQUAL_INT32(SC_OK, broadcast_buffered_txn(&ta_core));
+  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, uuid, res));
+  TEST_ASSERT_EQUAL_INT32(SENT, res->status);
+  tryte_t all[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {};
+  flex_trit_t* transaction_flex_trits = transaction_serialize(res->txn);
+  flex_trits_to_trytes(all, NUM_TRYTES_SERIALIZED_TRANSACTION, transaction_flex_trits, NUM_TRITS_SERIALIZED_TRANSACTION,
+                       NUM_TRITS_SERIALIZED_TRANSACTION);
+  tryte_t trytes[NUM_TRYTES_MESSAGE + 1] = {};
+  flex_trits_to_trytes(trytes, NUM_TRYTES_TAG, transaction_tag(res->txn), NUM_TRITS_TAG, NUM_TRITS_TAG);
+  TEST_ASSERT_EQUAL_STRING(TEST_TAG, (char*)trytes);
+  flex_trits_to_trytes(trytes, NUM_TRYTES_HASH, transaction_address(res->txn), NUM_TRITS_HASH, NUM_TRITS_HASH);
+  TEST_ASSERT_EQUAL_STRING(TEST_ADDRESS, (char*)trytes);
+  flex_trits_to_trytes(trytes, NUM_TRYTES_MESSAGE, transaction_message(res->txn), NUM_TRITS_MESSAGE, NUM_TRITS_MESSAGE);
+  char txn_msg_ascii[NUM_TRYTES_MESSAGE / 2 + 1] = {};
+  trytes_to_ascii(trytes, NUM_TRYTES_MESSAGE, txn_msg_ascii);
+  TEST_ASSERT_EQUAL_STRING(TEST_TRANSFER_MESSAGE, txn_msg_ascii);
+
+  ta_send_transfer_req_free(&req);
+  hash_array_free(raw_txn_array);
+  ta_fetch_txn_with_uuid_res_free(&res);
+  free(transaction_flex_trits);
 }
 
 int main(int argc, char* argv[]) {
@@ -121,6 +178,7 @@ int main(int argc, char* argv[]) {
 
   UNITY_BEGIN();
   RUN_TEST(test_broadcast_buffered_txn);
+  RUN_TEST(test_fetch_txn_with_uuid);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }

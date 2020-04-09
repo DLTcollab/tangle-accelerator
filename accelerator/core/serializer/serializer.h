@@ -357,6 +357,18 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, int* const 
  */
 status_t get_iri_status_res_serialize(const status_t status, char** obj);
 
+/**
+ * @brief Serialze the response of `fetch_txn_with_uuid()`.
+ *
+ * @param[in] res ta_fetch_txn_with_uuid_res_t object
+ * @param[out] obj Serialized API response
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj);
+
 #ifdef __cplusplus
 }
 #endif

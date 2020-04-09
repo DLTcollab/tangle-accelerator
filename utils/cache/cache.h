@@ -105,7 +105,7 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
                    const int timeout);
 
 /**
- * Push a elements to a list into in-memory cache
+ * Push an elements to a list into in-memory cache
  *
  * @param[in] key Key string to store
  * @param[in] key_size Size of key string to store
@@ -118,8 +118,7 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size,
-                         const int timeout);
+status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size);
 
 /**
  * Get an element of a list from in-memory cache
@@ -159,6 +158,22 @@ status_t cache_list_peek(const char* const key, const int res_len, char* res);
  * - non-zero on error
  */
 status_t cache_list_size(const char* const key, int* len);
+
+/**
+ * Push an elements to a list into in-memory cache
+ *
+ * @param key[in] Key string to store
+ * @param key_size[in] Size of key string to store
+ * @param value[in] Value string to store
+ * @param value_size[in] Size of value string to store
+ * @param exist[out] Whether the given value existed in the key storage.
+ * set.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_exist(const char* const key, const char* const value, const int value_len, bool* exist);
 
 /**
  * Pop an element from the list in in-memory cache

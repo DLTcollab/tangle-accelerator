@@ -107,7 +107,8 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
- * @param[in] trytes Trytes that will be attached to tangle
+ * @param[in, out] trytes Trytes that will be attached to tangle. The output trytes are the ones with completed PoW and
+ * Tangle broadcasting, and broadcast to Tangle.
  *
  * @return
  * - SC_OK on success
@@ -285,6 +286,25 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
  * - non-zero on error
  */
 status_t broadcast_buffered_txn(const ta_core_t* const core);
+
+/**
+ * @brief Return the transaction object status according to the given UUID
+ *
+ * If the given UUID points to a sent transaction, then `ta_fetch_txn_with_uuid` will return the content of the
+ * transaction object. If the transaction have been sent yet, then return unsent. If tangle-accelerator can't find the
+ * UUID in redis then it will return no_exist. In the current implementation, we used Redis to buffer all the
+ * transactions.
+ *
+ * @param cache[in] redis configuration variables
+ * @param uuid[in] Given UUID
+ * @param res[out] ta_fetch_txn_with_uuid_res_t contains the transaction object and status
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
+                                ta_fetch_txn_with_uuid_res_t* res);
 
 #ifdef __cplusplus
 }

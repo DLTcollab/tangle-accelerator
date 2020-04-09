@@ -282,6 +282,19 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
  */
 status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result);
 
+/**
+ * @brief Fetch transaction information with UUID.
+ *
+ * @param[in] cache Redis configuration variables
+ * @param[in] uuid Requesting UUID
+ * @param[out] json_result Result containing the current connection status.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid, char** json_result);
+
 #ifdef DB_ENABLE
 /**
  * @brief Return transaction object with given single identity number.

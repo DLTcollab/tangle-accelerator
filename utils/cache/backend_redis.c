@@ -99,7 +99,7 @@ static status_t redis_set(redisContext* c, const char* const key, const int key_
 }
 
 static status_t redis_list_push(redisContext* c, const char* const key, const int key_size, const void* const value,
-                                const int value_size, const int timeout) {
+                                const int value_size) {
   status_t ret = SC_OK;
   if (c == NULL || key == NULL || value == NULL) {
     ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
@@ -125,7 +125,7 @@ static status_t redis_list_at(redisContext* c, const char* const key, const int 
   }
 
   redisReply* reply = redisCommand(c, "LINDEX %s %d", key, index);
-  if (reply->type == REDIS_REPLY_STRING && reply->len <= res_len) {
+  if (reply->type == REDIS_REPLY_STRING && ((int)reply->len) <= res_len) {
     strncpy(res, reply->str, reply->len);
     res[reply->len] = 0;
   } else {
@@ -145,7 +145,7 @@ static status_t redis_list_peek(redisContext* c, const char* const key, const in
   }
 
   redisReply* reply = redisCommand(c, "LINDEX %s %d", key, 0);
-  if (reply->type == REDIS_REPLY_STRING && reply->len <= res_len) {
+  if (reply->type == REDIS_REPLY_STRING && ((int)reply->len) <= res_len) {
     strncpy(res, reply->str, reply->len);
     res[reply->len] = 0;
   } else {
@@ -166,13 +166,44 @@ static status_t redis_list_size(redisContext* c, const char* const key, int* len
 
   redisReply* reply = redisCommand(c, "LLEN %s", key);
   if (reply->type != REDIS_REPLY_ERROR) {
-    *len = reply->integer;
+    // We constrain the length should less than the maximun of `int`
+    *len = (int)reply->integer;
   } else {
     ret = SC_CACHE_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
   freeReplyObject(reply);
+  return ret;
+}
+
+static status_t redis_list_exist(redisContext* c, const char* const key, const char* const value, const int value_len,
+                                 bool* exist) {
+  status_t ret = SC_OK;
+  if (key == NULL || value == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
+    return SC_CACHE_NULL;
+  }
+  char res[value_len + 1];
+  int len = 0;
+  *exist = false;
+
+  if (redis_list_size(c, key, &len) != SC_OK) {
+    ret = SC_CACHE_FAILED_RESPONSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  }
+
+  for (int i = 0; i < len; ++i) {
+    if (redis_list_at(c, key, i, value_len, res) == SC_OK) {
+      if (!memcmp(value, res, value_len)) {
+        *exist = true;
+      }
+    } else {
+      ret = SC_CACHE_FAILED_RESPONSE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+    }
+  }
+
   return ret;
 }
 
@@ -250,13 +281,12 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
   return redis_set(CONN(cache)->rc, key, key_size, value, value_size, timeout);
 }
 
-status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size,
-                         const int timeout) {
+status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size) {
   if (!cache_state) {
     ta_log_info("%s\n", "SC_CACHE_OFF");
     return SC_CACHE_OFF;
   }
-  return redis_list_push(CONN(cache)->rc, key, key_size, value, value_size, timeout);
+  return redis_list_push(CONN(cache)->rc, key, key_size, value, value_size);
 }
 
 status_t cache_list_at(const char* const key, const int index, const int res_len, char* res) {
@@ -281,6 +311,14 @@ status_t cache_list_size(const char* const key, int* len) {
     return SC_CACHE_OFF;
   }
   return redis_list_size(CONN(cache)->rc, key, len);
+}
+
+status_t cache_list_exist(const char* const key, const char* const value, const int value_len, bool* exist) {
+  if (!cache_state) {
+    ta_log_info("%s\n", "SC_CACHE_OFF");
+    return SC_CACHE_OFF;
+  }
+  return redis_list_exist(CONN(cache)->rc, key, value, value_len, exist);
 }
 
 status_t cache_list_pop(const char* const key, char* res) {

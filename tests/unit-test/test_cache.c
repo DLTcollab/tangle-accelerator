@@ -51,7 +51,7 @@ void test_generate_uuid(void) {
 
 void test_cache_list_push(void) {
   TEST_ASSERT_EQUAL_INT(
-      SC_OK, cache_list_push(TEST_UUID_LIST_NAME, strlen(TEST_UUID_LIST_NAME), TEST_UUID, strlen(TEST_UUID), 0));
+      SC_OK, cache_list_push(TEST_UUID_LIST_NAME, strlen(TEST_UUID_LIST_NAME), TEST_UUID, strlen(TEST_UUID)));
 }
 
 void test_cache_list_at(void) {

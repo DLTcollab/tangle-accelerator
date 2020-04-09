@@ -103,8 +103,13 @@ status_t ta_send_trytes(const ta_config_t* const info, const iota_config_t* cons
     goto done;
   }
 
-  // set the value of attach_res->trytes as output trytes result
-  memcpy(trytes, attach_res->trytes, hash_array_len(attach_res->trytes) * sizeof(flex_trit_t));
+  // Clear the old data in the hash_array `trytes`
+  utarray_clear(trytes);
+  const int attach_res_trytes_len = hash_array_len(attach_res->trytes);
+  for (int i = 0; i < attach_res_trytes_len; ++i) {
+    // set the value of attach_res->trytes as output trytes result
+    hash_array_push(trytes, hash_array_at(attach_res->trytes, i));
+  }
 
 done:
   get_transactions_to_approve_req_free(&tx_approve_req);
@@ -619,8 +624,7 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
     goto done;
   }
 
-  ret =
-      cache_list_push(cache->buffer_list_name, strlen(cache->buffer_list_name), uuid, UUID_STR_LEN - 1, cache->timeout);
+  ret = cache_list_push(cache->buffer_list_name, strlen(cache->buffer_list_name), uuid, UUID_STR_LEN - 1);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
@@ -634,6 +638,31 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
   int uuid_list_len = 0;
   hash8019_array_p txn_trytes_array = hash8019_array_new();
 
+  /*
+   *There are 4 data structures used here.
+   * 1. List: A list of unsent uuid which can be used to identify an unsent transaction object
+   * 2. Key-value: UUID to unsent transaction object in `flex_trit_t`
+   * 3. List: Store all the UUID of sent transaction objects. (We could use set after investigation in the future)
+   * 4. Key-value: UUID to sent transaction object in `flex_trit_t`
+   *
+   * 'push_txn_to_buffer()':
+   *    Push UUID to the unsent UUID list.
+   *    Store UUID as key and unsent transaction `flex_trit_t` as value.
+   *
+   * 'broadcast_buffered_txn()':
+   *    Pop an unsent UUID in the unsent UUID list.
+   *    Delete UUID-unsent_transaction pair from key value storage
+   *    Store UUID as key and sent transaction object in `flex_trit_t` as value.
+   *    Push UUID of sent transaction into sent transaction list.
+   *
+   * 'ta_fetch_txn_with_uuid()':
+   *    Fetch transaction object with UUID in key-value storage.
+   *    Delete UUID from sent transaction list
+   *    Delete UUID-sent_transaction pair from key-value storage
+   */
+
+  get_trytes_req_t* req;
+  get_trytes_res_t* res;
   do {
     char uuid[UUID_STR_LEN];
     flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
@@ -664,25 +693,113 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
+
+    // TODO Update the transaction object saved in redis, which allows `ta_fetch_txn_with_uuid()` to return the
+    // transaction object much faster.
+    // TODO We assume only one transaction need to be broadcasted each time
+    req = get_trytes_req_new();
+    res = get_trytes_res_new();
+    iota_transaction_t txn;
+    transaction_deserialize_from_trits(&txn, hash_array_at(txn_trytes_array, 0), true);
+    flex_trit_t* hash = transaction_hash(&txn);
+
+    ret = hash243_queue_push(&req->hashes, hash);
+    if (ret) {
+      ret = SC_CCLIENT_HASH;
+      ta_log_error("%s\n", "SC_CCLIENT_HASH");
+      goto done;
+    }
     utarray_done(txn_trytes_array);
 
+    ret = iota_client_get_trytes(&core->iota_service, req, res);
+    if (ret) {
+      ret = SC_CCLIENT_FAILED_RESPONSE;
+      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      goto done;
+    }
+
+    // Delete the old transaction object
+    ret = cache_del(uuid);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    ret = cache_set(uuid, UUID_STR_LEN - 1, hash8019_queue_peek(res->trytes), NUM_FLEX_TRITS_SERIALIZED_TRANSACTION,
+                    core->cache.timeout);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
     // Pop transaction from buffered list
-    ret = cache_list_pop(core->cache.buffer_list_name, (char*)req_txn_flex_trits);
+    ret = cache_list_pop(core->cache.buffer_list_name, (char*)uuid);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
     // Transfer the transaction to another list in where we store all the successfully broadcasted transactions.
-    ret = cache_list_push(core->cache.done_list_name, strlen(core->cache.done_list_name), uuid, UUID_STR_LEN - 1,
-                          core->cache.timeout);
+    ret = cache_list_push(core->cache.done_list_name, strlen(core->cache.done_list_name), uuid, UUID_STR_LEN - 1);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
+    get_trytes_req_free(&req);
+    get_trytes_res_free(&res);
   } while (!uuid_list_len);
 
 done:
   hash_array_free(txn_trytes_array);
+  get_trytes_req_free(&req);
+  get_trytes_res_free(&res);
+  return ret;
+}
+
+status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
+                                ta_fetch_txn_with_uuid_res_t* res) {
+  status_t ret = SC_OK;
+  flex_trit_t txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
+
+  bool exist = false;
+  ret = cache_list_exist(cache->buffer_list_name, uuid, UUID_STR_LEN - 1, &exist);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+  if (exist) {
+    res->status = UNSENT;
+    goto done;
+  }
+
+  ret = cache_list_exist(cache->done_list_name, uuid, UUID_STR_LEN - 1, &exist);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+  if (exist) {
+    res->status = SENT;
+
+    ret = cache_get(uuid, (char*)txn_flex_trits);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    res->txn = transaction_deserialize(txn_flex_trits, false);
+    if (res->txn == NULL) {
+      ret = SC_CORE_OOM;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    ret = cache_del(uuid);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+  }
+
+done:
   return ret;
 }
