@@ -30,9 +30,7 @@ typedef struct {
   /** Transaction address is a 243 long flex trits hash queue. */
   hash243_queue_t hash;
   transaction_array_t* txn_array;
-  // If the value of `CASS_UUID_STRING_LENGTH` changes, then we may need to modify array length of uuid_string as well,
-  // since UUID_STR_LEN is defined in `uuid/uuid.h`.
-  char uuid[UUID_STR_LEN];
+  char* uuid;
 #ifdef DB_ENABLE
   char uuid_string[DB_UUID_STRING_LENGTH];
 #endif

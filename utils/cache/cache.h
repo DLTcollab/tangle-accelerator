@@ -136,6 +136,19 @@ status_t cache_list_push(const char* const key, const int key_size, const void* 
 status_t cache_list_at(const char* const key, const int index, const int res_len, char* res);
 
 /**
+ * Get the top element of a list from in-memory cache
+ *
+ * @param[in] key Key string to search
+ * @param[in] res_len Expected length of the respose
+ * @param[out] res The element with assigning index
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_peek(const char* const key, const int res_len, char* res);
+
+/**
  * Fetch the length of the list in in-memory cache
  *
  * @param[in] key Key string to store

@@ -53,6 +53,8 @@ extern "C" {
   "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
   "NNAPGHA"
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
+#define BUFFER_LIST_NAME "txn_buff_list"
+#define DONE_LIST_NAME "done_txn_buff_list"
 #define IRI_HEALTH_TRACK_PERIOD 1800  // Check every half hour in default
 
 /** @name Redis connection config */
@@ -88,9 +90,12 @@ typedef struct iota_config_s {
 
 /** struct type of accelerator cache */
 typedef struct ta_cache_s {
-  char* host;       /**< Binding address of redis server */
-  uint16_t port;    /**< Binding port of redis server */
-  bool cache_state; /**< Set it true to turn on cache server */
+  char* host;             /**< Binding address of redis server */
+  uint64_t timeout;       /**< Timeout for keys in redis */
+  char* buffer_list_name; /**< Name of the list to buffer transactions */
+  char* done_list_name;   /**< Name of the list to store successfully broadcast transactions from buffer */
+  uint16_t port;          /**< Binding port of redis server */
+  bool cache_state;       /**< Set it true to turn on cache server */
 } ta_cache_t;
 
 /** struct type of accelerator core */

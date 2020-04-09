@@ -4,7 +4,6 @@ cc_library(
     hdrs = ["apis.h"],
     linkopts = [
         "-lpthread",
-        "-luuid",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -35,6 +34,9 @@ cc_library(
     name = "core",
     srcs = ["core.c"],
     hdrs = ["core.h"],
+    linkopts = [
+        "-luuid",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//accelerator:ta_config",

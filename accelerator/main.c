@@ -20,7 +20,7 @@ static void ta_stop(int signal) {
   }
 }
 
-void check_iri_connection(void* arg) {
+void health_track(void* arg) {
   ta_core_t* core = (ta_core_t*)arg;
   while (true) {
     status_t ret = ta_get_iri_status(&core->iota_service);
@@ -29,6 +29,14 @@ void check_iri_connection(void* arg) {
       ret = ta_update_iri_conneciton(&core->ta_conf, &core->iota_service);
       if (ret) {
         ta_log_error("Update IRI host failed: %d\n", ret);
+      }
+    }
+
+    // Broadcast buffered transactions
+    if (ret == SC_OK) {
+      ret = broadcast_buffered_txn(core);
+      if (ret) {
+        ta_log_error("Broadcast buffered transactions fialed. %s\n", ta_error_to_string(ret));
       }
     }
 
@@ -69,7 +77,7 @@ int main(int argc, char* argv[]) {
   }
 
   pthread_t thread;
-  pthread_create(&thread, NULL, check_iri_connection, &ta_core);
+  pthread_create(&thread, NULL, health_track, &ta_core);
 
   // Initialize apis cJSON lock
   if (apis_lock_init() != SC_OK) {

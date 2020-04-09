@@ -31,7 +31,6 @@ status_t ta_attach_to_tangle(const attach_to_tangle_req_t* const req, attach_to_
   iota_transaction_t tx;
   flex_trit_t* elt = NULL;
 
-  // TODO Save fetched transaction object in a set.
   // create bundle
   bundle_transactions_new(&bundle);
   HASH_ARRAY_FOREACH(req->trytes, elt) {
@@ -91,7 +90,9 @@ status_t ta_send_trytes(const ta_config_t* const info, const iota_config_t* cons
   HASH_ARRAY_FOREACH(trytes, elt) { attach_to_tangle_req_trytes_add(attach_req, elt); }
   attach_to_tangle_req_init(attach_req, get_transactions_to_approve_res_trunk(tx_approve_res),
                             get_transactions_to_approve_res_branch(tx_approve_res), iconf->mwm);
-  if (ta_attach_to_tangle(attach_req, attach_res) != SC_OK) {
+  ret = ta_attach_to_tangle(attach_req, attach_res);
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -163,8 +164,8 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
 }
 
 status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* const iconf,
-                          const iota_client_service_t* const service, const ta_send_transfer_req_t* const req,
-                          ta_send_transfer_res_t* res) {
+                          const iota_client_service_t* const service, const ta_cache_t* const cache,
+                          const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res) {
   if (req == NULL || res == NULL) {
     ta_log_error("%s\n", "SC_TA_NULL");
     return SC_TA_NULL;
@@ -225,6 +226,9 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
 
   ret = ta_send_trytes(info, iconf, service, raw_tx);
   if (ret) {
+    ta_log_error("Error in ta_send_trytes. Push transaction trytes to buffer.\n");
+    res->uuid = (char*)malloc(sizeof(char) * UUID_STR_LEN);
+    push_txn_to_buffer(cache, raw_tx, res->uuid);
     goto done;
   }
 
@@ -595,5 +599,97 @@ status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_servic
   }
 
 done:
+  return ret;
+}
+
+status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_txn_flex_trit_array, char* uuid) {
+  status_t ret = SC_OK;
+  if (!uuid) {
+    ret = SC_CORE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  uuid_t binuuid;
+  uuid_generate_random(binuuid);
+  uuid_unparse(binuuid, uuid);
+  if (!uuid[0]) {
+    ta_log_error("%s\n", "Failed to generate UUID");
+    goto done;
+  }
+
+  // TODO We push only one transaction raw trits into list, we need to solve this in future.
+  ret = cache_set(uuid, UUID_STR_LEN - 1, hash_array_at(raw_txn_flex_trit_array, 0),
+                  NUM_FLEX_TRITS_SERIALIZED_TRANSACTION, cache->timeout);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  ret =
+      cache_list_push(cache->buffer_list_name, strlen(cache->buffer_list_name), uuid, UUID_STR_LEN - 1, cache->timeout);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  }
+
+done:
+  return ret;
+}
+
+status_t broadcast_buffered_txn(const ta_core_t* const core) {
+  status_t ret = SC_OK;
+  int uuid_list_len = 0;
+  hash8019_array_p txn_trytes_array = hash8019_array_new();
+
+  do {
+    char uuid[UUID_STR_LEN];
+    flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
+
+    ret = cache_list_size(core->cache.buffer_list_name, &uuid_list_len);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    ret = cache_list_peek(core->cache.buffer_list_name, UUID_STR_LEN, uuid);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    // TODO Now we assume every time we call `cache_get()`, we would get a transaction object. However, in the future,
+    // the returned result may be a bunlde.
+    ret = cache_get(uuid, (char*)req_txn_flex_trits);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    hash_array_push(txn_trytes_array, req_txn_flex_trits);
+    ret = ta_send_trytes(&core->ta_conf, &core->iota_conf, &core->iota_service, txn_trytes_array);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+    utarray_done(txn_trytes_array);
+
+    // Pop transaction from buffered list
+    ret = cache_list_pop(core->cache.buffer_list_name, (char*)req_txn_flex_trits);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    // Transfer the transaction to another list in where we store all the successfully broadcasted transactions.
+    ret = cache_list_push(core->cache.done_list_name, strlen(core->cache.done_list_name), uuid, UUID_STR_LEN - 1,
+                          core->cache.timeout);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+  } while (!uuid_list_len);
+
+done:
+  hash_array_free(txn_trytes_array);
   return ret;
 }
