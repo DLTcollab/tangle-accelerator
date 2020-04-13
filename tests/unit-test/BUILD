@@ -55,3 +55,37 @@ cc_test(
         "//utils:timer",
     ],
 )
+
+cc_test(
+    name = "test_text_serializer",
+    srcs = [
+        "test_text_serializer.c",
+    ],
+    deps = [
+        "//tests:test_define",
+        "//utils:cipher",
+        "//utils:text_serializer",
+    ],
+)
+
+cc_test(
+    name = "test_cipher",
+    srcs = [
+        "test_cipher.c",
+    ],
+    deps = [
+        "//tests:test_define",
+        "//utils:cipher",
+    ],
+)
+
+cc_test(
+    name = "test_tryte_byte_conv",
+    srcs = [
+        "test_tryte_byte_conv.c",
+    ],
+    deps = [
+        "//tests:test_define",
+        "//utils:tryte_byte_conv",
+    ],
+)

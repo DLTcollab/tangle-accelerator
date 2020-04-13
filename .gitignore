@@ -92,3 +92,6 @@ docs/html/
 
 # Python
 __pycache__/
+
+# Certificate for build system
+pem/*.inc
