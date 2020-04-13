@@ -27,7 +27,7 @@ extern "C" {
 #define NUM_TRYTES_MAM_NTRU_PK_SIZE MAM_NTRU_PK_SIZE / 3
 #define NUM_TRYTES_MAM_PSK_KEY_SIZE MAM_PSK_KEY_SIZE / 3
 
-#define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int:(-!!(e)); })))
+#define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int : (-!!(e)); })))
 #define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
 #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))

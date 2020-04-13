@@ -7,3 +7,14 @@
 [submodule "third_party/mosquitto"]
 	path = third_party/mosquitto
 	url = https://github.com/eclipse/mosquitto.git
+
+# Endpoint
+[submodule "third_party/mbedtls"]
+	path = endpoint/third_party/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+[submodule "third_party/http-parser"]
+	path = endpoint/third_party/http-parser
+	url = https://github.com/nodejs/http-parser.git
+[submodule "third_party/Unity"]
+	path = endpoint/third_party/Unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
