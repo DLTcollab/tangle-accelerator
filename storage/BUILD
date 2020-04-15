@@ -4,7 +4,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":scylladb_identity",
-        ":scylladb_permanode",
     ],
 )
 
@@ -16,18 +15,6 @@ cc_library(
     deps = [
         ":scylladb_client",
         "@com_github_uthash//:uthash",
-    ],
-)
-
-cc_library(
-    name = "scylladb_permanode",
-    srcs = ["scylladb_permanode.c"],
-    hdrs = ["scylladb_permanode.h"],
-    linkopts = ["-lcassandra"],
-    deps = [
-        ":scylladb_client",
-        "@com_github_uthash//:uthash",
-        "@entangled//utils/containers/hash:hash243_queue",
     ],
 )
 

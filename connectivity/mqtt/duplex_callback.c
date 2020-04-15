@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -28,6 +28,23 @@ int mqtt_callback_logger_release() {
   return 0;
 }
 
+status_t check_valid_tag(char *tag) {
+  size_t len = strnlen(tag, NUM_TRYTES_TAG + 1);
+  if (len < 1 || len > NUM_TRYTES_TAG) {
+    ta_log_error("%s", ta_error_to_string(SC_MQTT_INVALID_TAG));
+    return SC_MQTT_INVALID_TAG;
+  }
+
+  for (size_t i = 0; i < len; ++i) {
+    if ((tag[i] > 'Z' || tag[i] < 'A') && tag[i] != '9') {
+      ta_log_error("%s", ta_error_to_string(SC_MQTT_INVALID_TAG));
+      return SC_MQTT_INVALID_TAG;
+    }
+  }
+
+  return SC_OK;
+}
+
 static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, char *req) {
   if (cfg == NULL || subscribe_topic == NULL || req == NULL) {
     return SC_MQTT_NULL;
@@ -50,21 +67,33 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   else if (api_path_matcher(api_sub_topic, "/tag/hashes") == SC_OK) {
     char tag[NUM_TRYTES_TAG + 1] = {0};
     mqtt_tag_req_deserialize(req, tag);
-    ret = api_find_transactions_by_tag(&ta_core.iota_service, tag, &json_result);
+    if (check_valid_tag(tag) == SC_OK) {
+      ret = api_find_transactions_by_tag(&ta_core.iota_service, tag, &json_result);
+    } else {
+      ret = SC_HTTP_URL_NOT_MATCH;
+    }
   } else if (api_path_matcher(api_sub_topic, "/tag/object") == SC_OK) {
     char tag[NUM_TRYTES_TAG + 1] = {0};
     mqtt_tag_req_deserialize(req, tag);
-    ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, tag, &json_result);
-  } else if (api_path_matcher(api_sub_topic, "/transaction/object") == SC_OK) {
+    if (check_valid_tag(tag) == SC_OK) {
+      ret = api_find_transactions_obj_by_tag(&ta_core.iota_service, tag, &json_result);
+    } else {
+      ret = SC_HTTP_URL_NOT_MATCH;
+    }
+  } else if (api_path_matcher(api_sub_topic, "/transaction") == SC_OK) {
     char hash[NUM_TRYTES_HASH + 1];
     mqtt_transaction_hash_req_deserialize(req, hash);
     ret = api_find_transaction_object_single(&ta_core.iota_service, hash, &json_result);
-  } else if (api_path_matcher(api_sub_topic, "/transaction/send") == SC_OK)
+  } else if (api_path_matcher(api_sub_topic, "/transaction/object") == SC_OK) {
+    ret = api_find_transaction_objects(&ta_core.iota_service, req, &json_result);
+  } else if (api_path_matcher(api_sub_topic, "/transaction/send") == SC_OK) {
     ret = api_send_transfer(&ta_core, req, &json_result);
-  else if (api_path_matcher(api_sub_topic, "/tips/all") == SC_OK)
+  } else if (api_path_matcher(api_sub_topic, "/tips/all") == SC_OK)
     ret = api_get_tips(&ta_core.iota_service, &json_result);
   else if (api_path_matcher(api_sub_topic, "/tips/pair") == SC_OK)
     ret = api_get_tips_pair(&ta_core.iota_conf, &ta_core.iota_service, &json_result);
+  else if (api_path_matcher(api_sub_topic, "/tryte") == SC_OK)
+    ret = api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, &json_result);
   else {
     cJSON *json_obj = cJSON_CreateObject();
     cJSON_AddStringToObject(json_obj, "message", api_sub_topic);

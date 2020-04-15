@@ -20,7 +20,8 @@ static void ta_stop(int signal) {
   }
 }
 
-void check_iri_connection(ta_core_t* const core) {
+void check_iri_connection(void* arg) {
+  ta_core_t* core = (ta_core_t*)arg;
   while (true) {
     status_t ret = ta_get_iri_status(&core->iota_service);
     if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {

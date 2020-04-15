@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2018-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -283,7 +283,7 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
 #ifdef MQTT_ENABLE
 /**
- * @brief Deserialze device ID from MQTT JSON request.
+ * @brief Deserialize device ID from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with device ID
  * @param[out] device_id Device ID in string

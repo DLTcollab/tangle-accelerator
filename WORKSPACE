@@ -31,7 +31,6 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 container_repositories()
 
 load("@io_bazel_rules_docker//cc:image.bzl", _cc_image_repos = "repositories")
-
 load("@io_bazel_rules_docker//container:pull.bzl", "container_pull")
 
 container_pull(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -23,7 +23,6 @@ extern "C" {
  */
 
 #define ID_LEN 32
-#define API_NUM 7
 
 typedef enum client_type_s { client_pub, client_sub, client_duplex } client_type_t;
 
@@ -37,7 +36,6 @@ typedef struct mosq_general_config_s {
   int port;
   int qos;
   int last_mid;
-  bool retain;
   client_type_t client_type;
   unsigned int max_inflight;
   char *username;
@@ -46,6 +44,7 @@ typedef struct mosq_general_config_s {
   char *will_payload;
   long will_payloadlen;
   int will_qos;
+  bool retain;
   bool will_retain;
   bool clean_session;
 } mosq_general_config_t;

@@ -38,7 +38,7 @@ static int get_conf_key(char const* const key) {
 }
 
 status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET)) {
+  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET && key != NO_GTTA)) {
     ta_log_error("%s\n", "SC_CONF_NULL");
     return SC_CONF_NULL;
   }
@@ -186,9 +186,11 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case QUIET:
       quiet_mode = true;
       break;
-
     case PROXY_API:
       ta_conf->proxy_passthrough = true;
+      break;
+    case NO_GTTA:
+      ta_conf->gtta = false;
       break;
 
     // File configuration
@@ -225,6 +227,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
   ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
+  ta_conf->gtta = true;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
