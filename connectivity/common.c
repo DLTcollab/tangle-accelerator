@@ -63,6 +63,7 @@ status_t set_response_content(status_t ret, char **json_result) {
       break;
     case SC_CCLIENT_JSON_KEY:
     case SC_MAM_NO_PAYLOAD:
+    case SC_HTTP_URL_NOT_MATCH:
       http_ret = SC_HTTP_BAD_REQUEST;
       ta_log_error("%s\n", "SC_HTTP_BAD_REQUEST");
       *json_result = strdup(STR_HTTP_BAD_REQUEST);

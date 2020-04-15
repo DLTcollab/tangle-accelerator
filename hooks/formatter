@@ -9,3 +9,4 @@ for file in $(find $(git rev-parse --show-toplevel) | grep -E "\BUILD\$" | grep 
 do
   buildifier $file
 done
+buildifier WORKSPACE

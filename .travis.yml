@@ -1,3 +1,5 @@
+dist: bionic
+
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -14,6 +16,15 @@ before_install:
   - echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
   # Install and update Bazel
   - sudo apt update && sudo apt install bazel
+  # Install UUID library
+  - sudo apt install uuid-dev
+  # Install Cassandra C client library
+  - wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/dependencies/libuv/v1.35.0/libuv1_1.35.0-1_amd64.deb
+  - sudo dpkg -i libuv1_1.35.0-1_amd64.deb
+  - wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.15.1/cassandra-cpp-driver_2.15.1-1_amd64.deb
+  - sudo dpkg -i cassandra-cpp-driver_2.15.1-1_amd64.deb
+  - wget https://downloads.datastax.com/cpp-driver/ubuntu/18.04/cassandra/v2.15.1/cassandra-cpp-driver-dev_2.15.1-1_amd64.deb
+  - sudo dpkg -i cassandra-cpp-driver-dev_2.15.1-1_amd64.deb
 
 addons:
   coverity_scan:
@@ -25,4 +36,4 @@ addons:
     build_command: "bash tests/coverity_analysis.sh"
     branch_pattern: develop
 
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
+script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then bash -e tests/coverity_analysis.sh; fi
