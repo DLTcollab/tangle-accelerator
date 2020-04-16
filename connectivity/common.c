@@ -68,6 +68,11 @@ status_t set_response_content(status_t ret, char **json_result) {
       ta_log_error("%s\n", "SC_HTTP_BAD_REQUEST");
       *json_result = strdup(STR_HTTP_BAD_REQUEST);
       break;
+    case SC_SERIALIZER_MESSAGE_OVERRUN:
+      http_ret = SC_HTTP_BAD_REQUEST;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      *json_result = strdup(STR_HTTP_BAD_REQUEST_MESSAGE_OVERSIZE);
+      break;
     default:
       http_ret = SC_HTTP_INTERNAL_SERVICE_ERROR;
       ta_log_error("%s\n", "SC_HTTP_INTERNAL_SERVICE_ERROR");

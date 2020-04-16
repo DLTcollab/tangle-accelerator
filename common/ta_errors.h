@@ -113,6 +113,8 @@ typedef enum {
   /**< Unicode value in JSON */
   SC_SERIALIZER_INVALID_REQ = 0x05 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Invald request value in JSON */
+  SC_SERIALIZER_MESSAGE_OVERRUN = 0x06 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< Message length is out of valid size */
 
   // Cache module
   SC_CACHE_NULL = 0x01 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
