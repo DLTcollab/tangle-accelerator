@@ -48,6 +48,8 @@ const char* ta_error_to_string(status_t err) {
       return "Unicode value in JSON\n";
     case SC_SERIALIZER_INVALID_REQ:
       return "Invalid request value in JSON\n";
+    case SC_SERIALIZER_MESSAGE_OVERRUN:
+      return "Message length is out of valid size\n";
     case SC_CACHE_NULL:
       return "NULL object in cache\n";
     case SC_CACHE_FAILED_RESPONSE:
