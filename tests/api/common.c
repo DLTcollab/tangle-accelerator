@@ -36,15 +36,19 @@ status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv, driv
         exit(EXIT_SUCCESS);
       case 'H':
         // Take the arguments as testing transaction hashes
-        for (int i = 0; i < TXN_HASH_NUM; i++) {
-          if (!test_cases->txn_hash[i]) {
-            test_cases->txn_hash[i] = optarg;
+        if (test_cases) {
+          for (int i = 0; i < TXN_HASH_NUM; i++) {
+            if (!test_cases->txn_hash[i]) {
+              test_cases->txn_hash[i] = optarg;
+            }
           }
         }
         break;
       case 'T':
         // Take the arguments as testing transaction tag
-        test_cases->tag = optarg;
+        if (test_cases) {
+          test_cases->tag = optarg;
+        }
         break;
       default:
         ret = cli_core_set(core, key, optarg);
