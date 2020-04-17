@@ -192,6 +192,12 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case NO_GTTA:
       ta_conf->gtta = false;
       break;
+    case BUFFER_LIST:
+      cache->buffer_list_name = value;
+      break;
+    case DONE_LIST:
+      cache->done_list_name = value;
+      break;
 
     // File configuration
     case CONF_CLI: {
