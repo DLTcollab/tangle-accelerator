@@ -84,6 +84,7 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IRI node end point service
+ * @param[in] cache redis configuration variables
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
  * @param[out] res Result containing transaction hash in ta_send_transfer_res_t
@@ -93,8 +94,8 @@ status_t ta_generate_address(const iota_config_t* const iconf, const iota_client
  * - non-zero on error
  */
 status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* const iconf,
-                          const iota_client_service_t* const service, const ta_send_transfer_req_t* const req,
-                          ta_send_transfer_res_t* res);
+                          const iota_client_service_t* const service, const ta_cache_t* const cache,
+                          const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res);
 
 /**
  * @brief Send trytes to tangle.
@@ -253,6 +254,37 @@ status_t ta_get_iri_status(const iota_client_service_t* const service);
  * - non-zero on error
  */
 status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service);
+
+/**
+ * @brief Push failed transactions in raw trytes into transaction buffer
+ *
+ * Given raw trytes array would be pushed into buffer. An UUID will be returned for client to fetch the information of
+ * their request. The UUIDs are stored in a list, so once reaching the capacity of the buffer, buffered transactions can
+ * be popped from the buffer.
+ *
+ * @param cache[in] Redis configuration variables
+ * @param raw_txn_flex_trit_array[in] Raw transction trytes array in flex_trit_t type
+ * @param uuid[out] Returned UUID for fetching transaction status and information
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_txn_flex_trit_array, char* uuid);
+
+/**
+ * @brief Broadcast transactions in transaction buffer
+ *
+ * Failed transactions would be stored in transaciton buffer. Once tangle-accelerator retrieve the connetion with
+ * Tangle, then tangle-accelerator will start to broadcast these failed transaction trytes.
+ *
+ * @param core[in] Pointer to Tangle-accelerator core configuration structure
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t broadcast_buffered_txn(const ta_core_t* const core);
 
 #ifdef __cplusplus
 }

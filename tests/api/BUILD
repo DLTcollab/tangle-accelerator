@@ -1,3 +1,13 @@
+cc_library(
+    name = "common",
+    srcs = ["common.c"],
+    hdrs = ["common.h"],
+    deps = [
+        "//accelerator:ta_config",
+        "//common",
+    ],
+)
+
 cc_test(
     name = "driver",
     srcs = [
@@ -7,6 +17,7 @@ cc_test(
         "//accelerator/core:apis",
         "//accelerator/core:proxy_apis",
         "//tests:test_define",
+        "//tests/api:common",
     ],
 )
 
@@ -20,5 +31,18 @@ cc_binary(
         "//accelerator/core:apis",
         "//accelerator/core:proxy_apis",
         "//tests:test_define",
+        "//tests/api:common",
+    ],
+)
+
+cc_test(
+    name = "driver_core",
+    srcs = [
+        "driver_core.c",
+    ],
+    deps = [
+        "//accelerator/core",
+        "//tests:test_define",
+        "//tests/api:common",
     ],
 )

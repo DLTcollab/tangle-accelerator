@@ -15,11 +15,6 @@
 #include "mam/mam/mam_channel_t_set.h"
 #include "serializer/serializer.h"
 
-// TODO The temporary default timeout in cache server is 1 week. We should investigate the performance of redis to
-// design a better data structure and appropriate timeout period. And we should study the methodology to partially
-// release cached data.
-#define CACHE_FAILED_TXN_TIMEOUT (7 * 24 * 60 * 60)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -54,7 +49,7 @@ int apis_logger_release();
  * @param tangle[in] iota configuration variables
  * @param cache[in] redis configuration variables
  * @param service[in] IRI connection configuration variables
- * @param[out] json_result Result containing tangle accelerator information in json format
+ * @param json_result[out] Result containing tangle accelerator information in json format
  *
  * @return
  * - SC_OK on success

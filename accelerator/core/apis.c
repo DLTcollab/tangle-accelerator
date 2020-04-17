@@ -334,7 +334,6 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   }
 
   recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
-
   if (mam_api_init(&mam, (tryte_t*)iconf->seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
@@ -566,26 +565,10 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
     goto done;
   }
 
-  ret = ta_send_transfer(&core->ta_conf, &core->iota_conf, &core->iota_service, req, res);
+  ret = ta_send_transfer(&core->ta_conf, &core->iota_conf, &core->iota_service, &core->cache, req, res);
   if (ret == SC_CCLIENT_FAILED_RESPONSE) {
     lock_handle_unlock(&cjson_lock);
     ta_log_info("%s\n", "Caching transaction");
-    // TODO generate a UUID as redis key
-    uuid_t binuuid;
-    uuid_generate_random(binuuid);
-    uuid_unparse(binuuid, res->uuid);
-    if (!res->uuid[0]) {
-      ta_log_error("%s\n", "Failed to generate UUID");
-      goto done;
-    }
-
-    // Cache the txn in redis
-    // TODO use a timer to reattach these failed transactions
-    ret = cache_set(res->uuid, UUID_STR_LEN - 1, obj, strlen(obj), CACHE_FAILED_TXN_TIMEOUT);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
 
     // Cache the request and serialize UUID as response directly
     goto serialize;

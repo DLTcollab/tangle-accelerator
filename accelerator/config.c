@@ -236,6 +236,8 @@ status_t ta_core_default_init(ta_core_t* const core) {
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
   cache->cache_state = false;
+  cache->buffer_list_name = BUFFER_LIST_NAME;
+  cache->done_list_name = DONE_LIST_NAME;
 
   ta_log_info("Initializing IRI configuration\n");
   iota_conf->milestone_depth = MILESTONE_DEPTH;
