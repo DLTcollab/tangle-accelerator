@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -34,8 +34,8 @@ extern "C" {
  * @return return code
  */
 status_t ta_mam_init(mam_api_t* const api, const iota_config_t* const iconf, tryte_t const* const seed,
-                     int32_t channel_ord, mam_psk_t_set_t* const psks, mam_ntru_pk_t_set_t* const ntru_pks,
-                     tryte_t const* const psk, tryte_t const* const ntru_pk);
+                     mam_psk_t_set_t* const psks, mam_ntru_pk_t_set_t* const ntru_pks, tryte_t const* const psk,
+                     tryte_t const* const ntru_pk);
 
 /**
  * @brief Write payload to bundle on the smallest secret key.

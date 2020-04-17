@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -199,8 +199,8 @@ static mam_endpoint_t *mam_api_endpoint_get(mam_api_t const *const api, tryte_t 
  ***********************************************************************************************************/
 
 status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const iconf, tryte_t const *const seed,
-                     int32_t channel_ord, mam_psk_t_set_t *const psks, mam_ntru_pk_t_set_t *const ntru_pks,
-                     tryte_t const *const psk, tryte_t const *const ntru_pk) {
+                     mam_psk_t_set_t *const psks, mam_ntru_pk_t_set_t *const ntru_pks, tryte_t const *const psk,
+                     tryte_t const *const ntru_pk) {
   status_t ret = SC_OK;
   if (!api || (!iconf && !seed)) {
     return SC_MAM_NULL;
@@ -211,7 +211,6 @@ status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const iconf, try
       ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
       return SC_MAM_FAILED_INIT;
     }
-    api->channel_ord = channel_ord;
   } else {
     // Use local MAM file on the current machine
     retcode_t rc = mam_api_load(iconf->mam_file_path, api, NULL, 0);

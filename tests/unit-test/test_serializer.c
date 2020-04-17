@@ -224,13 +224,13 @@ void test_recv_mam_message_request_psk_deserialize(void) {
   ta_recv_mam_req_t* req = recv_mam_req_new();
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
-  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   TEST_ASSERT_NULL(data_id->bundle_hash);
   TEST_ASSERT_EQUAL_STRING(TEST_CHID, data_id->chid);
   TEST_ASSERT_EQUAL_STRING(TEST_EPID, data_id->epid);
   TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
 
-  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, key->enc_key, NUM_TRYTES_MAM_PSK_KEY_SIZE);
 
   recv_mam_req_free(&req);
@@ -244,13 +244,13 @@ void test_recv_mam_message_request_ntru_deserialize(void) {
   ta_recv_mam_req_t* req = recv_mam_req_new();
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
-  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
+  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   TEST_ASSERT_EQUAL_STRING(TEST_BUNDLE_HASH, data_id->bundle_hash);
   TEST_ASSERT_NULL(data_id->chid);
   TEST_ASSERT_NULL(data_id->epid);
   TEST_ASSERT_NULL(data_id->msg_id);
 
-  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
+  recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
   TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, key->enc_key, NUM_TRYTES_MAM_NTRU_PK_SIZE);
 
   recv_mam_req_free(&req);
@@ -258,20 +258,23 @@ void test_recv_mam_message_request_ntru_deserialize(void) {
 
 void test_send_mam_message_request_deserialize(void) {
   const char* json =
-      "{\"seed\":\"" TRYTES_81_1
-      "\",\"channel_ord\":" STR(TEST_CHANNEL_ORD) ",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(
-          TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(TEST_EP_DEPTH) ",\"ntru_pk\":\"" TEST_NTRU_PK
-                                                                 "\",\"psk\":\"" TRYTES_81_2 "\"}";
-  ta_send_mam_req_t* req = send_mam_req_new();
+      "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD
+      "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
+          TEST_EP_DEPTH) "},\"key\":{\"ntru\":[\"" TEST_NTRU_PK "\"],\"psk\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3
+                         "\"]}, \"protocol\":\"MAM_V1\"}";
 
+  ta_send_mam_req_t* req = send_mam_req_new();
   send_mam_req_deserialize(json, req);
-  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, req->seed, NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_INT(TEST_CHANNEL_ORD, req->channel_ord);
-  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, req->message);
-  TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, req->ch_mss_depth);
-  TEST_ASSERT_EQUAL_INT(TEST_EP_DEPTH, req->ep_mss_depth);
-  TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, req->ntru_pk, MAM_NTRU_PK_SIZE / 3);
-  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, req->psk, NUM_TRYTES_HASH);
+  send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
+
+  TEST_ASSERT_EQUAL_STRING(TEST_TOKEN, req->service_token);
+  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, data->seed, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, data->ch_mss_depth);
+  TEST_ASSERT_EQUAL_INT(TEST_EP_DEPTH, data->ep_mss_depth);
+  TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, data->message);
+  TEST_ASSERT_EQUAL_STRING(TEST_NTRU_PK, mamv1_ntru_key_at(req, 0));
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_2, mamv1_psk_key_at(req, 0));
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_3, mamv1_psk_key_at(req, 1));
 
   send_mam_req_free(&req);
 }

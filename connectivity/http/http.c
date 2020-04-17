@@ -189,9 +189,9 @@ static inline int process_find_transaction_by_id_request(ta_http_t *const http, 
 }
 #endif
 
-static inline int process_mam_send_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_send_mam_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_mam_send_message(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_mam_message(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -247,7 +247,7 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
     return process_recv_mam_msg_request(http, url, out);
   } else if (api_path_matcher(url, "/mam[/]?") == SC_OK) {
     if (payload != NULL) {
-      return process_mam_send_msg_request(http, payload, out);
+      return process_send_mam_msg_request(http, payload, out);
     }
     return process_method_not_allowed_request(out);
 

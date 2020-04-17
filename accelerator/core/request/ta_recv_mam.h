@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -21,8 +21,6 @@ extern "C" {
 /**
  * @file accelerator/core/request/ta_recv_mam.h
  */
-
-typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 
 /** struct of ta_recv_mam_req_t */
 typedef struct recv_mam_req_s {
@@ -50,22 +48,24 @@ ta_recv_mam_req_t* recv_mam_req_new();
  */
 void recv_mam_req_free(ta_recv_mam_req_t** req);
 
-typedef struct data_id_mam_v1_s {
-  /** ascii string bundle hash */
-  char* bundle_hash;
-  /** ascii string channel id */
-  char* chid;
-  /** ascii string endpoint id */
-  char* epid;
-  /** channel ordinal which is the number of channel we generated */
-  char* msg_id;
-} data_id_mam_v1_t;
+// TODO Implement interface of MAMv1.1
 
-typedef struct key_mam_v1_s {
+typedef struct recv_mam_data_id_mam_v1_s {
+  /** bundle hash in trytes */
+  tryte_t* bundle_hash;
+  /** channel id in trytes */
+  tryte_t* chid;
+  /** endpoint id in trytes */
+  tryte_t* epid;
+  /** message id in trytes */
+  tryte_t* msg_id;
+} recv_mam_data_id_mam_v1_t;
+
+typedef struct recv_mam_key_mam_v1_s {
   /** Message encryption key. This field could be Pre-Shared Key (81 trytes) or NTRU public key (1024 trytes). Default:
    * NULL. */
-  char* enc_key;
-} key_mam_v1_t;
+  tryte_t* enc_key;
+} recv_mam_key_mam_v1_t;
 
 /**
  * Set the data ID for MAMv1
@@ -80,7 +80,7 @@ typedef struct key_mam_v1_s {
  * - struct of ta_recv_mam_req_t on success
  * - NULL on error
  */
-status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id);
+status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id);
 
 /**
  * Set the key for MAMv1
@@ -93,7 +93,7 @@ status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chi
  * - struct of ta_recv_mam_req_t on success
  * - NULL on error
  */
-status_t set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru);
+status_t recv_mam_set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru);
 
 #ifdef __cplusplus
 }
