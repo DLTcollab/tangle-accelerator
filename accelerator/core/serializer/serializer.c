@@ -539,6 +539,13 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
       req->msg_len = msg_len * 3;
       flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
     }
+
+    if (req->msg_len > NUM_TRYTES_MESSAGE) {
+      ret = SC_SERIALIZER_MESSAGE_OVERRUN;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
   } else {
     // 'message' does not exists, set to DEFAULT_MSG
     req->msg_len = DEFAULT_MSG_LEN * 3;
