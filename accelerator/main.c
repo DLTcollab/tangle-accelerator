@@ -36,7 +36,7 @@ void health_track(void* arg) {
     if (ret == SC_OK) {
       ret = broadcast_buffered_txn(core);
       if (ret) {
-        ta_log_error("Broadcast buffered transactions fialed. %s\n", ta_error_to_string(ret));
+        ta_log_error("Broadcast buffered transactions failed. %s\n", ta_error_to_string(ret));
       }
     }
 
