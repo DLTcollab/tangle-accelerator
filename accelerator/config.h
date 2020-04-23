@@ -65,12 +65,12 @@ extern "C" {
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
-  char* version;                          /**< Binding version of tangle-accelerator */
-  char* host;                             /**< Binding address of tangle-accelerator */
-  int port;                               /**< Binding port of tangle-accelerator */
-  char* host_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding host of tangle-accelerator */
-  int port_list[MAX_IRI_LIST_ELEMENTS];   /**< List of binding port of tangle-accelerator */
-  int health_track_period;                /**< The period for checking IRI host connection status */
+  char* version;                                  /**< Binding version of tangle-accelerator */
+  char* host;                                     /**< Binding address of tangle-accelerator */
+  int port;                                       /**< Binding port of tangle-accelerator */
+  char* iota_host_list[MAX_IRI_LIST_ELEMENTS];    /**< List of binding hosts of IOTA services */
+  uint16_t iota_port_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding ports of IOTA services */
+  int health_track_period;                        /**< The period for checking IRI host connection status */
 #ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */

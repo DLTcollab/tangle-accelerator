@@ -52,6 +52,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 #endif
   char* strtol_p = NULL;
   long int strtol_temp;
+  uint8_t idx;
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
@@ -67,8 +68,8 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       break;
     case TA_THREAD_COUNT_CLI:
       strtol_temp = strtol(value, &strtol_p, 10);
-      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-        ta_conf->thread_count = (int)strtol_temp;
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= UCHAR_MAX) {
+        ta_conf->thread_count = (uint8_t)strtol_temp;
       } else {
         ta_log_error("Malformed input or illegal input character\n");
       }
@@ -76,48 +77,24 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 
     // IRI configuration
     case IRI_HOST_CLI:
-      iota_service->http.host = value;
+      idx = 0;
+      for (char* p = strtok(value, ","); p && idx < MAX_IRI_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+        ta_conf->iota_host_list[idx] = p;
+      }
+      iota_service->http.host = ta_conf->iota_host_list[0];
       break;
     case IRI_PORT_CLI:
-      strtol_temp = strtol(value, &strtol_p, 10);
-      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-        iota_service->http.port = (int)strtol_temp;
-      } else {
-        ta_log_error("Malformed input or illegal input character\n");
-      }
-      break;
-    case IRI_ADDRESS_CLI:
-      for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
-        if (!ta_conf->host_list[i]) {
-          char *host, *port;
-          host = strtok(value, ":");
-          port = strtok(NULL, "");
-          if (!port) {
-            ta_log_error("Malformed input or illegal input character\n");
-            break;
-          }
-
-          if (i == 0) {
-            iota_service->http.host = host;
-            strtol_temp = strtol(port, NULL, 10);
-            if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-              iota_service->http.port = (int)strtol_temp;
-            } else {
-              ta_log_error("Malformed input or illegal input character\n");
-            }
-          }
-          ta_conf->host_list[i] = host;
-          strtol_temp = strtol(port, NULL, 10);
-          if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-            ta_conf->port_list[i] = (int)strtol_temp;
-          } else {
-            ta_log_error("Malformed input or illegal input character\n");
-          }
-          break;
+      idx = 0;
+      for (char* p = strtok(value, ","); p && idx < MAX_IRI_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+        strtol_temp = strtol(p, &strtol_p, 10);
+        if (strtol_p != p && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= USHRT_MAX) {
+          ta_conf->iota_port_list[idx] = (uint16_t)strtol_temp;
+        } else {
+          ta_log_error("Malformed input or illegal input character\n");
         }
       }
+      iota_service->http.port = ta_conf->iota_port_list[0];
       break;
-
     case HEALTH_TRACK_PERIOD:
       strtol_temp = strtol(value, NULL, 10);
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
@@ -207,6 +184,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       break;
     }
   }
+
   return SC_OK;
 }
 
@@ -228,8 +206,10 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->version = TA_VERSION;
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
-  memset(ta_conf->host_list, 0, sizeof(ta_conf->host_list));
-  memset(ta_conf->port_list, 0, sizeof(ta_conf->port_list));
+  memset(ta_conf->iota_host_list, 0, sizeof(ta_conf->iota_host_list));
+  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
+    ta_conf->iota_port_list[i] = IRI_PORT;
+  }
   ta_conf->thread_count = TA_THREAD_COUNT;
   ta_conf->proxy_passthrough = false;
   ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
