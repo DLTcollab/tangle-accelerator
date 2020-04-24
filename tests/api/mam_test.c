@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include "accelerator/core/apis.h"
 #include "accelerator/core/mam_core.h"
-#include "common.h"
+#include "tests/common.h"
 #include "tests/test_define.h"
 
 static ta_core_t ta_core;

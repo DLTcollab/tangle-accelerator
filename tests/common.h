@@ -58,3 +58,12 @@ static inline void test_time_start(struct timespec* start) { clock_gettime(CLOCK
  *
  */
 void test_time_end(struct timespec* start, struct timespec* end, double* sum);
+
+/**
+ * Generate a random trytes combination with given length
+ *
+ * @param len[in] The length of generated trytes
+ * @param trytes[out] Output trytes combination
+ *
+ */
+void gen_rand_trytes(int len, tryte_t* trytes);

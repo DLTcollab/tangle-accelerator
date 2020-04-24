@@ -83,3 +83,11 @@ void test_time_end(struct timespec* start, struct timespec* end, double* sum) {
 #endif
   *sum += difference;
 }
+
+void gen_rand_trytes(int len, tryte_t* trytes) {
+  const char tryte_alphabet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
+
+  for (int i = 0; i < len; i++) {
+    trytes[i] = tryte_alphabet[rand() % TRINARY_ALPHABET_LEN];
+  }
+}

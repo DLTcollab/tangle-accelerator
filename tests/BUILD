@@ -7,3 +7,14 @@ cc_library(
         "@unity",
     ],
 )
+
+cc_library(
+    name = "common",
+    srcs = ["common.c"],
+    hdrs = ["common.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//accelerator:ta_config",
+        "//common",
+    ],
+)

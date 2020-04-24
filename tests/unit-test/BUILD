@@ -18,6 +18,7 @@ cc_test(
     ],
     deps = [
         "//accelerator/core/serializer",
+        "//tests:common",
         "//tests:test_define",
     ],
 )
