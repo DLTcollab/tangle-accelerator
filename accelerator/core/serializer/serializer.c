@@ -518,7 +518,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
       flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
     }
 
-    if (req->msg_len > NUM_TRYTES_MESSAGE) {
+    if (req->msg_len / 3 > NUM_TRYTES_MESSAGE) {
       ret = SC_SERIALIZER_MESSAGE_OVERRUN;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
