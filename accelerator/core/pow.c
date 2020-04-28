@@ -65,7 +65,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
   tx = (iota_transaction_t*)utarray_back(bundle);
   if (tx == NULL) {
     ret = SC_TA_NULL;
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   cur_idx = transaction_last_index(tx) + 1;
@@ -83,7 +83,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     size_t offset = transaction_serialize_on_flex_trits(tx, tx_trits);
     if (offset != NUM_TRITS_SERIALIZED_TRANSACTION) {
       ret = SC_CCLIENT_INVALID_FLEX_TRITS;
-      ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
@@ -91,7 +91,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
       ret = SC_TA_OOM;
-      ta_log_error("%s\n", "SC_TA_OOM");
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
     transaction_set_nonce(tx, nonce);

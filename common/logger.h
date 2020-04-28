@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -45,29 +45,25 @@ static inline status_t ta_logger_init() {
  *   - warning : Potential problems or failure which users should care about.
  *   - error : Error events prevent programs to execute normally.
  */
-#define ta_log_debug(args...)                               \
-  do {                                                      \
-    log_debug(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_debug(logger_id, ##args);                           \
-    fflush(stdout);                                         \
+#define ta_log_debug(fmt, args...)                                      \
+  do {                                                                  \
+    log_debug(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args); \
+    fflush(stdout);                                                     \
   } while (0)
-#define ta_log_info(args...)                               \
-  do {                                                     \
-    log_info(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_info(logger_id, ##args);                           \
-    fflush(stdout);                                        \
+#define ta_log_info(fmt, args...)                                      \
+  do {                                                                 \
+    log_info(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args); \
+    fflush(stdout);                                                    \
   } while (0)
-#define ta_log_warning(args...)                               \
-  do {                                                        \
-    log_warning(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_warning(logger_id, ##args);                           \
-    fflush(stdout);                                           \
+#define ta_log_warning(fmt, args...)                                      \
+  do {                                                                    \
+    log_warning(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args); \
+    fflush(stdout);                                                       \
   } while (0)
-#define ta_log_error(args...)                               \
-  do {                                                      \
-    log_error(logger_id, "[%s : %d] ", __func__, __LINE__); \
-    log_error(logger_id, ##args);                           \
-    fflush(stdout);                                         \
+#define ta_log_error(fmt, args...)                                      \
+  do {                                                                  \
+    log_error(logger_id, "[%s : %d] " fmt, __func__, __LINE__, ##args); \
+    fflush(stdout);                                                     \
   } while (0)
 
 bool quiet_mode; /**< flag of quiet mode */

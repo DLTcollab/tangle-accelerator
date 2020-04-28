@@ -11,7 +11,7 @@
 #include <string.h>
 #include "connectivity/common.h"
 
-#define MQTT_CALLBACK_LOGGER "mqtt-callback"
+#define MQTT_CALLBACK_LOGGER "duplex_callback"
 static logger_id_t logger_id;
 
 extern ta_core_t ta_core;
@@ -31,13 +31,13 @@ int mqtt_callback_logger_release() {
 status_t check_valid_tag(char *tag) {
   size_t len = strnlen(tag, NUM_TRYTES_TAG + 1);
   if (len < 1 || len > NUM_TRYTES_TAG) {
-    ta_log_error("%s", ta_error_to_string(SC_MQTT_INVALID_TAG));
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_INVALID_TAG));
     return SC_MQTT_INVALID_TAG;
   }
 
   for (size_t i = 0; i < len; ++i) {
     if ((tag[i] > 'Z' || tag[i] < 'A') && tag[i] != '9') {
-      ta_log_error("%s", ta_error_to_string(SC_MQTT_INVALID_TAG));
+      ta_log_error("%s\n", ta_error_to_string(SC_MQTT_INVALID_TAG));
       return SC_MQTT_INVALID_TAG;
     }
   }
@@ -47,6 +47,7 @@ status_t check_valid_tag(char *tag) {
 
 static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, char *req) {
   if (cfg == NULL || subscribe_topic == NULL || req == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -57,7 +58,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   // get the Device ID.
   ret = mqtt_device_id_deserialize(req, device_id);
   if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -103,7 +104,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   set_response_content(ret, &json_result);
 
   // Log results
-  printf("\"%s\" %s", api_sub_topic, ta_error_to_string(ret));
+  printf("\"%s\" %s\n", api_sub_topic, ta_error_to_string(ret));
 
   // Set response publishing topic with the topic we got message and the Device ID (client ID) we got in the message
   int res_topic_len = strlen(subscribe_topic) + 1 + ID_LEN + 1;
@@ -111,14 +112,14 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   snprintf(res_topic, res_topic_len, "%s/%s", subscribe_topic, device_id);
   ret = gossip_channel_set(cfg, NULL, NULL, res_topic);
   if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
   // Set recv_message as publishing message
   ret = gossip_message_set(cfg, json_result);
   if (ret != SC_OK) {
-    ta_log_error("%d\n", ret);
+    ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:
@@ -178,7 +179,7 @@ static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int leve
 
 status_t duplex_callback_func_set(struct mosquitto *mosq) {
   if (mosq == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 

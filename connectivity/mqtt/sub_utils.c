@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -12,7 +12,7 @@
 #include <string.h>
 #include "common/logger.h"
 
-#define MQTT_SUB_LOGGER "mqtt-sub"
+#define MQTT_SUB_LOGGER "sub_utils"
 static logger_id_t logger_id;
 
 void mqtt_sub_logger_init() { logger_id = logger_helper_enable(MQTT_SUB_LOGGER, LOGGER_DEBUG, true); }
@@ -29,7 +29,7 @@ int mqtt_sub_logger_release() {
 
 static status_t dump_message(mosq_config_t *cfg, const struct mosquitto_message *message) {
   if (cfg == NULL || message == NULL || message->payload == NULL || message->payloadlen == 0) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 

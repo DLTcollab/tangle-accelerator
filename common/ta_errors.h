@@ -187,6 +187,8 @@ typedef enum {
   SC_HTTP_URL_NOT_MATCH = 0x04 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
   /**< URL doesn't match regular expression rule */
   SC_HTTP_URL_PARSE_ERROR = 0x05 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
+  /**< Proxy API command not match */
+  SC_HTTP_COMMAND_NOT_MATCH = 0x06 | SC_MODULE_HTTP | SC_SEVERITY_MAJOR,
   /**< URL parameter parsing error */
 
   // MQTT module

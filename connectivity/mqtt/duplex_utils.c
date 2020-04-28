@@ -13,7 +13,7 @@
 #include "common/logger.h"
 #include "common/macros.h"
 
-#define MQTT_UTILS_LOGGER "mqtt-utils"
+#define MQTT_UTILS_LOGGER "duplex_utils"
 
 static logger_id_t logger_id;
 
@@ -32,7 +32,7 @@ int mqtt_utils_logger_release() {
 status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *config_cfg) {
   status_t ret = SC_OK;
   if (config_mosq == NULL || config_cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -67,7 +67,7 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
 status_t gossip_channel_set(mosq_config_t *channel_cfg, char *host, char *sub_topic, char *pub_topic) {
   status_t ret = SC_OK;
   if (channel_cfg == NULL || (host == NULL && sub_topic == NULL && pub_topic == NULL)) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -95,7 +95,7 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
   status_t ret = SC_OK;
 
   if (channel_cfg == NULL || host == NULL || root_path == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -115,6 +115,7 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
     sub_topic = (char *)malloc(sub_topic_len + 1);
     if (sub_topic == NULL) {
       ret = SC_MQTT_OOM;
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
@@ -136,7 +137,7 @@ done:
 
 status_t gossip_message_set(mosq_config_t *cfg, char *message) {
   if (cfg == NULL || message == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -149,7 +150,7 @@ status_t gossip_message_set(mosq_config_t *cfg, char *message) {
 status_t duplex_client_start(struct mosquitto *mosq, mosq_config_t *cfg) {
   status_t ret = MOSQ_ERR_SUCCESS;
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
