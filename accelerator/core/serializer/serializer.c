@@ -1350,3 +1350,42 @@ done:
   cJSON_Delete(json_root);
   return ret;
 }
+
+status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj) {
+  status_t ret = SC_OK;
+  if (res == NULL) {
+    ret = SC_TA_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  cJSON* json_root = cJSON_CreateObject();
+  if (json_root == NULL) {
+    ret = SC_SERIALIZER_JSON_CREATE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  if (res->status == SENT) {
+    ret = iota_transaction_to_json_object(res->txn, &json_root);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+  } else if (res->status == UNSENT) {
+    cJSON_AddStringToObject(json_root, "status", "unsent");
+  } else if (res->status == NOT_EXIST) {
+    cJSON_AddStringToObject(json_root, "status", "not_exist");
+  }
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", "SC_SERIALIZER_JSON_PARSE");
+    goto done;
+  }
+
+done:
+  cJSON_Delete(json_root);
+  return ret;
+}
