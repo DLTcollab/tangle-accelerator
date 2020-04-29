@@ -43,6 +43,7 @@ cc_library(
         "//accelerator/core/request",
         "//accelerator/core/response",
         "//accelerator/core/serializer",
+        "//common",
         "//utils:bundle_array",
         "//utils:char_buffer_str",
         "//utils:timer",

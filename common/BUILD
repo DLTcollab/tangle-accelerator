@@ -4,8 +4,8 @@ cc_library(
     name = "common",
     deps = [
         "macros",
+        ":debug",
         ":ta_errors",
-        ":ta_logger",
     ],
 )
 
@@ -20,6 +20,7 @@ cc_library(
     srcs = ["logger.h"],
     defines = ["LOGGER_ENABLE"],
     deps = [
+        ":ta_errors",
         "@entangled//utils:logger_helper",
     ],
 )
@@ -31,5 +32,16 @@ cc_library(
         "@entangled//common/model:transaction",
         "@entangled//common/trinary:tryte",
         "@entangled//mam/mam:message",
+    ],
+)
+
+cc_library(
+    name = "debug",
+    srcs = ["debug.c"],
+    hdrs = ["debug.h"],
+    deps = [
+        ":ta_logger",
+        "@entangled//common/model:bundle",
+        "@entangled//common/model:transaction",
     ],
 )
