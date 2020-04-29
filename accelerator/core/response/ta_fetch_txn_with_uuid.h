@@ -9,7 +9,7 @@
 #ifndef RESPONSE_TA_FETCH_TXN_WITH_UUID_H_
 #define RESPONSE_TA_FETCH_TXN_WITH_UUID_H_
 
-#include "common/model/transaction.h"
+#include "common/model/bundle.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,8 +22,8 @@ typedef enum { UNSENT, NOT_EXIST, SENT } txn_with_uuid_status_t;
 
 /** struct of ta_fetch_txn_with_uuid_res */
 typedef struct ta_fetch_txn_with_uuid_res {
-  /** Transaction object. */
-  iota_transaction_t* txn;
+  /** bundle transaction object. */
+  bundle_transactions_t* bundle;
   txn_with_uuid_status_t status;
 } ta_fetch_txn_with_uuid_res_t;
 
