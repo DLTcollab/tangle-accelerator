@@ -45,3 +45,8 @@ cc_library(
         "@entangled//common/model:transaction",
     ],
 )
+
+cc_library(
+    name = "defined_error",
+    hdrs = ["defined_error.h"],
+)
