@@ -9,17 +9,17 @@
 #include "https.h"
 #include <stdlib.h>
 #include <string.h>
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 #include "http_parser.h"
 #include "utils/connectivity/conn_http.h"
 
 static http_parser parser;
 
-endpoint_retcode_t send_https_msg(char const *host, char const *port, char const *api, const char *msg,
-                                  const int msg_len, const char *ssl_seed) {
+status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const int msg_len,
+                        const char *ssl_seed) {
   char res[4096] = {0};
   char *req = NULL;
-  endpoint_retcode_t ret = RET_OK;
+  status_t ret = SC_OK;
 
   set_post_request(api, host, atoi(port), msg, &req);
   http_parser_settings settings;
@@ -34,8 +34,8 @@ endpoint_retcode_t send_https_msg(char const *host, char const *port, char const
   http_parser_init(&parser, HTTP_RESPONSE);
   http_parser_execute(&parser, &settings, res, strlen(res));
 
-  if (parser.status_code != HTTP_OK) {
-    ret = RET_FAULT;
+  if (parser.status_code != SC_HTTP_OK) {
+    ret = SC_UTILS_HTTPS_RESPONSE_ERROR;
   }
 
   free(req);

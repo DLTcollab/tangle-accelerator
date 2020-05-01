@@ -10,8 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "common/defined_error.h"
 #include "common/macros.h"
+#include "common/ta_errors.h"
 #include "endpoint.h"
 #include "tests/test_define.h"
 #include "utils/cipher.h"
@@ -61,9 +61,9 @@ void test_endpoint(void) {
   strftime(time_str, 26, "%Y-%m-%d %H:%M:%S", tm_info);
   gen_rand_trytes(next_addr, ADDR_LEN);
 
-  endpoint_retcode_t ret = send_transaction_information(TEST_VALUE, TEST_MESSAGE, TEST_MESSAGE_FMT, TEST_TAG,
-                                                        TEST_ADDRESS, next_addr, test_key, TEST_DEVICE_ID, iv);
-  TEST_ASSERT(ret == RET_OK);
+  status_t ret = send_transaction_information(TEST_VALUE, TEST_MESSAGE, TEST_MESSAGE_FMT, TEST_TAG, TEST_ADDRESS,
+                                              next_addr, test_key, TEST_DEVICE_ID, iv);
+  TEST_ASSERT(ret == SC_OK);
 }
 
 int main(int argc, char *argv[]) {

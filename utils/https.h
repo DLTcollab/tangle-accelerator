@@ -9,7 +9,7 @@
 #ifndef UTILS_HTTPS_H
 #define UTILS_HTTPS_H
 
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 
 /**
  * @brief Send message via HTTP(S) protocol
@@ -21,8 +21,8 @@
  * @param[in] msg_len Length of message
  * @param[in] ssl_seed Seed for ssl connection
  *
- * @return #endpoint_retcode_t
+ * @return #status_t
  */
-endpoint_retcode_t send_https_msg(char const *host, char const *port, char const *api, const char *msg,
-                                  const int msg_len, const char *ssl_seed);
+status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const int msg_len,
+                        const char *ssl_seed);
 #endif  // UTILS_HTTPS_H

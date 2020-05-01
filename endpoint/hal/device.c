@@ -32,28 +32,28 @@ device_t *ta_device(const char *type) {
   return *p;
 }
 
-endpoint_retcode_t register_device(struct device_type *dv) {
-  endpoint_retcode_t res = RET_OK;
+status_t register_device(struct device_type *dv) {
+  status_t res = SC_OK;
   struct device_type **p;
   if (dv->next) {
-    return -RET_DEVICE_INIT;
+    return SC_DEVICE_INIT;
   }
   p = find_device(dv->name, strlen(dv->name));
   if (*p) {
-    res = -RET_DEVICE_INIT;
+    res = SC_DEVICE_INIT;
   } else {
     *p = dv;
   }
   return res;
 }
 
-endpoint_retcode_t unregister_device(struct device_type *dv) {
+status_t unregister_device(struct device_type *dv) {
   for (struct device_type **tmp = &devices; *tmp != NULL; tmp = &(*tmp)->next) {
     if (dv == *tmp) {
       *tmp = dv->next;
       dv->next = NULL;
-      return RET_OK;
+      return SC_OK;
     }
   }
-  return -RET_DEVICE_FINI;
+  return SC_DEVICE_FINI;
 }

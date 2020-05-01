@@ -10,7 +10,7 @@
 #define TEXT_SERIALIZER_H
 
 #include <stdint.h>
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,11 +30,11 @@ extern "C" {
  * @param[out] out_msg_len Pointer to length of serialized message
  *
  * @return
- * - RET_OK on success
- * - RET_FAULT on error
+ * - SC_OK on success
+ * - SC_UTILS_TEXT_SERIALIZE on error
  */
-endpoint_retcode_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, char *out_msg,
-                                 uint32_t *out_msg_len);
+status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, char *out_msg,
+                       uint32_t *out_msg_len);
 
 /**
  * @brief Deserialize message from serialize_msg
@@ -45,11 +45,11 @@ endpoint_retcode_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, con
  * @param[out] ciphertext Pointer to plaintext output array
  *
  * @return
- * - RET_OK on success
- * - RET_FAULT on error
+ * - SC_OK on success
+ * - SC_UTILS_TEXT_DESERIALIZE on error
  * @see #serialize_msg
  */
-endpoint_retcode_t deserialize_msg(char *msg, const uint8_t *iv, uint32_t *ciphertext_len, char *ciphertext);
+status_t deserialize_msg(char *msg, const uint8_t *iv, uint32_t *ciphertext_len, char *ciphertext);
 
 #ifdef __cplusplus
 }

@@ -37,9 +37,9 @@ void test_serialize_deserialize(void) {
   uint8_t out[1024], iv_out[AES_BLOCK_SIZE], payload_out[1024];
   uint32_t payload_len_out, out_msg_len;
   int rc1 = serialize_msg(iv, payload_len, payload, out, &out_msg_len);
-  TEST_ASSERT(rc1 == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, rc1);
   int rc2 = deserialize_msg(out, iv_out, &payload_len_out, payload_out);
-  TEST_ASSERT(rc2 == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, rc2);
 
   out[1023] = 0;
   payload_out[payload_len] = 0;

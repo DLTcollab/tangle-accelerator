@@ -16,7 +16,7 @@
 
 #define MAX_TIMESTAMP_LEN 20
 
-endpoint_retcode_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
+status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
   // FIXME: Add logger and some checks here
   mbedtls_aes_context ctx;
   int status;
@@ -52,14 +52,14 @@ endpoint_retcode_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
 
   /* Clean up */
   mbedtls_aes_free(&ctx);
-  return RET_OK;
+  return SC_OK;
 exit:
   fprintf(stderr, "%s\n", err);
   mbedtls_aes_free(&ctx);
-  return RET_FAULT;
+  return SC_UTILS_CIPHER_ERROR;
 }
 
-endpoint_retcode_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
+status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   // FIXME: Add logger and some checks here
   char* err = NULL;
   int status = 0;
@@ -129,10 +129,10 @@ endpoint_retcode_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
 
   mbedtls_aes_free(&ctx);
   mbedtls_md_free(&sha_ctx);
-  return RET_OK;
+  return SC_OK;
 exit:
   fprintf(stderr, "%s", err);
   mbedtls_aes_free(&ctx);
   mbedtls_md_free(&sha_ctx);
-  return RET_FAULT;
+  return SC_UTILS_CIPHER_ERROR;
 }

@@ -13,7 +13,7 @@
 #define MAX_MSG_LEN 1024
 
 #include <stdint.h>
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 
 /**
  * @brief Send transaction information to tangle accelerator
@@ -30,10 +30,10 @@
  * @param[in] device_id Device id from device
  * @param[in/out] iv Initialization vector, must be read/write. The length of iv must be AES_IV_SIZE @see #ta_cipher_ctx
  *
- * @return #endpoint_retcode_t
+ * @return #status_t
  */
-endpoint_retcode_t send_transaction_information(const int value, const char* message, const char* message_fmt,
-                                                const char* tag, const char* address, const char* next_address,
-                                                const uint8_t* private_key, const char* device_id, uint8_t* iv);
+status_t send_transaction_information(const int value, const char* message, const char* message_fmt, const char* tag,
+                                      const char* address, const char* next_address, const uint8_t* private_key,
+                                      const char* device_id, uint8_t* iv);
 
 #endif  // ENDPOINT_H
