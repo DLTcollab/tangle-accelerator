@@ -35,10 +35,11 @@ int http_logger_release() {
 
 static status_t ta_get_url_parameter(char const *const url, int index, char **param) {
   if (param == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
     return SC_HTTP_NULL;
   }
   if (index < 0) {
+    ta_log_warning("Index lower than 0, automatically set index to 0 instead.\n");
     index = 0;
   }
 
@@ -55,7 +56,7 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
     tmp = strtok(NULL, "/");
   }
   if (tmp == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_URL_PARSE_ERROR");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_URL_PARSE_ERROR));
     return SC_HTTP_URL_PARSE_ERROR;
   }
 
@@ -63,7 +64,7 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   int token_len = strlen(tmp);
   *param = (char *)malloc(token_len * sizeof(char));
   if (param == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_OOM");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_OOM));
     return SC_HTTP_OOM;
   }
   strncpy(*param, tmp, token_len);
@@ -413,7 +414,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
       return MHD_YES;
     }
     if (build_request(http_req, upload_data, *upload_data_size) != SC_OK) {
-      ta_log_error("Fail to build http request\n");
+      ta_log_error("Failed to build http request\n");
     }
     ta_log_debug("request = %s\n", http_req->request);
 
@@ -424,7 +425,7 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (post && (http_req->request == NULL)) {
     // POST but no body, so we skip this request
     ret = MHD_NO;
-    ta_log_error("%s\n", "MHD_NO");
+    ta_log_error("%s\n", "Received POST without body, skip request");
     goto cleanup;
   }
 
@@ -463,7 +464,7 @@ cleanup:
 
 status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
   if (http == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
     return SC_HTTP_NULL;
   }
 
@@ -473,7 +474,7 @@ status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
 
 status_t ta_http_start(ta_http_t *const http) {
   if (http == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
     return SC_HTTP_NULL;
   }
 
@@ -489,7 +490,7 @@ status_t ta_http_start(ta_http_t *const http) {
 
 status_t ta_http_stop(ta_http_t *const http) {
   if (http == NULL) {
-    ta_log_error("%s\n", "SC_HTTP_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
     return SC_HTTP_NULL;
   }
 

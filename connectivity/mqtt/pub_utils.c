@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -12,7 +12,7 @@
 #include <time.h>
 #include "common/logger.h"
 
-#define MQTT_PUB_LOGGER "mqtt-pub"
+#define MQTT_PUB_LOGGER "pub_utils"
 static logger_id_t logger_id;
 
 void mqtt_pub_logger_init() { logger_id = logger_helper_enable(MQTT_PUB_LOGGER, LOGGER_DEBUG, true); }
@@ -30,7 +30,7 @@ int mqtt_pub_logger_release() {
 mosq_retcode_t publish_message(struct mosquitto *mosq, mosq_config_t *cfg, int *mid, const char *topic, int payloadlen,
                                void *payload, int qos, bool retain) {
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
 
@@ -105,7 +105,7 @@ void publish_callback_pub_func(struct mosquitto *mosq, void *obj, int mid, int r
 
 status_t publish_loop(struct mosquitto *mosq) {
   if (mosq == NULL) {
-    ta_log_error("%s\n", "SC_MQTT_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
   mosq_retcode_t ret = MOSQ_ERR_SUCCESS;
@@ -118,7 +118,7 @@ status_t publish_loop(struct mosquitto *mosq) {
 
 status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
   if (cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
     return SC_MQTT_NULL;
   }
   status_t ret = SC_OK;
@@ -187,7 +187,7 @@ status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
   if (!cfg->general_config->host) {
     cfg->general_config->host = strdup("localhost");
     if (!cfg->general_config->host) {
-      ta_log_error("%s\n", "SC_MQTT_OOM");
+      ta_log_error("%s\n", ta_error_to_string(SC_MQTT_OOM));
       return SC_MQTT_OOM;
     }
   }

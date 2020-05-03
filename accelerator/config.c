@@ -192,7 +192,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   status_t ret = SC_OK;
 
   logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
-  ta_log_info("enable logger %s.\n", CONFIG_LOGGER);
+  ta_log_info("Enable logger %s.\n", CONFIG_LOGGER);
 
   ta_config_t* const ta_conf = &core->ta_conf;
   iota_config_t* const iota_conf = &core->iota_conf;
