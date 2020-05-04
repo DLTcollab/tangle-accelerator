@@ -50,6 +50,7 @@ cc_library(
     hdrs = ["cipher.h"],
     deps = [
         "//common:ta_errors",
+        "//common:ta_logger",
         "@mbedtls_2_16_6",
     ],
 )

@@ -125,8 +125,15 @@ void test_cipher2(void) {
 int main(void) {
   UNITY_BEGIN();
 
+  // Initialize logger
+  if (ta_logger_init() != SC_OK) {
+    return EXIT_FAILURE;
+  }
+
+  cipher_logger_init();
   RUN_TEST(test_cipher1);
   RUN_TEST(test_cipher2);
+  cipher_logger_release();
 
   return UNITY_END();
 }

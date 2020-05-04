@@ -12,14 +12,30 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "common/logger.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/md.h"
 #include "mbedtls/platform_util.h"
 
 #define MAX_TIMESTAMP_LEN 20
+#define CIPHER_LOGGER "cipher"
+
+static logger_id_t logger_id;
+
+void cipher_logger_init() { logger_id = logger_helper_enable(CIPHER_LOGGER, LOGGER_DEBUG, true); }
+
+int cipher_logger_release() {
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", CIPHER_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
 
 status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
-  // FIXME: Add logger and some checks here
+  // FIXME: Add some checks here
   mbedtls_aes_context ctx;
   mbedtls_md_context_t sha_ctx;
   int status;
@@ -84,15 +100,14 @@ status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
   }
   status = SC_OK;
 exit:
-  // FIXME: Use default logger instead
-  if (!err) fprintf(stderr, "%s\n", err);
+  if (!err) ta_log_error("%s\n", err);
   mbedtls_aes_free(&ctx);
   mbedtls_md_free(&sha_ctx);
   return status;
 }
 
 status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
-  // FIXME: Add logger and some checks here
+  // FIXME: Add some checks here
   char* err = NULL;
   int status = 0;
   uint8_t* plaintext = cipher_ctx->plaintext;
@@ -172,8 +187,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   memcpy(cipher_ctx->hmac, digest, TA_AES_HMAC_SIZE);
   status = SC_OK;
 exit:
-  // FIXME: Use default logger instead
-  if (!err) fprintf(stderr, "%s\n", err);
+  if (!err) ta_log_error("%s\n", err);
   mbedtls_aes_free(&ctx);
   mbedtls_md_free(&sha_ctx);
   return status;
