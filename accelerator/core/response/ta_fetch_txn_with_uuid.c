@@ -10,8 +10,10 @@
 
 ta_fetch_txn_with_uuid_res_t* ta_fetch_txn_with_uuid_res_new() {
   ta_fetch_txn_with_uuid_res_t* res = (ta_fetch_txn_with_uuid_res_t*)malloc(sizeof(ta_fetch_txn_with_uuid_res_t));
-  res->txn = NULL;
-  res->status = NOT_EXIST;
+  if (res) {
+    res->txn = NULL;
+    res->status = NOT_EXIST;
+  }
   return res;
 }
 

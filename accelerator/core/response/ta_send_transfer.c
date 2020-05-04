@@ -10,8 +10,10 @@
 
 ta_send_transfer_res_t* ta_send_transfer_res_new() {
   ta_send_transfer_res_t* res = (ta_send_transfer_res_t*)malloc(sizeof(ta_send_transfer_res_t));
-  res->hash = NULL;
-  res->uuid = NULL;
+  if (res) {
+    res->hash = NULL;
+    res->uuid = NULL;
+  }
   return res;
 }
 

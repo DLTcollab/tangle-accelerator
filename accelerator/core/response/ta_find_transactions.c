@@ -22,9 +22,7 @@ void ta_find_transactions_res_free(ta_find_transactions_by_tag_res_t** res) {
     return;
   }
 
-  if ((*res)->hashes) {
-    hash243_queue_free(&(*res)->hashes);
-  }
+  hash243_queue_free(&(*res)->hashes);
   free(*res);
   *res = NULL;
 }
