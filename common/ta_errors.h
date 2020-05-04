@@ -136,7 +136,7 @@ typedef enum {
   SC_MAM_FAILED_DESTROYED = 0x05 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Error in mam destroy */
   SC_MAM_NO_PAYLOAD = 0x06 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
-  /**< No payload or no chid in MAM */
+  /**< No payload in the MAM message with assigning IDs */
   SC_MAM_FAILED_WRITE = 0x07 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to write in MAM */
   SC_MAM_FILE_SAVE = 0x08 | SC_MODULE_MAM | SC_SEVERITY_FATAL,
@@ -147,6 +147,10 @@ typedef enum {
   /**< Failed to created/get chid or epid or msg_id in MAM */
   SC_MAM_FAILED_WRITE_HEADER = 0x0B | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to write header in MAM */
+  SC_MAM_MESSAGE_NOT_FOUND = 0x0C | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Can't find message in the assign bundle */
+  SC_MAM_INVAID_CHID_OR_EPID = 0x0E | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Failed to add trusted channel ID or endpoint ID */
 
   // response module
   SC_RES_NULL = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,

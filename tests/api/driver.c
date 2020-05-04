@@ -301,8 +301,6 @@ int main(int argc, char* argv[]) {
   RUN_TEST(test_send_transfer);
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);
-  // RUN_TEST(test_send_mam_message);
-  // RUN_TEST(test_receive_mam_message);
   RUN_TEST(test_find_transactions_by_tag);
   RUN_TEST(test_find_transactions_obj_by_tag);
 #ifdef DB_ENABLE

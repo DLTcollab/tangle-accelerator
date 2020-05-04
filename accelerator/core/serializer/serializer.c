@@ -897,31 +897,34 @@ done:
 static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_obj, ta_recv_mam_req_t* const req) {
   cJSON *json_key = NULL, *json_value = NULL;
   status_t ret = SC_OK;
-  char *bundle_hash = NULL, *chid = NULL, *epid = NULL, *msg_id = NULL, *psk = NULL, *ntru = NULL;
+  char *bundle_hash = NULL, *chid = NULL, *msg_id = NULL, *psk = NULL, *ntru = NULL;
 
-  json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "key");
-  if (json_value == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CCLIENT_JSON_KEY));
-    return SC_CCLIENT_JSON_KEY;
-  }
-  if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
-    if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_PSK_KEY_SIZE) {
-      psk = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
-      strncpy(psk, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
-    } else if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_NTRU_PK_SIZE) {
-      ntru = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
-      strncpy(ntru, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
+  if (cJSON_HasObjectItem(json_obj, "key")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "key");
+    if (json_value == NULL) {
+      ret = SC_CCLIENT_JSON_KEY;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      return ret;
+    }
+    if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
+      if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_PSK_KEY_SIZE) {
+        psk = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
+        strncpy(psk, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
+      } else if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_NTRU_PK_SIZE) {
+        ntru = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
+        strncpy(ntru, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
+      }
+    } else {
+      ret = SC_CCLIENT_JSON_PARSE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      return ret;
     }
 
-  } else {
-    ta_log_error("%s\n", ta_error_to_string(SC_CCLIENT_JSON_PARSE));
-    return SC_CCLIENT_JSON_PARSE;
-  }
-
-  ret = recv_mam_set_mam_v1_key(req, (tryte_t*)psk, (tryte_t*)ntru);
-  if (ret != SC_OK) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+    ret = recv_mam_set_mam_v1_key(req, (tryte_t*)psk, (tryte_t*)ntru);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
   }
 
   json_key = cJSON_GetObjectItem(json_obj, "data_id");
@@ -964,22 +967,6 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     }
   }
 
-  if (cJSON_HasObjectItem(json_key, "epid")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "epid");
-    if (json_value == NULL) {
-      ta_log_error("%s\n", ta_error_to_string(SC_CCLIENT_JSON_KEY));
-      return SC_CCLIENT_JSON_KEY;
-    }
-    if (cJSON_IsString(json_value) && (json_value->valuestring != NULL) &&
-        (strlen(json_value->valuestring) == NUM_TRYTES_HASH)) {
-      epid = (char*)malloc(sizeof(char) * (NUM_TRYTES_HASH + 1));
-      strncpy(epid, json_value->valuestring, sizeof(char) * (NUM_TRYTES_HASH + 1));
-    } else {
-      ta_log_error("%s\n", ta_error_to_string(SC_CCLIENT_JSON_PARSE));
-      return SC_CCLIENT_JSON_PARSE;
-    }
-  }
-
   if (cJSON_HasObjectItem(json_key, "msg_id")) {
     json_value = cJSON_GetObjectItemCaseSensitive(json_key, "msg_id");
     if (json_value == NULL) {
@@ -997,7 +984,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
 set_data_id:
-  ret = recv_mam_set_mam_v1_data_id(req, bundle_hash, chid, epid, msg_id);
+  ret = recv_mam_set_mam_v1_data_id(req, bundle_hash, chid, msg_id);
   if (ret != SC_OK) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
@@ -1008,7 +995,6 @@ done:
   free(ntru);
   free(bundle_hash);
   free(chid);
-  free(epid);
   free(msg_id);
   return ret;
 }
@@ -1098,8 +1084,6 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) 
 
   cJSON_AddStringToObject(json_root, "chid", res->chid);
 
-  cJSON_AddStringToObject(json_root, "epid", res->epid);
-
   cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
 
   if (res->announcement_bundle_hash[0]) {
@@ -1137,47 +1121,44 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
     goto done;
   }
 
-  if (ta_json_get_string(json_obj, "chid", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+  if (ta_json_get_string(json_obj, "chid", (char*)addr, NUM_TRYTES_ADDRESS) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   send_mam_res_set_channel_id(res, addr);
 
-  if (ta_json_get_string(json_obj, "epid", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
-    ret = SC_SERIALIZER_NULL;
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
-  }
-  send_mam_res_set_endpoint_id(res, addr);
-
-  if (ta_json_get_string(json_obj, "msg_id", (char*)msg_id, MAM_MSG_ID_SIZE / 3 + 1) != SC_OK) {
+  if (ta_json_get_string(json_obj, "msg_id", (char*)msg_id, NUM_TRYTES_MAM_MSG_ID) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   send_mam_res_set_msg_id(res, msg_id);
 
-  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
+  if (ta_json_get_string(json_obj, "bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS) != SC_OK) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   send_mam_res_set_bundle_hash(res, addr);
 
-  if (ta_json_get_string(json_obj, "chid1", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
-    ret = SC_SERIALIZER_NULL;
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  if (cJSON_HasObjectItem(json_obj, "chid1")) {
+    if (ta_json_get_string(json_obj, "chid1", (char*)addr, NUM_TRYTES_ADDRESS) != SC_OK) {
+      ret = SC_SERIALIZER_NULL;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+    send_mam_res_set_chid1(res, addr);
   }
-  send_mam_res_set_chid1(res, addr);
 
-  if (ta_json_get_string(json_obj, "announcement_bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS + 1) != SC_OK) {
-    ret = SC_SERIALIZER_NULL;
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  if (cJSON_HasObjectItem(json_obj, "announcement_bundle_hash")) {
+    if (ta_json_get_string(json_obj, "announcement_bundle_hash", (char*)addr, NUM_TRYTES_ADDRESS) != SC_OK) {
+      ret = SC_SERIALIZER_NULL;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+    send_mam_res_set_announcement_bundle_hash(res, addr);
   }
-  send_mam_res_set_announcement_bundle_hash(res, addr);
 
 done:
   cJSON_Delete(json_obj);

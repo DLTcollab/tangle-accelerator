@@ -55,8 +55,6 @@ typedef struct recv_mam_data_id_mam_v1_s {
   tryte_t* bundle_hash;
   /** channel id in trytes */
   tryte_t* chid;
-  /** endpoint id in trytes */
-  tryte_t* epid;
   /** message id in trytes */
   tryte_t* msg_id;
 } recv_mam_data_id_mam_v1_t;
@@ -73,14 +71,13 @@ typedef struct recv_mam_key_mam_v1_s {
  * @param[in] req Response data in type of ta_recv_mam_req_t object
  * @param[in] bundle_hash Bundle hash of the message
  * @param[in] chid Channel ID of the messages
- * @param[in] epid Endpoint ID of the messages
  * @param[in] msg_id Message ID of the message
  *
  * @return
  * - struct of ta_recv_mam_req_t on success
  * - NULL on error
  */
-status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id);
+status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* msg_id);
 
 /**
  * Set the key for MAMv1

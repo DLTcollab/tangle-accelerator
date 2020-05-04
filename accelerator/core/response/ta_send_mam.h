@@ -29,8 +29,6 @@ typedef struct send_mam_res_s {
   char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
   char chid[NUM_TRYTES_HASH + 1];
-  /** ascii string endpoint id */
-  char epid[NUM_TRYTES_HASH + 1];
   /** channel ordinal which is the number of channel we generated */
   char msg_id[NUM_TRYTES_MAM_MSG_ID + 1];
   /** bundle hash of announcement bundle */
@@ -79,18 +77,6 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bun
  * - non-zero on error
  */
 status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id);
-
-/**
- * @brief Set the endpoint_id field of send_mam_res object.
- *
- * @param[in] res ta_send_mam_res_t struct object
- * @param[in] endpoint_id endpoint id decoded in trytes string
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_set_endpoint_id(ta_send_mam_res_t* res, const tryte_t* endpoint_id);
 
 /**
  * @brief Set the msgl_id field of send_mam_res object.

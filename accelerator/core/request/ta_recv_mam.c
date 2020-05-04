@@ -23,11 +23,9 @@ static void recv_mam_req_v1_free(ta_recv_mam_req_t** req) {
     recv_mam_data_id_mam_v1_t* data_id = (*req)->data_id;
     free(data_id->bundle_hash);
     free(data_id->chid);
-    free(data_id->epid);
     free(data_id->msg_id);
     data_id->bundle_hash = NULL;
     data_id->chid = NULL;
-    data_id->epid = NULL;
     data_id->msg_id = NULL;
 
     free((*req)->data_id);
@@ -60,8 +58,8 @@ void recv_mam_req_free(ta_recv_mam_req_t** req) {
   *req = NULL;
 }
 
-status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id) {
-  if (req == NULL || (!bundle_hash && !chid && !epid && !msg_id)) {
+status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* msg_id) {
+  if (req == NULL || (!bundle_hash && !chid && !msg_id)) {
     return SC_TA_NULL;
   }
   status_t ret = SC_OK;
@@ -74,7 +72,6 @@ status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, 
   recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   data_id->bundle_hash = NULL;
   data_id->chid = NULL;
-  data_id->epid = NULL;
   data_id->msg_id = NULL;
   if (bundle_hash) {
     data_id->bundle_hash = (tryte_t*)strdup(bundle_hash);
@@ -86,13 +83,6 @@ status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, 
   if (chid) {
     data_id->chid = (tryte_t*)strdup(chid);
     if (!data_id->chid) {
-      ret = SC_TA_OOM;
-      goto error;
-    }
-  }
-  if (epid) {
-    data_id->epid = (tryte_t*)strdup(epid);
-    if (!data_id->epid) {
       ret = SC_TA_OOM;
       goto error;
     }
