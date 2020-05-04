@@ -373,7 +373,7 @@ status_t ta_mam_api_bundle_read(mam_api_t *const api, bundle_transactions_t *bun
   if (rc == RC_OK) {
     if (payload_trytes == NULL || payload_size == 0) {
       ret = SC_MAM_NO_PAYLOAD;
-      ta_log_error("%s\n", ta_error_to_string(ret));
+      ta_log_debug("%s\n", ta_error_to_string(ret));
     } else {
       *payload_out = calloc(payload_size * 2 + 1, sizeof(char));
       if (*payload_out == NULL) {

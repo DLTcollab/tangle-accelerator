@@ -1044,8 +1044,48 @@ done:
   return ret;
 }
 
-status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj) {
+status_t recv_mam_res_deserialize(const char* const obj, ta_recv_mam_res_t* const res) {
   status_t ret = SC_OK;
+  if (!obj || !res) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  ret = json_string_array_to_string_utarray(json_obj, "payload", res->payload_array);
+  if (ret) {
+    ret = SC_CCLIENT_JSON_KEY;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  if (cJSON_HasObjectItem(json_obj, "chid1")) {
+    ret = ta_json_get_string(json_obj, "chid1", res->chid1, NUM_TRYTES_ADDRESS);
+    if (ret) {
+      ret = SC_CCLIENT_JSON_KEY;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+    }
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj) {
+  status_t ret = SC_OK;
+  if (!res || !obj) {
+    ret = SC_SERIALIZER_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    return ret;
+  }
+
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;
@@ -1053,11 +1093,15 @@ status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** ob
     goto done;
   }
 
-  ret = string_utarray_to_json_array(payload_array, json_root, "payload");
+  ret = string_utarray_to_json_array(res->payload_array, json_root, "payload");
   if (ret) {
     ret = SC_SERIALIZER_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
+  }
+
+  if (res->chid1[0]) {
+    cJSON_AddStringToObject(json_root, "chid1", res->chid1);
   }
 
   *obj = cJSON_PrintUnformatted(json_root);
@@ -1074,6 +1118,12 @@ done:
 
 status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj) {
   status_t ret = SC_OK;
+  if (!res || !obj) {
+    ret = SC_SERIALIZER_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    return ret;
+  }
+
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
     ret = SC_SERIALIZER_JSON_CREATE;

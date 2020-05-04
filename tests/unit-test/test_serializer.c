@@ -309,6 +309,42 @@ void test_recv_mam_message_request_ntru_deserialize(void) {
   recv_mam_req_free(&req);
 }
 
+void test_recv_mam_message_response_serialize(void) {
+  const char* json = "{\"payload\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"],\"chid1\":\"" TEST_ADDRESS "\"}";
+  ta_recv_mam_res_t* res = recv_mam_res_new();
+  char* json_result = NULL;
+  char* str;
+  str = TRYTES_81_1;
+  utarray_push_back(res->payload_array, &str);
+  str = TRYTES_81_2;
+  utarray_push_back(res->payload_array, &str);
+  strncpy(res->chid1, TEST_ADDRESS, NUM_TRYTES_ADDRESS);
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_res_serialize(res, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  recv_mam_res_free(&res);
+  free(json_result);
+}
+
+void test_recv_mam_message_response_deserialize(void) {
+  const char* json = "{\"payload\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"],\"chid1\":\"" TEST_ADDRESS "\"}";
+  ta_recv_mam_res_t* res = recv_mam_res_new();
+  char* json_result = NULL;
+  char* str;
+  str = TRYTES_81_1;
+  utarray_push_back(res->payload_array, &str);
+  str = TRYTES_81_2;
+  utarray_push_back(res->payload_array, &str);
+  strncpy(res->chid1, TEST_ADDRESS, NUM_TRYTES_ADDRESS);
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_res_serialize(res, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+
+  recv_mam_res_free(&res);
+  free(json_result);
+}
+
 void test_send_mam_message_request_deserialize(void) {
   const char* json =
       "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD
@@ -560,6 +596,7 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
   RUN_TEST(test_recv_mam_message_request_psk_deserialize);
   RUN_TEST(test_recv_mam_message_request_ntru_deserialize);
+  RUN_TEST(test_recv_mam_message_response_serialize);
   RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_send_mam_message_response_serialize);
   RUN_TEST(test_send_mam_message_response_deserialize);

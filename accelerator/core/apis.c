@@ -277,15 +277,14 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
 
   mam_api_t mam;
   ta_recv_mam_req_t* req = recv_mam_req_new();
-  if (req == NULL) {
+  ta_recv_mam_res_t* res = recv_mam_res_new();
+  if (!req || !res) {
     ret = SC_TA_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
   bundle_array_t* bundle_array = NULL;
   bundle_array_new(&bundle_array);
-  UT_array* payload_array = NULL;
-  utarray_new(payload_array, &ut_str_icd);
 
   ret = recv_mam_message_req_deserialize(obj, req);
   if (ret) {
@@ -326,6 +325,14 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
     }
   }
 
+  // Copy the trusted_channel_pks, before fetching the information from MAM.
+  mam_pk_t_set_t init_trusted_ch = NULL;
+  mam_pk_t_set_entry_t* curr_entry = NULL;
+  mam_pk_t_set_entry_t* tmp_entry = NULL;
+  HASH_ITER(hh, mam.trusted_channel_pks, curr_entry, tmp_entry) {
+    mam_pk_t_set_add(&init_trusted_ch, &(curr_entry->value));
+  }
+
   bundle_transactions_t* bundle = NULL;
   BUNDLE_ARRAY_FOREACH(bundle_array, bundle) {
     char* payload = NULL;
@@ -336,11 +343,18 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
       goto done;
     }
 
-    utarray_push_back(payload_array, &payload);
+    utarray_push_back(res->payload_array, &payload);
     free(payload);
   }
 
-  ret = recv_mam_message_res_serialize(payload_array, json_result);
+  // Find the channel ID which was just added
+  HASH_ITER(hh, mam.trusted_channel_pks, curr_entry, tmp_entry) {
+    if (!mam_pk_t_set_contains(init_trusted_ch, &(curr_entry->value))) {
+      trits_to_trytes(curr_entry->value.key, (tryte_t*)res->chid1, NUM_TRITS_ADDRESS);
+    }
+  }
+
+  ret = recv_mam_message_res_serialize(res, json_result);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
@@ -357,8 +371,9 @@ done:
     }
   }
   bundle_array_free(&bundle_array);
+  mam_pk_t_set_free(&init_trusted_ch);
   recv_mam_req_free(&req);
-  utarray_free(payload_array);
+  recv_mam_res_free(&res);
   return ret;
 }
 

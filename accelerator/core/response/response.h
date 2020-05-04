@@ -14,6 +14,7 @@
 #include "ta_find_transactions_obj.h"
 #include "ta_generate_address.h"
 #include "ta_get_tips.h"
+#include "ta_recv_mam.h"
 #include "ta_send_mam.h"
 #include "ta_send_transfer.h"
 
