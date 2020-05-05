@@ -15,7 +15,7 @@
 #define UINT32_LEN 10
 
 status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, char *out_msg,
-                       uint32_t *out_msg_len) {
+                       size_t *out_msg_len) {
   /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {0};
   char *ptr = out_msg;
@@ -38,7 +38,7 @@ status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *c
   return SC_OK;
 }
 
-status_t deserialize_msg(char *msg, const uint8_t *iv, uint32_t *ciphertext_len, char *ciphertext) {
+status_t deserialize_msg(char *msg, const uint8_t *iv, size_t *ciphertext_len, char *ciphertext) {
   /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {};
   char *ptr = msg;

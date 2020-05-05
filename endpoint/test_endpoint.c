@@ -19,10 +19,6 @@
 #define TEST_VALUE 0
 #define TEST_MESSAGE "THISISMSG9THISISMSG9THISISMSG"
 #define TEST_MESSAGE_FMT "ascii"
-#define TEST_TAG "POWEREDBYTANGLEACCELERATOR9"
-#define TEST_ADDRESS                                                           \
-  "POWEREDBYTANGLEACCELERATOR999999999999999999999999999999999999999999999999" \
-  "999999A"
 #define TEST_DEVICE_ID "470010171566423"
 
 #define TEST_REQ_BODY                               \
@@ -37,16 +33,14 @@ const uint8_t test_iv[AES_IV_SIZE] = {164, 3, 98, 193, 52, 162, 107, 252, 184, 4
 void gen_rand_trytes(uint8_t *out, size_t len) {
   const char tryte_alphabet[] = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const int alphabet_array_length = ARRAY_SIZE(tryte_alphabet);
-  for (int i = 0; i < len; i++) {
+  for (size_t i = 0; i < len; i++) {
     uint8_t rand_index = rand() % alphabet_array_length;
     out[i] = tryte_alphabet[rand_index];
   }
 }
 
 void test_endpoint(void) {
-  uint8_t *address = TEST_ADDRESS;
   uint8_t next_addr[ADDR_LEN] = {0};
-  char raw_msg[MAX_MSG_LEN] = {0};
   uint8_t iv[AES_IV_SIZE] = {0};
 
   memcpy(iv, test_iv, AES_IV_SIZE);
@@ -62,11 +56,11 @@ void test_endpoint(void) {
   gen_rand_trytes(next_addr, ADDR_LEN);
 
   status_t ret = send_transaction_information(TEST_VALUE, TEST_MESSAGE, TEST_MESSAGE_FMT, TEST_TAG, TEST_ADDRESS,
-                                              next_addr, test_key, TEST_DEVICE_ID, iv);
+                                              (char *)next_addr, test_key, TEST_DEVICE_ID, iv);
   TEST_ASSERT(ret == SC_OK);
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_endpoint);
   return UNITY_END();

@@ -120,7 +120,8 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
 }
 
 status_t http_send_request(connect_info_t *const info, const char *req) {
-  size_t req_len = strlen(req), write_len = 0, ret_len;
+  size_t req_len = strlen(req), write_len = 0;
+  int ret_len;
 
   while (write_len < req_len) {
     if (info->https) {

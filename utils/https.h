@@ -18,11 +18,9 @@
  * @param[in] port HTTP(S) port
  * @param[in] api API path for POST request to HTTP(S) server, i.e "transaction/". It must be in string.
  * @param[in] msg Message to send
- * @param[in] msg_len Length of message
  * @param[in] ssl_seed Seed for ssl connection
  *
  * @return #status_t
  */
-status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const int msg_len,
-                        const char *ssl_seed);
+status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed);
 #endif  // UTILS_HTTPS_H

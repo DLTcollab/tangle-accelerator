@@ -17,12 +17,13 @@
 #include "utils/text_serializer.h"
 #include "utils/tryte_byte_conv.h"
 
-#define STRINGIZE(x) #x
-#define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
+// FIXME: Same as STR() inside tests/test_defined.h
+#define STR_HELPER(num) #num
+#define STR(num) STR_HELPER(num)
 
-const char* HOST = STRINGIZE_VALUE_OF(TA_HOST);
-const char* PORT = STRINGIZE_VALUE_OF(TA_PORT);
-const char* SSL_SEED = STRINGIZE_VALUE_OF(TA_SSL_SEED);
+static const char* HOST = STR(ENDPOINT_HOST);
+static const char* PORT = STR(ENDPOINT_PORT);
+static const char* SSL_SEED = STR(ENDPOINT_SSL_SEED);
 
 #define REQ_BODY \
   "{\"value\": %d, \"message\": \"%s\", \"message_format\": \"%s\", \"tag\": \"%s\", \"address\": \"%s\"}\r\n\r\n"
@@ -34,11 +35,11 @@ status_t send_transaction_information(int value, const char* message, const char
                                       const char* device_id, uint8_t* iv) {
   char tryte_msg[MAX_MSG_LEN] = {0};
   char msg[MAX_MSG_LEN] = {0};
-  char ciphertext[MAX_MSG_LEN] = {0};
   char req_body[MAX_MSG_LEN] = {0};
-  char raw_msg[MAX_MSG_LEN] = {0};
+  uint8_t ciphertext[MAX_MSG_LEN] = {0};
+  uint8_t raw_msg[MAX_MSG_LEN] = {0};
 
-  int ret = snprintf(raw_msg, MAX_MSG_LEN, "%s:%s", address, message);
+  int ret = snprintf((char*)raw_msg, MAX_MSG_LEN, "%s:%s", next_address, message);
   if (ret < 0) {
     // FIXME: Replace to default logger
     fprintf(stderr, "message is to long");
@@ -63,7 +64,7 @@ status_t send_transaction_information(int value, const char* message, const char
     fprintf(stderr, "%s\n", "encrypt msg error");
     return ret;
   }
-  serialize_msg(iv, encrypt_ctx.ciphertext_len, encrypt_ctx.ciphertext, msg, &msg_len);
+  serialize_msg(iv, encrypt_ctx.ciphertext_len, (char*)encrypt_ctx.ciphertext, msg, &msg_len);
   bytes_to_trytes((const unsigned char*)msg, msg_len, tryte_msg);
 
   memset(req_body, 0, sizeof(char) * MAX_MSG_LEN);
@@ -75,7 +76,7 @@ status_t send_transaction_information(int value, const char* message, const char
     return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, MAX_MSG_LEN, SSL_SEED) != SC_OK) {
+  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, SSL_SEED) != SC_OK) {
     // FIXME: Replace to default logger
     fprintf(stderr, "%s\n", "send http message error");
     return SC_ENDPOINT_SEND_TRANSFER;

@@ -15,10 +15,10 @@
 
 #define MAXLINE 1024
 
-const char test_payload1[] = "0123456789abcdef";
+char test_payload1[] = "0123456789abcdef";
 const size_t test_paylen1 = 16;
 
-const uint8_t test_payload2[] = {
+uint8_t test_payload2[] = {
     99,  44,  121, 217, 149, 161, 127, 33,  133, 77,  125, 156, 53,  53,  248, 95,  57,  196, 141, 90,  121, 158,
     133, 218, 153, 153, 24,  84,  32,  245, 68,  131, 33,  189, 93,  182, 94,  220, 215, 227, 42,  85,  127, 95,
     138, 119, 190, 196, 60,  75,  30,  181, 233, 164, 143, 130, 61,  167, 214, 93,  156, 26,  225, 189, 216, 62,
@@ -46,7 +46,7 @@ void test_cipher1(void) {
   uint8_t ciphertext[MAXLINE] = {0};
   uint8_t plaintext[MAXLINE] = {0};
 
-  ta_cipher_ctx encrypt_ctx = {.plaintext = test_payload1,
+  ta_cipher_ctx encrypt_ctx = {.plaintext = (uint8_t*)test_payload1,
                                .plaintext_len = test_paylen1,
                                .ciphertext = ciphertext,
                                .ciphertext_len = MAXLINE,
