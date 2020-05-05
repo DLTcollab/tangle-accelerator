@@ -531,21 +531,22 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
     }
 
     if (raw_message) {
-      msg_len = msg_len * 2;
-      req->msg_len = msg_len * 3;
-      tryte_t trytes_buffer[msg_len];
+      req->msg_len = msg_len * 2;
+      if (req->msg_len > NUM_TRYTES_MESSAGE) {
+        ret = SC_SERIALIZER_MESSAGE_OVERRUN;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
 
-      ascii_to_trytes(json_result->valuestring, trytes_buffer);
-      flex_trits_from_trytes(req->message, req->msg_len, trytes_buffer, msg_len, msg_len);
+      ascii_to_trytes(json_result->valuestring, req->message);
     } else {
-      req->msg_len = msg_len * 3;
-      flex_trits_from_trytes(req->message, req->msg_len, (const tryte_t*)json_result->valuestring, msg_len, msg_len);
-    }
-
-    if (req->msg_len > NUM_TRYTES_MESSAGE) {
-      ret = SC_SERIALIZER_MESSAGE_OVERRUN;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
+      req->msg_len = msg_len;
+      if (req->msg_len > NUM_TRYTES_MESSAGE) {
+        ret = SC_SERIALIZER_MESSAGE_OVERRUN;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      memcpy(req->message, json_result->valuestring, req->msg_len);
     }
 
   } else {

@@ -9,7 +9,7 @@
 #include <time.h>
 #include "accelerator/core/apis.h"
 #include "accelerator/core/proxy_apis.h"
-#include "common.h"
+#include "tests/common.h"
 #include "tests/test_define.h"
 
 static driver_test_cases_t test_case;
@@ -91,13 +91,17 @@ void test_get_tips(void) {
 }
 
 void test_send_transfer(void) {
-  const char* json =
-      "{\"value\":100"
-      ",\"tag\":\"" TEST_TAG
+  const char* json_template =
+      "{\"value\":100,"
+      "\"message_format\":\"trytes\","
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
       "\","
-      "\"address\":\"" TRYTES_81_1
-      "\","
-      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+      "\"address\":\"" TRYTES_81_1 "\"}";
+  tryte_t test_transfer_message[TEST_TRANSFER_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_LEN, test_transfer_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message);
   char* json_result;
   double sum = 0;
 
@@ -125,6 +129,7 @@ void test_send_transfer(void) {
 #endif
     free(json_result);
   }
+  free(json);
   printf("Average time of send_transfer: %lf\n", sum / TEST_COUNT);
 }
 

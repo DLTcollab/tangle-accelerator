@@ -191,14 +191,9 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
     goto done;
   }
 
-  // TODO Maybe we can replace the variable type of message from flex_trit_t to
-  // tryte_t
-  tryte_t msg_tryte[NUM_TRYTES_SERIALIZED_TRANSACTION];
-  flex_trits_to_trytes(msg_tryte, req->msg_len / 3, req->message, req->msg_len, req->msg_len);
+  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len};
 
-  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len / 3};
-
-  if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) != RC_OK) {
+  if (transfer_message_set_trytes(&transfer, req->message, transfer.msg_len) != RC_OK) {
     ret = SC_CCLIENT_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;

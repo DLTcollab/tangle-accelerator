@@ -34,6 +34,9 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 
+// How many different letters are used in tryte alphabet
+#define TRINARY_ALPHABET_LEN 27
+
 // TODO The temporary default timeout in cache server is 1 week. We should investigate the performance of redis to
 // design a better data structure and appropriate timeout period. And we should study the methodology to partially
 // release cached data.

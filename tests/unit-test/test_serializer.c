@@ -10,6 +10,7 @@
 #include "connectivity/mqtt/mqtt_common.h"
 #endif
 #include "accelerator/core/serializer/serializer.h"
+#include "tests/common.h"
 #include "tests/test_define.h"
 
 void test_serialize_ta_generate_address(void) {
@@ -29,27 +30,81 @@ void test_serialize_ta_generate_address(void) {
 }
 
 void test_deserialize_ta_send_transfer(void) {
-  const char* json =
+  const char* json_template =
       "{\"value\":100,"
       "\"message_format\":\"trytes\","
-      "\"message\":\"" TEST_TAG "\",\"tag\":\"" TEST_TAG
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
       "\","
       "\"address\":\"" TRYTES_81_1 "\"}";
-
+  tryte_t test_transfer_message[TEST_TRANSFER_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_LEN, test_transfer_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message);
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
-  flex_trit_t tag_msg_trits[FLEX_TRIT_SIZE_81], hash_trits_1[FLEX_TRIT_SIZE_243];
+  flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG] = {}, hash_trits[NUM_FLEX_TRITS_HASH] = {},
+              msg_trits[NUM_FLEX_TRITS_MESSAGE] = {};
 
   ta_send_transfer_req_deserialize(json, req);
-
   TEST_ASSERT_EQUAL_INT(100, req->value);
-  flex_trits_from_trytes(tag_msg_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->tag->hash, FLEX_TRIT_SIZE_81);
-  TEST_ASSERT_EQUAL_MEMORY(tag_msg_trits, req->message, FLEX_TRIT_SIZE_81);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  flex_trits_from_trytes(msg_trits, NUM_TRITS_MESSAGE, test_transfer_message, NUM_TRYTES_MESSAGE, NUM_TRYTES_MESSAGE);
+  TEST_ASSERT_EQUAL_MEMORY(tag_trits, req->tag->hash, NUM_FLEX_TRITS_TAG);
+  TEST_ASSERT_EQUAL_MEMORY(msg_trits, req->message, NUM_FLEX_TRITS_MESSAGE);
 
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  TEST_ASSERT_EQUAL_MEMORY(hash_trits_1, req->address->hash, FLEX_TRIT_SIZE_243);
+  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(hash_trits, req->address->hash, NUM_FLEX_TRITS_HASH);
 
   ta_send_transfer_req_free(&req);
+  free(json);
+}
+
+void test_deserialize_ta_send_transfer_raw_message(void) {
+  const char* json_template =
+      "{\"value\":100,"
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
+      "\","
+      "\"address\":\"" TRYTES_81_1 "\"}";
+  tryte_t test_transfer_message_raw_message[TEST_TRANSFER_MESSAGE_RAW_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_RAW_MESSAGE_LEN, test_transfer_message_raw_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_RAW_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message_raw_message);
+  ta_send_transfer_req_t* req = ta_send_transfer_req_new();
+  flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG] = {}, hash_trits[NUM_FLEX_TRITS_HASH] = {};
+  tryte_t msg_trytes[NUM_TRYTES_MESSAGE] = {};
+
+  ta_send_transfer_req_deserialize(json, req);
+  TEST_ASSERT_EQUAL_INT(100, req->value);
+  flex_trits_from_trytes(tag_trits, NUM_TRITS_TAG, (const tryte_t*)TEST_TAG, NUM_TRYTES_TAG, NUM_TRYTES_TAG);
+  ascii_to_trytes((char*)test_transfer_message_raw_message, msg_trytes);
+  TEST_ASSERT_EQUAL_MEMORY(tag_trits, req->tag->hash, NUM_FLEX_TRITS_TAG);
+  TEST_ASSERT_EQUAL_MEMORY(msg_trytes, req->message, NUM_TRYTES_MESSAGE);
+
+  flex_trits_from_trytes(hash_trits, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_MEMORY(hash_trits, req->address->hash, NUM_FLEX_TRITS_HASH);
+
+  ta_send_transfer_req_free(&req);
+  free(json);
+}
+
+void test_deserialize_ta_send_transfer_overrun(void) {
+  const char* json_template =
+      "{\"value\":100,"
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
+      "\","
+      "\"address\":\"" TRYTES_81_1 "\"}";
+  tryte_t test_transfer_message_overrun_raw_message[TEST_TRANSFER_MESSAGE_OVERRUN_RAW_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_OVERRUN_RAW_MESSAGE_LEN, test_transfer_message_overrun_raw_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_OVERRUN_RAW_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message_overrun_raw_message);
+  ta_send_transfer_req_t* req = ta_send_transfer_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_SERIALIZER_MESSAGE_OVERRUN, ta_send_transfer_req_deserialize(json, req));
+
+  ta_send_transfer_req_free(&req);
+  free(json);
 }
 
 void test_serialize_ta_find_transaction_objects(void) {
@@ -498,6 +553,8 @@ int main(void) {
   serializer_logger_init();
   RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_deserialize_ta_send_transfer);
+  RUN_TEST(test_deserialize_ta_send_transfer_raw_message);
+  RUN_TEST(test_deserialize_ta_send_transfer_overrun);
   RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);

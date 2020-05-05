@@ -7,7 +7,7 @@
  */
 
 #include "accelerator/core/core.h"
-#include "common.h"
+#include "tests/common.h"
 #include "tests/test_define.h"
 
 static ta_core_t ta_core;
@@ -24,12 +24,9 @@ status_t prepare_transfer(const iota_config_t* const iconf, const iota_client_se
     goto done;
   }
 
-  tryte_t msg_tryte[NUM_TRYTES_SERIALIZED_TRANSACTION];
-  flex_trits_to_trytes(msg_tryte, req->msg_len / 3, req->message, req->msg_len, req->msg_len);
+  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len};
 
-  transfer_t transfer = {.value = 0, .timestamp = current_timestamp_ms(), .msg_len = req->msg_len / 3};
-
-  if (transfer_message_set_trytes(&transfer, msg_tryte, transfer.msg_len) != RC_OK) {
+  if (transfer_message_set_trytes(&transfer, req->message, transfer.msg_len) != RC_OK) {
     ret = SC_CCLIENT_OOM;
     printf("%s\n", "SC_CCLIENT_OOM");
     goto done;
@@ -70,13 +67,17 @@ done:
 
 void test_broadcast_buffered_txn(void) {
   // Generate transaction trytes, and don't send them
-  const char* json =
-      "{\"value\":100"
-      ",\"tag\":\"" TEST_TAG
+  const char* json_template =
+      "{\"value\":100,"
+      "\"message_format\":\"trytes\","
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
       "\","
-      "\"address\":\"" TEST_ADDRESS
-      "\","
-      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+      "\"address\":\"" TRYTES_81_1 "\"}";
+  tryte_t test_transfer_message[TEST_TRANSFER_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_LEN, test_transfer_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message);
 
   char uuid[UUID_STR_LEN];
   int list_len = -1;
@@ -111,17 +112,22 @@ void test_broadcast_buffered_txn(void) {
 
   ta_send_transfer_req_free(&req);
   hash_array_free(raw_txn_array);
+  free(json);
 }
 
 void test_fetch_txn_with_uuid(void) {
   // Generate transaction trytes, and don't send them
-  const char* json =
-      "{\"value\":100"
-      ",\"tag\":\"" TEST_TAG
+  const char* json_template =
+      "{\"value\":100,"
+      "\"message_format\":\"trytes\","
+      "\"message\":\"%s\",\"tag\":\"" TEST_TAG
       "\","
-      "\"address\":\"" TEST_ADDRESS
-      "\","
-      "\"message\":\"" TEST_TRANSFER_MESSAGE "\"}";
+      "\"address\":\"" TEST_ADDRESS "\"}";
+  tryte_t test_transfer_message[TEST_TRANSFER_MESSAGE_LEN + 1] = {};
+  gen_rand_trytes(TEST_TRANSFER_MESSAGE_LEN, test_transfer_message);
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN;
+  char* json = (char*)malloc(sizeof(char) * len);
+  snprintf(json, len, json_template, test_transfer_message);
 
   char uuid[UUID_STR_LEN];
   ta_send_transfer_req_t* req = ta_send_transfer_req_new();
@@ -153,17 +159,18 @@ void test_fetch_txn_with_uuid(void) {
   flex_trits_to_trytes(trytes, NUM_TRYTES_HASH, transaction_address(res->txn), NUM_TRITS_HASH, NUM_TRITS_HASH);
   TEST_ASSERT_EQUAL_STRING(TEST_ADDRESS, (char*)trytes);
   flex_trits_to_trytes(trytes, NUM_TRYTES_MESSAGE, transaction_message(res->txn), NUM_TRITS_MESSAGE, NUM_TRITS_MESSAGE);
-  char txn_msg_ascii[NUM_TRYTES_MESSAGE / 2 + 1] = {};
-  trytes_to_ascii(trytes, NUM_TRYTES_MESSAGE, txn_msg_ascii);
-  TEST_ASSERT_EQUAL_STRING(TEST_TRANSFER_MESSAGE, txn_msg_ascii);
+  TEST_ASSERT_EQUAL_MEMORY(test_transfer_message, trytes, TEST_TRANSFER_MESSAGE_LEN);
 
   ta_send_transfer_req_free(&req);
   hash_array_free(raw_txn_array);
   ta_fetch_txn_with_uuid_res_free(&res);
   free(transaction_flex_trits);
+  free(json);
 }
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
+
   // Initialize logger
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
