@@ -22,17 +22,20 @@ extern "C" {
 #define AES_IV_SIZE AES_BLOCK_SIZE
 #define IMSI_LEN 16
 #define TA_AES_KEY_BITS 256
+#define TA_AES_HMAC_SIZE AES_BLOCK_SIZE * 2
 
 /** context of aes cipher */
 typedef struct ta_cipher_ctx {
-  uint8_t* plaintext;      /**< Plaintext */
-  size_t plaintext_len;    /**< Plaintext length */
-  uint8_t* ciphertext;     /**<  Ciphrtext */
-  size_t ciphertext_len;   /**< Ciphertext length */
-  uint8_t iv[AES_IV_SIZE]; /**< Initialization vector, mbedtls_aes needs r/w iv[] */
-  const uint8_t* key;      /**< Encryption key */
-  const size_t keybits;    /**< Bits of key, valid options are 128,192,256 bits */
-  const char* device_id;   /**< Device id */
+  uint8_t* plaintext;             /**< Plaintext */
+  size_t plaintext_len;           /**< Plaintext length */
+  uint8_t* ciphertext;            /**< Ciphrtext */
+  size_t ciphertext_len;          /**< Ciphertext length */
+  uint8_t iv[AES_IV_SIZE];        /**< Initialization vector, mbedtls_aes needs r/w iv[] */
+  const uint8_t* key;             /**< Encryption key */
+  const size_t keybits;           /**< Bits of key, valid options are 128,192,256 bits */
+  const char* device_id;          /**< Device id */
+  uint8_t hmac[TA_AES_HMAC_SIZE]; /**< r/w buffer for hash-based message authentication code */
+  uint64_t timestamp;             /**< Timestamp for generate hmac */
 } ta_cipher_ctx;
 
 /**

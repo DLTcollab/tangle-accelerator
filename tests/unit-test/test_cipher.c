@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "tests/test_define.h"
 #include "utils/cipher.h"
 
@@ -45,6 +46,8 @@ void tearDown(void) {}
 void test_cipher1(void) {
   uint8_t ciphertext[MAXLINE] = {0};
   uint8_t plaintext[MAXLINE] = {0};
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
 
   ta_cipher_ctx encrypt_ctx = {.plaintext = (uint8_t*)test_payload1,
                                .plaintext_len = test_paylen1,
@@ -52,8 +55,10 @@ void test_cipher1(void) {
                                .ciphertext_len = MAXLINE,
                                .device_id = device_id,
                                .iv = {0},
+                               .hmac = {0},
                                .key = key,
-                               .keybits = TA_AES_KEY_BITS};
+                               .keybits = TA_AES_KEY_BITS,
+                               .timestamp = t.tv_sec};
   // Don't forget to set the initialization vector
   memcpy(encrypt_ctx.iv, iv_global, AES_IV_SIZE);
   TEST_ASSERT_EQUAL_INT32(SC_OK, aes_encrypt(&encrypt_ctx));
@@ -64,10 +69,14 @@ void test_cipher1(void) {
                                .ciphertext_len = encrypt_ctx.ciphertext_len,
                                .device_id = device_id,
                                .iv = {0},
+                               .hmac = {0},
                                .key = key,
-                               .keybits = TA_AES_KEY_BITS};
+                               .keybits = TA_AES_KEY_BITS,
+                               .timestamp = encrypt_ctx.timestamp};
   // Don't forget to set the initialization vector
   memcpy(decrypt_ctx.iv, encrypt_ctx.iv, AES_IV_SIZE);
+  // Don't forget to set the hmac
+  memcpy(decrypt_ctx.hmac, encrypt_ctx.hmac, TA_AES_HMAC_SIZE);
   TEST_ASSERT_EQUAL_INT32(SC_OK, aes_decrypt(&decrypt_ctx));
 
   TEST_ASSERT_EQUAL_INT(test_paylen1, decrypt_ctx.plaintext_len);
@@ -77,15 +86,18 @@ void test_cipher1(void) {
 void test_cipher2(void) {
   uint8_t ciphertext[MAXLINE] = {0};
   uint8_t plaintext[MAXLINE] = {0};
-
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
   ta_cipher_ctx encrypt_ctx = {.plaintext = test_payload2,
                                .plaintext_len = test_paylen2,
                                .ciphertext = ciphertext,
                                .ciphertext_len = MAXLINE,
                                .device_id = device_id,
                                .iv = {0},
+                               .hmac = {0},
                                .key = key,
-                               .keybits = TA_AES_KEY_BITS};
+                               .keybits = TA_AES_KEY_BITS,
+                               .timestamp = t.tv_sec};
   // Don't forget to set the initialization vector
   memcpy(encrypt_ctx.iv, iv_global, AES_IV_SIZE);
   TEST_ASSERT_EQUAL_INT32(SC_OK, aes_encrypt(&encrypt_ctx));
@@ -96,10 +108,14 @@ void test_cipher2(void) {
                                .ciphertext_len = encrypt_ctx.ciphertext_len,
                                .device_id = device_id,
                                .iv = {0},
+                               .hmac = {0},
                                .key = key,
-                               .keybits = TA_AES_KEY_BITS};
+                               .keybits = TA_AES_KEY_BITS,
+                               .timestamp = encrypt_ctx.timestamp};
   // Don't forget to set the initialization vector
   memcpy(decrypt_ctx.iv, encrypt_ctx.iv, AES_IV_SIZE);
+  // Don't forget to set the hmac
+  memcpy(decrypt_ctx.hmac, encrypt_ctx.hmac, TA_AES_HMAC_SIZE);
   TEST_ASSERT_EQUAL_INT32(SC_OK, aes_decrypt(&decrypt_ctx));
 
   TEST_ASSERT_EQUAL_UINT(test_paylen2, decrypt_ctx.plaintext_len);

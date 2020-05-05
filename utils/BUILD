@@ -68,7 +68,10 @@ cc_library(
     name = "text_serializer",
     srcs = ["text_serializer.c"],
     hdrs = ["text_serializer.h"],
-    deps = ["//common:ta_errors"],
+    deps = [
+        ":cipher",
+        "//common:ta_errors",
+    ],
 )
 
 cc_library(
