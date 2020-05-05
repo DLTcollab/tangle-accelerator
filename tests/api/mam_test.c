@@ -26,26 +26,11 @@ ta_send_mam_res_t res;
 #define TEST_COUNT 1
 #endif
 
-// FIXME Use a common "gen_rand_seed()" function to replace a static function
-static void rand_seed_init() {
-  // We use ASLR which stands for Address Space Layout Randomization, and we can assume each address of functions inside
-  // loaded program is randomized.
-  srand(getpid() ^ ((int)&rand_seed_init));
-}
-
-static void gen_rand_seed(char* trytes) {
-  const char tryte_alphabet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
-
-  for (int i = 0; i < NUM_TRYTES_HASH; i++) {
-    trytes[i] = tryte_alphabet[rand() % 27];
-  }
-}
-
 void test_send_mam_message(void) {
   const char* json_template = "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"%s\",\"ch_mss_depth\":" STR(
       TEST_CH_DEPTH) ",\"message\":\"" TEST_PAYLOAD "\"}, \"protocol\":\"MAM_V1\"}";
   char seed[NUM_TRYTES_ADDRESS + 1] = {};
-  gen_rand_seed(seed);
+  gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
   const int len = strlen(json_template) + NUM_TRYTES_ADDRESS;
   char* json_result = NULL;
   char* json = (char*)malloc(sizeof(char) * len);
@@ -93,7 +78,7 @@ void test_send_read_mam_bundle(void) {
   const char* json_template = "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"%s\",\"ch_mss_depth\":" STR(
       TEST_CH_DEPTH) ",\"message\":\"" TEST_PAYLOAD "\"}, \"protocol\":\"MAM_V1\"}";
   char seed[NUM_TRYTES_ADDRESS + 1] = {};
-  gen_rand_seed(seed);
+  gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
   const int len = strlen(json_template) + NUM_TRYTES_ADDRESS;
   char* json_result = NULL;
   char* json = (char*)malloc(sizeof(char) * len);
@@ -132,7 +117,7 @@ void test_write_until_next_channel(void) {
       TEST_CH_DEPTH) ",\"message\":\"%s:%d\"}, \"protocol\":\"MAM_V1\"}";
   const char payload[] = "This is test payload number";
   const int len = strlen(json_template_send) + NUM_TRYTES_ADDRESS + strlen(payload) + 2;
-  gen_rand_seed(seed);
+  gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
   for (int i = 0; i < msg_num; i++) {
     char* json_result;
     mam_res_array[i] = send_mam_res_new();
@@ -191,7 +176,7 @@ void test_write_until_next_channel(void) {
 
 int main(int argc, char* argv[]) {
   UNITY_BEGIN();
-  rand_seed_init();
+  rand_trytes_init();
 
   // Initialize logger
   if (ta_logger_init() != SC_OK) {

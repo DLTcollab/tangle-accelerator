@@ -169,7 +169,7 @@ void test_fetch_txn_with_uuid(void) {
 }
 
 int main(int argc, char* argv[]) {
-  srand(time(NULL));
+  rand_trytes_init();
 
   // Initialize logger
   if (ta_logger_init() != SC_OK) {
