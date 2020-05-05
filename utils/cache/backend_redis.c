@@ -258,7 +258,7 @@ void cache_stop() {
 
 status_t cache_del(const char* const key) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_del(CONN(cache)->rc, key);
@@ -266,7 +266,7 @@ status_t cache_del(const char* const key) {
 
 status_t cache_get(const char* const key, char* res) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_get(CONN(cache)->rc, key, res);
@@ -275,7 +275,7 @@ status_t cache_get(const char* const key, char* res) {
 status_t cache_set(const char* const key, const int key_size, const void* const value, const int value_size,
                    const int timeout) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_set(CONN(cache)->rc, key, key_size, value, value_size, timeout);
@@ -283,7 +283,7 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
 
 status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_push(CONN(cache)->rc, key, key_size, value, value_size);
@@ -291,7 +291,7 @@ status_t cache_list_push(const char* const key, const int key_size, const void* 
 
 status_t cache_list_at(const char* const key, const int index, const int res_len, char* res) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_at(CONN(cache)->rc, key, index, res_len, res);
@@ -299,7 +299,7 @@ status_t cache_list_at(const char* const key, const int index, const int res_len
 
 status_t cache_list_peek(const char* const key, const int res_len, char* res) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_peek(CONN(cache)->rc, key, res_len, res);
@@ -307,7 +307,7 @@ status_t cache_list_peek(const char* const key, const int res_len, char* res) {
 
 status_t cache_list_size(const char* const key, int* len) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_size(CONN(cache)->rc, key, len);
@@ -315,7 +315,7 @@ status_t cache_list_size(const char* const key, int* len) {
 
 status_t cache_list_exist(const char* const key, const char* const value, const int value_len, bool* exist) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_exist(CONN(cache)->rc, key, value, value_len, exist);
@@ -323,7 +323,7 @@ status_t cache_list_exist(const char* const key, const char* const value, const 
 
 status_t cache_list_pop(const char* const key, char* res) {
   if (!cache_state) {
-    ta_log_info("%s\n", "SC_CACHE_OFF");
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;
   }
   return redis_list_pop(CONN(cache)->rc, key, res);
