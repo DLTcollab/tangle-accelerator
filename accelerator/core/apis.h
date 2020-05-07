@@ -10,9 +10,7 @@
 #define CORE_APIS_H_
 
 #include "accelerator/core/core.h"
-#include "common/trinary/trit_tryte.h"
-#include "mam/api/api.h"
-#include "mam/mam/mam_channel_t_set.h"
+#include "accelerator/core/mam_core.h"
 #include "serializer/serializer.h"
 
 #ifdef __cplusplus
@@ -126,41 +124,41 @@ status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_s
 status_t api_get_tips(const iota_client_service_t* const service, char** json_result);
 
 /**
- * @brief Receive a MAM message.
+ * @brief Receive MAM messages.
  *
- * Receive a MAM message from given bundle hash.
+ * Receive a MAM message from given channel id or bundle hash.
  *
- * @param[in] service IOTA node service
- * @param[in] chid channel ID string
- * @param[out] json_result Fetched MAM message in JSON format
+ * @param iconf[in] IOTA API parameter configurations
+ * @param service[in] IOTA node service
+ * @param obj[in] Input data in JSON
+ * @param json_result[out] Fetched MAM message in JSON format
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              const char* const chid, char** json_result);
+                              const char* const obj, char** json_result);
 
 /**
  * @brief Send a MAM message with given Payload.
  *
- * Send a MAM message from given Payload(ascii message).
+ * Send a MAM message from given request format.
  * There is no need to decode the ascii payload to tryte, since the
  * api_send_mam_message() will take this job.
  *
- * @param[in] info Tangle-accelerator configuration variables
- * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IOTA node service
- * @param[in] payload message to send undecoded ascii string.
- * @param[out] json_result Result containing channel id and bundle hash
+ * @param info[in] Tangle-accelerator configuration variables
+ * @param iconf[in] IOTA API parameter configurations
+ * @param service[in] IOTA node service
+ * @param obj[in] Input data in JSON
+ * @param json_result[out] Result containing channel id, message id and bundle hash
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
-                              const iota_client_service_t* const service, char const* const payload,
-                              char** json_result);
+                              const iota_client_service_t* const service, char const* const obj, char** json_result);
 
 /**
  * @brief Send transfer to tangle.

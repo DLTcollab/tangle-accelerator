@@ -76,6 +76,8 @@ void test_write_until_next_channel(void) {
   const char payload[] = "This is test payload number";
   const int len = strlen(json_template_send) + NUM_TRYTES_ADDRESS + strlen(payload) + 2;
   gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
+  double sum = 0;
+  test_time_start(&start_time);
   for (int i = 0; i < msg_num; i++) {
     char* json_result;
     mam_res_array[i] = send_mam_res_new();
@@ -108,6 +110,7 @@ void test_write_until_next_channel(void) {
       snprintf(substr, strlen(payload) + 3, "%s:%d", payload, j);
       TEST_ASSERT_TRUE(strstr(json_result, substr));
     }
+    test_time_end(&start_time, &end_time, &sum);
 
     recv_mam_res_deserialize(json_result, res);
     if (res->chid1[0]) {
@@ -127,6 +130,7 @@ void test_write_until_next_channel(void) {
     recv_mam_res_free(&res);
   }
 
+  printf("Average time of write_until_next_channel: %lf\n", sum / TEST_COUNT);
   for (int i = 0; i < msg_num; i++) {
     send_mam_res_free(&(mam_res_array[i]));
   }

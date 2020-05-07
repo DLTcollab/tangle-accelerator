@@ -9,8 +9,9 @@
 #ifndef COMMON_MACROS_H_
 #define COMMON_MACROS_H_
 
+#include "common/model/bundle.h"
 #include "common/model/transaction.h"
-#include "common/trinary/tryte.h"
+#include "common/trinary/trit_tryte.h"
 #include "mam/mam/message.h"
 
 #include <stdbool.h>

@@ -38,7 +38,6 @@ status_t send_mam_req_v1_init(ta_send_mam_req_t* req) {
   data->seed = NULL;
   data->message = NULL;
   data->ch_mss_depth = 6;
-  data->ep_mss_depth = 6;
 
   send_mam_key_mam_v1_t* key = req->key;
   utarray_new(key->psk_array, &ut_str_icd);

@@ -814,11 +814,6 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     data->ch_mss_depth = json_value->valueint;
   }
 
-  json_value = cJSON_GetObjectItemCaseSensitive(json_key, "ep_mss_depth");
-  if ((json_value != NULL) && cJSON_IsNumber(json_value)) {
-    data->ep_mss_depth = json_value->valueint;
-  }
-
 done:
   return ret;
 }
@@ -1208,7 +1203,7 @@ status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* cons
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
-    send_mam_res_set_announcement_bundle_hash(res, addr);
+    send_mam_res_set_announce_bundle_hash(res, addr);
   }
 
 done:

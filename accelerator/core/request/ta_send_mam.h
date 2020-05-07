@@ -45,8 +45,6 @@ typedef struct send_mam_data_mam_v1_s {
   tryte_t* seed;
   /** Optional. The depth of channel merkle tree. */
   int32_t ch_mss_depth;
-  /** Optional. The depth of endpoint merkle tree. */
-  int32_t ep_mss_depth;
   /** Required. The message will be append to the channel. */
   char* message;
 } send_mam_data_mam_v1_t;
