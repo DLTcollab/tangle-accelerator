@@ -12,7 +12,7 @@ extern "C" {
 #endif
 #include <stdlib.h>
 #include "cassandra.h"
-#include "common/logger.h"
+#include "common/ta_logger.h"
 
 /**
  * @file storage/scylladb_utils.h

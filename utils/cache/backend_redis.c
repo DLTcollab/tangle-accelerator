@@ -8,7 +8,7 @@
 
 #include <hiredis/hiredis.h>
 #include "cache.h"
-#include "common/logger.h"
+#include "common/ta_logger.h"
 
 #define BR_LOGGER "backend_redis"
 

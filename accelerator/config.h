@@ -19,7 +19,7 @@
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"
 #endif
-#include "common/logger.h"
+#include "common/ta_logger.h"
 #include "utils/cache/cache.h"
 
 #define FILE_PATH_SIZE 128

@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include "common/ta_errors.h"
+#include "logger.h"
 #include "utils/logger_helper.h"
 
 #ifdef NDEBUG
@@ -22,7 +23,7 @@ extern "C" {
 #endif
 
 /**
- * @file common/logger.h
+ * @file common/ta_logger.h
  */
 
 /**

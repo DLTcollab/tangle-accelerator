@@ -4,8 +4,8 @@
 
 #include "cJSON.h"
 #include "common.h"
-#include "common/logger.h"
 #include "common/ta_errors.h"
+#include "common/ta_logger.h"
 
 #define CONN_LOGGER "connectivity"
 static logger_id_t logger_id;

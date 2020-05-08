@@ -24,7 +24,7 @@
 #include "common/model/transaction.h"
 #include "common/trinary/trit_long.h"
 
-#include "logger.h"
+#include "ta_logger.h"
 
 /**
  * Initialize logger

@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "common/logger.h"
+#include "common/ta_logger.h"
 
 #define MQTT_PUB_LOGGER "pub_utils"
 static logger_id_t logger_id;

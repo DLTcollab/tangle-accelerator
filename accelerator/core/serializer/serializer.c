@@ -10,7 +10,7 @@
 #ifdef MQTT_ENABLE
 #include "connectivity/mqtt/mqtt_common.h"
 #endif
-#include "common/logger.h"
+#include "common/ta_logger.h"
 #include "time.h"
 #define SERI_LOGGER "serializer"
 

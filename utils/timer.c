@@ -7,7 +7,7 @@
  */
 
 #include "timer.h"
-#include "common/logger.h"
+#include "common/ta_logger.h"
 
 #define TIMER_LOGGER "timer"
 

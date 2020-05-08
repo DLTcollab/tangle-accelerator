@@ -10,8 +10,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "common/logger.h"
 #include "common/macros.h"
+#include "common/ta_logger.h"
 
 #define MQTT_UTILS_LOGGER "duplex_utils"
 

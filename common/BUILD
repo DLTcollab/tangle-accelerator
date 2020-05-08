@@ -17,10 +17,11 @@ cc_library(
 
 cc_library(
     name = "ta_logger",
-    srcs = ["logger.h"],
+    srcs = ["ta_logger.h"],
     defines = ["LOGGER_ENABLE"],
     deps = [
         ":ta_errors",
+        "@com_github_embear_logger//:logger",
         "@entangled//utils:logger_helper",
     ],
 )

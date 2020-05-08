@@ -1,7 +1,7 @@
 #include <errno.h>
 
-#include "common/logger.h"
 #include "common/ta_errors.h"
+#include "common/ta_logger.h"
 #include "connectivity/common.h"
 #include "connectivity/http/http.h"
 #include "pthread.h"

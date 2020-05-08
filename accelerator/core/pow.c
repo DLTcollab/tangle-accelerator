@@ -8,7 +8,7 @@
 
 #include "pow.h"
 #include "common/helpers/digest.h"
-#include "common/logger.h"
+#include "common/ta_logger.h"
 #include "third_party/dcurl/src/dcurl.h"
 #include "utils/time.h"
 
