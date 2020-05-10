@@ -19,7 +19,7 @@ typedef struct driver_test_cases_s {
 } driver_test_cases_t;
 
 /**
- * Set option list for `get_long()`
+ * @brief Set option list for `get_long()`
  *
  * @return
  * - pointer of a `struct option` array on success
@@ -28,7 +28,7 @@ typedef struct driver_test_cases_s {
 struct option* driver_cli_build_options();
 
 /**
- * Initializes configurations with default values for driver tests
+ * @brief Initialize configurations with default values for driver tests
  *
  * @param core[in] Pointer to Tangle-accelerator core configuration structure
  * @param argc[in] Pointer to Tangle-accelerator core configuration structure
@@ -42,7 +42,7 @@ struct option* driver_cli_build_options();
 status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv, driver_test_cases_t* test_cases);
 
 /**
- * Start testing clock
+ * @brief Start testing clock
  *
  * @param start[out] `struct timespec` object for recording starting time.
  *
@@ -50,7 +50,7 @@ status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv, driv
 static inline void test_time_start(struct timespec* start) { clock_gettime(CLOCK_REALTIME, start); }
 
 /**
- * Initializes configurations with default values
+ * @brief Initialize configurations with default values
  *
  * @param start[in] `struct timespec` object for recording starting time.
  * @param end[out] `struct timespec` object for recording ending time.
@@ -60,10 +60,22 @@ static inline void test_time_start(struct timespec* start) { clock_gettime(CLOCK
 void test_time_end(struct timespec* start, struct timespec* end, double* sum);
 
 /**
- * Generate a random trytes combination with given length
+ * @brief Initialize random number generator. Call it before 'gen_rand_trytes()'.
+ *
+ */
+void rand_trytes_init();
+
+/**
+ * @brief Generate a random tryte combination with given length
  *
  * @param len[in] The length of generated trytes
  * @param trytes[out] Output trytes combination
  *
  */
-void gen_rand_trytes(int len, tryte_t* trytes);
+static inline void gen_rand_trytes(int len, tryte_t* trytes) {
+  const char tryte_alphabet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
+
+  for (int i = 0; i < len; i++) {
+    trytes[i] = tryte_alphabet[rand() % TRINARY_ALPHABET_LEN];
+  }
+}

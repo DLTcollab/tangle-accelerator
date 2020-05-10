@@ -84,10 +84,8 @@ void test_time_end(struct timespec* start, struct timespec* end, double* sum) {
   *sum += difference;
 }
 
-void gen_rand_trytes(int len, tryte_t* trytes) {
-  const char tryte_alphabet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";
-
-  for (int i = 0; i < len; i++) {
-    trytes[i] = tryte_alphabet[rand() % TRINARY_ALPHABET_LEN];
-  }
+void rand_trytes_init() {
+  // We use ASLR which stands for Address Space Layout Randomization, and we can assume each address of functions inside
+  // loaded program is randomized
+  srand(getpid() ^ ((unsigned long)(&rand_trytes_init)));
 }
