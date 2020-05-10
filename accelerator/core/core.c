@@ -525,7 +525,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 
       bundle_array_add(bundle_array, bundle);
       hash243_set_add(&bundle_hash_set, transaction_bundle(curr_tx));
-      free(bundle);
+      bundle_transactions_free(&bundle);
     }
   }
   hash243_set_free(&bundle_hash_set);
@@ -661,8 +661,8 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
    *    Delete UUID-sent_transaction pair from key-value storage
    */
 
-  get_trytes_req_t* req;
-  get_trytes_res_t* res;
+  get_trytes_req_t* req = NULL;
+  get_trytes_res_t* res = NULL;
   do {
     char uuid[UUID_STR_LEN];
     flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];

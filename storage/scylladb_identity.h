@@ -51,8 +51,8 @@ db_identity_array_t* db_identity_array_new();
 static inline void db_identity_array_free(db_identity_array_t** const db_identity_array) {
   if (db_identity_array && *db_identity_array) {
     utarray_free(*db_identity_array);
+    *db_identity_array = NULL;
   }
-  *db_identity_array = NULL;
 }
 
 /**

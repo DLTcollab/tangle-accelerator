@@ -235,10 +235,15 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   status_t ret = SC_OK;
   find_transactions_req_t *txn_req = find_transactions_req_new();
   transaction_array_t *obj_res = transaction_array_new();
+  if (!txn_req || !obj_res) {
+    ret = SC_MAM_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
 
   if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
     ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
-    ta_log_error("%s\n", "SC_MAM_FAILED_CREATE_OR_GET_ID");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 

@@ -46,7 +46,10 @@ int main(int argc, char *argv[]) {
   if (quiet_mode) {
     // Destroy logger when quiet mode is on
     logger_helper_release(logger_id);
-    logger_helper_destroy();
+    if (logger_helper_destroy() != RC_OK) {
+      ta_log_error("Destroying logger failed %s.\n", CONN_MQTT_LOGGER);
+      return EXIT_FAILURE;
+    }
   } else {
     mqtt_utils_logger_init();
     mqtt_common_logger_init();
