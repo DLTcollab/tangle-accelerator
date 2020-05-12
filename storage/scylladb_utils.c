@@ -81,8 +81,6 @@ CassError execute_statement(CassSession* session, CassStatement* statement) {
   }
 
   cass_future_free(future);
-  cass_statement_free(statement);
-
   return rc;
 }
 
@@ -118,7 +116,7 @@ status_t db_truncate_table(CassSession* session, const char* table_name) {
   }
   if (execute_query(session, query) != CASS_OK) {
     ta_log_error("Fail to truncate table:  %s\n", table_name);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   free(query);
   return ret;
@@ -136,7 +134,7 @@ status_t create_keyspace(CassSession* session, const char* keyspace_name) {
   }
   if (execute_query(session, create_query) != CASS_OK) {
     ta_log_error("Create keyspace %s fail\n", keyspace_name);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
 
   free(create_query);

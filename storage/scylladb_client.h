@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -26,7 +26,7 @@ extern "C" {
  * This method could be enhanced by supporting user-defined keyspace name when
  * specific the preserved usage.
  */
-typedef enum { DB_USAGE_REATTACH = 0, DB_USAGE_NULL, NUM_DB_USAGE } db_client_usage_t;
+typedef enum { DB_USAGE_REATTACH = 0, DB_USAGE_PERMANODE, DB_USAGE_NULL, NUM_DB_USAGE } db_client_usage_t;
 typedef struct {
   CassCluster* cluster;
   CassSession* session;

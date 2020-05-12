@@ -133,8 +133,8 @@ const char* ta_error_to_string(status_t err) {
     case SC_STORAGE_CONNECT_FAIL:
       return "Failed to connect ScyllaDB node.";
     case SC_STORAGE_INVALID_INPUT:
-      return "Invaild input parameter in ScyllaDB.";
-    case SC_STORAGE_CASSANDRA_QUREY_FAIL:
+      return "Invalid input parameter in ScyllaDB.";
+    case SC_STORAGE_CASSANDRA_QUERY_FAIL:
       return "Failed to execute Cassandra query.";
     case SC_CORE_OOM:
       return "Failed to create core object.";

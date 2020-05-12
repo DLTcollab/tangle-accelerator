@@ -219,8 +219,8 @@ typedef enum {
   SC_STORAGE_CONNECT_FAIL = 0x02 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< Failed to connect ScyllaDB node */
   SC_STORAGE_INVALID_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Invaild input parameter, e.g., null pointer */
-  SC_STORAGE_CASSANDRA_QUREY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Invalid input parameter, e.g., null pointer */
+  SC_STORAGE_CASSANDRA_QUERY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< Failed to execute Cassandra query */
 
   // Core module
