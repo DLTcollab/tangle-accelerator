@@ -47,14 +47,6 @@ typedef struct mam_encrypt_key_s {
 } mam_encrypt_key_t;
 
 /**
- * @brief Renew the given bundle
- *
- * @param bundle[in,out] The bundle that will be renewed
- *
- */
-void bundle_transactions_renew(bundle_transactions_t** bundle);
-
-/**
  * @brief Send a MAM message.
  *
  * @param iconf[in] IOTA API parameter configurations

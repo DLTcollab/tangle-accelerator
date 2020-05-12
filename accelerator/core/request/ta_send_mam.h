@@ -45,6 +45,8 @@ typedef struct send_mam_data_mam_v1_s {
   tryte_t* seed;
   /** Optional. The depth of channel merkle tree. */
   int32_t ch_mss_depth;
+  /** Optional. The Channel ID which tangle-accelerator starts to search available message slot. */
+  tryte_t* chid;
   /** Required. The message will be append to the channel. */
   char* message;
 } send_mam_data_mam_v1_t;

@@ -12,6 +12,11 @@
 
 #define MAM_LOGGER "mam_core"
 
+typedef struct channel_info_s {
+  int32_t ch_mss_depth;
+  tryte_t *chid;
+} channel_info_t;
+
 static logger_id_t logger_id;
 
 void ta_mam_logger_init() { logger_id = logger_helper_enable(MAM_LOGGER, LOGGER_DEBUG, true); }
@@ -230,7 +235,7 @@ static status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const ico
 }
 
 static status_t create_channel_fetch_all_transactions(const iota_client_service_t *const service, mam_api_t *const api,
-                                                      const size_t channel_depth, tryte_t *const chid,
+                                                      const size_t channel_depth, bool first_iter, tryte_t *const chid,
                                                       hash81_array_p tag_array) {
   status_t ret = SC_OK;
   find_transactions_req_t *txn_req = find_transactions_req_new();
@@ -241,10 +246,14 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
     goto done;
   }
 
-  if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
-    ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  // We have created a channel when we want to get to the given channel at the first loop in
+  // `ta_mam_written_msg_to_bundle()`, so we don't need to create a channel once again.
+  if (!first_iter) {
+    if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
+      ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
+      ta_log_error("%s\n", "SC_MAM_FAILED_CREATE_OR_GET_ID");
+      goto done;
+    }
   }
 
   flex_trit_t chid_flex_trit[NUM_TRITS_ADDRESS];
@@ -271,6 +280,35 @@ done:
   return ret;
 }
 
+static bool is_setting_changed(const iota_client_service_t *const service, mam_api_t *const api,
+                               const size_t channel_depth, tryte_t *const chid) {
+  bool changed = true;
+  find_transactions_req_t *txn_req = find_transactions_req_new();
+  transaction_array_t *txn_res = transaction_array_new();
+
+  if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
+    ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_CREATE_OR_GET_ID));
+    goto done;
+  }
+
+  flex_trit_t chid_flex_trit[NUM_TRITS_ADDRESS];
+  flex_trits_from_trytes(chid_flex_trit, NUM_TRITS_ADDRESS, chid, NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
+  hash243_queue_push(&txn_req->addresses, chid_flex_trit);
+  // TODO use `ta_find_transaction_objects(service, txn_req, txn_res)` instead of the original entangled function
+  retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, txn_res);
+  if (ret_rc && ret_rc != RC_NULL_PARAM) {
+    ta_log_error("%s\n", SC_MAM_FAILED_DESTROYED);
+    goto done;
+  }
+
+  changed = (transaction_array_len(txn_res) == 0);
+
+done:
+  find_transactions_req_free(&txn_req);
+  transaction_array_free(txn_res);
+  return changed;
+}
+
 /**
  * @brief Write payload to bundle on the smallest secret key.
  *
@@ -290,27 +328,62 @@ done:
  * @return return code
  */
 static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const service, mam_api_t *const api,
-                                             const size_t channel_depth, mam_encrypt_key_t mam_key,
+                                             const channel_info_t *channel_info, mam_encrypt_key_t mam_key,
                                              char const *const payload, bundle_transactions_t **bundle,
                                              tryte_t *const chid, tryte_t *const msg_id,
                                              mam_send_operation_t *mam_operation) {
   status_t ret = SC_OK;
-  if (!service || !api || !chid || !msg_id || channel_depth < 1) {
+  if (!service || !api || !chid || !msg_id || !channel_info || channel_info->ch_mss_depth < 1) {
     ret = SC_MAM_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
   trit_t msg_id_trits[MAM_MSG_ID_SIZE];
   hash81_array_p tag_array = hash81_array_new();
+
+  // Get to the assigned beginning channel ID. If the initial setting is different, then tangle-accelerator won't be
+  // able to generate same chid.
+  if (channel_info->chid) {
+    // The current setting hasn't been used on Tangle, so we should take the normal procedure.
+    if (is_setting_changed(service, api, channel_info->ch_mss_depth, chid)) {
+      goto end_find_starting_chid;
+    }
+
+    int cnt = 0;
+    while (memcmp(channel_info->chid, chid, NUM_TRYTES_ADDRESS)) {
+      if (mam_api_channel_create(api, channel_info->ch_mss_depth, chid) != RC_OK) {
+        ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+
+      if (cnt++ > 100) {
+        ret = SC_MAM_EXCEEDED_CHID_ITER;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+    }
+
+  end_find_starting_chid:
+    ta_log_debug("%s\n", "Finish finding starting chid");
+  }
+
+  // If a starting chid is provided, then we don't need to create a new chid in the first iteration of the following
+  // loop.
+  // FIXME: We should figure out a way to avoid passing 'first_iter_with_given_chid' to
+  // 'create_channel_fetch_all_transactions()'
+  bool first_iter_with_given_chid = (bool)channel_info->chid;
   for (;;) {
     hash_array_free(tag_array);
     tag_array = hash81_array_new();
 
-    ret = create_channel_fetch_all_transactions(service, api, channel_depth, chid, tag_array);
+    ret = create_channel_fetch_all_transactions(service, api, channel_info->ch_mss_depth, first_iter_with_given_chid,
+                                                chid, tag_array);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
+    first_iter_with_given_chid = false;
 
     /*
      * Three cases should be considered:
@@ -320,7 +393,7 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
      */
 
     // Calculate the smallest available msg_ord
-    const int ch_leaf_num = 1 << channel_depth;
+    const int ch_leaf_num = 1 << channel_info->ch_mss_depth;
     int ch_remain_key_num = ch_leaf_num;
     int used_key_num = hash_array_len(tag_array);
     do {
@@ -447,11 +520,6 @@ done:
  * External functions
  ***********************************************************************************************************/
 
-void bundle_transactions_renew(bundle_transactions_t **bundle) {
-  bundle_transactions_free(bundle);
-  bundle_transactions_new(bundle);
-}
-
 status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t *const iconf,
                              const iota_client_service_t *const service, ta_send_mam_req_t const *const req,
                              ta_send_mam_res_t *const res) {
@@ -473,10 +541,10 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
   mam_send_operation_t mam_operation;
   while (!msg_sent) {
     bundle_transactions_renew(&bundle);
+    struct channel_info_s channel_info = {.ch_mss_depth = data->ch_mss_depth, .chid = data->chid};
 
-    // Create channel merkle tree and find the smallest unused secret key.
     // Write both Header and Packet into one single bundle.
-    ret = ta_mam_written_msg_to_bundle(service, &mam, data->ch_mss_depth, mam_key, data->message, &bundle, chid, msg_id,
+    ret = ta_mam_written_msg_to_bundle(service, &mam, &channel_info, mam_key, data->message, &bundle, chid, msg_id,
                                        &mam_operation);
     if (ret == SC_OK) {
       msg_sent = true;

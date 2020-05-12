@@ -156,6 +156,8 @@ typedef enum {
   /**< Can't find message in the assign bundle */
   SC_MAM_INVAID_CHID_OR_EPID = 0x0E | SC_MODULE_MAM | SC_SEVERITY_FATAL,
   /**< Failed to add trusted channel ID or endpoint ID */
+  SC_MAM_EXCEEDED_CHID_ITER = 0x0F | SC_MODULE_MAM | SC_SEVERITY_FATAL,
+  /**< Too much iteration for finding a starting chid */
 
   // response module
   SC_RES_NULL = 0x01 | SC_MODULE_RES | SC_SEVERITY_FATAL,

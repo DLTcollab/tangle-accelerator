@@ -808,13 +808,28 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   if (json_value != NULL) {
     size_t seed_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
 
-    if (seed_size != NUM_TRYTES_HASH) {
+    if (seed_size != NUM_TRYTES_ADDRESS) {
       ret = SC_SERIALIZER_INVALID_REQ;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
     data->seed = (tryte_t*)malloc(sizeof(tryte_t) * (NUM_TRYTES_ADDRESS + 1));
     snprintf((char*)data->seed, seed_size + 1, "%s", json_value->valuestring);
+  }
+
+  if (cJSON_HasObjectItem(json_key, "chid")) {
+    json_value = cJSON_GetObjectItemCaseSensitive(json_key, "chid");
+    if (json_value != NULL) {
+      size_t chid_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
+
+      if (chid_size != NUM_TRYTES_ADDRESS) {
+        ret = SC_SERIALIZER_INVALID_REQ;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      data->chid = (tryte_t*)malloc(sizeof(tryte_t) * (NUM_TRYTES_ADDRESS + 1));
+      snprintf((char*)data->chid, chid_size + 1, "%s", json_value->valuestring);
+    }
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "message");
