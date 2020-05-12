@@ -124,7 +124,7 @@ status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
 status_t ta_insert_identity_res_serialize(const char* hash, const char* uuid_string, char** obj);
 
 /**
- * @brief Deserialze JSON string to type of ta_send_transfer_req_t
+ * @brief Deserialize JSON string to type of ta_send_transfer_req_t
  *
  * @param[in] obj Input values in JSON
  * @param[out] req Request data in type of ta_send_transfer_req_t
@@ -148,7 +148,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
 status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj);
 
 /**
- * @brief Deserialze JSON string to hash8019_array_p
+ * @brief Deserialize JSON string to hash8019_array_p
  *
  * @param[in] obj Input values in JSON
  * @param[out] out_trytes trytes arrary in the request data in type of
@@ -185,7 +185,7 @@ status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj)
 status_t ta_find_transaction_object_single_res_serialize(transaction_array_t* res, char** obj);
 
 /**
- * @brief Deserialze type of ta_find_transaction_objects_req_t from JSON string
+ * @brief Deserialize type of ta_find_transaction_objects_req_t from JSON string
  *
  * @param[in] obj List of transaction hashes
  * @param[out] res Response data in type of ta_find_transaction_objects_req_t
@@ -236,17 +236,29 @@ status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req
 /**
  * @brief Serialize response of mam message
  *
- * @param[in] payload_array Response of payload message in utarray
- * @param[out] obj message array formed in JSON
+ * @param payload_array[in]  Response of payload message in 'ta_recv_mam_res_t' datatype
+ * @param obj[out] Message array formed in JSON
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj);
+status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj);
 
 /**
- * @brief Deserialze JSON string to type of ta_send_mam_req_t
+ * @brief Deserialize JSON string to type of ta_recv_mam_res_t
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] req Request data in type of ta_recv_mam_res_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t recv_mam_res_deserialize(const char* const obj, ta_recv_mam_res_t* const res);
+
+/**
+ * @brief Deserialize JSON string to type of ta_send_mam_req_t
  *
  * @param[in] obj Input values in JSON
  * @param[out] req Request data in type of ta_send_mam_req_t
@@ -258,7 +270,7 @@ status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** ob
 status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
 
 /**
- * @brief Deserialze JSON string to type of ta_send_mam_res_t
+ * @brief Deserialize JSON string to type of ta_send_mam_res_t
  *
  * @param[in] obj Input values in JSON
  * @param[out] res Response data in type of ta_send_mam_res_t
@@ -295,7 +307,7 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 status_t mqtt_device_id_deserialize(const char* const obj, char* device_id);
 
 /**
- * @brief Deserialze tag in string from MQTT JSON request.
+ * @brief Deserialize tag in string from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with tag field
  * @param[out] tag Tag in string
@@ -307,7 +319,7 @@ status_t mqtt_device_id_deserialize(const char* const obj, char* device_id);
 status_t mqtt_tag_req_deserialize(const char* const obj, char* tag);
 
 /**
- * @brief Deserialze transaction hash in string from MQTT JSON request.
+ * @brief Deserialize transaction hash in string from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with hash field
  * @param[out] hash Transaction hash in string
@@ -320,7 +332,7 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
 #endif
 
 /**
- * @brief Deserialze proxy api command.
+ * @brief Deserialize proxy api command.
  *
  * @param[in] obj Input request in JSON with hash field
  * @param[out] command Proxy API command name in string
@@ -332,7 +344,7 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
 
 /**
- * @brief Deserialze latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
+ * @brief Deserialize latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
  *
  * @param[in] obj getNodeInfo response in JSON.
  * @param[out] latestMilestoneIndex Index of latestMilestone
