@@ -41,6 +41,7 @@ cc_library(
         "//common",
         ":build_option",
         "//utils/cache",
+        "//utils:cpuinfo",
         "@entangled//cclient/api",
         "@yaml",
     ] + select({

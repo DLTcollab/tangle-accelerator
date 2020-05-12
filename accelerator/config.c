@@ -66,10 +66,18 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
         ta_log_error("Malformed input or illegal input character\n");
       }
       break;
-    case TA_THREAD_COUNT_CLI:
+    case HTTP_THREADS_CLI:
       strtol_temp = strtol(value, &strtol_p, 10);
       if (strtol_p != value && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= UCHAR_MAX) {
-        ta_conf->thread_count = (uint8_t)strtol_temp;
+        ta_log_debug("Number of logical processors : %d, physical processors : %d\n", get_nprocs_conf(),
+                     get_nprocs_conf() / get_nthds_per_phys_proc());
+        if ((uint8_t)strtol_temp > MAX_HTTP_TPOOL_SIZE) {
+          ta_log_warning("Requiring thread number %d exceed limitation. Set it to the maximum allowed number: %d\n",
+                         (uint8_t)strtol_temp, MAX_HTTP_TPOOL_SIZE);
+          ta_conf->http_tpool_size = (uint8_t)MAX_HTTP_TPOOL_SIZE;
+        } else {
+          ta_conf->http_tpool_size = (uint8_t)strtol_temp;
+        }
       } else {
         ta_log_error("Malformed input or illegal input character\n");
       }
@@ -188,6 +196,20 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   return SC_OK;
 }
 
+status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port) {
+  service->http.path = "/";
+  service->http.content_type = "application/json";
+  service->http.accept = "application/json";
+  service->http.host = host;
+  service->http.port = port;
+  service->http.api_version = 1;
+  service->http.ca_pem = NULL;
+  service->serializer_type = SR_JSON;
+  init_json_serializer(&service->serializer);
+
+  return SC_OK;
+}
+
 status_t ta_core_default_init(ta_core_t* const core) {
   status_t ret = SC_OK;
 
@@ -210,7 +232,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
     ta_conf->iota_port_list[i] = IRI_PORT;
   }
-  ta_conf->thread_count = TA_THREAD_COUNT;
+  ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
   ta_conf->proxy_passthrough = false;
   ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
   ta_conf->gtta = true;

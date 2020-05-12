@@ -16,6 +16,7 @@
 #include "accelerator/core/pow.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
+#include "utils/cpuinfo.h"
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"
 #endif
@@ -42,7 +43,9 @@ extern "C" {
 #endif
 
 #define TA_PORT 8000
-#define TA_THREAD_COUNT 10
+#define DEFAULT_HTTP_TPOOL_SIZE 4 /**< Thread number of MHD thread pool */
+#define MAX_HTTP_TPOOL_SIZE \
+  (get_nprocs_conf() - get_nthds_per_phys_proc()) /** < Preserve at least one physical processor */
 #define IRI_HOST "localhost"
 #define IRI_PORT 14265
 #define MAX_IRI_LIST_ELEMENTS 5
@@ -75,9 +78,9 @@ typedef struct ta_config_s {
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
-  uint8_t thread_count;   /**< Thread count of tangle-accelerator instance */
-  bool proxy_passthrough; /**< Pass proxy api directly without processing */
-  bool gtta;              /**< The option to turn on or off GTTA. The default value is true which enabling GTTA */
+  uint8_t http_tpool_size; /**< Thread count of tangle-accelerator instance */
+  bool proxy_passthrough;  /**< Pass proxy api directly without processing */
+  bool gtta;               /**< The option to turn on or off GTTA. The default value is true which enabling GTTA */
 } ta_config_t;
 
 /** struct type of iota configuration */
@@ -178,6 +181,19 @@ status_t ta_core_set(ta_core_t* const core);
  *
  */
 void ta_core_destroy(ta_core_t* const core);
+
+/**
+ * Initializes iota_client_service
+ *
+ * @param service[in] IOTA client service
+ * @param host[in] host of connecting service
+ * @param port[in] port of connecting service
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port);
 
 #ifdef __cplusplus
 }
