@@ -8,13 +8,11 @@
 
 #include "proxy_apis.h"
 #include "utils/char_buffer_str.h"
-#include "utils/handles/lock.h"
 #include "utils/hash_algo_djb2.h"
 
 #define PROXY_APIS_LOGGER "proxy_apis"
 
 static logger_id_t logger_id;
-static lock_handle_t cjson_lock;
 
 void proxy_apis_logger_init() { logger_id = logger_helper_enable(PROXY_APIS_LOGGER, LOGGER_DEBUG, true); }
 
@@ -26,20 +24,6 @@ int proxy_apis_logger_release() {
   }
 
   return 0;
-}
-
-status_t proxy_apis_lock_init() {
-  if (lock_handle_init(&cjson_lock)) {
-    return SC_CONF_LOCK_INIT;
-  }
-  return SC_OK;
-}
-
-status_t proxy_apis_lock_destroy() {
-  if (lock_handle_destroy(&cjson_lock)) {
-    return SC_CONF_LOCK_DESTROY;
-  }
-  return SC_OK;
 }
 
 static status_t api_check_consistency(const iota_client_service_t* const service, const char* const obj,
@@ -54,23 +38,17 @@ static status_t api_check_consistency(const iota_client_service_t* const service
     goto done;
   }
 
-  lock_handle_lock(&cjson_lock);
   if (service->serializer.vtable.check_consistency_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_check_consistency(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.check_consistency_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
@@ -98,23 +76,18 @@ static status_t api_find_transactions(const iota_client_service_t* const service
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_lock(&cjson_lock);
+
   if (service->serializer.vtable.find_transactions_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_find_transactions(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.find_transactions_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
@@ -143,23 +116,17 @@ static status_t api_get_balances(const iota_client_service_t* const service, con
     goto done;
   }
 
-  lock_handle_lock(&cjson_lock);
   if (service->serializer.vtable.get_balances_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_get_balances(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.get_balances_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
@@ -188,23 +155,17 @@ static status_t api_get_inclusion_states(const iota_client_service_t* const serv
     goto done;
   }
 
-  lock_handle_lock(&cjson_lock);
   if (service->serializer.vtable.get_inclusion_states_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_get_inclusion_states(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.get_inclusion_states_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
@@ -231,14 +192,11 @@ static status_t api_get_node_info(const iota_client_service_t* const service, ch
     goto done;
   }
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_get_node_info(service, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.get_node_info_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;
@@ -265,23 +223,17 @@ static status_t api_get_trytes(const iota_client_service_t* const service, const
     goto done;
   }
 
-  lock_handle_lock(&cjson_lock);
   if (service->serializer.vtable.get_trytes_deserialize_request(obj, req) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
-  lock_handle_lock(&cjson_lock);
   if (iota_client_get_trytes(service, req, res) != RC_OK) {
-    lock_handle_unlock(&cjson_lock);
     ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  lock_handle_unlock(&cjson_lock);
 
   if (service->serializer.vtable.get_trytes_serialize_response(res, res_buff) != RC_OK) {
     ret = SC_CCLIENT_JSON_PARSE;

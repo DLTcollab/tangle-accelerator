@@ -83,7 +83,7 @@ status_t apis_lock_destroy();
  * the address does not have any transaction with it yet.
  *
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[out] json_result Result containing an unused address in json format
  *
  * @return
@@ -100,7 +100,7 @@ status_t api_generate_address(const iota_config_t* const iconf, const iota_clien
  * The result is char array in json format:
  *
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[out] json_result Result containing a tips pair in json format
  *
  * @return
@@ -116,7 +116,7 @@ status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_s
  * Get list of all tips from IRI node which usually hash thousands of tips in
  * its queue.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[out] json_result Result containing list of all tips in json format
  *
  * @return
@@ -130,7 +130,7 @@ status_t api_get_tips(const iota_client_service_t* const service, char** json_re
  *
  * Receive a MAM message from given bundle hash.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] chid channel ID string
  * @param[out] json_result Fetched MAM message in JSON format
  *
@@ -150,7 +150,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  *
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] payload message to send undecoded ascii string.
  * @param[out] json_result Result containing channel id and bundle hash
  *
@@ -169,7 +169,8 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
+ * @param[in] core Pointer of Tangle-accelerator core configuration structure
+ * @param[in] iota_service IOTA node service
  * @param[in] obj Input data in JSON
  * @param[out] json_result Result containing transaction objects in json format
  *
@@ -177,7 +178,8 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_transfer(const ta_core_t* const core, const char* const obj, char** json_result);
+status_t api_send_transfer(const ta_core_t* const core, const iota_client_service_t* iota_service,
+                           const char* const obj, char** json_result);
 
 /**
  * @brief Return transaction object with given single transaction hash.
@@ -185,7 +187,7 @@ status_t api_send_transfer(const ta_core_t* const core, const char* const obj, c
  * Explore transaction hash information with given single transaction hash. This would
  * return whole transaction object details in json format instead of raw trytes.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] obj transaction hash in trytes
  * @param[out] json_result Result containing the only one transaction object in json format
  *
@@ -202,7 +204,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
  * Explore transaction hash information with given transaction hash. This would
  * return whole transaction object details in json format instead of raw trytes.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] obj transaction hash in trytes
  * @param[out] json_result Result containing transaction objects in json format
  *
@@ -219,7 +221,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction hashes in json format.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] obj tag in trytes
  * @param[out] json_result Result containing list of transaction hashes in json
  *             format
@@ -237,7 +239,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction objects in json format.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] obj tag in trytes
  * @param[out] json_result Result containing list of transaction objects in json
  * format
@@ -258,7 +260,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
  *
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA node service
  * @param[in] obj trytes to attach, store and broadcast in json array
  * @param[out] json_result Result containing list of attached transaction hashes
  * in json format
@@ -273,7 +275,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
 /**
  * @brief Check the connection status between tangle-accelerator and IRI host.
  *
- * @param[in] iota_service IRI node end point service
+ * @param[in] iota_service IOTA node service
  * @param[out] json_result Result containing the current connection status.
  *
  * @return
@@ -302,7 +304,7 @@ status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* cons
  * Explore transaction hash information with given single identity number. This would
  * return whole transaction object details in json format instead of raw trytes.
  *
- * @param[in] iota_service IRI node end point service
+ * @param[in] iota_service IOTA node service
  * @param[in] db_service db client service
  * @param[in] obj identity number
  * @param[out] json_result Result containing the only one transaction object in json format

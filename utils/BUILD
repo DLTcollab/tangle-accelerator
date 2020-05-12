@@ -77,3 +77,8 @@ cc_library(
     hdrs = ["tryte_byte_conv.h"],
     deps = ["//common:defined_error"],
 )
+
+cc_library(
+    name = "cpuinfo",
+    hdrs = ["cpuinfo.h"],
+)

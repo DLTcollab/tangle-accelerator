@@ -96,6 +96,7 @@ Before running tangle-accelerator, please edit binding address/port of accelerat
 * `TA_PORT`: port of accelerator instance
 * `IRI_HOST`: binding address of IRI
 * `IRI_PORT`: port of IRI
+* `HTTP_THREADS`: Determine thread pool size to process HTTP connections.
 * `quiet`: Turn off logging message
 
 ```

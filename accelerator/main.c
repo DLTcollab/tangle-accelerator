@@ -79,12 +79,6 @@ int main(int argc, char* argv[]) {
   pthread_t thread;
   pthread_create(&thread, NULL, health_track, &ta_core);
 
-  // Initialize apis cJSON lock
-  if (apis_lock_init() != SC_OK) {
-    ta_log_error("Lock initialization failed %s.\n", MAIN_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
     ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
     return EXIT_FAILURE;
@@ -123,11 +117,6 @@ int main(int argc, char* argv[]) {
   }
 
 cleanup:
-  log_info(logger_id, "Destroying API lock\n");
-  if (apis_lock_destroy() != SC_OK) {
-    ta_log_error("Destroying api lock failed %s.\n", MAIN_LOGGER);
-    return EXIT_FAILURE;
-  }
   log_info(logger_id, "Destroying TA configurations\n");
   ta_core_destroy(&ta_core);
 

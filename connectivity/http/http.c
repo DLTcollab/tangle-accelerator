@@ -71,83 +71,91 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   return SC_OK;
 }
 
-static inline int process_find_txns_obj_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
+static inline int process_find_txns_obj_by_tag_request(iota_client_service_t *const iota_service, char const *const url,
+                                                       char **const out) {
   status_t ret;
   char *tag = NULL;
   ret = ta_get_url_parameter(url, 1, &tag);
   if (ret == SC_OK) {
-    ret = api_find_transactions_obj_by_tag(&http->core->iota_service, tag, out);
+    ret = api_find_transactions_obj_by_tag(iota_service, tag, out);
   }
   free(tag);
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txns_by_tag_request(ta_http_t *const http, char const *const url, char **const out) {
+static inline int process_find_txns_by_tag_request(iota_client_service_t *const iota_service, char const *const url,
+                                                   char **const out) {
   status_t ret;
   char *tag = NULL;
   ret = ta_get_url_parameter(url, 1, &tag);
   if (ret == SC_OK) {
-    ret = api_find_transactions_by_tag(&http->core->iota_service, tag, out);
+    ret = api_find_transactions_by_tag(iota_service, tag, out);
   }
   free(tag);
   return set_response_content(ret, out);
 }
 
-static inline int process_generate_address_request(ta_http_t *const http, char **const out) {
+static inline int process_generate_address_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                                   char **const out) {
   status_t ret;
-  ret = api_generate_address(&http->core->iota_conf, &http->core->iota_service, out);
+  ret = api_generate_address(&http->core->iota_conf, iota_service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txn_obj_single_request(ta_http_t *const http, char const *const url, char **const out) {
+static inline int process_find_txn_obj_single_request(iota_client_service_t *const iota_service, char const *const url,
+                                                      char **const out) {
   status_t ret;
   char *hash = NULL;
   ret = ta_get_url_parameter(url, 1, &hash);
   if (ret == SC_OK) {
-    ret = api_find_transaction_object_single(&http->core->iota_service, hash, out);
+    ret = api_find_transaction_object_single(iota_service, hash, out);
   }
   free(hash);
   return set_response_content(ret, out);
 }
 
-static inline int process_find_txn_obj_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_find_txn_obj_request(iota_client_service_t *const iota_service, char const *const payload,
+                                               char **const out) {
   status_t ret;
-  ret = api_find_transaction_objects(&http->core->iota_service, payload, out);
+  ret = api_find_transaction_objects(iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_get_tips_pair_request(ta_http_t *const http, char **const out) {
+static inline int process_get_tips_pair_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                                char **const out) {
   status_t ret;
-  ret = api_get_tips_pair(&http->core->iota_conf, &http->core->iota_service, out);
+  ret = api_get_tips_pair(&http->core->iota_conf, iota_service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_get_tips_request(ta_http_t *const http, char **const out) {
+static inline int process_get_tips_request(iota_client_service_t *const iota_service, char **const out) {
   status_t ret;
-  ret = api_get_tips(&http->core->iota_service, out);
+  ret = api_get_tips(iota_service, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_send_transfer_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_send_transfer_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                                char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_transfer(http->core, payload, out);
+  ret = api_send_transfer(http->core, iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_recv_mam_msg_request(ta_http_t *const http, char const *const url, char **const out) {
+static inline int process_recv_mam_msg_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                               char const *const url, char **const out) {
   status_t ret;
   char *bundle = NULL;
   ret = ta_get_url_parameter(url, 1, &bundle);
   if (ret == SC_OK) {
-    ret = api_recv_mam_message(&http->core->iota_conf, &http->core->iota_service, bundle, out);
+    ret = api_recv_mam_message(&http->core->iota_conf, iota_service, bundle, out);
   }
   free(bundle);
   return set_response_content(ret, out);
 }
 
-static inline int process_get_iri_status(ta_http_t *const http, char **const out) {
+static inline int process_get_iri_status(iota_client_service_t *const iota_service, char **const out) {
   status_t ret;
-  ret = api_get_iri_status(&http->core->iota_service, out);
+  ret = api_get_iri_status(iota_service, out);
   return set_response_content(ret, out);
 }
 
@@ -177,28 +185,31 @@ static inline int process_get_identity_info_by_id_request(ta_http_t *const http,
   return set_response_content(ret, out);
 }
 
-static inline int process_find_transaction_by_id_request(ta_http_t *const http, char const *const url,
-                                                         char **const out) {
+static inline int process_find_transaction_by_id_request(ta_http_t *const http,
+                                                         iota_client_service_t *const iota_service,
+                                                         char const *const url, char **const out) {
   status_t ret;
   char *buf = NULL;
   ret = ta_get_url_parameter(url, 2, &buf);
   if (ret == SC_OK) {
-    ret = api_find_transactions_by_id(&http->core->iota_service, &http->core->db_service, buf, out);
+    ret = api_find_transactions_by_id(iota_service, &http->core->db_service, buf, out);
   }
   free(buf);
   return set_response_content(ret, out);
 }
 #endif
 
-static inline int process_send_mam_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_send_mam_msg_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                               char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_mam_message(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_mam_message(&http->core->ta_conf, &http->core->iota_conf, iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
-static inline int process_send_trytes_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_send_trytes_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                              char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_trytes(&http->core->ta_conf, &http->core->iota_conf, &http->core->iota_service, payload, out);
+  ret = api_send_trytes(&http->core->ta_conf, &http->core->iota_conf, iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -208,9 +219,10 @@ static inline int process_get_ta_info_request(ta_http_t *const http, char **cons
   return set_response_content(ret, out);
 }
 
-static inline int process_proxy_api_request(ta_http_t *const http, char const *const payload, char **const out) {
+static inline int process_proxy_api_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                            char const *const payload, char **const out) {
   status_t ret;
-  ret = proxy_api_wrapper(&http->core->ta_conf, &http->core->iota_service, payload, out);
+  ret = proxy_api_wrapper(&http->core->ta_conf, iota_service, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -238,40 +250,40 @@ static inline int process_options_request(char **const out) {
   return MHD_HTTP_OK;
 }
 
-static int ta_http_process_request(ta_http_t *const http, char const *const url, char const *const payload,
-                                   char **const out, int options) {
+static int ta_http_process_request(ta_http_t *const http, iota_client_service_t *const iota_service,
+                                   char const *const url, char const *const payload, char **const out, int options) {
   if (options) {
     return process_options_request(out);
   }
 
   if (api_path_matcher(url, "/mam/[A-Z9]{81}[/]?") == SC_OK) {
-    return process_recv_mam_msg_request(http, url, out);
+    return process_recv_mam_msg_request(http, iota_service, url, out);
   } else if (api_path_matcher(url, "/mam[/]?") == SC_OK) {
     if (payload != NULL) {
-      return process_send_mam_msg_request(http, payload, out);
+      return process_send_mam_msg_request(http, iota_service, payload, out);
     }
     return process_method_not_allowed_request(out);
 
   } else if (api_path_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
-    return process_find_txn_obj_single_request(http, url, out);
+    return process_find_txn_obj_single_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/transaction/object[/]?") == SC_OK) {
     if (payload != NULL) {
-      return process_find_txn_obj_request(http, payload, out);
+      return process_find_txn_obj_request(iota_service, payload, out);
     }
     return process_method_not_allowed_request(out);
 
   } else if (api_path_matcher(url, "/tips/pair[/]?") == SC_OK) {
-    return process_get_tips_pair_request(http, out);
+    return process_get_tips_pair_request(http, iota_service, out);
   } else if (api_path_matcher(url, "/tips[/]?") == SC_OK) {
-    return process_get_tips_request(http, out);
+    return process_get_tips_request(iota_service, out);
   } else if (api_path_matcher(url, "/address[/]?") == SC_OK) {
-    return process_generate_address_request(http, out);
+    return process_generate_address_request(http, iota_service, out);
   } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
-    return process_find_txns_by_tag_request(http, url, out);
+    return process_find_txns_by_tag_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
-    return process_find_txns_obj_by_tag_request(http, url, out);
+    return process_find_txns_obj_by_tag_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/status[/]?") == SC_OK) {
-    return process_get_iri_status(http, out);
+    return process_get_iri_status(iota_service, out);
   }
 #ifdef DB_ENABLE
   else if (api_path_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
@@ -279,24 +291,24 @@ static int ta_http_process_request(ta_http_t *const http, char const *const url,
   } else if (api_path_matcher(url, "/identity/id/[a-z0-9-]{36}[/]?") == SC_OK) {
     return process_get_identity_info_by_id_request(http, url, out);
   } else if (api_path_matcher(url, "/transaction/id/[a-z0-9-]{36}[/]?") == SC_OK) {
-    return process_find_transaction_by_id_request(http, url, out);
+    return process_find_transaction_by_id_request(http, iota_service, url, out);
   }
 #endif
   else if (api_path_matcher(url, "/transaction[/]?") == SC_OK) {
     if (payload != NULL) {
-      return process_send_transfer_request(http, payload, out);
+      return process_send_transfer_request(http, iota_service, payload, out);
     }
     return process_method_not_allowed_request(out);
   } else if (api_path_matcher(url, "/tryte[/]?") == SC_OK) {
     if (payload != NULL) {
-      return process_send_trytes_request(http, payload, out);
+      return process_send_trytes_request(http, iota_service, payload, out);
     }
     return process_method_not_allowed_request(out);
   } else if (api_path_matcher(url, "/info[/]?") == SC_OK) {
     return process_get_ta_info_request(http, out);
   } else if (api_path_matcher(url, "/") == SC_OK) {
     if (payload != NULL) {
-      return process_proxy_api_request(http, payload, out);
+      return process_proxy_api_request(http, iota_service, payload, out);
     }
     return process_method_not_allowed_request(out);
   } else {
@@ -431,7 +443,10 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
 
   if (http_req->answer_code == MHD_NO) {
     /* decide which API function should be called */
-    http_req->answer_code = ta_http_process_request(api, url, http_req->request, &http_req->answer_string, options);
+    iota_client_service_t iota_service;
+    ta_set_iota_client_service(&iota_service, api->core->iota_service.http.host, api->core->iota_service.http.port);
+    http_req->answer_code =
+        ta_http_process_request(api, &iota_service, url, http_req->request, &http_req->answer_string, options);
   }
   response =
       MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_MUST_COPY);
@@ -478,9 +493,9 @@ status_t ta_http_start(ta_http_t *const http) {
     return SC_HTTP_NULL;
   }
 
-  http->daemon =
-      MHD_start_daemon(MHD_USE_AUTO_INTERNAL_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
-                       http->core->ta_conf.port, request_log, NULL, ta_http_handler, http, MHD_OPTION_END);
+  http->daemon = MHD_start_daemon(MHD_USE_EPOLL_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
+                                  http->core->ta_conf.port, request_log, NULL, ta_http_handler, http,
+                                  MHD_OPTION_THREAD_POOL_SIZE, http->core->ta_conf.http_tpool_size, MHD_OPTION_END);
   if (http->daemon == NULL) {
     ta_log_error("%s\n", strerror(errno));
     return SC_HTTP_OOM;
