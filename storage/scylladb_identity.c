@@ -21,7 +21,7 @@ struct db_identity_s {
 
 status_t db_show_identity_info(db_identity_t* obj) {
   if (obj == NULL) {
-    ta_log_error("Invaild NULL pointer : obj\n");
+    ta_log_error("Invalid NULL pointer : obj\n");
     return SC_TA_NULL;
   }
   char uuid_string[DB_UUID_STRING_LENGTH];
@@ -172,20 +172,20 @@ static status_t create_identity_table(CassSession* session, bool need_truncate) 
                     "CREATE TABLE IF NOT EXISTS identity("
                     "id uuid, ts timestamp, hash blob, status tinyint, PRIMARY KEY (id));") != CASS_OK) {
     ta_log_error("create identity table fail\n");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(status);") != CASS_OK) {
     ta_log_error("create identity table index fail\n");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   if (execute_query(session, "CREATE INDEX IF NOT EXISTS ON identity(hash);") != CASS_OK) {
     ta_log_error("create identity table index fail\n");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   if (need_truncate) {
     if (db_truncate_table(session, "identity") != SC_OK) {
       ta_log_error("truncate identity table fail\n");
-      return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+      return SC_STORAGE_CASSANDRA_QUERY_FAIL;
     }
   }
 
@@ -248,7 +248,7 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_trunc
   use_statement = cass_statement_new(use_query, 0);
   if (execute_statement(service->session, use_statement) != CASS_OK) {
     ta_log_error("USE keyspace %s fail\n", keyspace_name);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
     goto exit;
   }
   if ((ret = create_identity_table(service->session, need_truncate)) != SC_OK) {
@@ -257,18 +257,11 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_trunc
   }
 
 exit:
+  if (use_statement != NULL) {
+    cass_statement_free(use_statement);
+  }
   free(use_query);
   return ret;
-}
-
-static CassStatement* ret_insert_identity_statement(const CassPrepared* prepared, const db_identity_t* obj) {
-  CassStatement* statement = NULL;
-  statement = cass_prepared_bind(prepared);
-  cass_statement_bind_bytes_by_name(statement, "hash", obj->hash, DB_NUM_TRYTES_HASH);
-  cass_statement_bind_int8_by_name(statement, "status", obj->status);
-  cass_statement_bind_int64_by_name(statement, "ts", obj->timestamp);
-  cass_statement_bind_uuid_by_name(statement, "id", obj->uuid);
-  return statement;
 }
 
 status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* obj) {
@@ -287,17 +280,39 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
 
   if (prepare_query(service->session, query, &insert_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare INSERT query fail");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
-  statement = ret_insert_identity_statement(insert_prepared, obj);
+  statement = cass_prepared_bind(insert_prepared);
+  if (cass_statement_bind_bytes_by_name(statement, "hash", obj->hash, DB_NUM_TRYTES_HASH) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+  if (cass_statement_bind_int8_by_name(statement, "status", obj->status) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+  if (cass_statement_bind_int64_by_name(statement, "ts", obj->timestamp) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+  if (cass_statement_bind_uuid_by_name(statement, "id", obj->uuid) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+
   if (execute_statement(service->session, statement) != CASS_OK) {
     ta_log_error("insert obj into identity table fail\n");
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
     goto exit;
   }
 
 exit:
   cass_prepared_free(insert_prepared);
+  cass_statement_free(statement);
   return ret;
 }
 
@@ -351,7 +366,6 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
   cass_iterator_free(iterator);
 
 exit:
-  cass_statement_free(statement);
   db_identity_free(&identity);
   if ((db_identity_t*)utarray_front(identity_array) == NULL) {
     ta_log_error("no identity is found\n");
@@ -369,13 +383,19 @@ status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_
 
   if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare SELECT query fail");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   statement = cass_prepared_bind(select_prepared);
-  cass_statement_bind_int8_by_name(statement, "status", status);
-  get_identity_array(service->session, statement, identity_array);
+  if (cass_statement_bind_int8_by_name(statement, "status", status) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+  ret = get_identity_array(service->session, statement, identity_array);
 
+exit:
   cass_prepared_free(select_prepared);
+  cass_statement_free(statement);
   return ret;
 }
 
@@ -390,14 +410,20 @@ status_t db_get_identity_objs_by_uuid_string(db_client_service_t* service, const
 
   if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare SELECT query fail");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
 
   statement = cass_prepared_bind(select_prepared);
-  cass_statement_bind_uuid_by_name(statement, "id", uuid);
-  get_identity_array(service->session, statement, identity_array);
+  if (cass_statement_bind_uuid_by_name(statement, "id", uuid) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
+  ret = get_identity_array(service->session, statement, identity_array);
 
+exit:
   cass_prepared_free(select_prepared);
+  cass_statement_free(statement);
   return ret;
 }
 
@@ -410,12 +436,18 @@ status_t db_get_identity_objs_by_hash(db_client_service_t* service, const cass_b
 
   if (prepare_query(service->session, query, &select_prepared) != CASS_OK) {
     ta_log_error("%s\n", "prepare SELECT query fail");
-    return SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   statement = cass_prepared_bind(select_prepared);
-  cass_statement_bind_bytes_by_name(statement, "hash", hash, DB_NUM_TRYTES_HASH);
+  if (cass_statement_bind_bytes_by_name(statement, "hash", hash, DB_NUM_TRYTES_HASH) != CASS_OK) {
+    ta_log_error("Fail to bind value to cass_statement\n");
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
+    goto exit;
+  }
   ret = get_identity_array(service->session, statement, identity_array);
 
+exit:
   cass_prepared_free(select_prepared);
+  cass_statement_free(statement);
   return ret;
 }

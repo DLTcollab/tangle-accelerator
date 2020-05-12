@@ -22,7 +22,7 @@ extern "C" {
  * The identity table contains following 4 columns.
  * id : A UUID as the identifer of transactions.
  * hash : The transaction hash that would be updated after reattachment.
- * status : The inclustion status of transaction.
+ * status : The inclusion status of transaction.
  * ts : The timestamp of update time of status or hash.
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -12,7 +12,7 @@
 static struct db_keyspace_names_s {
   db_client_usage_t usage;
   const char* name;
-} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}};
+} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}, {DB_USAGE_PERMANODE, "db_chronicle"}};
 static const int db_keyspace_name_nums = sizeof(db_keyspace_names) / sizeof(struct db_keyspace_names_s);
 
 static const char* get_keyspace_name(db_client_usage_t usage) {

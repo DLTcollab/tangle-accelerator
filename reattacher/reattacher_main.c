@@ -51,7 +51,7 @@ static status_t handle_pending_txn(iota_client_service_t* iota_service, db_clien
   if (iota_client_get_latest_inclusion(iota_service, req_txn, res) != RC_OK ||
       get_inclusion_states_res_states_count(res) != 1) {
     ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("Failed to get inclustion status\n");
+    ta_log_error("Failed to get inclusion status\n");
     db_show_identity_info(obj);
     goto exit;
   }
