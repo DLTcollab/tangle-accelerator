@@ -29,7 +29,7 @@ void test_serialize_ta_generate_address(void) {
   free(json_result);
 }
 
-void test_deserialize_ta_send_transfer(void) {
+void test_ta_send_transfer_req_deserialize(void) {
   const char* json_template =
       "{\"value\":100,"
       "\"message_format\":\"trytes\","
@@ -59,7 +59,7 @@ void test_deserialize_ta_send_transfer(void) {
   free(json);
 }
 
-void test_deserialize_ta_send_transfer_raw_message(void) {
+void test_ta_send_transfer_raw_message_req_deserialize(void) {
   const char* json_template =
       "{\"value\":100,"
       "\"message\":\"%s\",\"tag\":\"" TEST_TAG
@@ -88,7 +88,7 @@ void test_deserialize_ta_send_transfer_raw_message(void) {
   free(json);
 }
 
-void test_deserialize_ta_send_transfer_overrun(void) {
+void test_ta_send_transfer_overrun_req_deserialize(void) {
   const char* json_template =
       "{\"value\":100,"
       "\"message\":\"%s\",\"tag\":\"" TEST_TAG
@@ -105,6 +105,20 @@ void test_deserialize_ta_send_transfer_overrun(void) {
 
   ta_send_transfer_req_free(&req);
   free(json);
+}
+
+void test_ta_send_transfer_buffered_res_serialize(void) {
+  const char* json = "{\"uuid\":\"" TEST_UUID "\",\"address\":\"" TEST_ADDRESS "\"}";
+  char* json_result;
+  ta_send_transfer_res_t* res = ta_send_transfer_res_new();
+  res->uuid = strdup(TEST_UUID);
+  res->address = strdup(TEST_ADDRESS);
+
+  ta_send_transfer_res_serialize(res, &json_result);
+
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  ta_send_transfer_res_free(&res);
+  free(json_result);
 }
 
 void test_serialize_ta_find_transaction_objects(void) {
@@ -625,9 +639,10 @@ int main(void) {
 
   serializer_logger_init();
   RUN_TEST(test_serialize_ta_generate_address);
-  RUN_TEST(test_deserialize_ta_send_transfer);
-  RUN_TEST(test_deserialize_ta_send_transfer_raw_message);
-  RUN_TEST(test_deserialize_ta_send_transfer_overrun);
+  RUN_TEST(test_ta_send_transfer_req_deserialize);
+  RUN_TEST(test_ta_send_transfer_raw_message_req_deserialize);
+  RUN_TEST(test_ta_send_transfer_overrun_req_deserialize);
+  RUN_TEST(test_ta_send_transfer_buffered_res_serialize);
   RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);

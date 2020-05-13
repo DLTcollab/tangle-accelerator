@@ -857,6 +857,7 @@ status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj)
 
   if (res->uuid) {
     cJSON_AddStringToObject(json_root, "uuid", res->uuid);
+    cJSON_AddStringToObject(json_root, "address", (char*)res->address);
   } else {
     ret = iota_transaction_to_json_object(transaction_array_at(res->txn_array, 0), &json_root);
     if (ret != SC_OK) {

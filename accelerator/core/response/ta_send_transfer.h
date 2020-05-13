@@ -31,6 +31,7 @@ typedef struct {
   hash243_queue_t hash;
   transaction_array_t* txn_array;
   char* uuid;
+  tryte_t* address;
 #ifdef DB_ENABLE
   char uuid_string[DB_UUID_STRING_LENGTH];
 #endif

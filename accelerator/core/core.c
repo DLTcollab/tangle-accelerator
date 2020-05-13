@@ -229,6 +229,11 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
     ta_log_error("Error in ta_send_trytes. Push transaction trytes to buffer.\n");
     res->uuid = (char*)malloc(sizeof(char) * UUID_STR_LEN);
     push_txn_to_buffer(cache, raw_tx, res->uuid);
+
+    txn = (iota_transaction_t*)utarray_front(out_bundle);
+    res->address = (tryte_t*)malloc(sizeof(char) * NUM_TRYTES_ADDRESS);
+    flex_trits_to_trytes(res->address, NUM_TRYTES_ADDRESS, transaction_address(txn), NUM_TRITS_ADDRESS,
+                         NUM_TRITS_ADDRESS);
     goto done;
   }
 
