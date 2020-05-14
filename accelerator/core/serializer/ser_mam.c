@@ -119,31 +119,30 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   status_t ret = SC_OK;
   char *bundle_hash = NULL, *chid = NULL, *msg_id = NULL, *psk = NULL, *ntru = NULL;
 
+  recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
   if (cJSON_HasObjectItem(json_obj, "key")) {
-    json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "key");
-    if (json_value == NULL) {
-      ret = SC_CCLIENT_JSON_KEY;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
-    }
-    if (cJSON_IsString(json_value) && (json_value->valuestring != NULL)) {
-      if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_PSK_KEY_SIZE) {
-        psk = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
-        strncpy(psk, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_PSK_KEY_SIZE + 1));
-      } else if (strlen(json_value->valuestring) == NUM_TRYTES_MAM_NTRU_PK_SIZE) {
-        ntru = (char*)malloc(sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
-        strncpy(ntru, json_value->valuestring, sizeof(char) * (NUM_TRYTES_MAM_NTRU_PK_SIZE + 1));
-      }
-    } else {
-      ret = SC_CCLIENT_JSON_PARSE;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
-    }
-
-    ret = recv_mam_set_mam_v1_key(req, (tryte_t*)psk, (tryte_t*)ntru);
-    if (ret != SC_OK) {
+    json_key = cJSON_GetObjectItem(json_obj, "key");
+    if (json_key == NULL) {
+      ret = SC_SERIALIZER_JSON_PARSE;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
+    }
+    if (cJSON_HasObjectItem(json_key, "psk")) {
+      ret = ta_json_string_array_to_string_utarray(json_key, "psk", key->psk_array);
+      if (ret != SC_OK) {
+        ret = SC_SERIALIZER_JSON_PARSE;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+    }
+
+    if (cJSON_HasObjectItem(json_key, "ntru")) {
+      ret = ta_json_string_array_to_string_utarray(json_key, "ntru", key->ntru_array);
+      if (ret != SC_OK) {
+        ret = SC_SERIALIZER_JSON_PARSE;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
     }
   }
 
@@ -391,6 +390,11 @@ status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req
 
   switch (req->protocol) {
     case MAM_V1:
+      ret = recv_mam_req_v1_init(req);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
       ret = recv_mam_message_mam_v1_req_deserialize(json_obj, req);
       if (ret) {
         ta_log_error("%s\n", ta_error_to_string(ret));

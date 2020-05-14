@@ -44,7 +44,7 @@ ta_recv_mam_req_t* recv_mam_req_new();
 /**
  * Free memory of ta_recv_mam_req_t
  *
- * @param req Data type of ta_recv_mam_req_t
+ * @param req[out] Data type of ta_recv_mam_req_t
  */
 void recv_mam_req_free(ta_recv_mam_req_t** req);
 
@@ -60,18 +60,19 @@ typedef struct recv_mam_data_id_mam_v1_s {
 } recv_mam_data_id_mam_v1_t;
 
 typedef struct recv_mam_key_mam_v1_s {
-  /** Message encryption key. This field could be Pre-Shared Key (81 trytes) or NTRU public key (1024 trytes). Default:
-   * NULL. */
-  tryte_t* enc_key;
+  /** Optional. The pre-shared key to decrypt the message. Each psk is in length of 81 trytes. Default: NULL. */
+  UT_array* psk_array;
+  /** Optional. The NTRU Secret key to decrypt the message. Each psk is in length of 1024 trytes. Default: NULL. */
+  UT_array* ntru_array;
 } recv_mam_key_mam_v1_t;
 
 /**
  * Set the data ID for MAMv1
  *
- * @param[in] req Response data in type of ta_recv_mam_req_t object
- * @param[in] bundle_hash Bundle hash of the message
- * @param[in] chid Channel ID of the messages
- * @param[in] msg_id Message ID of the message
+ * @param req[in] Response data in type of ta_recv_mam_req_t object
+ * @param bundle_hash[in] Bundle hash of the message
+ * @param chid[in] Channel ID of the messages
+ * @param msg_id[in] Message ID of the message
  *
  * @return
  * - struct of ta_recv_mam_req_t on success
@@ -82,15 +83,26 @@ status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, 
 /**
  * Set the key for MAMv1
  *
- * @param[in] req Response data in type of ta_recv_mam_req_t object
- * @param[in] psk Pre-Shared Key to decrypt message
- * @param[in] ntru NTRU public key to decrypt message
+ * @param req[in] Response data in type of ta_recv_mam_req_t object
+ * @param psk[in] Pre-Shared Key to decrypt message
+ * @param ntru[in] NTRU public key to decrypt message
  *
  * @return
  * - struct of ta_recv_mam_req_t on success
  * - NULL on error
  */
 status_t recv_mam_set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru);
+
+/**
+ * Initialize 'ta_recv_mam_req_t' object as MAMv1 object
+ *
+ * @param req[out] ta_recv_mam_req_t object to be initialized
+ *
+ * @return
+ * - struct of ta_recv_mam_req_t on success
+ * - NULL on error
+ */
+status_t recv_mam_req_v1_init(ta_recv_mam_req_t* req);
 
 #ifdef __cplusplus
 }

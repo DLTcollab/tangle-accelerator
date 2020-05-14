@@ -315,7 +315,7 @@ void test_serialize_ta_find_transactions_obj_by_tag(void) {
 void test_recv_mam_message_request_psk_deserialize(void) {
   const char* json = "{\"data_id\":{\"chid\":\"" TEST_CHID "\",\"epid\":\"" TEST_EPID "\",\"msg_id\":\"" TEST_MSG_ID
                      "\"},"
-                     "\"key\":\"" TRYTES_81_1 "\",\"protocol\":\"MAM_V1\"}";
+                     "\"key\":{\"psk\":[\"" TRYTES_81_1 "\"]},\"protocol\":\"MAM_V1\"}";
   ta_recv_mam_req_t* req = recv_mam_req_new();
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
@@ -325,26 +325,8 @@ void test_recv_mam_message_request_psk_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(TEST_MSG_ID, data_id->msg_id);
 
   recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
-  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, key->enc_key, NUM_TRYTES_MAM_PSK_KEY_SIZE);
-
-  recv_mam_req_free(&req);
-}
-
-void test_recv_mam_message_request_ntru_deserialize(void) {
-  const char* json = "{\"data_id\":{\"bundle_hash\":\"" TEST_BUNDLE_HASH "\",\"chid\":\"" TEST_CHID
-                     "\",\"epid\":\"" TEST_EPID "\",\"msg_id\":\"" TEST_MSG_ID
-                     "\"},"
-                     "\"key\":\"" TEST_NTRU_PK "\",\"protocol\":\"MAM_V1\"}";
-  ta_recv_mam_req_t* req = recv_mam_req_new();
-
-  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_req_deserialize(json, req));
-  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
-  TEST_ASSERT_EQUAL_STRING(TEST_BUNDLE_HASH, data_id->bundle_hash);
-  TEST_ASSERT_NULL(data_id->chid);
-  TEST_ASSERT_NULL(data_id->msg_id);
-
-  recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
-  TEST_ASSERT_EQUAL_MEMORY(TEST_NTRU_PK, key->enc_key, NUM_TRYTES_MAM_NTRU_PK_SIZE);
+  char** psk = (char**)utarray_front(key->psk_array);
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, *psk);
 
   recv_mam_req_free(&req);
 }
@@ -676,7 +658,6 @@ int main(void) {
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
   RUN_TEST(test_recv_mam_message_request_psk_deserialize);
-  RUN_TEST(test_recv_mam_message_request_ntru_deserialize);
   RUN_TEST(test_recv_mam_message_response_serialize);
   RUN_TEST(test_send_mam_message_request_deserialize);
   RUN_TEST(test_send_mam_message_response_serialize);

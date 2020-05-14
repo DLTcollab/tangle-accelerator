@@ -44,6 +44,7 @@ typedef enum mam_send_operation_e { ANNOUNCE_CHID, SEND_MESSAGE } mam_send_opera
 typedef struct mam_encrypt_key_s {
   mam_psk_t_set_t psks;
   mam_ntru_pk_t_set_t ntru_pks;
+  mam_ntru_sk_t_set_t ntru_sks;
 } mam_encrypt_key_t;
 
 /**

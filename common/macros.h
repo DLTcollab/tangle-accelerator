@@ -29,7 +29,10 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 
 #define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
 #define NUM_TRYTES_MAM_NTRU_PK_SIZE MAM_NTRU_PK_SIZE / 3
+#define NUM_TRYTES_MAM_NTRU_SK_SIZE \
+  342  // MAM_NTRU_SK_SIZE = 1024, so if we transform ntru secret key from trit to tryte, it would be 1024/3 = 341.33
 #define NUM_TRYTES_MAM_PSK_KEY_SIZE MAM_PSK_KEY_SIZE / 3
+#define NUM_TRYTES_MAM_PSK_ID_SIZE MAM_PSK_ID_SIZE / 3
 
 #define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int : (-!!(e)); })))
 #define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
