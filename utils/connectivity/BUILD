@@ -7,7 +7,7 @@ cc_library(
         "conn_http.h",
     ],
     deps = [
-        "//common:defined_error",
+        "//common",
         "//pem:cert",
         "//third_party:http-parser",
         "//third_party:mbedtls",

@@ -31,7 +31,7 @@ typedef struct ta_cipher_ctx {
   size_t ciphertext_len;   /**< Ciphertext length */
   uint8_t iv[AES_IV_SIZE]; /**< Initialization vector, mbedtls_aes needs r/w iv[] */
   const uint8_t* key;      /**< Encryption key */
-  const uint8_t keybits;   /**< Bits of key, valid options are 128,192,256 bits */
+  const size_t keybits;    /**< Bits of key, valid options are 128,192,256 bits */
   const char* device_id;   /**< Device id */
 } ta_cipher_ctx;
 

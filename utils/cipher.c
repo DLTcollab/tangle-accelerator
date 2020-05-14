@@ -13,6 +13,7 @@
 #include <time.h>
 #include "mbedtls/aes.h"
 #include "mbedtls/md.h"
+#include "mbedtls/platform_util.h"
 
 #define MAX_TIMESTAMP_LEN 20
 
@@ -36,9 +37,9 @@ status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
 
   // Provide the message to be decrypted, and obtain the plaintext output.
   const size_t ciphertext_len = cipher_ctx->ciphertext_len;
-  char* ciphertext = cipher_ctx->ciphertext;
-  char* plaintext = cipher_ctx->plaintext;
-  for (int i = 0; i < ciphertext_len; i += AES_BLOCK_SIZE) {
+  uint8_t* ciphertext = cipher_ctx->ciphertext;
+  uint8_t* plaintext = cipher_ctx->plaintext;
+  for (size_t i = 0; i < ciphertext_len; i += AES_BLOCK_SIZE) {
     memset(buf, 0, AES_BLOCK_SIZE);
     int n = (ciphertext_len - i > AES_BLOCK_SIZE) ? AES_BLOCK_SIZE : (int)(ciphertext_len - i);
     memcpy(buf, ciphertext + i, n);
@@ -63,8 +64,8 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   // FIXME: Add logger and some checks here
   char* err = NULL;
   int status = 0;
-  char* plaintext = cipher_ctx->plaintext;
-  char* ciphertext = cipher_ctx->ciphertext;
+  uint8_t* plaintext = cipher_ctx->plaintext;
+  uint8_t* ciphertext = cipher_ctx->ciphertext;
   size_t plaintext_len = cipher_ctx->plaintext_len;
   size_t ciphertext_len = cipher_ctx->ciphertext_len;
 
@@ -83,7 +84,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   }
 
   // Check ciphertext has enough space
-  int new_len = plaintext_len + (AES_BLOCK_SIZE - plaintext_len % 16);
+  size_t new_len = plaintext_len + (AES_BLOCK_SIZE - plaintext_len % 16);
   if (new_len > ciphertext_len) {
     err = "ciphertext has not enough space";
     goto exit;
@@ -96,14 +97,14 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   // fetch timestamp
   uint64_t timestamp = time(NULL);
   // concatenate (Device_ID, timestamp)
-  snprintf(nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%ld", cipher_ctx->device_id, timestamp);
+  snprintf((char*)nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%ld", cipher_ctx->device_id, timestamp);
   // hash base data
   mbedtls_md_starts(&sha_ctx);
   mbedtls_md_update(&sha_ctx, digest, AES_BLOCK_SIZE * 2);
   mbedtls_md_update(&sha_ctx, nonce, IMSI_LEN + MAX_TIMESTAMP_LEN);
   mbedtls_md_finish(&sha_ctx, digest);
 
-  for (int i = 0; i < 16; ++i) {
+  for (int i = 0; i < AES_BLOCK_SIZE; ++i) {
     tmp[i] = digest[i] ^ digest[i + AES_BLOCK_SIZE];
   }
   memcpy(cipher_ctx->iv, tmp, AES_BLOCK_SIZE);
@@ -115,7 +116,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   }
 
   // Encrypt plaintext
-  for (int i = 0; i < new_len; i += AES_BLOCK_SIZE) {
+  for (size_t i = 0; i < new_len; i += AES_BLOCK_SIZE) {
     memset(buf, 0, AES_BLOCK_SIZE);
     int n = (plaintext_len - i > AES_BLOCK_SIZE) ? AES_BLOCK_SIZE : (int)(plaintext_len - i);
     memcpy(buf, plaintext + i, n);

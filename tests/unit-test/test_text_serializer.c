@@ -35,11 +35,12 @@ void tearDown(void) {}
 
 void test_serialize_deserialize(void) {
   uint8_t out[1024], iv_out[AES_BLOCK_SIZE], payload_out[1024];
-  uint32_t payload_len_out, out_msg_len;
-  int rc1 = serialize_msg(iv, payload_len, payload, out, &out_msg_len);
-  TEST_ASSERT_EQUAL_INT32(SC_OK, rc1);
-  int rc2 = deserialize_msg(out, iv_out, &payload_len_out, payload_out);
-  TEST_ASSERT_EQUAL_INT32(SC_OK, rc2);
+
+  size_t payload_len_out, out_msg_len;
+  int rc1 = serialize_msg(iv, payload_len, (char*)payload, (char*)out, &out_msg_len);
+  TEST_ASSERT(rc1 == SC_OK);
+  int rc2 = deserialize_msg((char*)out, iv_out, &payload_len_out, (char*)payload_out);
+  TEST_ASSERT(rc2 == SC_OK);
 
   out[1023] = 0;
   payload_out[payload_len] = 0;

@@ -15,8 +15,7 @@
 
 static http_parser parser;
 
-status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const int msg_len,
-                        const char *ssl_seed) {
+status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed) {
   char res[4096] = {0};
   char *req = NULL;
   status_t ret = SC_OK;

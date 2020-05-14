@@ -9,6 +9,7 @@
 #ifndef TEXT_SERIALIZER_H
 #define TEXT_SERIALIZER_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "common/ta_errors.h"
 
@@ -34,7 +35,7 @@ extern "C" {
  * - SC_UTILS_TEXT_SERIALIZE on error
  */
 status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, char *out_msg,
-                       uint32_t *out_msg_len);
+                       size_t *out_msg_len);
 
 /**
  * @brief Deserialize message from serialize_msg
@@ -49,7 +50,7 @@ status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *c
  * - SC_UTILS_TEXT_DESERIALIZE on error
  * @see #serialize_msg
  */
-status_t deserialize_msg(char *msg, const uint8_t *iv, uint32_t *ciphertext_len, char *ciphertext);
+status_t deserialize_msg(char *msg, const uint8_t *iv, size_t *ciphertext_len, char *ciphertext);
 
 #ifdef __cplusplus
 }

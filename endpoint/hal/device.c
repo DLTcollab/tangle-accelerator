@@ -36,11 +36,11 @@ status_t register_device(struct device_type *dv) {
   status_t res = SC_OK;
   struct device_type **p;
   if (dv->next) {
-    return SC_DEVICE_INIT;
+    return SC_ENDPOINT_DEVICE_INIT;
   }
   p = find_device(dv->name, strlen(dv->name));
   if (*p) {
-    res = SC_DEVICE_INIT;
+    res = SC_ENDPOINT_DEVICE_INIT;
   } else {
     *p = dv;
   }
@@ -55,5 +55,5 @@ status_t unregister_device(struct device_type *dv) {
       return SC_OK;
     }
   }
-  return SC_DEVICE_FINI;
+  return SC_ENDPOINT_DEVICE_FINI;
 }

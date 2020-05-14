@@ -17,7 +17,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ta_errors.h"
+#include "common/ta_errors.h"
 
 /*! device initialization entry point */
 #define DECLARE_DEVICE(name)                                  \
@@ -113,7 +113,7 @@ device_t *ta_device(const char *device);
  *
  * @return
  * - #SC_OK on success
- * - #SC_DEVICE_INIT on failed
+ * - #SC_ENDPOINT_DEVICE_INIT on failed
  */
 status_t register_device(struct device_type *dv);
 
@@ -124,7 +124,7 @@ status_t register_device(struct device_type *dv);
  *
  * @return
  * - #SC_OK on success
- * - #SC_DEVICE_FINI on failed
+ * - #SC_ENDPOINT_DEVICE_FINI on failed
  */
 status_t unregister_device(struct device_type *dv);
 
