@@ -49,7 +49,7 @@ cc_library(
     srcs = ["cipher.c"],
     hdrs = ["cipher.h"],
     deps = [
-        "//common:defined_error",
+        "//common:ta_errors",
         "//third_party:mbedtls",
     ],
 )
@@ -59,7 +59,7 @@ cc_library(
     srcs = ["https.c"],
     hdrs = ["https.h"],
     deps = [
-        "//common:defined_error",
+        "//common:ta_errors",
         "//utils/connectivity:conn_http",
     ],
 )
@@ -68,14 +68,14 @@ cc_library(
     name = "text_serializer",
     srcs = ["text_serializer.c"],
     hdrs = ["text_serializer.h"],
-    deps = ["//common:defined_error"],
+    deps = ["//common:ta_errors"],
 )
 
 cc_library(
     name = "tryte_byte_conv",
     srcs = ["tryte_byte_conv.c"],
     hdrs = ["tryte_byte_conv.h"],
-    deps = ["//common:defined_error"],
+    deps = ["//common:ta_errors"],
 )
 
 cc_library(

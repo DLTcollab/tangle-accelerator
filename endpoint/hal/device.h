@@ -17,7 +17,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "defined_error.h"
+#include "ta_errors.h"
 
 /*! device initialization entry point */
 #define DECLARE_DEVICE(name)                                  \
@@ -27,21 +27,21 @@ extern "C" {
 typedef struct device_type device_t;
 
 struct device_operations {
-  endpoint_retcode_t (*init)(void);               /**< initialize device */
-  void (*fini)(void);                             /**< destructor of device  */
-  endpoint_retcode_t (*get_key)(uint8_t *);       /**< get device private key */
-  endpoint_retcode_t (*get_device_id)(uint8_t *); /**< get device id          */
+  status_t (*init)(void);               /**< initialize device */
+  void (*fini)(void);                   /**< destructor of device  */
+  status_t (*get_key)(uint8_t *);       /**< get device private key */
+  status_t (*get_device_id)(uint8_t *); /**< get device id          */
 };
 
 struct uart_operations {
-  endpoint_retcode_t (*init)(const uint8_t *device); /**< initialize uart */
-  void (*write)(const int fd, const char *cmd);      /**< write command to uart */
-  char *(*read)(const int fd);                       /**< read from uart */
-  void (*clean)(const int fd);                       /**< flush uart buffer */
+  status_t (*init)(const uint8_t *device);      /**< initialize uart */
+  void (*write)(const int fd, const char *cmd); /**< write command to uart */
+  char *(*read)(const int fd);                  /**< read from uart */
+  void (*clean)(const int fd);                  /**< flush uart buffer */
 };
 
 struct secure_store_operations {
-  endpoint_retcode_t (*init)(void); /**< initialize secure storage */
+  status_t (*init)(void); /**< initialize secure storage */
   /**
    * @brief Write an item to secure storage
    *
@@ -50,12 +50,12 @@ struct secure_store_operations {
    * @param[in] buf_size Length of data
    *
    * @return
-   * - #RET_OK on success
+   * - #SC_OK on success
    * - #RET_NO_MEMORY on no memory error
-   * - #RET_UNAVAILABLE on unavailable secure storage
-   * - #RET_FAULT on some other error
+   * - #SC_ENDPOINT_SEC_UNAVAILABLE on unavailable secure storage
+   * - #SC_ENDPOINT_SEC_FAULT on some other error
    */
-  endpoint_retcode_t (*write)(const char *name, const uint8_t *buf, size_t buf_size);
+  status_t (*write)(const char *name, const uint8_t *buf, size_t buf_size);
   /**
    * @brief Read an item from secure storage
    *
@@ -64,25 +64,25 @@ struct secure_store_operations {
    * @param[out] buf_size Pointer to length of data
    *
    * @return
-   * - #RET_OK on success
-   * - #RET_OVERFLOW error on the buffer is too small
-   * - #RET_NOT_FOUND error on the item not found inside secure storage
-   * - #RET_UNAVAILABLE error if the storage is currently unavailable
-   * - #RET_FAULT on some other error
+   * - #SC_OK on success
+   * - #SC_UTILS_OVERFLOW_ERROR error on the buffer is too small
+   * - #SC_ENDPOINT_SEC_ITEM_NOT_FOUND error on the item not found inside secure storage
+   * - #SC_ENDPOINT_SEC_UNAVAILABLE error if the storage is currently unavailable
+   * - #SC_ENDPOINT_SEC_FAULT on some other error
    */
-  endpoint_retcode_t (*read)(const char *name, uint8_t *buf, size_t *buf_size);
+  status_t (*read)(const char *name, uint8_t *buf, size_t *buf_size);
   /**
    * @brief Delete item in secure storage
    *
    * @param[in] name Name of item
    *
    * @return
-   * - #RET_OK on success
-   * - #RET_NOT_FOUND error on the item not found inside secure storage
-   * - #RET_UNAVAILABLE error if the storage is currently unavailable
-   * - #RET_FAULT if there are some other error
+   * - #SC_OK on success
+   * - #SC_ENDPOINT_SEC_ITEM_NOT_FOUND error on the item not found inside secure storage
+   * - #SC_ENDPOINT_SEC_UNAVAILABLE error if the storage is currently unavailable
+   * - #SC_ENDPOINT_SEC_FAULT if there are some other error
    */
-  endpoint_retcode_t (*delete)(const char *name);
+  status_t (*delete)(const char *name);
 };
 
 struct device_type {
@@ -112,10 +112,10 @@ device_t *ta_device(const char *device);
  * @param[in] dv Device to register
  *
  * @return
- * - #RET_OK on success
- * - #RET_DEVICE_INIT on failed
+ * - #SC_OK on success
+ * - #SC_DEVICE_INIT on failed
  */
-endpoint_retcode_t register_device(struct device_type *dv);
+status_t register_device(struct device_type *dv);
 
 /**
  * @brief Unregister device
@@ -123,10 +123,10 @@ endpoint_retcode_t register_device(struct device_type *dv);
  * @param[in] dv Device to unregister
  *
  * @return
- * - #RET_OK on success
- * - #RET_DEVICE_FINI on failed
+ * - #SC_OK on success
+ * - #SC_DEVICE_FINI on failed
  */
-endpoint_retcode_t unregister_device(struct device_type *dv);
+status_t unregister_device(struct device_type *dv);
 
 #ifdef __cplusplus
 }

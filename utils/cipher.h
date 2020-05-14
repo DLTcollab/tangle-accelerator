@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,18 +40,18 @@ typedef struct ta_cipher_ctx {
  *
  * @param[in] ctx The ta_cipher_ctx to be encrypted
  *
- * @return #endpoint_retcode_t
+ * @return #status_t
  */
-endpoint_retcode_t aes_encrypt(ta_cipher_ctx* cipher_ctx);
+status_t aes_encrypt(ta_cipher_ctx* cipher_ctx);
 
 /**
  * @brief Decrypt ciphertext
  *
  * @param[in] ctx The ta_cipher_ctx to be decrypted
  *
- * @return #endpoint_retcode_t
+ * @return #status_t
  */
-endpoint_retcode_t aes_decrypt(ta_cipher_ctx* cipher_ctx);
+status_t aes_decrypt(ta_cipher_ctx* cipher_ctx);
 
 #ifdef __cplusplus
 }

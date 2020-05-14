@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#include "common/defined_error.h"
+#include "common/ta_errors.h"
 #include "http_parser.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/ctr_drbg.h"
@@ -42,15 +42,15 @@ typedef struct {
  * @param[in] port HTTP port to connect
  *
  * @return
- * - #RET_HTTP_INIT failed on HTTP init error
- * - #RET_HTTP_CONNECT failed on HTTP connect error
- * - #RET_HTTP_CERT failed on HTTP certificate setting error
- * - #RET_HTTP_SSL failed on HTTP ssl setting error
- * - #RET_OK on success
- * @see #endpoint_retcode_t
+ * - #SC_UTILS_HTTPS_INIT_ERROR failed on HTTP init error
+ * - #SC_UTILS_HTTPS_CONN_ERROR failed on HTTP connect error
+ * - #SC_UTILS_HTTPS_X509_ERROR failed on HTTP certificate setting error
+ * - #SC_UTILS_HTTPS_SSL_ERROR failed on HTTP ssl setting error
+ * - #SC_OK on success
+ * @see #status_t
  */
-endpoint_retcode_t http_open(connect_info_t *const info, char const *const seed_nonce, char const *const host,
-                             char const *const port);
+status_t http_open(connect_info_t *const info, char const *const seed_nonce, char const *const host,
+                   char const *const port);
 
 /**
  * @brief Send request to HTTP connection
@@ -59,11 +59,11 @@ endpoint_retcode_t http_open(connect_info_t *const info, char const *const seed_
  * @param[in] req Buffer holding the data
  *
  * @return
- * - #RET_OK on success
+ * - #SC_OK on success
  * - non-zero on error
- * @see #endpoint_retcode_t
+ * @see #status_t
  */
-endpoint_retcode_t http_send_request(connect_info_t *const info, const char *req);
+status_t http_send_request(connect_info_t *const info, const char *req);
 
 /**
  * @brief Read response from HTTP server
@@ -73,11 +73,11 @@ endpoint_retcode_t http_send_request(connect_info_t *const info, const char *req
  * @param[out] res_len Length of res
  *
  * @return
- * - #RET_OK on success
+ * - #SC_OK on success
  * - non-zero on error
- * @see #endpoint_retcode_t
+ * @see #status_t
  */
-endpoint_retcode_t http_read_response(connect_info_t *const info, char *res, size_t res_len);
+status_t http_read_response(connect_info_t *const info, char *res, size_t res_len);
 
 /**
  * @brief Close HTTP connection
@@ -85,11 +85,11 @@ endpoint_retcode_t http_read_response(connect_info_t *const info, char *res, siz
  * @param[in] info Context for HTTP connection
  *
  * @return
- * - #RET_OK on success
+ * - #SC_OK on success
  * - non-zero on error
- * @see #endpoint_retcode_t
+ * @see #status_t
  */
-endpoint_retcode_t http_close(connect_info_t *const info);
+status_t http_close(connect_info_t *const info);
 
 /**
  * @brief Set POST request message
@@ -102,13 +102,13 @@ endpoint_retcode_t http_close(connect_info_t *const info);
  * @param[out] out POST request message
  *
  * @return
- * - #RET_OK on success
- * - #RET_OOM failed on out of memory error
+ * - #SC_OK on success
+ * - #SC_UTILS_OOM_ERROR failed on out of memory error
  * - non-zero on error
- * @see #endpoint_retcode_t
+ * @see #status_t
  */
-endpoint_retcode_t set_post_request(char const *const path, char const *const host, const uint32_t port,
-                                    char const *const req_body, char **out);
+status_t set_post_request(char const *const path, char const *const host, const uint32_t port,
+                          char const *const req_body, char **out);
 /**
  * @brief Set GET request message
  *
@@ -119,12 +119,12 @@ endpoint_retcode_t set_post_request(char const *const path, char const *const ho
  * @param[out] out GET request message
  *
  * @return
- * - #RET_OK on success
- * - #RET_OOM failed on out of memory error
+ * - #SC_OK on success
+ * - #SC_UTILS_OOM_ERROR failed on out of memory error
  * - non-zero on error
- * @see #endpoint_retcode_t
+ * @see #status_t
  */
-endpoint_retcode_t set_get_request(char const *const path, char const *const host, const uint32_t port, char **out);
+status_t set_get_request(char const *const path, char const *const host, const uint32_t port, char **out);
 
 /**
  * @brief Callback function for http parser

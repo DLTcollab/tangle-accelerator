@@ -56,7 +56,7 @@ void test_cipher1(void) {
                                .keybits = TA_AES_KEY_BITS};
   // Don't forget to set the initialization vector
   memcpy(encrypt_ctx.iv, iv_global, AES_IV_SIZE);
-  TEST_ASSERT(aes_encrypt(&encrypt_ctx) == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, aes_encrypt(&encrypt_ctx));
 
   ta_cipher_ctx decrypt_ctx = {.plaintext = plaintext,
                                .plaintext_len = test_paylen1,
@@ -68,7 +68,7 @@ void test_cipher1(void) {
                                .keybits = TA_AES_KEY_BITS};
   // Don't forget to set the initialization vector
   memcpy(decrypt_ctx.iv, encrypt_ctx.iv, AES_IV_SIZE);
-  TEST_ASSERT(aes_decrypt(&decrypt_ctx) == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, aes_decrypt(&decrypt_ctx));
 
   TEST_ASSERT_EQUAL_INT(test_paylen1, decrypt_ctx.plaintext_len);
   TEST_ASSERT_EQUAL_MEMORY_ARRAY(test_payload1, decrypt_ctx.plaintext, sizeof(uint8_t), test_paylen1);
@@ -88,7 +88,7 @@ void test_cipher2(void) {
                                .keybits = TA_AES_KEY_BITS};
   // Don't forget to set the initialization vector
   memcpy(encrypt_ctx.iv, iv_global, AES_IV_SIZE);
-  TEST_ASSERT(aes_encrypt(&encrypt_ctx) == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, aes_encrypt(&encrypt_ctx));
 
   ta_cipher_ctx decrypt_ctx = {.plaintext = plaintext,
                                .plaintext_len = test_paylen2,
@@ -100,7 +100,7 @@ void test_cipher2(void) {
                                .keybits = TA_AES_KEY_BITS};
   // Don't forget to set the initialization vector
   memcpy(decrypt_ctx.iv, encrypt_ctx.iv, AES_IV_SIZE);
-  TEST_ASSERT(aes_decrypt(&decrypt_ctx) == RET_OK);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, aes_decrypt(&decrypt_ctx));
 
   TEST_ASSERT_EQUAL_UINT(test_paylen2, decrypt_ctx.plaintext_len);
   TEST_ASSERT_EQUAL_MEMORY_ARRAY(test_payload2, decrypt_ctx.plaintext, sizeof(uint8_t), test_paylen2);

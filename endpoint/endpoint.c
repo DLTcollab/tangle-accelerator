@@ -29,9 +29,9 @@ const char* SSL_SEED = STRINGIZE_VALUE_OF(TA_SSL_SEED);
 
 #define SEND_TRANSACTION_API "transaction/"
 
-endpoint_retcode_t send_transaction_information(int value, const char* message, const char* message_fmt,
-                                                const char* tag, const char* address, const char* next_address,
-                                                const uint8_t* private_key, const char* device_id, uint8_t* iv) {
+status_t send_transaction_information(int value, const char* message, const char* message_fmt, const char* tag,
+                                      const char* address, const char* next_address, const uint8_t* private_key,
+                                      const char* device_id, uint8_t* iv) {
   char tryte_msg[MAX_MSG_LEN] = {0};
   char msg[MAX_MSG_LEN] = {0};
   char ciphertext[MAX_MSG_LEN] = {0};
@@ -42,7 +42,7 @@ endpoint_retcode_t send_transaction_information(int value, const char* message, 
   if (ret < 0) {
     // FIXME: Replace to default logger
     fprintf(stderr, "message is to long");
-    return RET_FAULT;
+    return SC_ENDPOINT_SEND_TRANSFER;
   }
 
   size_t msg_len = 0;
@@ -59,7 +59,7 @@ endpoint_retcode_t send_transaction_information(int value, const char* message, 
   memcpy(iv, encrypt_ctx.iv, AES_IV_SIZE);
 
   // FIXME: Replace to default logger
-  if (ret != RET_OK) {
+  if (ret != SC_OK) {
     fprintf(stderr, "%s\n", "encrypt msg error");
     return ret;
   }
@@ -72,14 +72,14 @@ endpoint_retcode_t send_transaction_information(int value, const char* message, 
   if (ret < 0) {
     // FIXME: Replace to default logger
     fprintf(stderr, "message is to long");
-    return RET_FAULT;
+    return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, MAX_MSG_LEN, SSL_SEED) != RET_OK) {
+  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, MAX_MSG_LEN, SSL_SEED) != SC_OK) {
     // FIXME: Replace to default logger
     fprintf(stderr, "%s\n", "send http message error");
-    return RET_FAULT;
+    return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  return RET_OK;
+  return SC_OK;
 }
