@@ -37,13 +37,10 @@ cc_test(
 cc_test(
     name = "test_scylladb",
     srcs = ["test_scylladb.c"],
-    deps = select({
-        "//accelerator:db_enable": [
-            "//storage",
-            "//tests:test_define",
-        ],
-        "//conditions:default": [],
-    }),
+    deps = [
+        "//storage",
+        "//tests:test_define",
+    ],
 )
 
 cc_test(

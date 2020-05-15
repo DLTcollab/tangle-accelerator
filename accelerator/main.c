@@ -20,7 +20,7 @@ static void ta_stop(int signal) {
   }
 }
 
-void health_track(void* arg) {
+static void* health_track(void* arg) {
   ta_core_t* core = (ta_core_t*)arg;
   while (true) {
     status_t ret = ta_get_iri_status(&core->iota_service);
@@ -42,6 +42,7 @@ void health_track(void* arg) {
 
     sleep(core->ta_conf.health_track_period);
   }
+  return ((void*)NULL);
 }
 
 int main(int argc, char* argv[]) {

@@ -6,8 +6,6 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifdef DB_ENABLE
-
 #include "storage/ta_storage.h"
 #include "tests/test_define.h"
 
@@ -197,10 +195,12 @@ void test_db_identity_table(void) {
 
   db_client_service_free(&db_client_service);
 }
-#endif  // DB_ENABLE
 
 int main(int argc, char** argv) {
-#ifdef DB_ENABLE
+#if !defined(DB_ENABLE)
+  return 0;
+#endif
+
   int cmdOpt;
   int optIdx;
   const struct option longOpt[] = {
@@ -234,7 +234,4 @@ int main(int argc, char** argv) {
   RUN_TEST(test_permanode);
   scylladb_logger_release();
   return UNITY_END();
-#else
-  return 0;
-#endif  // DB_ENABLE
 }
