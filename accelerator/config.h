@@ -20,6 +20,7 @@
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"
 #endif
+#include "cclient/serialization/json/json_serializer.h"
 #include "common/logger.h"
 #include "utils/cache/cache.h"
 
