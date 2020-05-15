@@ -135,9 +135,10 @@ status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_
   }
   if (hash == NULL) {
     ta_log_error("NULL pointer to hash to insert into identity table\n");
+    return SC_TA_NULL;
   }
   if (length != DB_NUM_TRYTES_HASH) {
-    ta_log_error("SC_STORAGE_INVALID_INPUT\n");
+    ta_log_error("%s\n", ta_error_to_string(SC_STORAGE_INVALID_INPUT));
     return SC_STORAGE_INVALID_INPUT;
   }
   memcpy(obj->hash, hash, DB_NUM_TRYTES_HASH);

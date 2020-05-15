@@ -24,8 +24,18 @@ extern "C" {
  */
 
 typedef UT_array bundle_array_t;
+// We should synchronize this implementation as to the implementation in the IOTA library
+static UT_icd bundle_transactions_icd = {sizeof(iota_transaction_t), 0, 0, 0};
 
-static UT_icd bundle_array_icd = {sizeof(bundle_transactions_t), 0, 0, 0};
+static inline void bundle_array_copy(void *_dst, const void *_src) {
+  bundle_transactions_t *bdl_dst = (bundle_transactions_t *)_dst;
+  bundle_transactions_t *bdl_src = (bundle_transactions_t *)_src;
+  iota_transaction_t *txn = NULL;
+  utarray_init(bdl_dst, &bundle_transactions_icd);
+  BUNDLE_FOREACH(bdl_src, txn) { bundle_transactions_add(bdl_dst, txn); }
+}
+
+static UT_icd bundle_array_icd = {sizeof(bundle_transactions_t), 0, bundle_array_copy, 0};
 
 /**
  * Allocate memory of bundle_array_t

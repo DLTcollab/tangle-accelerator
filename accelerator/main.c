@@ -96,7 +96,10 @@ int main(int argc, char* argv[]) {
   if (quiet_mode) {
     // Destroy logger when quiet mode is on
     logger_helper_release(logger_id);
-    logger_helper_destroy();
+    if (logger_helper_destroy() != RC_OK) {
+      ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
+      return EXIT_FAILURE;
+    }
   } else {
     http_logger_init();
     apis_logger_init();

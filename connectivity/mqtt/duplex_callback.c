@@ -53,6 +53,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
 
   status_t ret = SC_OK;
   char *json_result = NULL;
+  char *res_topic = NULL;
   char device_id[ID_LEN] = {0};
 
   // get the Device ID.
@@ -110,7 +111,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
 
   // Set response publishing topic with the topic we got message and the Device ID (client ID) we got in the message
   int res_topic_len = strlen(subscribe_topic) + 1 + ID_LEN + 1;
-  char *res_topic = (char *)malloc(res_topic_len);
+  res_topic = (char *)malloc(res_topic_len);
   snprintf(res_topic, res_topic_len, "%s/%s", subscribe_topic, device_id);
   ret = gossip_channel_set(cfg, NULL, NULL, res_topic);
   if (ret != SC_OK) {
@@ -126,6 +127,7 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
 
 done:
   free(json_result);
+  free(res_topic);
   return ret;
 }
 

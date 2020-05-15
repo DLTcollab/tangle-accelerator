@@ -198,8 +198,9 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
 
   if (client_type == client_pub || client_type == client_duplex) {
     cfg->pub_config->topic = strdup(topic);
-  } else if (client_type == client_duplex) {
-    cfg->pub_config->response_topic = strdup(topic);
+    if (client_type == client_duplex) {
+      cfg->pub_config->response_topic = strdup(topic);
+    }
   } else {
     cfg->sub_config->topic_count++;
     cfg->sub_config->topics = realloc(cfg->sub_config->topics, cfg->sub_config->topic_count * sizeof(char *));
