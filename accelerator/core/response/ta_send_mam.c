@@ -48,7 +48,26 @@ status_t send_mam_res_set_msg_id(ta_send_mam_res_t* res, const tryte_t* msg_id) 
   return SC_OK;
 }
 
-status_t send_mam_res_set_announcement_bundle_hash(ta_send_mam_res_t* res, const tryte_t* announcement_bundle_hash) {
+status_t send_mam_res_set_msg_result(ta_send_mam_res_t* res, const tryte_t* chid, const tryte_t* msg_id,
+                                     bundle_transactions_t* bundle) {
+  status_t ret = SC_OK;
+  ret = send_mam_res_set_channel_id(res, chid);
+  if (ret) {
+    goto done;
+  }
+
+  ret = send_mam_res_set_msg_id(res, msg_id);
+  if (ret) {
+    goto done;
+  }
+
+  ret = send_mam_res_set_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+
+done:
+  return SC_OK;
+}
+
+status_t send_mam_res_set_announce_bundle_hash(ta_send_mam_res_t* res, const tryte_t* announcement_bundle_hash) {
   if (!announcement_bundle_hash || !res) {
     return SC_RES_NULL;
   }
@@ -65,6 +84,19 @@ status_t send_mam_res_set_chid1(ta_send_mam_res_t* res, const tryte_t* chid1) {
 
   memcpy(res->chid1, chid1, NUM_TRYTES_HASH);
   res->chid1[NUM_TRYTES_HASH] = '\0';
+  return SC_OK;
+}
+
+status_t send_mam_res_set_announce(ta_send_mam_res_t* res, const tryte_t* chid1, bundle_transactions_t* bundle) {
+  status_t ret = SC_OK;
+  ret = send_mam_res_set_announce_bundle_hash(res, transaction_bundle((iota_transaction_t*)utarray_front(bundle)));
+  if (ret) {
+    goto done;
+  }
+
+  ret = send_mam_res_set_chid1(res, chid1);
+
+done:
   return SC_OK;
 }
 

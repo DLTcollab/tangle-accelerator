@@ -10,6 +10,7 @@
 #define CORE_MAM_CORE_H_
 
 #include "accelerator/core/core.h"
+#include "common/macros.h"
 #include "common/trinary/flex_trit.h"
 #include "common/trinary/tryte_ascii.h"
 #include "mam/api/api.h"
@@ -38,7 +39,12 @@ void ta_mam_logger_init();
  */
 int ta_mam_logger_release();
 
-typedef enum mam_mss_key_status_e { ANNOUNCE_CHID, KEY_AVAILABLE } mam_mss_key_status_t;
+typedef enum mam_send_operation_e { ANNOUNCE_CHID, SEND_MESSAGE } mam_send_operation_t;
+
+typedef struct mam_encrypt_key_s {
+  mam_psk_t_set_t psks;
+  mam_ntru_pk_t_set_t ntru_pks;
+} mam_encrypt_key_t;
 
 /**
  * @brief Renew the given bundle
@@ -49,85 +55,35 @@ typedef enum mam_mss_key_status_e { ANNOUNCE_CHID, KEY_AVAILABLE } mam_mss_key_s
 void bundle_transactions_renew(bundle_transactions_t** bundle);
 
 /**
- * @brief Initialize a mam_api_t object
+ * @brief Send a MAM message.
  *
- * @param api[in,out] The MAM API object
  * @param iconf[in] IOTA API parameter configurations
- * @param seed[in] Seed of MAM channels. It is an optional choice
+ * @param service[in] IOTA node service
+ * @param req[in] Request in 'ta_send_mam_req_t' datatype
+ * @param res[out] Result in 'ta_send_mam_res_t' datatype
  *
- * @return return code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
-status_t ta_mam_init(mam_api_t* const api, const iota_config_t* const iconf, tryte_t const* const seed);
+status_t ta_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
+                             const iota_client_service_t* const service, ta_send_mam_req_t const* const req,
+                             ta_send_mam_res_t* const res);
 
 /**
- * @brief Append Pre-Shared Key or NTRU public key into Pre-Shared Key set or NTRU public key set, respectively.
+ * @brief Receive MAM messages.
  *
- * @param psks[in] Pre-Shared Key set
- * @param ntru_pks[in] NTRU public key set
- * @param psk[in] List of Pre-Shared Key
- * @param ntru_pk[in] List of NTRU public key
+ * @param iconf[in] IOTA API parameter configurations
+ * @param service[in] IOTA node service
+ * @param req[in] Request in 'ta_recv_mam_req_t' datatype
+ * @param res[out] Result in 'ta_recv_mam_res_t' datatype
  *
- * @return status code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
-status_t ta_set_mam_key(mam_psk_t_set_t* const psks, mam_ntru_pk_t_set_t* const ntru_pks, UT_array const* const psk,
-                        UT_array const* const ntru_pk);
-
-/**
- * @brief Write payload to bundle on the smallest secret key.
- *
- * With given channel_depth and endpoint_depth, generate the corresponding Channel ID and Endpoint ID, and write the
- * payload to a bundle. The payload is signed with secret key which has the smallest ordinal number.
- *
- * @param service[in] IRI node end point service
- * @param api[in,out] The MAM API object
- * @param channel_depth[in] Depth of channel merkle tree
- * @param psks[in] Pre-Shared Key set
- * @param ntru_pks[in] NTRU public key set
- * @param payload[in] The message that is going to send with MAM
- * @param chid[out] Channel ID
- * @param bundle[out] The bundle contains the Header and Packets of the current Message
- * @param msg_id[out] Unique Message identifier under each channel
- *
- * @return return code
- */
-status_t ta_mam_written_msg_to_bundle(const iota_client_service_t* const service, mam_api_t* const api,
-                                      const size_t channel_depth, tryte_t* const chid, mam_psk_t_set_t psks,
-                                      mam_ntru_pk_t_set_t ntru_pks, char const* const payload,
-                                      bundle_transactions_t** bundle, tryte_t* msg_id,
-                                      mam_mss_key_status_t* key_status);
-
-/**
- * @brief Write an announcement to bundle.
- *
- * Write the announcement of the next Channel ID (chid1) or Endpoint ID (epid1). This function would
- * automatically determine which one is going to be generated.
- *
- * @param api[in,out] The MAM API object
- * @param channel_depth[in] Depth of channel merkle tree
- * @param chid[in] Channel ID
- * @param ch_remain_sk[in] The number of MSS channel secret keys that haven't been used
- * @param psks[in] Pre-Shared Key set
- * @param ntru_pks[in] NTRU public key set
- * @param chid1[in] The next Channel ID
- * @param bundle[out] The bundle contains the Header and Packets of the current Message
- *
- * @return return code
- */
-status_t ta_mam_write_announce_to_bundle(mam_api_t* const api, const size_t channel_depth,
-                                         mam_mss_key_status_t key_status, tryte_t* const chid, mam_psk_t_set_t psks,
-                                         mam_ntru_pk_t_set_t ntru_pks, tryte_t* const chid1,
-                                         bundle_transactions_t** bundle);
-
-/**
- * @brief Read the MAM message from a bundle
- *
- * @param api[in] The MAM API object
- * @param bundle[in] The bundle that contains the message
- * @param payload_out[out] The output playload in ascii
- *
- * @return status code
- */
-status_t ta_mam_api_bundle_read(mam_api_t* const api, bundle_transactions_t* bundle, char** payload_out);
+status_t ta_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
+                             ta_recv_mam_req_t* const req, ta_recv_mam_res_t* const res);
 
 #ifdef __cplusplus
 }

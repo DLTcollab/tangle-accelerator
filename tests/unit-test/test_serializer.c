@@ -359,7 +359,6 @@ void test_send_mam_message_request_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(TEST_TOKEN, req->service_token);
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, data->seed, NUM_TRYTES_HASH);
   TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, data->ch_mss_depth);
-  TEST_ASSERT_EQUAL_INT(TEST_EP_DEPTH, data->ep_mss_depth);
   TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, data->message);
   TEST_ASSERT_EQUAL_STRING(TEST_NTRU_PK, mamv1_ntru_key_at(req, 0));
   TEST_ASSERT_EQUAL_STRING(TRYTES_81_2, mamv1_psk_key_at(req, 0));
@@ -384,7 +383,7 @@ void test_send_mam_message_response_serialize(void) {
   send_mam_res_set_bundle_hash(res, (tryte_t*)TRYTES_81_1);
   send_mam_res_set_channel_id(res, (tryte_t*)TRYTES_81_2);
   send_mam_res_set_msg_id(res, (tryte_t*)TEST_MSG_ID);
-  send_mam_res_set_announcement_bundle_hash(res, (tryte_t*)ADDRESS_1);
+  send_mam_res_set_announce_bundle_hash(res, (tryte_t*)ADDRESS_1);
   send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
   send_mam_res_serialize(res, &json_result);
