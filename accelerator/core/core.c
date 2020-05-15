@@ -616,12 +616,17 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
     goto done;
   }
 
-  // TODO We push only one transaction raw trits into list, we need to solve this in future.
-  ret = cache_set(uuid, UUID_STR_LEN - 1, hash_array_at(raw_txn_flex_trit_array, 0),
-                  NUM_FLEX_TRITS_SERIALIZED_TRANSACTION, cache->timeout);
-  if (ret) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  const int len = hash_array_len(raw_txn_flex_trit_array);
+  // We assume all the transactions in a single hash_array would be in the same bundle, since we buffer transaction only
+  // when 'ta_send_trytes()' fails, it implies 'ta_send_trytes()' can send only one bundle
+  // each time.
+  for (int i = 0; i < len; ++i) {
+    ret = cache_list_push(uuid, UUID_STR_LEN - 1, hash_array_at(raw_txn_flex_trit_array, i),
+                          NUM_FLEX_TRITS_SERIALIZED_TRANSACTION);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
   }
 
   ret = cache_list_push(cache->buffer_list_name, strlen(cache->buffer_list_name), uuid, UUID_STR_LEN - 1);
@@ -665,7 +670,6 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
   get_trytes_res_t* res = NULL;
   do {
     char uuid[UUID_STR_LEN];
-    flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
 
     ret = cache_list_size(core->cache.buffer_list_name, &uuid_list_len);
     if (ret) {
@@ -681,13 +685,23 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
 
     // TODO Now we assume every time we call `cache_get()`, we would get a transaction object. However, in the future,
     // the returned result may be a bunlde.
-    ret = cache_get(uuid, (char*)req_txn_flex_trits);
+    int trytes_array_len = 0;
+    ret = cache_list_size(uuid, &trytes_array_len);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
-    hash_array_push(txn_trytes_array, req_txn_flex_trits);
+    for (int i = 0; i < trytes_array_len; ++i) {
+      flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1] = {};
+      ret = cache_list_at(uuid, i, NUM_FLEX_TRITS_SERIALIZED_TRANSACTION, (char*)req_txn_flex_trits);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      hash_array_push(txn_trytes_array, req_txn_flex_trits);
+    }
+
     ret = ta_send_trytes(&core->ta_conf, &core->iota_conf, &core->iota_service, txn_trytes_array);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
@@ -696,25 +710,26 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
 
     // TODO Update the transaction object saved in redis, which allows `ta_fetch_txn_with_uuid()` to return the
     // transaction object much faster.
-    // TODO We assume only one transaction need to be broadcasted each time
     req = get_trytes_req_new();
     res = get_trytes_res_new();
     iota_transaction_t txn;
-    transaction_deserialize_from_trits(&txn, hash_array_at(txn_trytes_array, 0), true);
-    flex_trit_t* hash = transaction_hash(&txn);
+    for (int i = 0; i < trytes_array_len; ++i) {
+      transaction_deserialize_from_trits(&txn, hash_array_at(txn_trytes_array, i), true);
+      flex_trit_t* hash = transaction_hash(&txn);
 
-    ret = hash243_queue_push(&req->hashes, hash);
-    if (ret) {
-      ret = SC_CCLIENT_HASH;
-      ta_log_error("%s\n", "SC_CCLIENT_HASH");
-      goto done;
+      ret = hash243_queue_push(&req->hashes, hash);
+      if (ret) {
+        ret = SC_CCLIENT_HASH;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
     }
     utarray_done(txn_trytes_array);
 
     ret = iota_client_get_trytes(&core->iota_service, req, res);
     if (ret) {
       ret = SC_CCLIENT_FAILED_RESPONSE;
-      ta_log_error("%s\n", "SC_CCLIENT_FAILED_RESPONSE");
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
@@ -725,11 +740,14 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
       goto done;
     }
 
-    ret = cache_set(uuid, UUID_STR_LEN - 1, hash8019_queue_peek(res->trytes), NUM_FLEX_TRITS_SERIALIZED_TRANSACTION,
-                    core->cache.timeout);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
+    trytes_array_len = hash8019_queue_count(res->trytes);
+    for (int i = 0; i < trytes_array_len; ++i) {
+      ret = cache_list_push(uuid, UUID_STR_LEN - 1, hash8019_queue_at(res->trytes, i),
+                            NUM_FLEX_TRITS_SERIALIZED_TRANSACTION);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
     }
 
     // Pop transaction from buffered list
@@ -759,8 +777,7 @@ done:
 status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
                                 ta_fetch_txn_with_uuid_res_t* res) {
   status_t ret = SC_OK;
-  flex_trit_t txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
-
+  char pop_uuid[UUID_STR_LEN];
   bool exist = false;
   ret = cache_list_exist(cache->buffer_list_name, uuid, UUID_STR_LEN - 1, &exist);
   if (ret) {
@@ -780,20 +797,38 @@ status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const
   if (exist) {
     res->status = SENT;
 
-    ret = cache_get(uuid, (char*)txn_flex_trits);
+    int len = 0;
+    ret = cache_list_size(uuid, &len);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
-    res->txn = transaction_deserialize(txn_flex_trits, false);
-    if (res->txn == NULL) {
-      ret = SC_CORE_OOM;
+    for (int i = 0; i < len; ++i) {
+      flex_trit_t txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1];
+      ret = cache_list_at(uuid, i, NUM_FLEX_TRITS_SERIALIZED_TRANSACTION, (char*)txn_flex_trits);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
+      iota_transaction_t* txn = transaction_deserialize(txn_flex_trits, false);
+
+      if (bundle_transactions_add(res->bundle, txn) != RC_OK) {
+        ret = SC_CORE_NULL;
+        ta_log_error("%s\n", "Failed to add transaction to bundle.");
+        free(txn);
+        goto done;
+      }
+      free(txn);
+    }
+
+    ret = cache_del(uuid);
+    if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
-    ret = cache_del(uuid);
+    ret = cache_list_pop(cache->done_list_name, pop_uuid);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;

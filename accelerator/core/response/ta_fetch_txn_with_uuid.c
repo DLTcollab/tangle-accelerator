@@ -11,7 +11,8 @@
 ta_fetch_txn_with_uuid_res_t* ta_fetch_txn_with_uuid_res_new() {
   ta_fetch_txn_with_uuid_res_t* res = (ta_fetch_txn_with_uuid_res_t*)malloc(sizeof(ta_fetch_txn_with_uuid_res_t));
   if (res) {
-    res->txn = NULL;
+    res->bundle = NULL;
+    bundle_transactions_new(&(res->bundle));
     res->status = NOT_EXIST;
   }
   return res;
@@ -22,7 +23,7 @@ void ta_fetch_txn_with_uuid_res_free(ta_fetch_txn_with_uuid_res_t** res) {
     return;
   }
 
-  free((*res)->txn);
+  bundle_transactions_free(&((*res)->bundle));
   free(*res);
   *res = NULL;
 }

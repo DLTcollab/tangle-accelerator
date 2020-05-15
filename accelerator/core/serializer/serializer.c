@@ -390,10 +390,38 @@ static status_t transaction_array_to_json_array(cJSON* json_root, const transact
 
   TX_OBJS_FOREACH(txn_array, txn) {
     cJSON* txn_obj = cJSON_CreateObject();
+    if (!txn_obj) {
+      ret = SC_SERIALIZER_JSON_CREATE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      return ret;
+    }
 
     ret = iota_transaction_to_json_object(txn, &txn_obj);
     if (ret != SC_OK) {
-      ta_log_error("%s\n", error_2_string(ret));
+      cJSON_Delete(txn_obj);
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      return ret;
+    }
+    cJSON_AddItemToArray(json_root, txn_obj);
+  }
+  return ret;
+}
+
+static status_t bundle_transaction_to_json_array(const bundle_transactions_t* const bundle, cJSON* json_root) {
+  status_t ret = SC_OK;
+  iota_transaction_t* txn = NULL;
+  BUNDLE_FOREACH(bundle, txn) {
+    cJSON* txn_obj = cJSON_CreateObject();
+    if (!txn_obj) {
+      ret = SC_SERIALIZER_JSON_CREATE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      return ret;
+    }
+
+    ret = iota_transaction_to_json_object(txn, &txn_obj);
+    if (ret != SC_OK) {
+      cJSON_Delete(txn_obj);
+      ta_log_error("%s\n", ta_error_to_string(ret));
       return ret;
     }
     cJSON_AddItemToArray(json_root, txn_obj);
@@ -410,6 +438,7 @@ status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* cons
   }
   ret = ta_hash243_queue_to_json_array(res->addresses, json_root);
   if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
 
@@ -433,6 +462,7 @@ status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj) 
 
   ret = ta_hash243_stack_to_json_array(res->hashes, json_root);
   if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto err;
   }
 
@@ -1401,11 +1431,19 @@ status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* c
   }
 
   if (res->status == SENT) {
-    ret = iota_transaction_to_json_object(res->txn, &json_root);
+    cJSON* json_array = cJSON_CreateArray();
+    if (json_array == NULL) {
+      ret = SC_SERIALIZER_JSON_CREATE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
+    ret = bundle_transaction_to_json_array(res->bundle, json_array);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
+    cJSON_AddItemToObject(json_root, "bundle", json_array);
   } else if (res->status == UNSENT) {
     cJSON_AddStringToObject(json_root, "status", "unsent");
   } else if (res->status == NOT_EXIST) {
