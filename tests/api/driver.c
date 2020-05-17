@@ -105,7 +105,7 @@ void test_send_transfer(void) {
       "\"address\":\"" TRYTES_81_1 "\"}";
   tryte_t test_transfer_message[TEST_TRANSFER_MESSAGE_LEN + 1] = {};
   gen_rand_trytes(TEST_TRANSFER_MESSAGE_LEN, test_transfer_message);
-  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN;
+  const int len = strlen(json_template) + TEST_TRANSFER_MESSAGE_LEN + 1;
   char* json = (char*)malloc(sizeof(char) * len);
   snprintf(json, len, json_template, test_transfer_message);
   char* json_result;

@@ -82,6 +82,27 @@ class SendTransfer(unittest.TestCase):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[10]))
         self._verify_pass(res)
+    
+    # Zero value, tryte maessage, invalid tag, tryte address (fail)
+    @test_logger
+    def test_invalid_tag(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[11]))
+        self._verify_pass(res)
+    
+    # Zero value, tryte maessage, tryte tag, invalid address (fail)
+    @test_logger
+    def test_invalid_address(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[12]))
+        self._verify_pass(res)
+
+    # Zero value, tryte maessage, invalid tag, invalid address (fail)
+    @test_logger
+    def test_invalid_tag_and_address(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[13]))
+        self._verify_pass(res)
 
     # Time statistics
     @test_logger
@@ -109,6 +130,8 @@ class SendTransfer(unittest.TestCase):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)
         rand_addr = gen_rand_trytes(81)
+        rand_invalid_tag = gen_rand_trytes(999)
+        rand_invalid_addr = gen_rand_trytes(999)
         cls.post_field = ["value", "message", "tag", "address"]
         cls.query_string = [[420, rand_msg, rand_tag, rand_addr],
                             [0, rand_msg, rand_tag, rand_addr],
@@ -120,7 +143,11 @@ class SendTransfer(unittest.TestCase):
                             [0, None, rand_tag, rand_addr],
                             [0, rand_msg, None, rand_addr],
                             [0, rand_msg, rand_tag, None],
-                            [0, rand_msg, rand_tag, "我思故我在"]]
+                            [0, rand_msg, rand_tag, "我思故我在"],
+                            [0, rand_msg, "ololaola", rand_addr],
+                            [0, rand_msg, rand_tag, "dio"],
+                            [0, rand_msg, "olaolaola", "dio"],
+                           ]
 
     def _verify_pass(self, res):
         self.assertEqual(STATUS_CODE_200, res["status_code"])

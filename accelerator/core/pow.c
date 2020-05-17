@@ -41,6 +41,9 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm) {
   flex_trits_to_trytes(trytes_in, NUM_TRYTES_SERIALIZED_TRANSACTION, trits_in, NUM_TRITS_SERIALIZED_TRANSACTION,
                        NUM_TRITS_SERIALIZED_TRANSACTION);
   int8_t* ret_trytes = ta_pow_dcurl(trytes_in, mwm, 0);
+  if (ret_trytes == NULL) {
+    return NULL;
+  }
   memcpy(nonce_trytes, ret_trytes + NUM_TRYTES_SERIALIZED_TRANSACTION - NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
 
   flex_trit_t* nonce_trits = (flex_trit_t*)calloc(NUM_TRITS_NONCE, sizeof(flex_trit_t));
