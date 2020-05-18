@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "http_parser.h"
 #include "utils/cipher.h"
 #include "utils/connectivity/conn_http.h"
@@ -47,14 +48,19 @@ status_t send_transaction_information(int value, const char* message, const char
   }
 
   size_t msg_len = 0;
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+
   ta_cipher_ctx encrypt_ctx = {.plaintext = raw_msg,
                                .plaintext_len = ret,
                                .ciphertext = ciphertext,
                                .ciphertext_len = MAX_MSG_LEN,
                                .device_id = device_id,
                                .iv = {0},
+                               .hmac = {0},
                                .key = private_key,
-                               .keybits = TA_AES_KEY_BITS};
+                               .keybits = TA_AES_KEY_BITS,
+                               .timestamp = t.tv_sec};
   memcpy(encrypt_ctx.iv, iv, AES_IV_SIZE);
   ret = aes_encrypt(&encrypt_ctx);
   memcpy(iv, encrypt_ctx.iv, AES_IV_SIZE);
@@ -64,7 +70,8 @@ status_t send_transaction_information(int value, const char* message, const char
     fprintf(stderr, "%s\n", "encrypt msg error");
     return ret;
   }
-  serialize_msg(iv, encrypt_ctx.ciphertext_len, (char*)encrypt_ctx.ciphertext, msg, &msg_len);
+  serialize_msg(iv, encrypt_ctx.ciphertext_len, (char*)encrypt_ctx.ciphertext, encrypt_ctx.timestamp, encrypt_ctx.hmac,
+                msg, &msg_len);
   bytes_to_trytes((const unsigned char*)msg, msg_len, tryte_msg);
 
   memset(req_body, 0, sizeof(char) * MAX_MSG_LEN);

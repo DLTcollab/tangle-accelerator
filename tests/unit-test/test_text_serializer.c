@@ -28,6 +28,9 @@ const uint8_t payload[] = {
     49,  162, 1,   218, 50,  65,  239, 170, 29,  207, 210, 133, 167, 129, 150, 35,  165, 148, 255, 252, 131, 31,
     251, 91,  130, 34,  222, 70,  36,  45,  140, 85,  207, 141, 48,  1,   206, 31,  171, 235, 238, 126, 113};
 const uint16_t payload_len = 263;
+const uint64_t test_timestamp = 1589274915;
+const uint8_t test_hmac[TA_AES_HMAC_SIZE] = {37, 39, 48, 30, 53, 63, 45, 61, 87, 60, 60, 90, 63, 63, 13, 94,
+                                             53, 93, 52, 7,  19, 38, 15, 31, 29, 32, 97, 2,  47, 67, 59, 62};
 
 void setUp(void) {}
 
@@ -35,20 +38,21 @@ void tearDown(void) {}
 
 void test_serialize_deserialize(void) {
   uint8_t out[1024], iv_out[AES_BLOCK_SIZE], payload_out[1024];
-
   size_t payload_len_out, out_msg_len;
-  int rc1 = serialize_msg(iv, payload_len, (char*)payload, (char*)out, &out_msg_len);
-  TEST_ASSERT(rc1 == SC_OK);
-  int rc2 = deserialize_msg((char*)out, iv_out, &payload_len_out, (char*)payload_out);
-  TEST_ASSERT(rc2 == SC_OK);
+  uint64_t timestamp;
+  uint8_t hmac[TA_AES_HMAC_SIZE];
+
+  int rc1 = serialize_msg(iv, payload_len, (char*)payload, test_timestamp, test_hmac, (char*)out, &out_msg_len);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, rc1);
+  int rc2 = deserialize_msg((char*)out, iv_out, &payload_len_out, (char*)payload_out, &timestamp, hmac);
+  TEST_ASSERT_EQUAL_INT32(SC_OK, rc2);
 
   out[1023] = 0;
   payload_out[payload_len] = 0;
-
   TEST_ASSERT_EQUAL_UINT8_ARRAY(iv, iv_out, AES_BLOCK_SIZE);
-
+  TEST_ASSERT_EQUAL_UINT64(test_timestamp, timestamp);
+  TEST_ASSERT_EQUAL_UINT8_ARRAY(test_hmac, hmac, TA_AES_HMAC_SIZE);
   TEST_ASSERT_EQUAL_UINT32(payload_len, payload_len_out);
-
   TEST_ASSERT_EQUAL_UINT8_ARRAY(payload, payload_out, payload_len);
 }
 
