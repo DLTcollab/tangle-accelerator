@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef ENDPOINT_H
-#define ENDPOINT_H
+#ifndef ENDPOINT_CORE_H
+#define ENDPOINT_CORE_H
 
 #define ADDR_LEN 81
 #define MAX_MSG_LEN 1024
@@ -36,4 +36,4 @@ status_t send_transaction_information(const int value, const char* message, cons
                                       const char* address, const char* next_address, const uint8_t* private_key,
                                       const char* device_id, uint8_t* iv);
 
-#endif  // ENDPOINT_H
+#endif  // ENDPOINT_CORE_H

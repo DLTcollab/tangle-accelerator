@@ -1,0 +1,119 @@
+sources:
+{
+    ${CURDIR}/../endpoint_core.c
+
+    ${CURDIR}/../../output_base/external/http_parser/http_parser.c
+
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aes.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/arc4.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1parse.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1write.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/base64.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/bignum.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/blowfish.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/camellia.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ccm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/certs.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/chacha20.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/chachapoly.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/cipher.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/cipher_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ctr_drbg.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/debug.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/des.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/dhm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecdh.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecdsa.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecp.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecp_curves.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/entropy.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/entropy_poll.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/gcm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/hmac_drbg.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md5.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/net_sockets.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/oid.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pem.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pk.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkcs12.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkcs5.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkparse.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pk_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/platform_util.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/poly1305.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ripemd160.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/rsa.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/rsa_internal.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha1.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha256.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha512.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_ciphersuites.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_cli.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_srv.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_tls.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/timing.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509_crt.c
+
+    ${CURDIR}/../../utils/cipher.c
+    ${CURDIR}/../../utils/connectivity/conn_http.c
+    ${CURDIR}/../../utils/https.c
+    ${CURDIR}/../../utils/text_serializer.c
+    ${CURDIR}/../../utils/tryte_byte_conv.c
+
+    endpoint.c
+}
+
+cflags:
+{
+    -g -O0
+
+    -I${CURDIR}/../..
+
+    // The header files under this directory are downloaded only when the corresponding 'bazel build' command is used
+    -I${CURDIR}/../../output_base/execroot/__main__/bazel-out/k8-fastbuild/bin/external/entangled
+
+    -I${CURDIR}/../../output_base/external/com_github_uthash/src
+    -I${CURDIR}/../../output_base/external/entangled
+    -I${CURDIR}/../../output_base/external/http_parser
+    -I${CURDIR}/../../output_base/external/keccak
+    -I${CURDIR}/../../output_base/external/keccak/lib/high/Keccak
+    -I${CURDIR}/../../output_base/external/keccak/lib/common
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX512a
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmX86-64
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Inplace32BI
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedXOP
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX512c
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized32biAsmARM
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmAVR8
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX2
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmARM
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Compact64
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Reference
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forNehalem
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forHaswell
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forSandyBridge
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Reference32BI
+    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64AsmARM
+    -I${CURDIR}/../../output_base/external/mbedtls_2_16_6/include
+}
+
+bundles:
+{
+    // List of files copied from the build host into the App for runtime usage
+    file:
+    {
+        resolv.conf /etc/
+    }
+}
+
+requires:
+{
+    device:
+    {
+        [rw] /dev/ttyHS0 /dev/ttyHS0
+    }
+}

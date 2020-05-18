@@ -1,0 +1,14 @@
+executables:
+{
+    endpoint = ( endpointComp )
+}
+
+processes:
+{
+    run:
+    {
+        (endpoint)
+    }
+}
+
+start: manual
