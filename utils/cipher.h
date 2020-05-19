@@ -28,7 +28,7 @@ extern "C" {
 typedef struct ta_cipher_ctx {
   uint8_t* plaintext;             /**< Plaintext */
   size_t plaintext_len;           /**< Plaintext length */
-  uint8_t* ciphertext;            /**< Ciphrtext */
+  uint8_t* ciphertext;            /**< Ciphertext */
   size_t ciphertext_len;          /**< Ciphertext length */
   uint8_t iv[AES_IV_SIZE];        /**< Initialization vector, mbedtls_aes needs r/w iv[] */
   const uint8_t* key;             /**< Encryption key */

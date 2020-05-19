@@ -88,7 +88,7 @@ static struct ta_cli_argument_s {
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
     {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
      "The period for checking IRI host connection status"},
-    {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transacation"},
+    {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transaction"},
     {"buffer_list", required_argument, NULL, BUFFER_LIST, "Set the value of `buffer_list_name`"},
     {"done_list", required_argument, NULL, DONE_LIST, "Set the value of `done_list_name`"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},

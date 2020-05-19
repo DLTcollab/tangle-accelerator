@@ -26,7 +26,7 @@ static void* health_track(void* arg) {
     status_t ret = ta_get_iri_status(&core->iota_service);
     if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
       ta_log_error("IRI status error %d. Try to connect to another IRI host on priority list\n", ret);
-      ret = ta_update_iri_conneciton(&core->ta_conf, &core->iota_service);
+      ret = ta_update_iri_connection(&core->ta_conf, &core->iota_service);
       if (ret) {
         ta_log_error("Update IRI host failed: %d\n", ret);
       }

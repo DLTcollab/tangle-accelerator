@@ -29,7 +29,7 @@ status_t db_show_identity_info(db_identity_t* obj) {
   db_get_identity_uuid_string(obj, uuid_string);
   memcpy(hash, obj->hash, DB_NUM_TRYTES_HASH);
   hash[DB_NUM_TRYTES_HASH] = 0;
-  ta_log_info("identity info\n uuid string : %s\nhash :%s\ntimestamp : %ld\ntime eclapsed : %ld\nstatus : %d\n",
+  ta_log_info("identity info\n uuid string : %s\nhash :%s\ntimestamp : %ld\ntime elapsed : %ld\nstatus : %d\n",
               uuid_string, hash, obj->timestamp, db_ret_identity_time_elapsed(obj), obj->status);
   return SC_OK;
 }
@@ -325,7 +325,7 @@ static status_t get_identity_array(CassSession* session, CassStatement* statemen
   CassIterator* iterator;
   db_identity_t* identity = NULL;
   if ((ret = db_identity_new(&identity)) != SC_OK) {
-    ta_log_error("fail to create db idenetity\n");
+    ta_log_error("fail to create db identity\n");
     goto exit;
   }
 

@@ -8,7 +8,7 @@ If you prefer building a docker image, tangle-accelerator also provides build ru
 $ make && bazel run //accelerator:docker_image
 ```
 
-The docker image will be gernerated in local machine.
+The docker image will be generated in local machine.
 
 ```bash
 $ docker images

@@ -79,7 +79,7 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bun
 status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id);
 
 /**
- * @brief Set the msgl_id field of send_mam_res object.
+ * @brief Set the msg_id field of send_mam_res object.
  *
  * @param[in] res ta_send_mam_res_t struct object
  * @param[in] msg_id Message id decoded in trytes string

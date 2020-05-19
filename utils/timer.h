@@ -18,7 +18,7 @@ extern "C" {
  * @brief Implementation of one-shot timer.
  *
  * The wrapper wraps and executes the callback, executes in a different thread, and cancels the thread after the given
- * tiemout.
+ * timeout.
  */
 
 #include <pthread.h>

@@ -30,7 +30,7 @@ Here are some operations needed to be implemented for new device:
 
 Here are the functions needed to be registered/unregistered inside `impl.c`:
 * register_device : register device on startup
-* unregister_device : unregister device
+* unregister_device : unregistered device
 * DECLARE_DEVICE : this must be declared inside `impl.c`
 
 Add the new device into `hal/Makefile`:

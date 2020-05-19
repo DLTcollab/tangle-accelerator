@@ -50,8 +50,8 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
 /**
  * @brief Set host and topics.
  *
- * The arguements `host` can be NULL value. But only one of value among `sub_topic` and `pub_topic` can be NULL.
- * Threfore this function can be used whenever we want to subscribe or publish to a new topic.
+ * The arguments `host` can be NULL value. But only one of value among `sub_topic` and `pub_topic` can be NULL.
+ * Therefore this function can be used whenever we want to subscribe or publish to a new topic.
  *
  * @param[in] config_cfg pointer of `mosq_config_t` object
  * @param[in] host broker's IP in string

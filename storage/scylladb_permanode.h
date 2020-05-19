@@ -23,7 +23,7 @@ extern "C" {
 
 /**
  * @file storage/scylladb_permanode.h
- * @brief implement Scylladb interface for IOTA permanent storage. This inerface supports transaction inserting and
+ * @brief implement Scylladb interface for IOTA permanent storage. This interface supports transaction inserting and
  * selecting features.
  */
 

@@ -16,7 +16,7 @@ extern "C" {
 
 /**
  * @file common/ta_errors.h
- * @brief Error Code of tangle-acclerator
+ * @brief Error Code of tangle-accelerator
  *
  * bit division:
  * 0 - 5  actual error code
@@ -192,15 +192,15 @@ typedef enum {
   SC_UTILS_HTTPS_SSL_ERROR = 0x08 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< HTTPS response error */
   SC_UTILS_HTTPS_RESPONSE_ERROR = 0x09 | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
-  /**< Error occured when serialize message */
+  /**< Error occurred when serializing message */
   SC_UTILS_TEXT_SERIALIZE = 0x0A | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
-  /**< Error occured when deserialize message */
+  /**< Error occurred when deserializing message */
   SC_UTILS_TEXT_DESERIALIZE = 0x0B | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Out of memory error */
   SC_UTILS_OOM_ERROR = 0x0C | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Overflow error */
   SC_UTILS_OVERFLOW_ERROR = 0x0D | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
-  /**< Error occured when encrypt or descrypt message */
+  /**< Error occurred when encrypting or descrypting message */
   SC_UTILS_CIPHER_ERROR = 0x0E | SC_MODULE_UTILS | SC_SEVERITY_FATAL,
   /**< Timer expired */
 
@@ -252,22 +252,22 @@ typedef enum {
   SC_CORE_NULL = 0x02 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
   /**< NULL object in core */
   SC_CORE_IRI_UNSYNC = 0x03 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
-  /**< IRI host is unsynchronized */
+  /**< IRI host is not synchronized */
 
   // Endpoint module
   /**< Failed to initialize the device  */
   SC_ENDPOINT_DEVICE_INIT = 0x01 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Failed to finalize the device */
   SC_ENDPOINT_DEVICE_FINI = 0x02 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
-  /**< Uart error occured in device component */
+  /**< Uart error occurred in device component */
   SC_ENDPOINT_UART = 0x03 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
-  /**< Error occured inside secure storage */
+  /**< Error occurred inside secure storage */
   SC_ENDPOINT_SEC_FAULT = 0x04 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
-  /**< Error occured when item not found inside secure storage */
+  /**< Error occurred when item not found inside secure storage */
   SC_ENDPOINT_SEC_ITEM_NOT_FOUND = 0x05 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
-  /**< Error occured when the secure storage service is unavailable */
+  /**< Error occurred when the secure storage service is unavailable */
   SC_ENDPOINT_SEC_UNAVAILABLE = 0x06 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
-  /**< Error occured when the sending transfer message */
+  /**< Error occurred when the sending transfer message */
   SC_ENDPOINT_SEND_TRANSFER = 0x07 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
 
 } status_t;

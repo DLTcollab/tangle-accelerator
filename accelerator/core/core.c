@@ -202,7 +202,7 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
   memcpy(transfer.tag, hash81_queue_peek(req->tag), FLEX_TRIT_SIZE_81);
   transfer_array_add(transfers, &transfer);
 
-  // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
+  // TODO we may need args `remainder_address`, `inputs`, `timestamp` in the
   // future and declare `security` field in `iota_config_t`
   flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
   flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
@@ -321,7 +321,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
 
   // append transaction object which is already cached to transaction_array_t
-  // if not, append uncached to request object of `iota_client_find_transaction_objectss`
+  // if not, append uncached to request object of `iota_client_find_transaction_objects`
   hash243_queue_entry_t* q_iter = NULL;
   CDL_FOREACH(req->hashes, q_iter) {
     flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
@@ -499,7 +499,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
     goto done;
   }
 
-  // In case the requested transction hashes is an empty one
+  // In case the requested transaction hashes is an empty one
   if (hash243_queue_count(txn_res->hashes) > 0) {
     hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
   } else {
@@ -582,7 +582,7 @@ done:
   return ret;
 }
 
-status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+status_t ta_update_iri_connection(ta_config_t* const ta_conf, iota_client_service_t* const service) {
   status_t ret = SC_OK;
   for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
     // update new IRI host
@@ -689,7 +689,7 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
     }
 
     // TODO Now we assume every time we call `cache_get()`, we would get a transaction object. However, in the future,
-    // the returned result may be a bunlde.
+    // the returned result may be a bundle.
     int trytes_array_len = 0;
     ret = cache_list_size(uuid, &trytes_array_len);
     if (ret) {

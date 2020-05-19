@@ -18,7 +18,7 @@
 #define LAST_INDEX_OFFSET (CURRENT_INDEX_OFFSET + NUM_TRYTES_CURRENT_INDEX)
 #define BUNDLE_OFFSET (LAST_INDEX_OFFSET + NUM_TRYTES_LAST_INDEX)
 #define TRUNK_OFFSET (BUNDLE_OFFSET + NUM_TRYTES_BUNDLE)
-#define BRNACH_OFFSET (TRUNK_OFFSET + NUM_TRYTES_TRUNK)
+#define BRANCH_OFFSET (TRUNK_OFFSET + NUM_TRYTES_TRUNK)
 
 static void print_error(CassFuture* future) {
   const char* message;
@@ -472,7 +472,7 @@ status_t db_permanode_insert_transaction(const db_client_service_t* service, con
     ta_log_error("Fail to insert approvee\n");
     return SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
-  ret = insert_approvee(service->session, trytes + BRNACH_OFFSET, hash);
+  ret = insert_approvee(service->session, trytes + BRANCH_OFFSET, hash);
   if (ret != SC_OK) {
     ta_log_error("Fail to insert approvee\n");
     return SC_STORAGE_CASSANDRA_QUERY_FAIL;

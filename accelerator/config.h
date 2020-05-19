@@ -104,8 +104,8 @@ typedef struct ta_cache_s {
 
 /** struct type of accelerator core */
 typedef struct ta_core_s {
-  ta_config_t ta_conf;                /**< accelerator configiuration structure */
-  ta_cache_t cache;                   /**< redis configiuration structure */
+  ta_config_t ta_conf;                /**< accelerator configuration structure */
+  ta_cache_t cache;                   /**< redis configuration structure */
   iota_config_t iota_conf;            /**< iota configuration structure */
   iota_client_service_t iota_service; /**< iota connection structure */
 #ifdef DB_ENABLE
