@@ -40,7 +40,7 @@ void test_send_mam_message(void) {
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(
         SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
-    send_mam_res_deserialize(json_result, &res);
+    send_mam_message_res_deserialize(json_result, &res);
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
@@ -85,7 +85,7 @@ void test_write_until_next_channel(void) {
     snprintf(json, len, json_template_send, seed, payload, i);
     TEST_ASSERT_EQUAL_INT32(
         SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
-    send_mam_res_deserialize(json_result, mam_res_array[i]);
+    send_mam_message_res_deserialize(json_result, mam_res_array[i]);
     free(json);
     free(json_result);
   }
@@ -112,7 +112,7 @@ void test_write_until_next_channel(void) {
     }
     test_time_end(&start_time, &end_time, &sum);
 
-    recv_mam_res_deserialize(json_result, res);
+    recv_mam_message_res_deserialize(json_result, res);
     if (res->chid1[0]) {
       strncpy(chid1, res->chid1, NUM_TRYTES_ADDRESS);
     } else if (chid1[0]) {
@@ -161,7 +161,7 @@ void test_write_with_chid(void) {
       send_mam_res_free(&res);
     }
   }
-  send_mam_res_deserialize(json_result, res);
+  send_mam_message_res_deserialize(json_result, res);
   free(json_result);
 
   // Send message from next channel ID

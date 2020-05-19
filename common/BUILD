@@ -32,6 +32,7 @@ cc_library(
         "@entangled//common/model:transaction",
         "@entangled//common/trinary:tryte",
         "@entangled//mam/mam:message",
+        "@entangled//utils/containers/hash:hash_array",
     ],
 )
 

@@ -8,6 +8,7 @@ cc_test(
         "//accelerator/core:proxy_apis",
         "//tests:common",
         "//tests:test_define",
+        "@cJSON",
     ],
 )
 
@@ -22,6 +23,7 @@ cc_binary(
         "//accelerator/core:proxy_apis",
         "//tests:common",
         "//tests:test_define",
+        "@cJSON",
     ],
 )
 

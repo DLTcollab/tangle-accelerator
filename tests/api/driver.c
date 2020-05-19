@@ -9,6 +9,7 @@
 #include <time.h>
 #include "accelerator/core/apis.h"
 #include "accelerator/core/proxy_apis.h"
+#include "cJSON.h"
 #include "tests/common.h"
 #include "tests/test_define.h"
 
