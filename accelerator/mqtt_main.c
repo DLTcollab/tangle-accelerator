@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Initialize `mosq` and `cfg`
-  // if we want to opertate this program under multi-threading, see https://github.com/eclipse/mosquitto/issues/450
+  // if we want to operate this program under multi-threading, see https://github.com/eclipse/mosquitto/issues/450
   ret = duplex_config_init(&mosq, &cfg);
   if (ret != SC_OK) {
     ta_log_error("%d\n", ret);

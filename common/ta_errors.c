@@ -141,7 +141,7 @@ const char* ta_error_to_string(status_t err) {
     case SC_CORE_NULL:
       return "NULL object in core.";
     case SC_CORE_IRI_UNSYNC:
-      return "IRI host is unsynchronized.";
+      return "IRI host is not synchronized.";
     default:
       return "Unknown error.";
   }

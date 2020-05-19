@@ -40,7 +40,7 @@ status_t prepare_transfer(const iota_config_t* const iconf, const iota_client_se
     transfer_array_add(transfers, &transfer[i]);
   }
 
-  // TODO we may need args `remainder_address`, `inputs`, `timestampe` in the
+  // TODO we may need args `remainder_address`, `inputs`, `timestamp` in the
   // future and declare `security` field in `iota_config_t`
   flex_trit_t seed[NUM_FLEX_TRITS_ADDRESS];
   flex_trits_from_trytes(seed, NUM_TRITS_HASH, (tryte_t const*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
@@ -119,7 +119,7 @@ void test_broadcast_buffered_txn(void) {
   TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.buffer_list_name, &list_len));
   TEST_ASSERT_EQUAL_INT32(init_list_len + 1, list_len);
 
-  // Take action to broadcast transctions in buffer
+  // Take action to broadcast transactions in buffer
   TEST_ASSERT_EQUAL_INT32(SC_OK, broadcast_buffered_txn(&ta_core));
 
   // The length of the buffer list should be zero, since all the transaction objects have been popped out.
@@ -175,7 +175,7 @@ void test_fetch_txn_with_uuid(void) {
   TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, uuid, res));
   TEST_ASSERT_EQUAL_INT32(UNSENT, res->status);
 
-  // Take action to broadcast transctions in buffer
+  // Take action to broadcast transactions in buffer
   TEST_ASSERT_EQUAL_INT32(SC_OK, broadcast_buffered_txn(&ta_core));
   TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, uuid, res));
   TEST_ASSERT_EQUAL_INT32(SENT, res->status);

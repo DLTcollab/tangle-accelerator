@@ -37,10 +37,10 @@ typedef struct {
 } db_client_service_t;
 
 /**
- * @brief init ScyllaDB client serivce and connect to specific cluster
+ * @brief init ScyllaDB client service and connect to specific cluster
  *
  * @param[out] service ScyllaDB client service
- * @param[in] usage specfic usage for db client serivce
+ * @param[in] usage specfic usage for db client service
  * @return
  * - SC_OK on success
  * - non-zero on error
@@ -48,7 +48,7 @@ typedef struct {
 status_t db_client_service_init(db_client_service_t* service, db_client_usage_t usage);
 
 /**
- * @brief free ScyllaDB client serivce
+ * @brief free ScyllaDB client service
  *
  * @param[in] service ScyllaDB client service
  * @return

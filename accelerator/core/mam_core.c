@@ -335,7 +335,7 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
       }
 
       if (!msg_id_exist(tag_array, transaction_tag((iota_transaction_t *)utarray_front(*bundle)))) {
-        ta_log_debug("%s\n", "Found avialable msg_id");
+        ta_log_debug("%s\n", "Found available msg_id");
         break;
       }
 

@@ -24,7 +24,7 @@ extern "C" {
  * - timestamp (20 bytes)
  * - hmac (32 bytes)
  * - ciphertext length(10 bytes)
- * - ciphertext(other bytest)
+ * - ciphertext(other bytes)
  *
  * @param[in] iv Pointer to initialize vector
  * @param[in] ciphertext_len Length of ciphertext

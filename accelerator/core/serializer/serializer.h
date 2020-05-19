@@ -58,7 +58,7 @@ void serializer_logger_init();
 int serializer_logger_release();
 
 /**
- * @brief Serialze tangle accelerator info into JSON
+ * @brief Serialize tangle accelerator info into JSON
  *
  * @param[out] obj Tangle-accelerator info in JSON
  * @param[in] ta_config Tangle-accelerator configuration variables
@@ -75,7 +75,7 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
 
 #ifdef DB_ENABLE
 /**
- * @brief Serialze identity info into JSON
+ * @brief Serialize identity info into JSON
  *
  * @param[out] obj db identity info in JSON
  * @param[in] id_obj pointer to db_identity_t;
@@ -87,7 +87,7 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj);
 #endif
 
 /**
- * @brief Serialze type of ta_generate_address_res_t to JSON string
+ * @brief Serialize type of ta_generate_address_res_t to JSON string
  *
  * @param[out] obj Address hash in JSON
  * @param[in] res Response data in type of ta_generate_address_res_t
@@ -99,7 +99,7 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj);
 status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj);
 
 /**
- * @brief Serialze object `get_tips_res_t` into JSON
+ * @brief Serialize object `get_tips_res_t` into JSON
  *
  * @param[in] res Result `get_tips_res_t` object with tips inside
  * @param[out] obj Output tips in JSON
@@ -111,7 +111,7 @@ status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* cons
 status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
 
 /**
- * @brief Serialze the response of api_insert_identity()
+ * @brief Serialize the response of api_insert_identity()
  *
  * @param[in] hash Response transaction hash
  * @param[in] uuid_string Response uuid string
@@ -136,7 +136,7 @@ status_t ta_insert_identity_res_serialize(const char* hash, const char* uuid_str
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req);
 
 /**
- * @brief Serialze the response of api_send_transfer()
+ * @brief Serialize the response of api_send_transfer()
  *
  * @param[in] res Response data in type of ta_send_transfer_res_t
  * @param[out] obj Input values in JSON
@@ -161,7 +161,7 @@ status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj)
 status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p out_trytes);
 
 /**
- * @brief Serialze hash8019_array_p to JSON string
+ * @brief Serialize hash8019_array_p to JSON string
  *
  * @param[in] trytes trytes array returned in type of hash8019_array_p
  * @param[out] obj output serialized JSON values
@@ -173,7 +173,7 @@ status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p 
 status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj);
 
 /**
- * @brief Serialze response of api_transaction_object_single into JSON
+ * @brief Serialize response of api_transaction_object_single into JSON
  *
  * @param[in] res Transaction object array, but we take only the first one
  * @param[out] obj Result of serialization in JSON format.
@@ -198,7 +198,7 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
                                                      ta_find_transaction_objects_req_t* const req);
 
 /**
- * @brief Serialze type of ta_find_transaction_objects_res_t to JSON string
+ * @brief Serialize type of ta_find_transaction_objects_res_t to JSON string
  *
  * @param[out] obj List of transaction object in JSON
  * @param[in] res Response data in type of ta_find_transaction_objects_res_t
@@ -210,7 +210,7 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
 status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* const res, char** obj);
 
 /**
- * @brief Serialze type of ta_find_transactions_by_tag_res_t to JSON string
+ * @brief Serialize type of ta_find_transactions_by_tag_res_t to JSON string
  *
  * @param[out] obj List of transaction hash in JSON
  * @param[in] res Response data in type of ta_find_transactions_by_tag_res_t
@@ -282,7 +282,7 @@ status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req)
 status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
 
 /**
- * @brief Serialze type of ta_send_mam_res_t to JSON string
+ * @brief Serialize type of ta_send_mam_res_t to JSON string
  *
  * @param[out] obj send mam response object in JSON
  * @param[in] res Response data in type of ta_send_mam_res_t
@@ -358,7 +358,7 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, int* const 
                                               int* const latestSolidSubtangleMilestone);
 
 /**
- * @brief Serialze the response of IRI connection status.
+ * @brief Serialize the response of IRI connection status.
  *
  * @param[in] status Reponse status code
  * @param[out] obj Serialized API response
@@ -370,7 +370,7 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, int* const 
 status_t get_iri_status_res_serialize(const status_t status, char** obj);
 
 /**
- * @brief Serialze the response of `fetch_txn_with_uuid()`.
+ * @brief Serialize the response of `fetch_txn_with_uuid()`.
  *
  * @param[in] res ta_fetch_txn_with_uuid_res_t object
  * @param[out] obj Serialized API response

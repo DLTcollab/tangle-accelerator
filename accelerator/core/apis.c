@@ -381,7 +381,7 @@ status_t api_send_transfer(const ta_core_t* const core, const iota_client_servic
 #ifdef DB_ENABLE
   ret = db_insert_tx_into_identity(&core->db_service, res->hash, PENDING_TXN, res->uuid_string);
   if (ret != SC_OK) {
-    ta_log_error("fail to insert new pending transaction for reattachement\n");
+    ta_log_error("fail to insert new pending transaction for reattachment\n");
     goto done;
   }
 #endif

@@ -215,7 +215,7 @@ status_t ta_send_bundle(const ta_config_t* const info, const iota_config_t* cons
  *
  * @param[in] service IRI node end point service
  * @param[in] addr searched address in tryte_t
- * @param[in] bundle_array a bundle array object that will contain the MAM transacitons
+ * @param[in] bundle_array a bundle array object that will contain the MAM transactions
  *
  * @return
  * - SC_OK on success
@@ -229,8 +229,8 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
  *
  * We would check out the connection status with IRI core API getNodeInfo. At the first step, we would check whether
  * tangle-accelerator can connect to the IRI host which is assigned in iota_client_service_t object. If the
- * tangl-accelerator connects to the IRI host, the next step we are going to check out whether the connected IRI has
- * synchronized to the latest milestone. The mentioned two errors above would trigger tangle-acclerator connect to
+ * tangle-accelerator connects to the IRI host, the next step we are going to check out whether the connected IRI has
+ * synchronized to the latest milestone. The mentioned two errors above would trigger tangle-accelerator connect to
  * another IRI host on IRI priority host list.
  *
  * @param[in] service IRI node end point service
@@ -244,7 +244,7 @@ status_t ta_get_iri_status(const iota_client_service_t* const service);
 /**
  * @brief Update the binding IRI host to another valid host on priority list
  *
- * ta_update_iri_conneciton would check the connection status of all the IRI host on priority list iteratively. Once it
+ * ta_update_iri_connection would check the connection status of all the IRI host on priority list iteratively. Once it
  * connect to one of the IRI host on the priority list, it would return SC_OK.
  *
  * @param ta_conf[in] Tangle-accelerator configuration variables
@@ -254,7 +254,7 @@ status_t ta_get_iri_status(const iota_client_service_t* const service);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_service_t* const service);
+status_t ta_update_iri_connection(ta_config_t* const ta_conf, iota_client_service_t* const service);
 
 /**
  * @brief Push failed transactions in raw trytes into transaction buffer
@@ -264,7 +264,7 @@ status_t ta_update_iri_conneciton(ta_config_t* const ta_conf, iota_client_servic
  * be popped from the buffer.
  *
  * @param cache[in] Redis configuration variables
- * @param raw_txn_flex_trit_array[in] Raw transction trytes array in flex_trit_t type
+ * @param raw_txn_flex_trit_array[in] Raw transcation trytes array in flex_trit_t type
  * @param uuid[out] Returned UUID for fetching transaction status and information
  *
  * @return
@@ -276,7 +276,7 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
 /**
  * @brief Broadcast transactions in transaction buffer
  *
- * Failed transactions would be stored in transaciton buffer. Once tangle-accelerator retrieve the connetion with
+ * Failed transactions would be stored in transaction buffer. Once tangle-accelerator retrieve the connetion with
  * Tangle, then tangle-accelerator will start to broadcast these failed transaction trytes.
  *
  * @param core[in] Pointer to Tangle-accelerator core configuration structure
