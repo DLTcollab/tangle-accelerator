@@ -13,6 +13,7 @@ ta_send_transfer_res_t* ta_send_transfer_res_new() {
   if (res) {
     res->hash = NULL;
     res->uuid = NULL;
+    res->address = NULL;
   }
   return res;
 }
@@ -20,6 +21,7 @@ ta_send_transfer_res_t* ta_send_transfer_res_new() {
 void ta_send_transfer_res_free(ta_send_transfer_res_t** res) {
   if ((*res)) {
     free((*res)->uuid);
+    free((*res)->address);
     hash243_queue_free(&(*res)->hash);
     free((*res));
     *res = NULL;
