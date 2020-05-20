@@ -7,6 +7,7 @@
  */
 
 #include "text_serializer.h"
+#include "common/macros.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,63 +18,80 @@
 #define UINT32_LEN 10
 #define UINT64_LEN 20
 
-status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, const uint64_t timestamp,
-                       const uint8_t *hmac, char *out_msg, size_t *out_msg_len) {
+
+status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_len) {
   /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {0};
   char buf[UINT64_LEN + 1] = {0};
   char *ptr = out_msg;
 
-  snprintf(str_ciphertext_len, UINT32_LEN + 1, "%010u", ciphertext_len);
-  // initialize vector
-  if (iv) {
-    memcpy(ptr, iv, IV_LEN);
-  } else {
-    memset(ptr, 0, IV_LEN);
+  if (out_msg == NULL || out_msg_len == NULL) {
+    // FIXME: Use default logger
+    fprintf(stderr, "The output message and output message length cannot be NULL\n");
+    return SC_UTILS_TEXT_SERIALIZE;
   }
-  ptr += IV_LEN;
 
+  if (ctx->ciphertext == NULL) {
+    // FIXME: Use default logger
+    fprintf(stderr, "The ciphertext cannot be NULL\n");
+    return SC_UTILS_TEXT_SERIALIZE;
+  }
+
+  snprintf(str_ciphertext_len, UINT32_LEN + 1, "%0" STR(UINT32_LEN) "zu", ctx->ciphertext_len);
+  // initialize vector
+  memcpy(ptr, ctx->iv, IV_LEN);
+  ptr += IV_LEN;
   // timestamp
-  snprintf(buf, UINT64_LEN + 1, "%020" PRIu64, timestamp);
+  snprintf(buf, UINT64_LEN + 1, "%020" PRIu64, ctx->timestamp);
   memcpy(ptr, buf, UINT64_LEN);
   ptr += UINT64_LEN;
   // hmac
-  memcpy(ptr, hmac, TA_AES_HMAC_SIZE);
+  memcpy(ptr, ctx->hmac, TA_AES_HMAC_SIZE);
   ptr += TA_AES_HMAC_SIZE;
   // ciphertext length
   memcpy(ptr, str_ciphertext_len, UINT32_LEN);
   ptr += UINT32_LEN;
   // ciphertext
-  memcpy(ptr, ciphertext, ciphertext_len);
-  *out_msg_len = IV_LEN + UINT64_LEN + TA_AES_HMAC_SIZE + UINT32_LEN + ciphertext_len;
+  memcpy(ptr, ctx->ciphertext, ctx->ciphertext_len);
+  *out_msg_len = IV_LEN + UINT64_LEN + TA_AES_HMAC_SIZE + UINT32_LEN + ctx->ciphertext_len;
 
   return SC_OK;
 }
 
-status_t deserialize_msg(char *msg, const uint8_t *iv, size_t *ciphertext_len, char *ciphertext, uint64_t *timestamp,
-                         uint8_t *hmac) {
+status_t deserialize_msg(const char *msg, ta_cipher_ctx *ctx) {
   /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {};
   char buf[UINT64_LEN + 1] = {0};
-  char *ptr = msg;
+  const char *ptr = msg;
+  if (ptr == NULL) {
+    // FIXME: Use default logger
+    fprintf(stderr, "The message cannot be NULL\n");
+    return SC_UTILS_TEXT_DESERIALIZE;
+  }
+
+  if (ctx->ciphertext == NULL) {
+    // FIXME: Use default logger
+    fprintf(stderr, "The ciphertext cannot be NULL\n");
+    return SC_UTILS_TEXT_DESERIALIZE;
+  }
   uint32_t ciphertext_len_tmp;
   // initialize vector
-  memcpy((char *)iv, ptr, IV_LEN);
+  memcpy(ctx->iv, ptr, IV_LEN);
   ptr += IV_LEN;
   // timestamp
   memcpy(buf, ptr, UINT64_LEN);
-  *timestamp = atol(buf);
+  ctx->timestamp = atol(buf);
   ptr += UINT64_LEN;
   // hmac
-  memcpy(hmac, ptr, TA_AES_HMAC_SIZE);
+  memcpy(ctx->hmac, ptr, TA_AES_HMAC_SIZE);
   ptr += TA_AES_HMAC_SIZE;
   // ciphertext length
   memcpy(str_ciphertext_len, ptr, UINT32_LEN);
   ciphertext_len_tmp = atoi(str_ciphertext_len);
   ptr += UINT32_LEN;
   // ciphertext
-  memcpy(ciphertext, ptr, ciphertext_len_tmp);
-  *ciphertext_len = ciphertext_len_tmp;
+  memcpy(ctx->ciphertext, ptr, ciphertext_len_tmp);
+  ctx->ciphertext_len = ciphertext_len_tmp;
 
   return SC_OK;
 }

@@ -37,23 +37,33 @@ void setUp(void) {}
 void tearDown(void) {}
 
 void test_serialize_deserialize(void) {
-  uint8_t out[1024], iv_out[AES_BLOCK_SIZE], payload_out[1024];
-  size_t payload_len_out, out_msg_len;
-  uint64_t timestamp;
-  uint8_t hmac[TA_AES_HMAC_SIZE];
+  uint8_t out[1024], payload_out[1024];
+  size_t out_msg_len = 0;
+  ta_cipher_ctx serialize_ctx = {
+      .ciphertext = (uint8_t*)payload,
+      .ciphertext_len = payload_len,
+      .timestamp = test_timestamp,
+      .hmac = {0},
+      .iv = {0},
+  };
+  memcpy(serialize_ctx.iv, iv, AES_IV_SIZE);
+  memcpy(serialize_ctx.hmac, test_hmac, TA_AES_HMAC_SIZE);
 
-  int rc1 = serialize_msg(iv, payload_len, (char*)payload, test_timestamp, test_hmac, (char*)out, &out_msg_len);
+  int rc1 = serialize_msg(&serialize_ctx, (char*)out, &out_msg_len);
   TEST_ASSERT_EQUAL_INT32(SC_OK, rc1);
-  int rc2 = deserialize_msg((char*)out, iv_out, &payload_len_out, (char*)payload_out, &timestamp, hmac);
+  ta_cipher_ctx deserialize_ctx = {
+      .ciphertext = payload_out,
+      .hmac = {0},
+      .iv = {0},
+  };
+  int rc2 = deserialize_msg((char*)out, &deserialize_ctx);
   TEST_ASSERT_EQUAL_INT32(SC_OK, rc2);
 
-  out[1023] = 0;
-  payload_out[payload_len] = 0;
-  TEST_ASSERT_EQUAL_UINT8_ARRAY(iv, iv_out, AES_BLOCK_SIZE);
-  TEST_ASSERT_EQUAL_UINT64(test_timestamp, timestamp);
-  TEST_ASSERT_EQUAL_UINT8_ARRAY(test_hmac, hmac, TA_AES_HMAC_SIZE);
-  TEST_ASSERT_EQUAL_UINT32(payload_len, payload_len_out);
-  TEST_ASSERT_EQUAL_UINT8_ARRAY(payload, payload_out, payload_len);
+  TEST_ASSERT_EQUAL_UINT8_ARRAY(iv, deserialize_ctx.iv, AES_BLOCK_SIZE);
+  TEST_ASSERT_EQUAL_UINT64(test_timestamp, deserialize_ctx.timestamp);
+  TEST_ASSERT_EQUAL_UINT8_ARRAY(test_hmac, deserialize_ctx.hmac, TA_AES_HMAC_SIZE);
+  TEST_ASSERT_EQUAL_UINT32(payload_len, deserialize_ctx.ciphertext_len);
+  TEST_ASSERT_EQUAL_UINT8_ARRAY(payload, deserialize_ctx.ciphertext, payload_len);
 }
 
 int main(void) {

@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "common/ta_errors.h"
+#include "utils/cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,11 +27,7 @@ extern "C" {
  * - ciphertext length(10 bytes)
  * - ciphertext(other bytes)
  *
- * @param[in] iv Pointer to initialize vector
- * @param[in] ciphertext_len Length of ciphertext
- * @param[in] ciphertext Ciphertext to be serialized
- * @param[in] timestamp Timestamp to be serialized
- * @param[in] hmac Hash mac array to be serialized
+ * @param[in] ctx The cipher context to be serialized
  * @param[out] out_msg Pointer to output message
  * @param[out] out_msg_len Pointer to length of serialized message
  *
@@ -38,26 +35,20 @@ extern "C" {
  * - SC_OK on success
  * - SC_UTILS_TEXT_SERIALIZE on error
  */
-status_t serialize_msg(const uint8_t *iv, uint32_t ciphertext_len, const char *ciphertext, const uint64_t timestamp,
-                       const uint8_t *hmac, char *out_msg, size_t *out_msg_len);
+status_t serialize_msg(const ta_cipher_ctx* ctx, char *out_msg, size_t *out_msg_len);
 
 /**
  * @brief Deserialize message from serialize_msg
  *
  * @param[in] msg Pointer to serialize message
- * @param[in] iv Pointer to initialize vector
- * @param[out] ciphertext_len Pointer to plaintext length
- * @param[out] ciphertext Pointer to plaintext output array
- * @param[out] timestamp Pointer to timestamp
- * @param[out] hmac Pointer to hash mac output array
+ * @param[in/out] ctx The cipher context to be deserialized
  *
  * @return
  * - SC_OK on success
  * - SC_UTILS_TEXT_DESERIALIZE on error
  * @see #serialize_msg
  */
-status_t deserialize_msg(char *msg, const uint8_t *iv, size_t *ciphertext_len, char *ciphertext, uint64_t *timestamp,
-                         uint8_t *hmac);
+status_t deserialize_msg(const char *msg, ta_cipher_ctx* ctx);
 #ifdef __cplusplus
 }
 #endif

@@ -70,7 +70,7 @@ cc_library(
     hdrs = ["text_serializer.h"],
     deps = [
         ":cipher",
-        "//common:ta_errors",
+        "//common",
     ],
 )
 

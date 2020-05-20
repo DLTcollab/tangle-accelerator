@@ -43,6 +43,9 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 // release cached data.
 #define CACHE_FAILED_TXN_TIMEOUT (7 * 24 * 60 * 60)
 
+#define STR_HELPER(num) #num
+#define STR(num) STR_HELPER(num)
+
 #ifdef __cplusplus
 }
 #endif
