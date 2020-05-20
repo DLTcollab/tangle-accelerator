@@ -22,7 +22,7 @@ static void ta_stop(int signal) {
 
 static void* health_track(void* arg) {
   ta_core_t* core = (ta_core_t*)arg;
-  while (true) {
+  while (core->cache.state) {
     status_t ret = ta_get_iri_status(&core->iota_service);
     if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
       ta_log_error("IRI status error %d. Try to connect to another IRI host on priority list\n", ret);
@@ -37,6 +37,28 @@ static void* health_track(void* arg) {
       ret = broadcast_buffered_txn(core);
       if (ret) {
         ta_log_error("Broadcast buffered transactions failed. %s\n", ta_error_to_string(ret));
+      }
+    }
+
+    char uuid[UUID_STR_LEN] = {};
+    // The usage exceeds the maximum redis capacity
+    while (core->cache.capacity < cache_occupied_space()) {
+      if (pthread_rwlock_trywrlock(core->cache.rwlock)) {
+        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
+        break;
+      }
+
+      ret = cache_list_pop(core->cache.done_list_name, uuid);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+      }
+      ret = cache_del(uuid);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+      }
+
+      if (pthread_rwlock_unlock(core->cache.rwlock)) {
+        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
       }
     }
 
@@ -78,7 +100,7 @@ int main(int argc, char* argv[]) {
   }
 
   pthread_t thread;
-  pthread_create(&thread, NULL, health_track, &ta_core);
+  pthread_create(&thread, NULL, health_track, (void*)&ta_core);
 
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
     ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);

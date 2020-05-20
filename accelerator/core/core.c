@@ -682,6 +682,11 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
       goto done;
     }
 
+    if (uuid_list_len == 0) {
+      ta_log_debug("No buffered requests\n");
+      goto done;
+    }
+
     ret = cache_list_peek(core->cache.buffer_list_name, UUID_STR_LEN, uuid);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
@@ -755,6 +760,11 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
       }
     }
 
+    if (pthread_rwlock_trywrlock(core->cache.rwlock)) {
+      ret = SC_CACHE_LOCK_FAILURE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
     // Pop transaction from buffered list
     ret = cache_list_pop(core->cache.buffer_list_name, (char*)uuid);
     if (ret) {
@@ -768,6 +778,12 @@ status_t broadcast_buffered_txn(const ta_core_t* const core) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
+    if (pthread_rwlock_unlock(core->cache.rwlock)) {
+      ret = SC_CACHE_LOCK_FAILURE;
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+
     get_trytes_req_free(&req);
     get_trytes_res_free(&res);
   } while (!uuid_list_len);
@@ -782,15 +798,26 @@ done:
 status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
                                 ta_fetch_txn_with_uuid_res_t* res) {
   status_t ret = SC_OK;
-  char pop_uuid[UUID_STR_LEN];
+  if (pthread_rwlock_tryrdlock(cache->rwlock)) {
+    ret = SC_CACHE_LOCK_FAILURE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
   bool exist = false;
   ret = cache_list_exist(cache->buffer_list_name, uuid, UUID_STR_LEN - 1, &exist);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
+    if (pthread_rwlock_unlock(cache->rwlock)) {
+      ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
+    }
     goto done;
   }
   if (exist) {
     res->status = UNSENT;
+    if (pthread_rwlock_unlock(cache->rwlock)) {
+      ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
+    }
     goto done;
   }
 
@@ -807,6 +834,9 @@ status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
+    }
+    if (pthread_rwlock_unlock(cache->rwlock)) {
+      ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
     }
 
     for (int i = 0; i < len; ++i) {
@@ -833,10 +863,15 @@ status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const
       goto done;
     }
 
+    char pop_uuid[UUID_STR_LEN];
     ret = cache_list_pop(cache->done_list_name, pop_uuid);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
+    }
+  } else {
+    if (pthread_rwlock_unlock(cache->rwlock)) {
+      ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
     }
   }
 

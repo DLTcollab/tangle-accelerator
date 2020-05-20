@@ -63,7 +63,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         ta_conf->port = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
     case HTTP_THREADS_CLI:
@@ -79,7 +79,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
           ta_conf->http_tpool_size = (uint8_t)strtol_temp;
         }
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
 
@@ -98,7 +98,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
         if (strtol_p != p && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= USHRT_MAX) {
           ta_conf->iota_port_list[idx] = (uint16_t)strtol_temp;
         } else {
-          ta_log_error("Malformed input or illegal input character\n");
+          ta_log_error("Malformed input\n");
         }
       }
       iota_service->http.port = ta_conf->iota_port_list[0];
@@ -108,8 +108,18 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         ta_conf->health_track_period = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
+      break;
+    case CACHE:
+      ta_log_info("Initializing cache state\n");
+      cache->state = !cache->state;
+      if (cache->state) {
+        if (cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
+          ta_log_error("%s\n", "Failed to initialize lock to caching service.");
+        }
+      }
+
       break;
 
 #ifdef MQTT_ENABLE
@@ -131,7 +141,19 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         cache->port = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input character\n");
+      }
+      break;
+    case CACHE_MAX_CAPACITY:
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        if (strtol_temp <= 0) {
+          ta_log_error("The capacity of caching service should greater then 0.\n");
+          break;
+        }
+        cache->capacity = strtol_temp;
+      } else {
+        ta_log_error("Malformed input\n");
       }
       break;
 
@@ -149,7 +171,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         iota_conf->milestone_depth = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
     case MWM_CLI:
@@ -157,14 +179,11 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         iota_conf->mwm = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
     case SEED_CLI:
       iota_conf->seed = value;
-      break;
-    case CACHE:
-      cache->cache_state = true;
       break;
 
     // Quiet mode configuration
@@ -234,7 +253,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   }
   ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
   ta_conf->proxy_passthrough = false;
-  ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
+  ta_conf->health_track_period = HEALTH_TRACK_PERIOD;
   ta_conf->gtta = true;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
@@ -243,9 +262,10 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_log_info("Initializing Redis information\n");
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
-  cache->cache_state = false;
+  cache->state = false;
   cache->buffer_list_name = BUFFER_LIST_NAME;
   cache->done_list_name = DONE_LIST_NAME;
+  cache->capacity = CACHE_MAX_CAPACITY;
 
   ta_log_info("Initializing IRI configuration\n");
   iota_conf->milestone_depth = MILESTONE_DEPTH;
@@ -415,7 +435,6 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
 status_t ta_core_set(ta_core_t* core) {
   status_t ret = SC_OK;
 
-  ta_cache_t* const cache = &core->cache;
   iota_client_service_t* const iota_service = &core->iota_service;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
@@ -430,8 +449,6 @@ status_t ta_core_set(ta_core_t* core) {
   ta_log_info("Initializing PoW implementation context\n");
   pow_init();
 
-  ta_log_info("Initializing cache state\n");
-  cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
   if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
@@ -452,7 +469,7 @@ void ta_core_destroy(ta_core_t* const core) {
   db_client_service_free(&core->db_service);
 #endif
   pow_destroy();
-  cache_stop();
+  cache_stop(&core->cache.rwlock);
   logger_helper_release(logger_id);
   br_logger_release();
 }
