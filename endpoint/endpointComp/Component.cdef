@@ -2,7 +2,9 @@ sources:
 {
     ${CURDIR}/../endpoint_core.c
     ${CURDIR}/../hal/device.c
-    ${CURDIR}/../platform/wp77xx/impl.c
+    
+    // include the specific platform
+    ${CURDIR}/../platform/${TARGET}/impl.c 
 
     ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
 
@@ -87,6 +89,8 @@ cflags:
     -I${CURDIR}/../../output_base/external/mbedtls_2_16_6/include
 }
 
+#if ${LEGATO_TARGET} = localhost
+#else
 requires:
 {
     device:
@@ -100,3 +104,4 @@ requires:
         modemServices/le_sim.api
     }
 }
+#endif

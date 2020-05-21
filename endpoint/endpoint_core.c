@@ -76,7 +76,7 @@ status_t send_transaction_information(const char* host, const char* port, const 
 
   const char* ta_host = host ? host : STR(EP_TA_HOST);
   const char* ta_port = port ? port : STR(EP_TA_PORT);
-  char ipv4[16];
+  char ipv4[NI_MAXHOST];
   if (resolve_ip_address(ta_host, ipv4) != SC_OK) {
     return SC_ENDPOINT_DNS_RESOLVE_ERROR;
   }
@@ -130,7 +130,7 @@ status_t send_transaction_information(const char* host, const char* port, const 
   return SC_OK;
 }
 
-status_t resolve_ip_address(const char* host, char result[16]) {
+status_t resolve_ip_address(const char* host, char* result) {
   struct addrinfo hints;
   struct addrinfo* res;
 
@@ -152,10 +152,10 @@ status_t resolve_ip_address(const char* host, char result[16]) {
   }
 
   for (struct addrinfo* re = res; res != NULL; re = re->ai_next) {
-    char host_buf[1024];
+    char host_buf[NI_MAXHOST];
     int ret = getnameinfo(re->ai_addr, re->ai_addrlen, host_buf, sizeof(host_buf), NULL, 0, NI_NUMERICHOST);
     if (ret == 0) {
-      snprintf(result, 16, "%s", host_buf);
+      snprintf(result, NI_MAXHOST, "%s", host_buf);
       break;
     } else {
       ta_log_error("Getnameinfo returned: %s\n", gai_strerror(ret));

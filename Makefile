@@ -50,6 +50,7 @@ LEGATO_FLAGS := $(foreach flags, $(LEGATO_FLAGS), -C $(flags))
 
 # Include the build command from the specific target
 include endpoint/platform/$(TARGET)/build.mk
+export TARGET
 
 all: $(DEPS) cert
 

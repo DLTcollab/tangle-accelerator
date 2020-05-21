@@ -4,14 +4,19 @@ Hardware Abstract Layer(HAL) defines a standard interface for hardware vendors t
 
 ## How to implement new device
 
-Create a directory for the new device under `devices`.
-
+Create a directory for the new device under `platform`.
 ```bash
-$ mkdir -p devices/mydevice
+$ mkdir -p platform/mydevice
 ```
-
-* Create `impl.c` and `Makefile` under the new device directory.
+* Create `impl.c` and `build.mk` under the new device directory.
 * Include `device.h` into the new device header or the new device source file.
+
+For `build.mk` you should define the `platform-build-command`. Here are the example from the WP7702 module:
+
+```makefile
+platform-build-command = \
+	cd endpoint && leaf shell -c "mkapp -v -t wp77xx $(LEGATO_FLAGS) endpoint.adef"
+```
 
 Here are some operations needed to be implemented for new device:
 
@@ -37,68 +42,50 @@ Here are the functions needed to be registered/unregistered inside `impl.c`:
 * unregister_device : unregistered device
 * DECLARE_DEVICE : this must be declared inside `impl.c`
 
-Add the new device into `hal/Makefile`:
-
-* Append the device object to DEVICE_OBJS
-
-* Add the new device build target(mydevice.o)
-
-```makefile
-DEVICE_OBJS = wp7702.o emulator.o device.o mydevice.o
-export DEVICE_OBJS
-
-all: $(DEVICE_OBJS)
-
-mydevice.o: device.o
-    $(MAKE) -C ../devices/mydevice
-```
-
-Implement a new device which is created under `devices` directory, and edit the Makefile. The example device is named as `mydevice`:
-
-```makefile
-all: mydevice.o
-mydevice.o: impl.c
-        $(CC) $(CFLAGS) $(INCLUDES) -c $^ -o $@
-```
-
-`$(CC)`,`$(CFLAGS)` and `$(INCLUDES)` are specified by build system. `CC` sets the default compiler for the project. `CFLAGS` are the default flags that would be passed to default compiler during compiling time. `INCLUDES` flag includes headers inside sub-projects and third-party libraries. You can also modify these flags inside your device's Makefile.
-
 impl.c
 
 ```c
-#include "device.h"
+#include "endpoint/hal/device.h"
 
-static inline void register_emulator(void);
-static inline void unregister_emulator(void);
-
-static struct device_operations emulator_ops = {.init = &emulator_init,
-                                                .fini = &emulator_release,
-                                                .get_key = &emulator_get_key,
-                                                .get_device_id = &emulator_get_device_id};
-
-static struct uart_operations emulator_uart = {
-    .init = &uart_init, .write = &uart_write, .read = &uart_read, .clean = &uart_clean};
-
-static struct device_type emulator_device_type = {
-    .name = "emulator", .op = &emulator_ops, .uart = &emulator_uart, .sec_ops = &emulator_sec_ops};
-
-static inline void register_emulator(void) {
-  int err = register_device(&emulator_device_type);
-  if (err) LOG_ERROR("register emulator device error:%d", err);
+static status_t simulator_init(void) {
+  status_t err = register_device(&simulator_device_type);
+  if (err != SC_OK) LE_ERROR("register simulator device error:%d", err);
+  return err;
 }
 
-static inline void unregister_emulator(void) {
-  int err = unregister_device(&emulator_device_type);
-  if (err) LOG_ERROR("unregister device emulator error:%d", err);
+static void simulator_release(void) {
+  status_t ret = unregister_device(&simulator_device_type);
+  LE_INFO("unregister simulator return: %d", ret);
 }
 
-static int emulator_init(void) {
-  register_emulator();
-  return DEVICE_OK;
-}
+static const struct device_operations simulator_ops = {
+    .init = simulator_init,
+    .fini = simulator_release,
+    .get_key = simulator_get_key,
+    .get_device_id = simulator_get_device_id,
+};
 
-static void emulator_release(void) { unregister_emulator(); }
+static const struct uart_operations simulator_uart = {
+    .init = uart_init,
+    .write = uart_write,
+    .read = uart_read,
+    .clean = uart_clean,
+};
+
+static const struct secure_store_operations simulator_sec_ops = {
+    .init = sec_init,
+    .write = sec_write,
+    .read = sec_read,
+    .delete = sec_delete,
+};
+
+struct device_type simulator_device_type = {
+    .name = "simulator",
+    .op = &simulator_ops,
+    .uart = &simulator_uart,
+    .sec_ops = &simulator_sec_ops,
+};
 
 // must be declared at the end of impl.c
-DECLARE_DEVICE(emulator);
+DECLARE_DEVICE(simulator);
 ```
