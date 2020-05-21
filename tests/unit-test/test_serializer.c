@@ -361,8 +361,8 @@ void test_recv_mam_message_response_deserialize(void) {
 
 void test_send_mam_message_request_deserialize(void) {
   const char* json =
-      "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"" TRYTES_81_1 "\",\"message\":\"" TEST_PAYLOAD
-      "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
+      "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"" TRYTES_81_1 "\",\"chid\":\"" TEST_ADDRESS
+      "\",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
           TEST_EP_DEPTH) "},\"key\":{\"ntru\":[\"" TEST_NTRU_PK "\"],\"psk\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3
                          "\"]}, \"protocol\":\"MAM_V1\"}";
 
@@ -371,7 +371,8 @@ void test_send_mam_message_request_deserialize(void) {
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
 
   TEST_ASSERT_EQUAL_STRING(TEST_TOKEN, req->service_token);
-  TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, data->seed, NUM_TRYTES_HASH);
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, data->seed);
+  TEST_ASSERT_EQUAL_STRING(TEST_ADDRESS, data->chid);
   TEST_ASSERT_EQUAL_INT(TEST_CH_DEPTH, data->ch_mss_depth);
   TEST_ASSERT_EQUAL_STRING(TEST_PAYLOAD, data->message);
   TEST_ASSERT_EQUAL_STRING(TEST_NTRU_PK, mamv1_ntru_key_at(req, 0));

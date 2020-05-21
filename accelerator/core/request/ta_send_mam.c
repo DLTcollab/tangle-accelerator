@@ -36,6 +36,7 @@ status_t send_mam_req_v1_init(ta_send_mam_req_t* req) {
 
   send_mam_data_mam_v1_t* data = req->data;
   data->seed = NULL;
+  data->chid = NULL;
   data->message = NULL;
   data->ch_mss_depth = 6;
 
@@ -50,6 +51,7 @@ static void send_mam_req_v1_free(ta_send_mam_req_t** req) {
   if ((*req)->data) {
     send_mam_data_mam_v1_t* data = (*req)->data;
     free(data->seed);
+    free(data->chid);
     free(data->message);
     free((*req)->data);
     (*req)->data = NULL;

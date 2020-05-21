@@ -23,6 +23,17 @@ extern "C" {
  * `bundle_transactions_t` objects. It provides an easier way to save and traverse all the bundles.
  */
 
+/**
+ * @brief Renew the given bundle
+ *
+ * @param bundle[in,out] The bundle that will be renewed
+ *
+ */
+static inline void bundle_transactions_renew(bundle_transactions_t **bundle) {
+  bundle_transactions_free(bundle);
+  bundle_transactions_new(bundle);
+}
+
 typedef UT_array bundle_array_t;
 // We should synchronize this implementation as to the implementation in the IOTA library
 static UT_icd bundle_transactions_icd = {sizeof(iota_transaction_t), 0, 0, 0};
