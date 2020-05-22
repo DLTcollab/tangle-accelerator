@@ -39,6 +39,10 @@ extern "C" {
 #define TEST_TRANSFER_MESSAGE_RAW_MESSAGE_LEN 1093
 #define TEST_TRANSFER_MESSAGE_OVERRUN_RAW_MESSAGE_LEN 1095
 #define TEST_TAG_LEN 27
+#define TEST_NON_TRYTE_ADDR                                                    \
+  "tfkqzvpzvwlxbjgneppvznzyjffpdmeqggdpgsrmnxaurielglucsspgdgeqqfangowvxpuhni" \
+  "doz9999"
+#define TEST_NON_TRYTE_TAG "tangleaccelerator9999999999"
 #define VALUE 100
 #define TIMESTAMP 1546436542
 #define CURRENT_INDEX 1

@@ -44,7 +44,7 @@ const char* ta_error_to_string(status_t err) {
       return "NULL object in serializer.";
     case SC_SERIALIZER_JSON_PARSE:
       return "Failed to parse JSON object in serializer.";
-    case SC_SERIALIZER_JSON_PARSE_ASCII:
+    case SC_SERIALIZER_JSON_PARSE_NOT_TRYTE:
       return "Unicode value in JSON.";
     case SC_SERIALIZER_INVALID_REQ:
       return "Invalid request value in JSON.";

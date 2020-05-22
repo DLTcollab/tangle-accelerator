@@ -13,6 +13,7 @@
 #include "common/model/transaction.h"
 #include "common/trinary/trit_tryte.h"
 #include "mam/mam/message.h"
+#include "utils/containers/hash/hash_array.h"
 
 #include <stdbool.h>
 #ifdef __cplusplus
@@ -37,6 +38,7 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 
 // How many different letters are used in tryte alphabet
 #define TRINARY_ALPHABET_LEN 27
+#define TRINARY_ALPHABET "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
 // TODO The temporary default timeout in cache server is 1 week. We should investigate the performance of redis to
 // design a better data structure and appropriate timeout period. And we should study the methodology to partially

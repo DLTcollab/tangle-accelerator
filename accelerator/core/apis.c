@@ -311,7 +311,7 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
   ta_send_mam_req_t* req = send_mam_req_new();
   ta_send_mam_res_t* res = send_mam_res_new();
 
-  if (send_mam_req_deserialize(obj, req)) {
+  if (send_mam_message_req_deserialize(obj, req)) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
@@ -323,7 +323,7 @@ status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t
     goto done;
   }
 
-  ret = send_mam_res_serialize(res, json_result);
+  ret = send_mam_message_res_serialize(res, json_result);
   if (ret != SC_OK) {
     ta_log_error("%s\n", ta_error_to_string(ret));
   }

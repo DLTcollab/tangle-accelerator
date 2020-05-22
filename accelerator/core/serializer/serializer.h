@@ -13,10 +13,8 @@
 #include "accelerator/core/request/request.h"
 #include "accelerator/core/response/response.h"
 #include "cJSON.h"
-#include "cclient/response/responses.h"
 #include "common/trinary/tryte_ascii.h"
-#include "utils/char_buffer.h"
-#include "utils/containers/hash/hash_array.h"
+#include "ser_mam.h"
 #include "utils/fill_nines.h"
 
 #ifdef __cplusplus
@@ -220,78 +218,6 @@ status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* co
  * - non-zero on error
  */
 status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj);
-
-/**
- * @brief Deserialize request of recv_mam_message
- *
- * @param[in] obj message formed in JSON
- * @param[out] req ta_recv_mam_req_t object
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req);
-
-/**
- * @brief Serialize response of mam message
- *
- * @param payload_array[in]  Response of payload message in 'ta_recv_mam_res_t' datatype
- * @param obj[out] Message array formed in JSON
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj);
-
-/**
- * @brief Deserialize JSON string to type of ta_recv_mam_res_t
- *
- * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of ta_recv_mam_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t recv_mam_res_deserialize(const char* const obj, ta_recv_mam_res_t* const res);
-
-/**
- * @brief Deserialize JSON string to type of ta_send_mam_req_t
- *
- * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of ta_send_mam_req_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
-
-/**
- * @brief Deserialize JSON string to type of ta_send_mam_res_t
- *
- * @param[in] obj Input values in JSON
- * @param[out] res Response data in type of ta_send_mam_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
-
-/**
- * @brief Serialize type of ta_send_mam_res_t to JSON string
- *
- * @param[out] obj send mam response object in JSON
- * @param[in] res Response data in type of ta_send_mam_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
 #ifdef MQTT_ENABLE
 /**

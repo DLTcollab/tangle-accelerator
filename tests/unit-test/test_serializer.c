@@ -112,13 +112,39 @@ void test_ta_send_transfer_buffered_res_serialize(void) {
   char* json_result;
   ta_send_transfer_res_t* res = ta_send_transfer_res_new();
   res->uuid = strdup(TEST_UUID);
-  res->address = strdup(TEST_ADDRESS);
+  res->address = (tryte_t*)strdup(TEST_ADDRESS);
 
   ta_send_transfer_res_serialize(res, &json_result);
 
   TEST_ASSERT_EQUAL_STRING(json, json_result);
   ta_send_transfer_res_free(&res);
   free(json_result);
+}
+
+void test_deserialize_ta_send_transfer_non_tryte_address(void) {
+  const char* json =
+      "{\"value\":100,"
+      "\"message\":\"" TRYTES_2187_1 "\",\"tag\":\"" TEST_TAG
+      "\","
+      "\"address\":\"" TEST_NON_TRYTE_ADDR "\"}";
+  ta_send_transfer_req_t* req = ta_send_transfer_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_SERIALIZER_JSON_PARSE_NOT_TRYTE, ta_send_transfer_req_deserialize(json, req));
+
+  ta_send_transfer_req_free(&req);
+}
+
+void test_deserialize_ta_send_transfer_non_tryte_tag(void) {
+  const char* json =
+      "{\"value\":100,"
+      "\"message\":\"" TRYTES_2187_1 "\",\"tag\":\"" TEST_NON_TRYTE_TAG
+      "\","
+      "\"address\":\"" TEST_ADDRESS "\"}";
+  ta_send_transfer_req_t* req = ta_send_transfer_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_SERIALIZER_JSON_PARSE_NOT_TRYTE, ta_send_transfer_req_deserialize(json, req));
+
+  ta_send_transfer_req_free(&req);
 }
 
 void test_serialize_ta_find_transaction_objects(void) {
@@ -365,9 +391,9 @@ void test_send_mam_message_request_deserialize(void) {
       "\",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
           TEST_EP_DEPTH) "},\"key\":{\"ntru\":[\"" TEST_NTRU_PK "\"],\"psk\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3
                          "\"]}, \"protocol\":\"MAM_V1\"}";
-
+  printf("json = %s\n", json);
   ta_send_mam_req_t* req = send_mam_req_new();
-  send_mam_req_deserialize(json, req);
+  send_mam_message_req_deserialize(json, req);
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
 
   TEST_ASSERT_EQUAL_STRING(TEST_TOKEN, req->service_token);
@@ -401,7 +427,7 @@ void test_send_mam_message_response_serialize(void) {
   send_mam_res_set_announce_bundle_hash(res, (tryte_t*)ADDRESS_1);
   send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
-  send_mam_res_serialize(res, &json_result);
+  send_mam_message_res_serialize(res, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
@@ -420,7 +446,7 @@ void test_send_mam_message_response_deserialize(void) {
                      "\"chid1\":\"" ADDRESS_2 "\"}";
   ta_send_mam_res_t* res = send_mam_res_new();
 
-  send_mam_res_deserialize(json, res);
+  send_mam_message_res_deserialize(json, res);
 
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_1, res->bundle_hash, NUM_TRYTES_HASH);
   TEST_ASSERT_EQUAL_MEMORY(TRYTES_81_2, res->chid, NUM_TRYTES_HASH);
@@ -644,6 +670,8 @@ int main(void) {
   RUN_TEST(test_ta_send_transfer_raw_message_req_deserialize);
   RUN_TEST(test_ta_send_transfer_overrun_req_deserialize);
   RUN_TEST(test_ta_send_transfer_buffered_res_serialize);
+  RUN_TEST(test_deserialize_ta_send_transfer_non_tryte_address);
+  RUN_TEST(test_deserialize_ta_send_transfer_non_tryte_tag);
   RUN_TEST(test_serialize_ta_find_transaction_objects);
   RUN_TEST(test_serialize_ta_find_transactions_by_tag);
   RUN_TEST(test_serialize_ta_find_transactions_obj_by_tag);
