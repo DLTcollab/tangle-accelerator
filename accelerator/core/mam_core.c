@@ -9,6 +9,8 @@
 #include "accelerator/core/mam_core.h"
 #include "common/model/transfer.h"
 #include "utils/containers/hash/hash_array.h"
+#include "utils/fill_nines.h"
+#include "utils/tryte_byte_conv.h"
 
 #define MAM_LOGGER "mam_core"
 
@@ -162,25 +164,52 @@ static mam_endpoint_t *mam_api_endpoint_get(mam_api_t const *const api, tryte_t 
 }
 
 /**
+ * @brief Free 'mam_encrypt_key_t' object
+ *
+ * @param mam_key[in] 'mam_encrypt_key_t' object to be freed
+ *
+ * @return status code
+ */
+static inline void mam_encrypt_key_free(mam_encrypt_key_t *mam_key) {
+  mam_psk_t_set_free(&mam_key->psks);
+  mam_ntru_pk_t_set_free(&mam_key->ntru_pks);
+  mam_ntru_sk_t_set_free(&mam_key->ntru_sks);
+}
+
+/**
  * @brief Add all the keys in the list of Pre-Shared Key and NTRU public key into corresponding key set.
  *
- * @param psks[in] Pre-Shared Key set
- * @param ntru_pks[in] NTRU public key set
+ * The PSK keys are converting the index into trytes as PSK ID.
+ *
+ * @param psks[out] Pre-Shared Key set
+ * @param ntru_pks[out] NTRU public key set
  * @param psk[in] List of Pre-Shared Key
  * @param ntru_pk[in] List of NTRU public key
  *
  * @return status code
  */
-static status_t ta_set_mam_key(mam_psk_t_set_t *const psks, mam_ntru_pk_t_set_t *const ntru_pks,
-                               UT_array const *const psk, UT_array const *const ntru_pk) {
+static status_t ta_set_mam_key(mam_encrypt_key_t *const mam_keys, UT_array const *const psk,
+                               UT_array const *const ntru_pk, UT_array const *const ntru_sk) {
+  status_t ret = SC_OK;
   char **p = NULL;
   if (psk) {
     mam_psk_t psk_obj;
+    uint16_t psk_id_cnt = 0;
     while ((p = (char **)utarray_next(psk, p))) {
+      tryte_t raw_psk_id[NUM_TRYTES_MAM_PSK_ID_SIZE + 1] = {}, psk_id[NUM_TRYTES_MAM_PSK_ID_SIZE + 1] = {};
+      bytes_to_trytes((unsigned char *)&psk_id_cnt, sizeof(psk_id_cnt) / sizeof(char), (char *)raw_psk_id);
+      ret = fill_nines((char *)psk_id, (char *)raw_psk_id, NUM_TRYTES_MAM_PSK_ID_SIZE);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        return ret;
+      }
+
+      trytes_to_trits((tryte_t *)psk_id, psk_obj.id, NUM_TRYTES_MAM_PSK_ID_SIZE);
       trytes_to_trits((tryte_t *)*p, psk_obj.key, NUM_TRYTES_MAM_PSK_KEY_SIZE);
-      if (mam_psk_t_set_add(psks, &psk_obj) != RC_OK) {
-        ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
-        return SC_MAM_FAILED_INIT;
+      if (mam_psk_t_set_add(&mam_keys->psks, &psk_obj) != RC_OK) {
+        ret = SC_MAM_FAILED_INIT;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        return ret;
       }
     }
   }
@@ -189,9 +218,22 @@ static status_t ta_set_mam_key(mam_psk_t_set_t *const psks, mam_ntru_pk_t_set_t 
     mam_ntru_pk_t ntru_pk_obj;
     while ((p = (char **)utarray_next(ntru_pk, p))) {
       trytes_to_trits((tryte_t *)*p, ntru_pk_obj.key, NUM_TRYTES_MAM_NTRU_PK_SIZE);
-      if (mam_ntru_pk_t_set_add(ntru_pks, &ntru_pk_obj) != RC_OK) {
-        ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
-        return SC_MAM_FAILED_INIT;
+      if (mam_ntru_pk_t_set_add(&mam_keys->ntru_pks, &ntru_pk_obj) != RC_OK) {
+        ret = SC_MAM_FAILED_INIT;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        return ret;
+      }
+    }
+  }
+
+  if (ntru_sk) {
+    mam_ntru_sk_t ntru_sk_obj;
+    while ((p = (char **)utarray_next(ntru_sk, p))) {
+      trytes_to_trits((tryte_t *)*p, ntru_sk_obj.secret_key, NUM_TRYTES_MAM_NTRU_SK_SIZE);
+      if (mam_ntru_sk_t_set_add(&mam_keys->ntru_sks, &ntru_sk_obj) != RC_OK) {
+        ret = SC_MAM_FAILED_INIT;
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        return ret;
       }
     }
   }
@@ -528,11 +570,18 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
   tryte_t chid[MAM_CHANNEL_ID_TRYTE_SIZE] = {}, msg_id[NUM_TRYTES_MAM_MSG_ID] = {};
   bundle_transactions_t *bundle = NULL;
   send_mam_data_mam_v1_t *data = (send_mam_data_mam_v1_t *)req->data;
-  mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL};
+  send_mam_key_mam_v1_t *key = (send_mam_key_mam_v1_t *)req->key;
+  mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
   bool msg_sent = false;
 
   // Creating MAM API
   ret = ta_mam_init(&mam, iconf, data->seed);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  ret = ta_set_mam_key(&mam_key, key->psk_array, key->ntru_array, NULL);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
@@ -608,7 +657,7 @@ done:
     }
   }
   bundle_transactions_free(&bundle);
-
+  mam_encrypt_key_free(&mam_key);
   return ret;
 }
 
@@ -619,6 +668,7 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
   bundle_array_t *bundle_array = NULL;
   bundle_array_new(&bundle_array);
   recv_mam_data_id_mam_v1_t *data_id = (recv_mam_data_id_mam_v1_t *)req->data_id;
+  recv_mam_key_mam_v1_t *key = (recv_mam_key_mam_v1_t *)req->key;
   if (mam_api_init(&mam, (tryte_t *)iconf->seed) != RC_OK) {
     ret = SC_MAM_FAILED_INIT;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -648,6 +698,23 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
     ret = ta_get_bundles_by_addr(service, (tryte_t *)data_id->chid, bundle_array);
     if (ret != SC_OK) {
       ta_log_error("%s\n", "Failed to get bundle by chid");
+      goto done;
+    }
+  }
+
+  // Add decryption keys
+  mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
+  ret = ta_set_mam_key(&mam_key, key->psk_array, NULL, key->ntru_array);
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  mam_psk_t_set_entry_t *curr_psk_p = NULL;
+  mam_psk_t_set_entry_t *tmp_psk_p = NULL;
+  HASH_ITER(hh, mam_key.psks, curr_psk_p, tmp_psk_p) {
+    if (mam_api_add_psk(&mam, &curr_psk_p->value)) {
+      ta_log_error("%s\n", "Failed to add PSK keys");
       goto done;
     }
   }
@@ -694,5 +761,6 @@ done:
   }
   bundle_array_free(&bundle_array);
   mam_pk_t_set_free(&init_trusted_ch);
+  mam_encrypt_key_free(&mam_key);
   return ret;
 }

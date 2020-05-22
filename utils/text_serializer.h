@@ -35,7 +35,7 @@ extern "C" {
  * - SC_OK on success
  * - SC_UTILS_TEXT_SERIALIZE on error
  */
-status_t serialize_msg(const ta_cipher_ctx* ctx, char *out_msg, size_t *out_msg_len);
+status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_len);
 
 /**
  * @brief Deserialize message from serialize_msg
@@ -48,7 +48,7 @@ status_t serialize_msg(const ta_cipher_ctx* ctx, char *out_msg, size_t *out_msg_
  * - SC_UTILS_TEXT_DESERIALIZE on error
  * @see #serialize_msg
  */
-status_t deserialize_msg(const char *msg, ta_cipher_ctx* ctx);
+status_t deserialize_msg(const char *msg, ta_cipher_ctx *ctx);
 #ifdef __cplusplus
 }
 #endif

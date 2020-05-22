@@ -63,6 +63,8 @@ cc_library(
         "//accelerator/core",
         "//accelerator/core/request",
         "//accelerator/core/response",
+        "//utils:fill_nines",
+        "//utils:tryte_byte_conv",
         "@entangled//common/trinary:flex_trit",
         "@entangled//mam/api",
         "@entangled//utils/containers/hash:hash_array",
