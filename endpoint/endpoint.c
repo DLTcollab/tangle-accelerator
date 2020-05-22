@@ -70,8 +70,7 @@ status_t send_transaction_information(int value, const char* message, const char
     fprintf(stderr, "%s\n", "encrypt msg error");
     return ret;
   }
-  serialize_msg(iv, encrypt_ctx.ciphertext_len, (char*)encrypt_ctx.ciphertext, encrypt_ctx.timestamp, encrypt_ctx.hmac,
-                msg, &msg_len);
+  serialize_msg(&encrypt_ctx, msg, &msg_len);
   bytes_to_trytes((const unsigned char*)msg, msg_len, tryte_msg);
 
   memset(req_body, 0, sizeof(char) * MAX_MSG_LEN);
