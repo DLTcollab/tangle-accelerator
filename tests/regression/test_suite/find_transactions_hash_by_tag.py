@@ -67,6 +67,7 @@ class FindTransactionsHashByTag(unittest.TestCase):
         eval_stat(time_cost, "find transactions by tag")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         rand_trytes_26 = gen_rand_trytes(26)
         rand_tag = gen_rand_trytes(LEN_TAG)
@@ -74,8 +75,8 @@ class FindTransactionsHashByTag(unittest.TestCase):
         rand_msg = gen_rand_trytes(30)
         rand_len = random.randrange(28, 50)
         rand_len_trytes = gen_rand_trytes(rand_len)
-        FindTransactionsHashByTag()._send_transaction(
-            rand_msg, rand_tag, rand_addr)
+        FindTransactionsHashByTag()._send_transaction(rand_msg, rand_tag,
+                                                      rand_addr)
         cls.query_string = [
             rand_tag, "", f"{rand_trytes_26}@", f"{rand_tag}\x00",
             f"{rand_tag}\x00{rand_tag}", "一二三四五", rand_len_trytes

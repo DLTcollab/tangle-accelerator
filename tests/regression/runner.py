@@ -23,10 +23,15 @@ if __name__ == '__main__':
 
     suite_path = os.path.join(os.path.dirname(__file__), "test_suite")
     sys.path.append(suite_path)
+    unsuccessful_module = []
     for module in os.listdir(suite_path):
         if module[-3:] == ".py":
             mod = __import__(module[:-3], locals(), globals())
             suite = unittest.TestLoader().loadTestsFromModule(mod)
-            result = unittest.TextTestRunner().run(suite)
+            result = unittest.TextTestRunner(verbosity=0).run(suite)
             if not result.wasSuccessful():
-                exit(1)
+                unsuccessful_module.append(module)
+
+    if len(unsuccessful_module):
+        print(f"Error module: {unsuccessful_module}")
+        exit(1)

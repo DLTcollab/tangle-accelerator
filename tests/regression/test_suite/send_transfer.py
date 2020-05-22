@@ -126,6 +126,7 @@ class SendTransfer(unittest.TestCase):
         eval_stat(time_cost, "send transfer")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)

@@ -20,12 +20,12 @@ for (( i = 0; i < ${#OPTIONS[@]}; i++ )); do
     cli_arg=${option} | cut -d '|' -f 1
     build_arg=${option} | cut -d '|' -f 2
 
-    bazel run accelerator ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} &
+    bazel run accelerator --define mqtt=enable ${build_arg} -- --quiet --ta_port=${TA_PORT} ${cli_arg} &
     TA=$!
     sleep ${sleep_time} # TA takes time to be built
     trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
-    python3 tests/regression/runner.py ${remaining_args} --url localhost:${TA_PORT}
+    python3 tests/regression/runner.py ${remaining_args} --url "localhost" --mqtt
     rc=$?
 
     if [ $rc -ne 0 ]
