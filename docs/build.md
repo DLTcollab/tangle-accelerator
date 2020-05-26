@@ -61,7 +61,7 @@ make && bazel run --define db=enable //accelerator
 
 When enabling reattachment, every transaction issues from the `tangle-accelerator` API called `Send Transfer Message` will be stored in the specific ScyllaDB host and response a UUID string for each transfer message as the identifier. With a promoting process that monitors the status of storing transactions, persistent pending transactions will be reattached to the Tangle.
 
-Transaction reattachment relies on ScyllDB, you need to install the dependency by following commands.
+Transaction reattachment relies on ScyllaDB, you need to install the dependency by following commands.
 
 For Ubuntu Linux 16.04/x86_64:
 

@@ -108,6 +108,18 @@ Tangle-accelerator supports several different build time options.
 * Docker images
 * MQTT connectivity
 * External database
+* Debug Mode
+
+    Debug mode enables tangle-accelerator to display extra `debug` logs.
+```
+bazel run --define build_type=debug //accelerator
+```
+* Profiling Mode
+
+    Profiling mode adds `-pg` flag when compiling tangle-accelerator. This allows tangle-accelerator to write profile information for the analysis program gprof.
+```
+bazel run --define build_type=profile //accelerator
+```
 
 See [docs/build.md](docs/build.md) for more information.
 
