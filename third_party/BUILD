@@ -18,17 +18,3 @@ cc_library(
         "mosquitto/lib/mqtt_protocol.h",
     ],
 )
-
-cc_library(
-    name = "http-parser",
-    srcs = glob(["http-parser/*.so.*"]),
-    hdrs = ["http-parser/http_parser.h"],
-    includes = ["http-parser"],
-)
-
-cc_library(
-    name = "mbedtls",
-    srcs = glob(["mbedtls/library/*.so.*"]),
-    hdrs = glob(["mbedtls/include/mbedtls/*.h"]) + glob(["mbedtls/include/psa/*.h"]),
-    includes = ["mbedtls/include"],
-)

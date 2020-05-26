@@ -25,6 +25,13 @@ git_repository(
     tag = "v0.9.0",
 )
 
+new_git_repository(
+    name = "mbedtls_2_16_6",
+    build_file = "//third_party:mbedtls.BUILD",
+    remote = "https://github.com/ARMmbed/mbedtls.git",
+    tag = "mbedtls-2.16.6",
+)
+
 load("@rules_iota//:defs.bzl", "iota_deps")
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 
