@@ -2,8 +2,10 @@ DCURL_DIR := third_party/dcurl
 DCURL_LIB := $(DCURL_DIR)/build/libdcurl.so
 MOSQUITTO_DIR := third_party/mosquitto
 MOSQUITTO_LIB := $(MOSQUITTO_DIR)/lib/libmosquitto.so.1
+NOISE_C_DIR := third_party/noise-c
+NOISE_C_LIB := $(NOISE_C_DIR)/src/protocol/noiseporotocol.a
 PEM_DIR = pem
-DEPS += $(DCURL_LIB)
+DEPS += $(DCURL_LIB) $(NOISE_C_LIB)
 PEM := $(PEM_DIR)/cert.pem
 
 all: $(DEPS) cert
@@ -13,6 +15,13 @@ all: $(DEPS) cert
 $(DCURL_LIB): $(DCURL_DIR)
 	git submodule update --init $^
 	$(MAKE) -C $^ config
+	@echo
+	$(info Modify $^/build/local.mk for your environments.)
+	$(MAKE) -C $^ all
+
+$(NOISE_C_LIB): $(NOISE_C_DIR)
+	git submodule update --init $^
+	cd $(NOISE_C_DIR) && sh -c "{ autoreconf -i; ./configure; $(MAKE); }"
 	@echo
 	$(info Modify $^/build/local.mk for your environments.)
 	$(MAKE) -C $^ all

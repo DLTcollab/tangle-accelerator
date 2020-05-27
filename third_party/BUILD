@@ -18,3 +18,12 @@ cc_library(
         "mosquitto/lib/mqtt_protocol.h",
     ],
 )
+
+cc_library(
+    name = "noise",
+    srcs = ["noise-c/src/protocol/libnoiseprotocol.a"],
+    hdrs = glob([
+        "noise-c/include/noise/*.h",
+    ]),
+    include_prefix = "third_party/noise-c/include",
+)

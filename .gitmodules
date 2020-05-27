@@ -7,3 +7,6 @@
 [submodule "third_party/mosquitto"]
 	path = third_party/mosquitto
 	url = https://github.com/eclipse/mosquitto.git
+[submodule "third_party/noise-c"]
+	path = third_party/noise-c
+	url = https://github.com/rweather/noise-c.git
