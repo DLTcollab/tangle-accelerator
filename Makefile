@@ -2,12 +2,8 @@ DCURL_DIR := third_party/dcurl
 DCURL_LIB := $(DCURL_DIR)/build/libdcurl.so
 MOSQUITTO_DIR := third_party/mosquitto
 MOSQUITTO_LIB := $(MOSQUITTO_DIR)/lib/libmosquitto.so.1
-MBEDTLS_DIR := third_party/mbedtls
-MBEDTLS_LIB := $(MBEDTLS_PATH)/library/libmbedx509.so $(MBEDTLS_PATH)/library/libmbedtls.so $(MBEDTLS_PATH)/library/libmbedcrypto.so
-HTTPPARSER_DIR := third_party/http-parser
-HTTPPARSER_LIB := $(HTTPPARSER_DIR)/libhttp_parser.so
 PEM_DIR = pem
-DEPS += $(DCURL_LIB) $(HTTPPARSER_LIB) $(MBEDTLS_LIB)
+DEPS += $(DCURL_LIB)
 PEM := $(PEM_DIR)/cert.pem
 
 all: $(DEPS) cert
@@ -27,14 +23,6 @@ $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 	@echo
 	$(MAKE) -C $^ WITH_DOCS=no
 
-$(HTTPPARSER_LIB): $(HTTPPARSER_DIR)
-	git submodule update --init $^
-	$(MAKE) -C $^ library
-
-$(MBEDTLS_LIB): $(MBEDTLS_DIR)
-	git submodule update --init $^
-	$(MAKE) -C $^ SHARED=1 lib
-
 cert: check_pem
 	@xxd -i $(PEM) > $(PEM_DIR)/ca_crt.inc
 	@sed -E \
@@ -52,9 +40,6 @@ endif
 clean:
 	$(MAKE) -C $(DCURL_DIR) clean
 	$(MAKE) -C $(MOSQUITTO_DIR) clean
-	$(MAKE) -C $(HTTPPARSER_DIR) clean
-	$(MAKE) -C $(MBEDTLS_DIR) clean
-
 
 distclean: clean
 	$(RM) -r $(DCURL_DIR)

@@ -9,7 +9,7 @@ cc_library(
     deps = [
         "//common",
         "//pem:cert",
-        "//third_party:http-parser",
-        "//third_party:mbedtls",
+        "@http_parser",
+        "@mbedtls_2_16_6",
     ],
 )
