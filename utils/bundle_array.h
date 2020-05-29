@@ -85,7 +85,7 @@ static inline size_t bundle_array_size(bundle_array_t const *const bundle_array)
  */
 static inline status_t bundle_array_add(bundle_array_t *const bundle_array, bundle_transactions_t const *const bundle) {
   if (!bundle || !bundle_array) {
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   utarray_push_back(bundle_array, bundle);

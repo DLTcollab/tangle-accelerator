@@ -592,7 +592,7 @@ done:
 status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj) {
   status_t ret = SC_OK;
   if (res == NULL) {
-    ret = SC_TA_NULL;
+    ret = SC_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }

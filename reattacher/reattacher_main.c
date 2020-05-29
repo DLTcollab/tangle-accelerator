@@ -21,7 +21,7 @@
 static status_t init_iota_client_service(iota_client_service_t* const serv) {
   if (serv == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   serv->http.path = "/";
   serv->http.content_type = "application/json";
@@ -31,7 +31,7 @@ static status_t init_iota_client_service(iota_client_service_t* const serv) {
   serv->serializer_type = SR_JSON;
   if (iota_client_core_init(serv) != RC_OK) {
     ta_log_error("Failed to connect to IRI.\n");
-    return SC_TA_OOM;
+    return SC_OOM;
   }
   return SC_OK;
 }

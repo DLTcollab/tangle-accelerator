@@ -41,7 +41,7 @@ status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_
  * @brief Deserialize message from serialize_msg
  *
  * @param[in] msg Pointer to serialize message
- * @param[in/out] ctx The cipher context to be deserialized
+ * @param[in,out] ctx The cipher context to be deserialized
  *
  * @return
  * - SC_OK on success

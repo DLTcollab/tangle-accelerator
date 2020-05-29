@@ -51,7 +51,7 @@ int br_logger_release();
 /**
  * @brief Initiate cache module. This function can be called in 'config.c' only.
  *
- * @param rwlock[in/out] Read/Write lock object.
+ * @param rwlock[in,out] Read/Write lock object.
  * @param input_state[in] Whether cache server should be activated
  * @param host[in] cache server host
  * @param port[in] cache server port
@@ -64,7 +64,7 @@ bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, i
 /**
  * @brief Stop interacting with cache module. This function can be called in 'config.c' only.
  *
- * @param rwlock[in/out] Read/Write lock object.
+ * @param rwlock[in,out] Read/Write lock object.
  */
 void cache_stop(pthread_rwlock_t** rwlock);
 

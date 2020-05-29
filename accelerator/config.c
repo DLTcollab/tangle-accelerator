@@ -39,8 +39,8 @@ static int get_conf_key(char const* const key) {
 
 status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET && key != NO_GTTA)) {
-    ta_log_error("%s\n", "SC_CONF_NULL");
-    return SC_CONF_NULL;
+    ta_log_error("%s\n", "SC_NULL");
+    return SC_NULL;
   }
   ta_config_t* const ta_conf = &core->ta_conf;
   iota_config_t* const iota_conf = &core->iota_conf;
@@ -441,7 +441,7 @@ status_t ta_core_set(ta_core_t* core) {
 #endif
   if (iota_client_service_init(iota_service)) {
     ta_log_error("Initializing IRI connection failed!\n");
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     goto exit;
   }
 

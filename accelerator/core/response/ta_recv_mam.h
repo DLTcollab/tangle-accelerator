@@ -38,7 +38,7 @@ ta_recv_mam_res_t* recv_mam_res_new();
 /**
  * @brief Free memory of ta_recv_mam_res_t
  *
- * @param res[in/out] Data type of ta_recv_mam_res_t
+ * @param res[in,out] Data type of ta_recv_mam_res_t
  */
 void recv_mam_res_free(ta_recv_mam_res_t** res);
 

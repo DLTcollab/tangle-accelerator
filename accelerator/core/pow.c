@@ -67,7 +67,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
 
   tx = (iota_transaction_t*)utarray_back(bundle);
   if (tx == NULL) {
-    ret = SC_TA_NULL;
+    ret = SC_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -93,7 +93,7 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     // get nonce
     flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }

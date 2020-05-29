@@ -87,7 +87,7 @@ CassError execute_statement(CassSession* session, CassStatement* statement) {
 status_t make_query(char** result, const char* head_desc, const char* position, const char* left_desc) {
   if (head_desc == NULL || position == NULL || left_desc == NULL) {
     ta_log_error("NULL pointer to CQL query\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   size_t head_len = strlen(head_desc);
   size_t pos_len = strlen(position);
@@ -95,8 +95,8 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
   size_t result_len = head_len + pos_len + left_len + 1;
   *result = malloc(result_len * sizeof(char));
   if (*result == NULL) {
-    ta_log_error("%s\n", "SC_STORAGE_OOM");
-    return SC_STORAGE_OOM;
+    ta_log_error("%s\n", "SC_OOM");
+    return SC_OOM;
   }
   memcpy(*result, head_desc, head_len);
   memcpy(*result + head_len, position, pos_len);

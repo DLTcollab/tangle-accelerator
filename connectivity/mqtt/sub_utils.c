@@ -29,8 +29,8 @@ int mqtt_sub_logger_release() {
 
 static status_t dump_message(mosq_config_t *cfg, const struct mosquitto_message *message) {
   if (cfg == NULL || message == NULL || message->payload == NULL || message->payloadlen == 0) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   cfg->sub_config->recv_message = strdup(message->payload);

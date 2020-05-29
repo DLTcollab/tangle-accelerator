@@ -22,7 +22,7 @@ struct db_identity_s {
 status_t db_show_identity_info(db_identity_t* obj) {
   if (obj == NULL) {
     ta_log_error("Invalid NULL pointer : obj\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   char uuid_string[DB_UUID_STRING_LENGTH];
   char hash[DB_NUM_TRYTES_HASH + 1];
@@ -37,8 +37,8 @@ status_t db_show_identity_info(db_identity_t* obj) {
 status_t db_identity_new(db_identity_t** obj) {
   *obj = (db_identity_t*)malloc(sizeof(struct db_identity_s));
   if (NULL == *obj) {
-    ta_log_error("SC_STORAGE_OOM\n");
-    return SC_STORAGE_OOM;
+    ta_log_error("SC_OOM\n");
+    return SC_OOM;
   }
 
   return SC_OK;
@@ -52,11 +52,11 @@ void db_identity_free(db_identity_t** obj) {
 status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (in == NULL) {
     ta_log_error("NULL pointer to uuid\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   /**< The version number is in the most significant 4 bits of the timestamp */
   int version = (in->time_and_version) >> 60;
@@ -72,11 +72,11 @@ status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in) {
 status_t db_get_identity_uuid_string(const db_identity_t* obj, char* res_uuid_string) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (res_uuid_string == NULL) {
     ta_log_error("NULL pointer to uuid string\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   cass_uuid_string(obj->uuid, res_uuid_string);
   return SC_OK;
@@ -85,7 +85,7 @@ status_t db_get_identity_uuid_string(const db_identity_t* obj, char* res_uuid_st
 status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (status < 0 || status >= NUM_OF_TXN_STATUS) {
     ta_log_error("invalid status : %d\n", status);
@@ -106,7 +106,7 @@ cass_int8_t db_ret_identity_status(const db_identity_t* obj) {
 status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   obj->timestamp = ts;
   return SC_OK;
@@ -123,7 +123,7 @@ cass_int64_t db_ret_identity_timestamp(const db_identity_t* obj) {
 cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return (cass_int64_t)time(NULL) - obj->timestamp;
 }
@@ -131,11 +131,11 @@ cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj) {
 status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_t length) {
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (hash == NULL) {
     ta_log_error("NULL pointer to hash to insert into identity table\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (length != DB_NUM_TRYTES_HASH) {
     ta_log_error("%s\n", ta_error_to_string(SC_STORAGE_INVALID_INPUT));
@@ -235,7 +235,7 @@ status_t db_init_identity_keyspace(db_client_service_t* service, bool need_trunc
   char* use_query = NULL;
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if ((ret = create_keyspace(service->session, keyspace_name)) != SC_OK) {
     ta_log_error("create %s keyspace fail\n", keyspace_name);
@@ -272,11 +272,11 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
   const char* query = "UPDATE identity Set ts = ?, status = ?, hash =? Where id = ?";
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (obj == NULL) {
     ta_log_error("NULL pointer to ScyllaDB identity object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   if (prepare_query(service->session, query, &insert_prepared) != CASS_OK) {

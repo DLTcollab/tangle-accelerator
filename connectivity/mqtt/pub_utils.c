@@ -30,8 +30,8 @@ int mqtt_pub_logger_release() {
 mosq_retcode_t publish_message(struct mosquitto *mosq, mosq_config_t *cfg, int *mid, const char *topic, int payloadlen,
                                void *payload, int qos, bool retain) {
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   if (cfg->general_config->protocol_version == MQTT_PROTOCOL_V5 && cfg->pub_config->first_publish == false) {
@@ -105,8 +105,8 @@ void publish_callback_pub_func(struct mosquitto *mosq, void *obj, int mid, int r
 
 status_t publish_loop(struct mosquitto *mosq) {
   if (mosq == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
   mosq_retcode_t ret = MOSQ_ERR_SUCCESS;
 
@@ -118,8 +118,8 @@ status_t publish_loop(struct mosquitto *mosq) {
 
 status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
   if (cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
   status_t ret = SC_OK;
 
@@ -187,8 +187,8 @@ status_t init_check_error(mosq_config_t *cfg, client_type_t client_type) {
   if (!cfg->general_config->host) {
     cfg->general_config->host = strdup("localhost");
     if (!cfg->general_config->host) {
-      ta_log_error("%s\n", ta_error_to_string(SC_MQTT_OOM));
-      return SC_MQTT_OOM;
+      ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+      return SC_OOM;
     }
   }
 

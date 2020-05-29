@@ -117,7 +117,7 @@ status_t http_close(connect_info_t *const info);
  *
  * @return
  * - #SC_OK on success
- * - #SC_UTILS_OOM_ERROR failed on out of memory error
+ * - #SC_OOM failed on out of memory error
  * - non-zero on error
  * @see #status_t
  */
@@ -134,7 +134,7 @@ status_t set_post_request(char const *const path, char const *const host, const 
  *
  * @return
  * - #SC_OK on success
- * - #SC_UTILS_OOM_ERROR failed on out of memory error
+ * - #SC_OOM failed on out of memory error
  * - non-zero on error
  * @see #status_t
  */
