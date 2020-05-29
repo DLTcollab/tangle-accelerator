@@ -3,7 +3,7 @@ cc_library(
     srcs = ["endpoint.c"],
     hdrs = ["endpoint.h"],
     defines = [
-        "ENDPOINT_HOST=\"tangle-accel.biilabs.io\"",
+        "ENDPOINT_HOST=\"localhost\"",
         "ENDPOINT_PORT=\"443\"",
         "ENDPOINT_SSL_SEED=\"nonce\"",
     ],
