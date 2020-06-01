@@ -1,7 +1,7 @@
 cc_library(
-    name = "endpoint",
-    srcs = ["endpoint.c"],
-    hdrs = ["endpoint.h"],
+    name = "endpoint_core",
+    srcs = ["endpoint_core.c"],
+    hdrs = ["endpoint_core.h"],
     defines = [
         "ENDPOINT_HOST=\"localhost\"",
         "ENDPOINT_PORT=\"443\"",
@@ -18,13 +18,44 @@ cc_library(
 )
 
 cc_test(
-    name = "test_endpoint",
+    name = "test_endpoint_core",
     srcs = [
-        "test_endpoint.c",
+        "test_endpoint_core.c",
     ],
     deps = [
-        ":endpoint",
+        ":endpoint_core",
         "//common",
         "//tests:test_define",
+    ],
+)
+
+cc_binary(
+    name = "libendpoint.so",
+    srcs = [
+        "endpoint_core.c",
+        "endpoint_core.h",
+    ],
+    defines = [
+        "TA_HOST=\"localhost\"",
+        "TA_PORT=\"443\"",
+        "TA_SSL_SEED=\"nonce\"",
+    ],
+    linkshared = True,
+    deps = [
+        "//common",
+        "//utils:cipher",
+        "//utils:https",
+        "//utils:text_serializer",
+        "//utils:tryte_byte_conv",
+    ],
+)
+
+platform(
+    name = "linux_arm",
+    constraint_values = [
+        "@platforms//os:linux",
+        # FIXME: The generic CPU name will be replaced in the future
+        # ref: https://github.com/bazelbuild/platforms/blob/master/cpu/BUILD
+        "@platforms//cpu:arm",
     ],
 )

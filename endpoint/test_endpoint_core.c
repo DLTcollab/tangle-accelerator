@@ -12,7 +12,7 @@
 #include <time.h>
 #include "common/macros.h"
 #include "common/ta_errors.h"
-#include "endpoint.h"
+#include "endpoint_core.h"
 #include "tests/test_define.h"
 #include "utils/cipher.h"
 

@@ -7,6 +7,7 @@
  */
 
 #include "cipher.h"
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +47,7 @@ status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
   }
 
   // concatenate (Device_ID, timestamp)
-  snprintf((char*)nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%ld", cipher_ctx->device_id, cipher_ctx->timestamp);
+  snprintf((char*)nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%" PRIu64, cipher_ctx->device_id, cipher_ctx->timestamp);
   // hash base data
   mbedtls_md_starts(&sha_ctx);
   mbedtls_md_update(&sha_ctx, digest, AES_BLOCK_SIZE * 2);
@@ -126,7 +127,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   mbedtls_platform_zeroize(ciphertext, sizeof(ciphertext));
 
   // concatenate (Device_ID, timestamp)
-  snprintf((char*)nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%ld", cipher_ctx->device_id, cipher_ctx->timestamp);
+  snprintf((char*)nonce, IMSI_LEN + MAX_TIMESTAMP_LEN + 1, "%s-%" PRIu64, cipher_ctx->device_id, cipher_ctx->timestamp);
   // hash base data
   mbedtls_md_starts(&sha_ctx);
   mbedtls_md_update(&sha_ctx, digest, AES_BLOCK_SIZE * 2);

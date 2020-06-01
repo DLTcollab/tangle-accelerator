@@ -95,3 +95,9 @@ __pycache__/
 
 # Certificate for build system
 pem/*.inc
+
+# Legato app related files
+resolv.conf
+output_base/
+_build_endpoint/
+endpoint.wp77xx.update

@@ -3,12 +3,15 @@ DCURL_LIB := $(DCURL_DIR)/build/libdcurl.so
 MOSQUITTO_DIR := third_party/mosquitto
 MOSQUITTO_LIB := $(MOSQUITTO_DIR)/lib/libmosquitto.so.1
 PEM_DIR = pem
-DEPS += $(DCURL_LIB)
 PEM := $(PEM_DIR)/cert.pem
+NAMESERVER := 8.8.8.8
+RESOLV_CONF_DIR := endpoint/endpointComp
+OUTPUT_BASE_DIR := output_base
+DEPS += $(DCURL_LIB)
 
 all: $(DEPS) cert
 
-.PHONY: $(DCURL_LIB) $(MOSQUITTO_LIB) cert check_pem
+.PHONY: $(DCURL_LIB) $(MOSQUITTO_LIB) legato cert check_pem
 
 $(DCURL_LIB): $(DCURL_DIR)
 	git submodule update --init $^
@@ -22,6 +25,20 @@ $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 	git submodule update --init $^
 	@echo
 	$(MAKE) -C $^ WITH_DOCS=no
+
+# Build endpoint Legato app
+legato:
+	# Generate resolv.conf
+	echo "nameserver $(NAMESERVER)" > $(RESOLV_CONF_DIR)/resolv.conf
+	# Fetch the required external source code
+	# FIXME: Use 'fetch' instead of 'build' to avoid extra building actions.
+	#        The 'build' option is for getting the header file like 'mam/mam/mam_endpoint_t_set.h',
+	#        which can not be downloaded when the 'fetch' option is used.
+	bazel --output_base=$(OUTPUT_BASE_DIR) build //endpoint:libendpoint.so
+	# Add the soft link for handling the preprocessing of header file path inclusion like Bazel does
+	ln -f -s ./lib/high/Keccak/FIPS202 ./$(OUTPUT_BASE_DIR)/external/keccak/keccak
+	# Generate endpoint Legato app
+	(cd endpoint && leaf shell -c "mkapp -v -t wp77xx endpoint.adef")
 
 cert: check_pem
 	@xxd -i $(PEM) > $(PEM_DIR)/ca_crt.inc

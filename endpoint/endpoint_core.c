@@ -6,7 +6,7 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#include "endpoint.h"
+#include "endpoint_core.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
