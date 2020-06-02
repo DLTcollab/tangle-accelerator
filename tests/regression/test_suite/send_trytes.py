@@ -3,7 +3,7 @@ import json
 import unittest
 import time
 import logging
-
+import urllib3
 
 class SendTrytes(unittest.TestCase):
 
@@ -76,14 +76,26 @@ class SendTrytes(unittest.TestCase):
         cls.tag = gen_rand_trytes(27)
         for i in range(2):
             all_9_context = fill_nines("", 2673 - 81 * 3)
-            res = API("/tips/pair/", get_data="")
-            unittest.TestCase().assertEqual(STATUS_CODE_200,
-                                            res["status_code"])
-            res_json = json.loads(res["content"])
-            rand_trytes.append(all_9_context + res_json["trunkTransaction"] +
-                               res_json["branchTransaction"] +
-                               fill_nines(cls.tag, 81))
+            command = {
+                "command": "getTransactionsToApprove",
+                "depth": 4,
+            }
 
+            stringified = json.dumps(command)
+
+            headers = {
+                'content-type': 'application/json',
+                'X-IOTA-API-Version': '1'
+            }
+            global URL
+            request = urllib3.Request(url=URL, data=stringified, headers=headers)
+            returnData = urllib3.urlopen(request).read()
+
+            jsonData = json.loads(returnData)
+            rand_trytes.append(all_9_context + jsonData["trunkTransaction"] +
+                               jsonData["branchTransaction"] +
+                               fill_nines(cls.tag, 81))
+                               
         cls.query_string = [[rand_trytes[0]], rand_trytes,
                             [gen_rand_trytes(200)], [gen_rand_trytes(3000)],
                             ["逼類不司"], [""], ""]

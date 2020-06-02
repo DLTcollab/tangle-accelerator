@@ -85,30 +85,6 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj);
 #endif
 
 /**
- * @brief Serialize type of ta_generate_address_res_t to JSON string
- *
- * @param[out] obj Address hash in JSON
- * @param[in] res Response data in type of ta_generate_address_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj);
-
-/**
- * @brief Serialize object `get_tips_res_t` into JSON
- *
- * @param[in] res Result `get_tips_res_t` object with tips inside
- * @param[out] obj Output tips in JSON
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
-
-/**
  * @brief Serialize the response of api_insert_identity()
  *
  * @param[in] hash Response transaction hash

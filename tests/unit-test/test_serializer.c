@@ -13,22 +13,6 @@
 #include "tests/common.h"
 #include "tests/test_define.h"
 
-void test_serialize_ta_generate_address(void) {
-  const char* json = "[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"]";
-  char* json_result;
-  ta_generate_address_res_t* res = ta_generate_address_res_new();
-  flex_trit_t hash_trits_1[FLEX_TRIT_SIZE_243], hash_trits_2[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(hash_trits_1, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_1, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  flex_trits_from_trytes(hash_trits_2, NUM_TRITS_HASH, (const tryte_t*)TRYTES_81_2, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  hash243_queue_push(&res->addresses, hash_trits_1);
-  hash243_queue_push(&res->addresses, hash_trits_2);
-
-  ta_generate_address_res_serialize(res, &json_result);
-  TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_generate_address_res_free(&res);
-  free(json_result);
-}
-
 void test_ta_send_transfer_req_deserialize(void) {
   const char* json_template =
       "{\"value\":100,"
@@ -647,7 +631,6 @@ int main(void) {
   }
 
   serializer_logger_init();
-  RUN_TEST(test_serialize_ta_generate_address);
   RUN_TEST(test_ta_send_transfer_req_deserialize);
   RUN_TEST(test_ta_send_transfer_raw_message_req_deserialize);
   RUN_TEST(test_ta_send_transfer_overrun_req_deserialize);
