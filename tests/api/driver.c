@@ -17,27 +17,6 @@ static driver_test_cases_t test_case;
 static ta_core_t ta_core;
 struct timespec start_time, end_time;
 
-static struct proxy_apis_s {
-  const char* name;
-  const char* json;  // args which are passed to IRI API
-} proxy_apis_g[] = {{"check_consistency",
-                     "{\"command\":\"checkConsistency\","
-                     "\"tails\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
-                    {"get_balances",
-                     "{\"command\":\"getBalances\","
-                     "\"addresses\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
-                     "\"threshold\":" STR(THRESHOLD) "}"},
-                    {"get_inclusion_states",
-                     "{\"command\":\"getInclusionStates\","
-                     "\"transactions\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"],"
-                     "\"tips\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"},
-                    {"get_node_info", "{\"command\": \"getNodeInfo\"}"},
-                    {"get_trytes",
-                     "{\"command\":\"getTrytes\","
-                     "\"hashes\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3 "\"]}"}};
-
-static const int proxy_apis_num = sizeof(proxy_apis_g) / sizeof(struct proxy_apis_s);
-
 #if defined(ENABLE_STAT)
 #define TEST_COUNT 100
 #else
@@ -51,51 +30,6 @@ static struct identity_s {
   int8_t status;
 } identities[TEST_COUNT];
 #endif
-
-void test_generate_address(void) {
-  char* json_result;
-  double sum = 0;
-
-  for (size_t count = 0; count < TEST_COUNT; count++) {
-    iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
-    test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_generate_address(&ta_core.iota_conf, &iota_service, &json_result));
-    test_time_end(&start_time, &end_time, &sum);
-    free(json_result);
-  }
-  printf("Average time of generate_address: %lf\n", sum / TEST_COUNT);
-}
-
-void test_get_tips_pair(void) {
-  char* json_result;
-  double sum = 0;
-
-  for (size_t count = 0; count < TEST_COUNT; count++) {
-    iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
-    test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips_pair(&ta_core.iota_conf, &iota_service, &json_result));
-    test_time_end(&start_time, &end_time, &sum);
-    free(json_result);
-  }
-  printf("Average time of get_tips_pair: %lf\n", sum / TEST_COUNT);
-}
-
-void test_get_tips(void) {
-  char* json_result;
-  double sum = 0;
-
-  for (size_t count = 0; count < TEST_COUNT; count++) {
-    iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
-    test_time_start(&start_time);
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_tips(&iota_service, &json_result));
-    test_time_end(&start_time, &end_time, &sum);
-    free(json_result);
-  }
-  printf("Average time of get_tips: %lf\n", sum / TEST_COUNT);
-}
 
 void test_send_transfer(void) {
   const char* json_template =
@@ -289,24 +223,6 @@ void test_get_iri_status(void) {
   printf("Average time of get_iri_status: %lf\n", sum / TEST_COUNT);
 }
 
-void test_proxy_apis(void) {
-  for (int i = 0; i < proxy_apis_num; i++) {
-    char* json_result;
-    double sum = 0;
-
-    for (size_t count = 0; count < TEST_COUNT; count++) {
-      test_time_start(&start_time);
-      iota_client_service_t iota_service;
-      ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
-      TEST_ASSERT_EQUAL_INT32(SC_OK,
-                              proxy_api_wrapper(&ta_core.ta_conf, &iota_service, proxy_apis_g[i].json, &json_result));
-      test_time_end(&start_time, &end_time, &sum);
-      free(json_result);
-    }
-    printf("Average time of %s: %lf\n", proxy_apis_g[i].name, sum / TEST_COUNT);
-  }
-}
-
 int main(int argc, char* argv[]) {
   UNITY_BEGIN();
 
@@ -324,9 +240,6 @@ int main(int argc, char* argv[]) {
   ta_core_set(&ta_core);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
-  RUN_TEST(test_generate_address);
-  RUN_TEST(test_get_tips_pair);
-  RUN_TEST(test_get_tips);
   RUN_TEST(test_send_transfer);
   RUN_TEST(test_send_trytes);
   RUN_TEST(test_find_transaction_objects);

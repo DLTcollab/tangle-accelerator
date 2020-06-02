@@ -139,11 +139,6 @@ def route_http_to_mqtt(query, get_data, post_data):
         data.update(json.loads(post_data))
     if query[-1] == "/": query = query[:-1]  # Remove trailing slash
 
-    # api_generate_address
-    r = re.search("/address$", query)
-    if r is not None:
-        return query, data
-
     # api_find_transactions_by_tag
     r = re.search(f"/tag/(?P<tag>[\x00-\xff]*?)/hashes$", query)
     if r is not None:
@@ -177,17 +172,6 @@ def route_http_to_mqtt(query, get_data, post_data):
     r = re.search(f"/transaction$", query)
     if r is not None:
         query = "/transaction/send"
-        return query, data
-
-    # api_get_tips
-    r = re.search(f"/tips$", query)
-    if r is not None:
-        query = "/tips/all"
-        return query, data
-
-    # api_get_tips_pair
-    r = re.search(f"/tips/pair$", query)
-    if r is not None:
         return query, data
 
     # api_send_trytes

@@ -50,30 +50,6 @@ void cc_logger_init();
  */
 int cc_logger_release();
 
-typedef struct {
-  const iota_config_t* iconf;
-  const iota_client_service_t* service;
-  ta_generate_address_res_t* res;
-} ta_generate_address_args_t;
-
-/**
- * @brief Generate an unused address.
- *
- * Generate and return an unused address from the seed. An unused address means
- * the address does not have any transaction with it yet.
- *
- * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
- * @param[out] res Result containing an unused address in
- * ta_generate_address_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res);
-
 /**
  * @brief Send transfer to tangle.
  *

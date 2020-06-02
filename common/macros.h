@@ -13,6 +13,7 @@
 #include "common/model/transaction.h"
 #include "common/trinary/trit_tryte.h"
 #include "mam/mam/message.h"
+#include "utils/containers/hash/hash243_stack.h"
 #include "utils/containers/hash/hash_array.h"
 
 #include <stdbool.h>

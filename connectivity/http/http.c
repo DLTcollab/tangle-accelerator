@@ -95,13 +95,6 @@ static inline int process_find_txns_by_tag_request(iota_client_service_t *const 
   return set_response_content(ret, out);
 }
 
-static inline int process_generate_address_request(ta_http_t *const http, iota_client_service_t *const iota_service,
-                                                   char **const out) {
-  status_t ret;
-  ret = api_generate_address(&http->core->iota_conf, iota_service, out);
-  return set_response_content(ret, out);
-}
-
 static inline int process_find_txn_obj_single_request(iota_client_service_t *const iota_service, char const *const url,
                                                       char **const out) {
   status_t ret;
@@ -118,19 +111,6 @@ static inline int process_find_txn_obj_request(iota_client_service_t *const iota
                                                char **const out) {
   status_t ret;
   ret = api_find_transaction_objects(iota_service, payload, out);
-  return set_response_content(ret, out);
-}
-
-static inline int process_get_tips_pair_request(ta_http_t *const http, iota_client_service_t *const iota_service,
-                                                char **const out) {
-  status_t ret;
-  ret = api_get_tips_pair(&http->core->iota_conf, iota_service, out);
-  return set_response_content(ret, out);
-}
-
-static inline int process_get_tips_request(iota_client_service_t *const iota_service, char **const out) {
-  status_t ret;
-  ret = api_get_tips(iota_service, out);
   return set_response_content(ret, out);
 }
 
@@ -269,12 +249,6 @@ static int ta_http_process_request(ta_http_t *const http, iota_client_service_t 
     }
     return process_method_not_allowed_request(out);
 
-  } else if (api_path_matcher(url, "/tips/pair[/]?") == SC_OK) {
-    return process_get_tips_pair_request(http, iota_service, out);
-  } else if (api_path_matcher(url, "/tips[/]?") == SC_OK) {
-    return process_get_tips_request(iota_service, out);
-  } else if (api_path_matcher(url, "/address[/]?") == SC_OK) {
-    return process_generate_address_request(http, iota_service, out);
   } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}/hashes[/]?") == SC_OK) {
     return process_find_txns_by_tag_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {

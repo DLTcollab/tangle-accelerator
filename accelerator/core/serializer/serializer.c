@@ -100,55 +100,6 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj) {
 }
 #endif
 
-status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj) {
-  cJSON* json_root = cJSON_CreateArray();
-  status_t ret = SC_OK;
-  if (json_root == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_CREATE));
-    return SC_SERIALIZER_JSON_CREATE;
-  }
-  ret = ta_hash243_queue_to_json_array(res->addresses, json_root);
-  if (ret) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    return ret;
-  }
-
-  *obj = cJSON_PrintUnformatted(json_root);
-  if (*obj == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_PARSE));
-    return SC_SERIALIZER_JSON_PARSE;
-  }
-  cJSON_Delete(json_root);
-  return ret;
-}
-
-status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj) {
-  status_t ret = SC_OK;
-
-  cJSON* json_root = cJSON_CreateArray();
-  if (json_root == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_CREATE));
-    return RC_CCLIENT_JSON_CREATE;
-  }
-
-  ret = ta_hash243_stack_to_json_array(res->hashes, json_root);
-  if (ret) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto err;
-  }
-
-  *obj = cJSON_PrintUnformatted(json_root);
-  if (*obj == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_PARSE));
-    return SC_SERIALIZER_JSON_PARSE;
-  }
-
-err:
-  cJSON_Delete(json_root);
-  ta_log_error("%s\n", ta_error_to_string(ret));
-  return ret;
-}
-
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req) {
   if (obj == NULL) {
     ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));

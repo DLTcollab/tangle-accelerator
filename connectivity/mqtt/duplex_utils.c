@@ -105,8 +105,8 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
   char *sub_topic = NULL;
   int sub_topic_len, api_name_len;
   int root_path_len = strlen(root_path);
-  char *api_names[] = {"address",     "tag/hashes",       "tag/object", "transaction/object", "tryte",
-                       "transaction", "transaction/send", "tips/all",   "tips/pair"};
+  char *api_names[] = {"address", "tag/hashes",  "tag/object",      "transaction/object",
+                       "tryte",   "transaction", "transaction/send"};
 
   const int api_num = ARRAY_SIZE(api_names);
   for (int i = 0; i < api_num; i++) {

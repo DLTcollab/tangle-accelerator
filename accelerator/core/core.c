@@ -119,55 +119,6 @@ done:
   return ret;
 }
 
-static status_t ta_generate_address_helper(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                                           ta_generate_address_res_t* res) {
-  if (res == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_TA_NULL));
-    return SC_TA_NULL;
-  }
-
-  status_t ret = SC_OK;
-  hash243_queue_t out_address = NULL;
-  flex_trit_t seed_trits[FLEX_TRIT_SIZE_243];
-  flex_trits_from_trytes(seed_trits, NUM_TRITS_HASH, (const tryte_t*)iconf->seed, NUM_TRYTES_HASH, NUM_TRYTES_HASH);
-  address_opt_t opt = {.security = 3, .start = 0, .total = 0};
-
-  ret = iota_client_get_new_address(service, seed_trits, opt, &out_address);
-
-  if (ret) {
-    ret = SC_CCLIENT_FAILED_RESPONSE;
-    ta_log_error("%s\n", ta_error_to_string(ret));
-  } else {
-    res->addresses = out_address;
-  }
-  return ret;
-}
-
-static status_t ta_generate_address_thread(void* args) {
-  ta_generate_address_args_t* arg = (ta_generate_address_args_t*)args;
-  return ta_generate_address_helper(arg->iconf, arg->service, arg->res);
-}
-
-status_t ta_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                             ta_generate_address_res_t* res) {
-  ta_generate_address_args_t args = {.iconf = iconf, .service = service, .res = res};
-  int* rval;
-  const struct itimerspec timeout = {.it_interval = {.tv_sec = 0, .tv_nsec = 0},
-                                     .it_value = {.tv_sec = 50, .tv_nsec = 0}};
-
-  ta_timer_t* timer_id = ta_timer_start(&timeout, ta_generate_address_thread, (void*)&args);
-  if (timer_id != NULL) {
-    if (ta_timer_stop(timer_id, (void**)&rval) != SC_OK) {
-      ta_log_error("%s\n", ta_error_to_string(SC_CCLIENT_FAILED_RESPONSE));
-    }
-  } else {
-    ta_log_error("%s\n", ta_error_to_string(SC_TA_OOM));
-    return SC_TA_OOM;
-  }
-
-  return (status_t)rval;
-}
-
 status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* const iconf,
                           const iota_client_service_t* const service, const ta_cache_t* const cache,
                           const ta_send_transfer_req_t* const req, ta_send_transfer_res_t* res) {

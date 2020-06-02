@@ -57,55 +57,6 @@ status_t api_get_ta_info(ta_config_t* const info, iota_config_t* const tangle, t
                          char** json_result);
 
 /**
- * @brief Generate an unused address.
- *
- * Generate and return an unused address from the seed. An unused address means
- * the address does not have any transaction with it yet.
- *
- * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IOTA node service
- * @param[out] json_result Result containing an unused address in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_generate_address(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                              char** json_result);
-
-/**
- * @brief Get trunk and branch transactions
- *
- * Get a tips pair as trunk/branch transactions for transaction construction.
- * The result is char array in json format:
- *
- * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IOTA node service
- * @param[out] json_result Result containing a tips pair in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_tips_pair(const iota_config_t* const iconf, const iota_client_service_t* const service,
-                           char** json_result);
-
-/**
- * @brief Get list of all tips from IRI node.
- *
- * Get list of all tips from IRI node which usually hash thousands of tips in
- * its queue.
- *
- * @param[in] service IOTA node service
- * @param[out] json_result Result containing list of all tips in json format
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t api_get_tips(const iota_client_service_t* const service, char** json_result);
-
-/**
  * @brief Receive MAM messages.
  *
  * Receive a MAM message from given channel id or bundle hash.
