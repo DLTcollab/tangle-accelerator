@@ -538,7 +538,7 @@ status_t ta_update_iri_connection(ta_config_t* const ta_conf, iota_client_servic
   for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
     // update new IRI host
 
-    service->http.host = ta_conf->iota_host_list[i];
+    strncpy(service->http.host, ta_conf->iota_host_list[i], HOST_MAX_LEN);
     service->http.port = ta_conf->iota_port_list[i];
     ta_log_info("Try to connect to %s:%d\n", service->http.host, service->http.port);
 

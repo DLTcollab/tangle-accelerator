@@ -667,6 +667,7 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
   mam_api_t mam;
   bundle_array_t *bundle_array = NULL;
   bundle_array_new(&bundle_array);
+  mam_pk_t_set_t init_trusted_ch = NULL;
   recv_mam_data_id_mam_v1_t *data_id = (recv_mam_data_id_mam_v1_t *)req->data_id;
   recv_mam_key_mam_v1_t *key = (recv_mam_key_mam_v1_t *)req->key;
   if (mam_api_init(&mam, (tryte_t *)iconf->seed) != RC_OK) {
@@ -720,7 +721,6 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
   }
 
   // Copy the trusted_channel_pks, before fetching the information from MAM.
-  mam_pk_t_set_t init_trusted_ch = NULL;
   mam_pk_t_set_entry_t *curr_entry = NULL;
   mam_pk_t_set_entry_t *tmp_entry = NULL;
   HASH_ITER(hh, mam.trusted_channel_pks, curr_entry, tmp_entry) {

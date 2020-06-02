@@ -11,12 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "common/macros.h"
 #include "utils/cipher.h"
 
 #define IV_LEN 16
 #define UINT32_LEN 10
 #define UINT64_LEN 20
+#define STR_HELPER(num) #num
+#define STR(num) STR_HELPER(num)
 
 status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_len) {
   /* FIXME: Provide some checks here */

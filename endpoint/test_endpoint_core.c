@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "common/macros.h"
 #include "common/ta_errors.h"
 #include "endpoint_core.h"
 #include "tests/test_define.h"

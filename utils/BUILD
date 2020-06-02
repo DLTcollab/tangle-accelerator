@@ -5,7 +5,7 @@ cc_library(
     srcs = ["fill_nines.h"],
     deps = [
         "//common:ta_errors",
-        "@entangled//common/model:transaction",
+        "@org_iota_common//common/model:transaction",
     ],
 )
 
@@ -15,7 +15,7 @@ cc_library(
     deps = [
         "//common:ta_errors",
         "@com_github_uthash//:uthash",
-        "@entangled//common/model:bundle",
+        "@org_iota_common//common/model:bundle",
     ],
 )
 
@@ -41,7 +41,7 @@ cc_library(
 cc_library(
     name = "char_buffer_str",
     srcs = ["char_buffer_str.h"],
-    deps = ["@entangled//utils:char_buffer"],
+    deps = ["@org_iota_common//utils:char_buffer"],
 )
 
 cc_library(
@@ -71,7 +71,7 @@ cc_library(
     hdrs = ["text_serializer.h"],
     deps = [
         ":cipher",
-        "//common",
+        "//common:ta_errors",
     ],
 )
 

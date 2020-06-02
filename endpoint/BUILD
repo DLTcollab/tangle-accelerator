@@ -9,7 +9,8 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//common",
+        "//common:ta_errors",
+        "//common:ta_logger",
         "//utils:cipher",
         "//utils:https",
         "//utils:text_serializer",
@@ -24,7 +25,8 @@ cc_test(
     ],
     deps = [
         ":endpoint_core",
-        "//common",
+        "//common:ta_errors",
+        "//common:ta_logger",
         "//tests:test_define",
     ],
 )
@@ -42,7 +44,8 @@ cc_binary(
     ],
     linkshared = True,
     deps = [
-        "//common",
+        "//common:ta_errors",
+        "//common:ta_logger",
         "//utils:cipher",
         "//utils:https",
         "//utils:text_serializer",

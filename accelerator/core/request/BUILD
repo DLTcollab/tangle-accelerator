@@ -10,10 +10,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//common",
-        "@entangled//common:errors",
-        "@entangled//common/model:transaction",
-        "@entangled//common/trinary:tryte",
-        "@entangled//utils/containers/hash:hash243_queue",
-        "@entangled//utils/containers/hash:hash81_queue",
+        "@org_iota_common//common:errors",
+        "@org_iota_common//common/model:transaction",
+        "@org_iota_common//common/trinary:tryte",
+        "@org_iota_common//utils/containers/hash:hash243_queue",
+        "@org_iota_common//utils/containers/hash:hash81_queue",
     ],
 )

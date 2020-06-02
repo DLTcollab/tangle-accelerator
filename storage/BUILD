@@ -41,10 +41,10 @@ cc_library(
     deps = [
         ":scylladb_client",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient/request:requests",
-        "@entangled//cclient/response:responses",
-        "@entangled//utils/containers/hash:hash243_queue",
-        "@entangled//utils/containers/hash:hash8019_queue",
+        "@iota.c//cclient/request:requests",
+        "@iota.c//cclient/response:responses",
+        "@org_iota_common//utils/containers/hash:hash243_queue",
+        "@org_iota_common//utils/containers/hash:hash8019_queue",
     ],
 )
 
@@ -55,6 +55,6 @@ cc_library(
     linkopts = ["-lcassandra"],
     deps = [
         "//common",
-        "@entangled//common/model:bundle",
+        "@org_iota_common//common/model:bundle",
     ],
 )

@@ -7,7 +7,8 @@ cc_library(
         "conn_http.h",
     ],
     deps = [
-        "//common",
+        "//common:ta_errors",
+        "//common:ta_logger",
         "//pem:cert",
         "@http_parser",
         "@mbedtls_2_16_6",

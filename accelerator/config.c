@@ -89,7 +89,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       for (char* p = strtok(value, ","); p && idx < MAX_IRI_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
         ta_conf->iota_host_list[idx] = p;
       }
-      iota_service->http.host = ta_conf->iota_host_list[0];
+      strncpy(iota_service->http.host, ta_conf->iota_host_list[0], HOST_MAX_LEN);
       break;
     case IRI_PORT_CLI:
       idx = 0;
@@ -216,10 +216,10 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 }
 
 status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port) {
-  service->http.path = "/";
-  service->http.content_type = "application/json";
-  service->http.accept = "application/json";
-  service->http.host = host;
+  strncpy(service->http.path, "/", CONTENT_TYPE_MAX_LEN);
+  strncpy(service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(service->http.host, host, HOST_MAX_LEN);
   service->http.port = port;
   service->http.api_version = 1;
   service->http.ca_pem = NULL;
@@ -276,10 +276,10 @@ status_t ta_core_default_init(ta_core_t* const core) {
   iota_conf->mam_file_path = strdup(mam_file_path);
 
   ta_log_info("Initializing IRI connection\n");
-  iota_service->http.path = "/";
-  iota_service->http.content_type = "application/json";
-  iota_service->http.accept = "application/json";
-  iota_service->http.host = IRI_HOST;
+  strncpy(iota_service->http.path, "/", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.host, IRI_HOST, HOST_MAX_LEN);
   iota_service->http.port = IRI_PORT;
   iota_service->http.api_version = 1;
   iota_service->serializer_type = SR_JSON;
@@ -439,12 +439,17 @@ status_t ta_core_set(ta_core_t* core) {
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
 #endif
-  if (iota_client_core_init(iota_service)) {
+  if (iota_client_service_init(iota_service)) {
     ta_log_error("Initializing IRI connection failed!\n");
     ret = SC_TA_OOM;
     goto exit;
   }
-  iota_client_extended_init();
+
+  // Initialize logger in 'iota.c'
+  logger_helper_init(LOGGER_DEBUG);
+  logger_init_client_core(LOGGER_DEBUG);
+  logger_init_client_extended(LOGGER_DEBUG);
+  logger_init_json_serializer(LOGGER_DEBUG);
 
   ta_log_info("Initializing PoW implementation context\n");
   pow_init();
@@ -462,8 +467,6 @@ exit:
 
 void ta_core_destroy(ta_core_t* const core) {
   ta_log_info("Destroying IRI connection\n");
-  iota_client_extended_destroy();
-  iota_client_core_destroy(&core->iota_service);
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
@@ -471,5 +474,8 @@ void ta_core_destroy(ta_core_t* const core) {
   pow_destroy();
   cache_stop(&core->cache.rwlock);
   logger_helper_release(logger_id);
+  logger_destroy_client_core();
+  logger_destroy_client_extended();
+  logger_destroy_json_serializer();
   br_logger_release();
 }

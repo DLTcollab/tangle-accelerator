@@ -2,7 +2,7 @@ sources:
 {
     ${CURDIR}/../endpoint_core.c
 
-    ${CURDIR}/../../output_base/external/entangled/utils/logger_helper.c
+    ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
 
     ${CURDIR}/../../output_base/external/http_parser/http_parser.c
 
@@ -76,32 +76,12 @@ cflags:
     -I${CURDIR}/../..
 
     // The header files under this directory are downloaded only when the corresponding 'bazel build' command is used
-    -I${CURDIR}/../../output_base/execroot/__main__/bazel-out/k8-fastbuild/bin/external/entangled
+    -I${CURDIR}/../../output_base/execroot/__main__/bazel-out/k8-fastbuild/bin/external/org_iota_common
 
     -I${CURDIR}/../../output_base/external/com_github_uthash/src
     -I${CURDIR}/../../output_base/external/com_github_embear_logger/include
-    -I${CURDIR}/../../output_base/external/entangled
+    -I${CURDIR}/../../output_base/external/org_iota_common
     -I${CURDIR}/../../output_base/external/http_parser
-    -I${CURDIR}/../../output_base/external/keccak
-    -I${CURDIR}/../../output_base/external/keccak/lib/high/Keccak
-    -I${CURDIR}/../../output_base/external/keccak/lib/common
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX512a
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmX86-64
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Inplace32BI
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedXOP
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX512c
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized32biAsmARM
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmAVR8
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAVX2
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/OptimizedAsmARM
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Compact64
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Reference
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forNehalem
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forHaswell
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64/CompiledByGCC474forSandyBridge
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Reference32BI
-    -I${CURDIR}/../../output_base/external/keccak/lib/low/KeccakP-1600/Optimized64AsmARM
     -I${CURDIR}/../../output_base/external/mbedtls_2_16_6/include
 }
 
