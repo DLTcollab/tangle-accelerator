@@ -39,6 +39,20 @@ typedef struct ta_cipher_ctx {
 } ta_cipher_ctx;
 
 /**
+ * @brief Initialize logger of cipher
+ */
+void cipher_logger_init();
+
+/**
+ * @brief Release logger of cipher
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int cipher_logger_release();
+
+/**
  * @brief Encrypt plaintext
  *
  * @param[in] ctx The ta_cipher_ctx to be encrypted

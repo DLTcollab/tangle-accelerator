@@ -62,6 +62,10 @@ void test_endpoint(void) {
 
 int main(void) {
   UNITY_BEGIN();
+  endpoint_init();
+
   RUN_TEST(test_endpoint);
+
+  endpoint_destroy();
   return UNITY_END();
 }

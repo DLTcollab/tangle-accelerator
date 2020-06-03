@@ -16,6 +16,16 @@
 #include "common/ta_errors.h"
 
 /**
+ * @brief Initialization of endpoint
+ */
+void endpoint_init(void);
+
+/**
+ * @brief Destruction of endpoint
+ */
+void endpoint_destroy(void);
+
+/**
  * @brief Send transaction information to tangle accelerator
  *
  * @param[in] value Amount of the IOTA currency will be sent
