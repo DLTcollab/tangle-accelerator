@@ -63,6 +63,7 @@ extern "C" {
 #define DONE_LIST_NAME "done_txn_buff_list"
 #define CACHE_MAX_CAPACITY 170 * 1024 * 1024  // default to 170MB
 #define HEALTH_TRACK_PERIOD 1800              // Check every half hour in default
+#define RESULT_SET_LIMIT 100  // The maximun returned transaction object number when querying transaction object by tag
 
 /** @name Redis connection config */
 /** @{ */
