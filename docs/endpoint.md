@@ -10,3 +10,9 @@ A message sent by endpoint needs to be encrypted locally, which avoids message b
 $ bazel build //endpoint:wp7702
 $ bazel build //endpoint:sim
 ```
+
+## HTTPS Connection Support
+The endpoint uses http connection as default. The message which sent to tangle-accelerator has been encrypted. So the HTTP connection would not be unsafe. To build with https connection support, add `--define https=enable` option.
+```
+$ bazel build --define https=enable //endpoint:wp7702
+```

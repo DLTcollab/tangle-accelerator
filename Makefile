@@ -20,7 +20,7 @@ $(DCURL_LIB): $(DCURL_DIR)
 	$(info Modify $^/build/local.mk for your environments.)
 	$(MAKE) -C $^ all
 
-MQTT: $(DCURL_LIB) $(MOSQUITTO_LIB)
+MQTT: $(DCURL_LIB) $(MOSQUITTO_LIB) cert
 $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 	git submodule update --init $^
 	@echo

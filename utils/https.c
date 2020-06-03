@@ -24,7 +24,12 @@ status_t send_https_msg(char const *host, char const *port, char const *api, con
   http_parser_settings settings;
   settings.on_body = parser_body_callback;
 
+#ifdef ENDPOINT_HTTPS
   connect_info_t info = {.https = true};
+#else
+  connect_info_t info = {.https = false};
+#endif
+
   /* FIXME:Provide some checks here */
   http_open(&info, ssl_seed, host, port);
   http_send_request(&info, req);

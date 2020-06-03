@@ -59,10 +59,19 @@ cc_library(
     name = "https",
     srcs = ["https.c"],
     hdrs = ["https.h"],
+    defines = select({
+        ":https_enable": ["ENDPOINT_HTTPS"],
+        "//conditions:default": [],
+    }),
     deps = [
         "//common:ta_errors",
         "//utils/connectivity:conn_http",
     ],
+)
+
+config_setting(
+    name = "https_enable",
+    values = {"define": "https=enable"},
 )
 
 cc_library(
