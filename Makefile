@@ -27,7 +27,7 @@ $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 	$(MAKE) -C $^ WITH_DOCS=no
 
 # Build endpoint Legato app
-legato:
+legato: cert
 	# Generate resolv.conf
 	echo "nameserver $(NAMESERVER)" > $(RESOLV_CONF_DIR)/resolv.conf
 	# Fetch the required external source code
