@@ -2,6 +2,8 @@ sources:
 {
     ${CURDIR}/../endpoint_core.c
 
+    ${CURDIR}/../../output_base/external/entangled/utils/logger_helper.c
+
     ${CURDIR}/../../output_base/external/http_parser/http_parser.c
 
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aes.c
@@ -76,6 +78,7 @@ cflags:
     -I${CURDIR}/../../output_base/execroot/__main__/bazel-out/k8-fastbuild/bin/external/entangled
 
     -I${CURDIR}/../../output_base/external/com_github_uthash/src
+    -I${CURDIR}/../../output_base/external/com_github_embear_logger/include
     -I${CURDIR}/../../output_base/external/entangled
     -I${CURDIR}/../../output_base/external/http_parser
     -I${CURDIR}/../../output_base/external/keccak

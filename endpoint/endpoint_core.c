@@ -87,7 +87,7 @@ status_t send_transaction_information(int value, const char* message, const char
   ret = aes_encrypt(&encrypt_ctx);
   memcpy(iv, encrypt_ctx.iv, AES_IV_SIZE);
 
-  if (ret != RET_OK) {
+  if (ret != SC_OK) {
     ta_log_error("Encrypt message error.\n");
     return ret;
   }
@@ -102,7 +102,7 @@ status_t send_transaction_information(int value, const char* message, const char
     return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, MAX_MSG_LEN, SSL_SEED) != RET_OK) {
+  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, SSL_SEED) != SC_OK) {
     ta_log_error("http message sending error.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
   }
