@@ -17,10 +17,6 @@ void scylladb_logger_init() { logger_id = logger_helper_enable(SCYLLADB_LOGGER, 
 
 int scylladb_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    log_critical(logger_id, "%s.\n", SCYLLADB_LOGGER);
-    return EXIT_FAILURE;
-  }
   return 0;
 }
 

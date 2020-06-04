@@ -25,11 +25,6 @@ void ta_mam_logger_init() { logger_id = logger_helper_enable(MAM_LOGGER, LOGGER_
 
 int ta_mam_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", MAM_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 

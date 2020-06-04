@@ -214,13 +214,11 @@ int main(int argc, char* argv[]) {
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
-  cc_logger_init();
-  pow_logger_init();
-  timer_logger_init();
 
   ta_core_default_init(&ta_core);
   driver_core_cli_init(&ta_core, argc, argv, NULL);
   ta_core_set(&ta_core);
+  ta_logger_switch(false, true, &ta_core.ta_conf);
 
   UNITY_BEGIN();
   RUN_TEST(test_broadcast_buffered_txn);

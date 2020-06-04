@@ -32,11 +32,6 @@ void br_logger_init() { logger_id = logger_helper_enable(BR_LOGGER, LOGGER_DEBUG
 
 int br_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", BR_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
@@ -255,6 +250,16 @@ long int redis_occupied_space(redisContext* c) {
   return -1;
 }
 
+void redis_set_capacity(redisContext* c, char* size) {
+  redisReply* reply = redisCommand(c, "CONFIG SET maxmemory %s", size);
+  printf("%s\n", reply->str);
+}
+
+void redis_get_capacity(redisContext* c) {
+  redisReply* reply = redisCommand(c, "CONFIG GET maxmemory");
+  printf("%s\n", reply->element[1]->str);
+}
+
 /*
  * Public functions
  */
@@ -376,4 +381,24 @@ long int cache_occupied_space() {
   }
 
   return redis_occupied_space(CONN(cache)->rc);
+}
+
+long int cache_set_capacity(char* size) {
+  if (!state) {
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
+    return SC_CACHE_OFF;
+  }
+
+  redis_set_capacity(CONN(cache)->rc, size);
+  return 1;
+}
+
+long int cache_get_capacity() {
+  if (!state) {
+    ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
+    return SC_CACHE_OFF;
+  }
+
+  redis_get_capacity(CONN(cache)->rc);
+  return 1;
 }

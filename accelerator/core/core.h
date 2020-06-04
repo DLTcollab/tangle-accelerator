@@ -36,20 +36,6 @@ extern "C" {
  */
 
 /**
- * Initialize logger
- */
-void cc_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int cc_logger_release();
-
-/**
  * @brief Send transfer to tangle.
  *
  * Build the transfer bundle from request and broadcast to the tangle. Input

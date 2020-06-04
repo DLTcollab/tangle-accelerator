@@ -13,11 +13,7 @@ static logger_id_t logger_id;
 void conn_logger_init() { logger_id = logger_helper_enable(CONN_LOGGER, LOGGER_DEBUG, true); }
 
 int conn_logger_release() {
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", CONN_LOGGER);
-    return EXIT_FAILURE;
-  }
-
+  logger_helper_release(logger_id);
   return 0;
 }
 

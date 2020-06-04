@@ -19,11 +19,6 @@ void apis_logger_init() { logger_id = logger_helper_enable(APIS_LOGGER, LOGGER_D
 
 int apis_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", APIS_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 

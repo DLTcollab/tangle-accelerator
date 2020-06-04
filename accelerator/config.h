@@ -92,9 +92,16 @@ typedef struct ta_config_s {
   char* mqtt_topic_root; /**< The topic root of MQTT topic */
 #endif
   uint8_t http_tpool_size; /**< Thread count of tangle-accelerator instance */
-  bool proxy_passthrough;  /**< Pass proxy api directly without processing */
-  bool gtta;               /**< The option to turn on or off GTTA. The default value is true which enabling GTTA */
+  uint32_t cli_options;    /**< Command line options */
 } ta_config_t;
+
+/** Command line options */
+enum {
+  CLI_PROXY_PASSTHROUGH = 1 << 0, /**< Pass proxy api directly without processing */
+  CLI_GTTA = 1 << 1,        /**< The option to turn on or off GTTA. The default value is true which enabling GTTA */
+  CLI_RUNTIME_CLI = 1 << 2, /**< The option to turn on or off runtime command line functionality. False by default */
+  CLI_QUIET_MODE = 1 << 3,  /**< The option to turn on or off quiet mode. False by default */
+};
 
 /** struct type of iota configuration */
 typedef struct iota_config_s {
@@ -210,6 +217,15 @@ status_t ta_core_set(ta_core_t* const core);
 void ta_core_destroy(ta_core_t* const core);
 
 /**
+ * @brief Switch logger verbose level between quiet level and verbose level
+ *
+ * @param[in] quiet Switch to quiet mode or not
+ * @param[in] init Initialization or not
+ * @param[in] conf Tangle-accelerator configuration variables
+ */
+void ta_logger_switch(bool quiet, bool init, ta_config_t* conf);
+
+/**
  * @brief Initializes iota_client_service
  *
  * @param[in] service IOTA client service
@@ -228,6 +244,18 @@ status_t ta_set_iota_client_service(iota_client_service_t* service, char const* 
  * @brief Notify other process with unix domain socket
  */
 void notification_trigger();
+
+/**
+ * @brief Check whether a command line option is enabled or not
+ *
+ * @param[in] ta_config Tangle-accelerator configuration variables
+ * @param[in] option The option to be checked
+ *
+ * @return
+ * - true if the option is enabled
+ * - false if the option is not enabled
+ */
+bool is_option_enabled(const ta_config_t* const ta_config, uint32_t option);
 
 #ifdef __cplusplus
 }

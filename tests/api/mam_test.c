@@ -238,15 +238,12 @@ int main(int argc, char* argv[]) {
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
-  apis_logger_init();
   ta_mam_logger_init();
-  cc_logger_init();
-  pow_logger_init();
-  timer_logger_init();
 
   ta_core_default_init(&ta_core);
   ta_core_cli_init(&ta_core, argc, argv);
   ta_core_set(&ta_core);
+  ta_logger_switch(false, true, &ta_core.ta_conf);
 
   printf("Total samples for each API test: %d\n", TEST_COUNT);
   RUN_TEST(test_send_mam_message);

@@ -20,6 +20,7 @@ cc_binary(
     }),
     deps = [
         ":ta_config",
+        ":ta_cli",
         "//connectivity/http",
         "@org_iota_common//utils/handles:signal",
     ] + select({
@@ -31,6 +32,19 @@ cc_binary(
 )
 
 cc_library(
+    name = "ta_cli",
+    srcs = ["runtime_cli.c"],
+    hdrs = ["runtime_cli.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ta_config",
+        "//common:ta_logger",
+        "//utils/cache",
+        "@org_iota_common//utils:macros",
+    ],
+)
+
+cc_library(
     name = "ta_config",
     srcs = ["config.c"],
     hdrs = ["config.h"],
@@ -39,6 +53,7 @@ cc_library(
         ":cli_info",
         "//accelerator/core:pow",
         "//common",
+        "//utils:timer",
         ":build_option",
         "//utils/cache",
         "//utils:cpuinfo",

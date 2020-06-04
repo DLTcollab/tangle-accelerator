@@ -23,22 +23,11 @@ extern "C" {
  */
 
 /**
- * @brief Initialize logger
- */
-void mqtt_callback_logger_init();
-
-/**
- * @brief Release logger
+ * @breif Initialize ta_core
  *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
+ * @param[in] core `struct ta_core_t` object
  */
-int mqtt_callback_logger_release();
-
-/**
- * @file connectivity/mqtt/duplex_callback.h
- */
+void ta_mqtt_init(ta_core_t *const core);
 
 /**
  * @brief Interface for functions setting callback functions.

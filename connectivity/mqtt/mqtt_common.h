@@ -122,20 +122,6 @@ typedef struct mosq_config_s {
 } mosq_config_t;
 
 /**
- * @brief Initialize logger
- */
-void mqtt_common_logger_init();
-
-/**
- * @brief Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int mqtt_common_logger_release();
-
-/**
  * @brief Initialize `mosq_config_t` object
  *
  * @param[in] cfg `mosq_config_t` object

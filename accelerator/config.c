@@ -98,10 +98,22 @@ done:
 }
 
 status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET && key != NO_GTTA)) {
-    ta_log_error("%s\n", "SC_NULL");
-    return SC_NULL;
+  if (value == NULL) {
+    switch (key) {
+      /* No argument */
+      case CACHE:
+      case PROXY_API:
+      case QUIET:
+      case NO_GTTA:
+      case RUNTIME_CLI:
+        break;
+      /* Need argument but no value found */
+      default:
+        ta_log_error("%s\n", "SC_NULL");
+        return SC_NULL;
+    }
   }
+
   ta_config_t* const ta_conf = &core->ta_conf;
   iota_config_t* const iota_conf = &core->iota_conf;
   ta_cache_t* const cache = &core->cache;
@@ -250,22 +262,25 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case SEED_CLI:
       iota_conf->seed = value;
       break;
-
-    // Quiet mode configuration
-    case QUIET:
-      quiet_mode = true;
-      break;
-    case PROXY_API:
-      ta_conf->proxy_passthrough = true;
-      break;
-    case NO_GTTA:
-      ta_conf->gtta = false;
-      break;
     case BUFFER_LIST:
       cache->buffer_list_name = value;
       break;
     case DONE_LIST:
       cache->done_list_name = value;
+      break;
+
+    // Command line options configuration
+    case QUIET:
+      ta_conf->cli_options |= CLI_QUIET_MODE;
+      break;
+    case PROXY_API:
+      ta_conf->cli_options |= CLI_PROXY_PASSTHROUGH;
+      break;
+    case NO_GTTA:
+      ta_conf->cli_options |= CLI_GTTA;
+      break;
+    case RUNTIME_CLI:
+      ta_conf->cli_options |= CLI_RUNTIME_CLI;
       break;
 
     // File configuration
@@ -318,9 +333,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
     ta_conf->iota_port_list[i] = NODE_PORT;
   }
   ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
-  ta_conf->proxy_passthrough = false;
   ta_conf->health_track_period = HEALTH_TRACK_PERIOD;
-  ta_conf->gtta = true;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
@@ -354,8 +367,13 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
 #endif
-  // Turn off quiet mode default
-  quiet_mode = false;
+  // Command line options set default to 0
+  ta_conf->cli_options &= ~CLI_QUIET_MODE;
+  ta_conf->cli_options &= ~CLI_RUNTIME_CLI;
+  ta_conf->cli_options &= ~CLI_PROXY_PASSTHROUGH;
+
+  // Command line options set default to 1
+  ta_conf->cli_options |= CLI_GTTA;
 
   return ret;
 }
@@ -544,7 +562,52 @@ void ta_core_destroy(ta_core_t* const core) {
   logger_destroy_client_core();
   logger_destroy_client_extended();
   logger_destroy_json_serializer();
-  br_logger_release();
+}
+
+bool is_option_enabled(const ta_config_t* const ta_config, uint32_t option) {
+  return (bool)(ta_config->cli_options & option);
+}
+
+void ta_logger_switch(bool quiet, bool init, ta_config_t* ta_conf) {
+  if (quiet != is_option_enabled(ta_conf, CLI_QUIET_MODE) || init) {
+    if (quiet == false) {
+#ifdef MQTT_ENABLE
+      mqtt_utils_logger_init();
+      mqtt_common_logger_init();
+      mqtt_callback_logger_init();
+      mqtt_pub_logger_init();
+      mqtt_sub_logger_init();
+#else
+      http_logger_init();
+#endif
+      conn_logger_init();
+      apis_logger_init();
+      cc_logger_init();
+      serializer_logger_init();
+      pow_logger_init();
+      timer_logger_init();
+      br_logger_init();
+      ta_conf->cli_options &= ~CLI_QUIET_MODE;
+    } else {
+#ifdef MQTT_ENABLE
+      mqtt_utils_logger_release();
+      mqtt_common_logger_release();
+      mqtt_callback_logger_release();
+      mqtt_pub_logger_release();
+      mqtt_sub_logger_release();
+#else
+      http_logger_release();
+#endif
+      conn_logger_release();
+      apis_logger_release();
+      cc_logger_release();
+      serializer_logger_release();
+      pow_logger_release();
+      timer_logger_release();
+      br_logger_release();
+      ta_conf->cli_options |= CLI_QUIET_MODE;
+    }
+  }
 }
 
 #define DOMAIN_SOCKET "/tmp/tangle-accelerator-socket"

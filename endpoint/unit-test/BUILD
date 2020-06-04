@@ -6,6 +6,7 @@ cc_test(
     deps = [
         "//endpoint:https",
         "//endpoint/connectivity:conn_http",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
@@ -19,6 +20,7 @@ cc_test(
         "//common:ta_errors",
         "//common:ta_logger",
         "//endpoint:endpoint_core",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )

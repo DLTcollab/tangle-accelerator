@@ -66,7 +66,233 @@ static inline status_t ta_logger_init() {
     fflush(stdout);                                                     \
   } while (0)
 
-bool quiet_mode; /**< flag of quiet mode */
+#ifdef MQTT_ENABLE
+/**
+ * @brief Initialize MQTT utils logger
+ *
+ * This function is implemented in connectivity/mqtt/duplex_utils.c
+ */
+void mqtt_utils_logger_init();
+/**
+ * @brief Release MQTT utils logger
+ *
+ * This function is implemented in connectivity/mqtt/duplex_utils.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_utils_logger_release();
+
+/**
+ * @brief Initialize MQTT common logger
+ *
+ * This function is implemented in connectivity/mqtt/mqtt_common.c
+ */
+void mqtt_common_logger_init();
+/**
+ * @brief Release MQTT common logger
+ *
+ * This function is implemented in connectivity/mqtt/mqtt_common.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_common_logger_release();
+
+/**
+ * @brief Initialize MQTT callback logger
+ *
+ * This function is implemented in connectivity/mqtt/duplex_callback.c
+ */
+void mqtt_callback_logger_init();
+/**
+ * @brief Release MQTT callback logger
+ *
+ * This function is implemented in connectivity/mqtt/duplex_callback.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_callback_logger_release();
+
+/**
+ * @brief Initialize MQTT pub logger
+ *
+ * This function is implemented in connectivity/mqtt/pub_utils.c
+ */
+void mqtt_pub_logger_init();
+/**
+ * @brief Release MQTT pub logger
+ *
+ * This function is implemented in connectivity/mqtt/pub_utils.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_pub_logger_release();
+
+/**
+ * @brief Initialize MQTT sub logger
+ *
+ * This function is implemented in connectivity/mqtt/sub_utils.c
+ */
+void mqtt_sub_logger_init();
+/**
+ * @brief Release MQTT sub logger
+ *
+ * This function is implemented in connectivity/mqtt/sub_utils.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int mqtt_sub_logger_release();
+#else
+/**
+ * @brief Initialize http logger
+ *
+ * This function is implemented in connectivity/http/http.c
+ */
+void http_logger_init();
+/**
+ * @brief Release conn logger
+ *
+ * This function is implemented in connectivity/http/http.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int http_logger_release();
+#endif /* MQTT_ENABLE */
+
+/**
+ * @brief Initialize conn logger
+ *
+ * This function is implemented in connectivity/common.c
+ */
+void conn_logger_init();
+/**
+ * @brief Release conn logger
+ *
+ * This function is implemented in connectivity/common.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int conn_logger_release();
+
+/**
+ * @brief Initialize apis logger
+ *
+ * This function is implemented in accelerator/core/apis.c
+ */
+void apis_logger_init();
+
+/**
+ * @brief Release apis logger
+ *
+ * This function is implemented in accelerator/core/apis.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int apis_logger_release();
+
+/**
+ * @brief Initialize core logger
+ *
+ * This function is implemented in accelerator/core/core.c
+ */
+void cc_logger_init();
+
+/**
+ * @brief Release logger
+ *
+ * This function is implemented in accelerator/core/core.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int cc_logger_release();
+
+/**
+ * @brief Initialize serializer logger
+ *
+ * This function is implemented in accelerator/core/serializer/serializer.c
+ */
+void serializer_logger_init();
+
+/**
+ * @brief Release serializer logger
+ *
+ * This function is implemented in accelerator/core/serializer/serializer.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int serializer_logger_release();
+
+/**
+ * @brief Initialize PoW logger
+ *
+ * This function is implemented in accelerator/core/pow.c
+ */
+void pow_logger_init();
+
+/**
+ * @brief Release PoW logger
+ *
+ * This function is implemented in accelerator/core/pow.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int pow_logger_release();
+
+/**
+ * @brief Initialize timer logger
+ *
+ * This function is implemented in utils/timer.c
+ */
+void timer_logger_init();
+/**
+ * @brief Release timer logger
+ *
+ * This function is implemented in utils/timer.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int timer_logger_release();
+
+/**
+ * @brief Initialize backend_redis logger
+ *
+ * This function is implemented in utils/cache/backend_redis.c
+ */
+void br_logger_init();
+
+/**
+ * @brief Release logger
+ *
+ * This function is implemented in utils/cache/backend_redis.c
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int br_logger_release();
 
 #ifdef __cplusplus
 }

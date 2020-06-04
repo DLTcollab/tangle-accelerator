@@ -35,20 +35,6 @@ typedef struct {
 } cache_t;
 
 /**
- * Initialize logger
- */
-void br_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int br_logger_release();
-
-/**
  * @brief Initiate cache module. This function can be called in 'config.c' only.
  *
  * @param[in,out] rwlock Read/Write lock object.
@@ -196,6 +182,24 @@ status_t cache_list_pop(const char* const key, char* res);
  * - -1 on error
  */
 long int cache_occupied_space();
+
+/**
+ * @brief Set maximum memory limit of Redis
+ *
+ * @return
+ * - SC_CACHE_OFF if cache module is not enabled
+ * - 1 if cache module is enabled
+ */
+long int cache_set_capacity(char* size);
+
+/**
+ * @brief Get maximum memory limit of Redis
+ *
+ * @return
+ * - SC_CACHE_OFF if cache module is not enabled
+ * - 1 if cache module is enabled
+ */
+long int cache_get_capacity();
 
 #ifdef __cplusplus
 }

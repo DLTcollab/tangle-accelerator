@@ -14,7 +14,7 @@
 #define MQTT_CALLBACK_LOGGER "duplex_callback"
 static logger_id_t logger_id;
 
-extern ta_core_t ta_core;
+static ta_core_t *ta_core;
 
 void mqtt_callback_logger_init() { logger_id = logger_helper_enable(MQTT_CALLBACK_LOGGER, LOGGER_DEBUG, true); }
 
@@ -27,6 +27,8 @@ int mqtt_callback_logger_release() {
 
   return 0;
 }
+
+void ta_mqtt_init(ta_core_t *const core) { ta_core = core; }
 
 status_t check_valid_tag(char *tag) {
   size_t len = strnlen(tag, NUM_TRYTES_TAG + 1);
@@ -63,10 +65,10 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     goto done;
   }
   iota_client_service_t iota_service;
-  ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
-                             ta_core.iota_service.http.ca_pem);
+  ta_set_iota_client_service(&iota_service, ta_core->iota_service.http.host, ta_core->iota_service.http.port,
+                             ta_core->iota_service.http.ca_pem);
 
-  char *api_sub_topic = subscribe_topic + strlen(ta_core.ta_conf.mqtt_topic_root);
+  char *api_sub_topic = subscribe_topic + strlen(ta_core->ta_conf.mqtt_topic_root);
   if (api_path_matcher(api_sub_topic, "/tag/hashes") == SC_OK) {
     char tag[NUM_TRYTES_TAG + 1] = {0};
     mqtt_tag_req_deserialize(req, tag);
@@ -90,9 +92,9 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
   } else if (api_path_matcher(api_sub_topic, "/transaction/object") == SC_OK) {
     ret = api_find_transaction_objects(&iota_service, req, &json_result);
   } else if (api_path_matcher(api_sub_topic, "/transaction/send") == SC_OK) {
-    ret = api_send_transfer(&ta_core, &iota_service, req, &json_result);
+    ret = api_send_transfer(ta_core, &iota_service, req, &json_result);
   } else if (api_path_matcher(api_sub_topic, "/tryte") == SC_OK) {
-    ret = api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &iota_service, req, &json_result);
+    ret = api_send_trytes(&ta_core->ta_conf, &ta_core->iota_conf, &iota_service, req, &json_result);
   } else {
     cJSON *json_obj = cJSON_CreateObject();
     cJSON_AddStringToObject(json_obj, "message", api_sub_topic);
