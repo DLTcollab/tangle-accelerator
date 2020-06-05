@@ -27,9 +27,31 @@ void mbedtls_debug(void *ctx, int level, const char *file, int line, const char 
   fflush((FILE *)ctx);
 }
 
+static status_t free_info_context(connect_info_t *const info) {
+  if (info->https) {
+    mbedtls_ssl_close_notify(info->ssl_ctx);
+    mbedtls_net_free(info->net_ctx);
+    mbedtls_entropy_free(info->entropy);
+    mbedtls_ctr_drbg_free(info->ctr_drbg);
+    mbedtls_ssl_free(info->ssl_ctx);
+    mbedtls_ssl_config_free(info->ssl_config);
+    mbedtls_x509_crt_free(info->cacert);
+    free(info->net_ctx);
+    free(info->ssl_ctx);
+    free(info->ssl_config);
+    free(info->ctr_drbg);
+    free(info->entropy);
+    free(info->cacert);
+  } else {
+    mbedtls_net_free(info->net_ctx);
+    free(info->net_ctx);
+  }
+  return SC_OK;
+}
+
 status_t http_open(connect_info_t *const info, char const *const seed_nonce, char const *const host,
                    char const *const port) {
-  int ret;
+  int ret = SC_OK;
 
   if (info->https) {
     info->net_ctx = (mbedtls_net_context *)malloc(sizeof(mbedtls_net_context));
@@ -49,33 +71,31 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
     ret = mbedtls_ctr_drbg_seed(info->ctr_drbg, mbedtls_entropy_func, info->entropy, (const unsigned char *)seed_nonce,
                                 strlen(seed_nonce));
     if (ret != 0) {
-      free(info->net_ctx);
-      free(info->ssl_ctx);
-      free(info->ssl_config);
-      free(info->ctr_drbg);
-      free(info->entropy);
-      free(info->cacert);
-      return SC_UTILS_HTTPS_INIT_ERROR;
+      ret = SC_UTILS_HTTPS_INIT_ERROR;
+      goto exit;
     }
 
     ret = mbedtls_x509_crt_parse(info->cacert, ca_crt_pem, ca_crt_pem_len);
     if (ret < 0) {
       printf("error: mbedtls_x509_crt_parse returned -0x%x\n\n", -ret);
-      return SC_UTILS_HTTPS_X509_ERROR;
+      ret = SC_UTILS_HTTPS_X509_ERROR;
+      goto exit;
     }
   }
 
   ret = mbedtls_net_connect(info->net_ctx, host, port, MBEDTLS_NET_PROTO_TCP);
   if (ret != 0) {
     printf("error: mbedtls_net_connect returned %d\n\n", ret);
-    return SC_UTILS_HTTPS_CONN_ERROR;
+    ret = SC_UTILS_HTTPS_CONN_ERROR;
+    goto exit;
   }
 
   ret = mbedtls_ssl_config_defaults(info->ssl_config, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM,
                                     MBEDTLS_SSL_PRESET_DEFAULT);
   if (ret != 0) {
     printf("error: mbedtls_ssl_config_defaults returned %d\n\n", ret);
-    return SC_UTILS_HTTPS_SSL_ERROR;
+    ret = SC_UTILS_HTTPS_SSL_ERROR;
+    goto exit;
   }
 
   mbedtls_ssl_conf_ca_chain(info->ssl_config, info->cacert, NULL);
@@ -87,13 +107,15 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
   ret = mbedtls_ssl_setup(info->ssl_ctx, info->ssl_config);
   if (ret != 0) {
     printf("error: mbedtls_ssl_setup returned %d\n\n", ret);
-    return SC_UTILS_HTTPS_SSL_ERROR;
+    ret = SC_UTILS_HTTPS_SSL_ERROR;
+    goto exit;
   }
 
   ret = mbedtls_ssl_set_hostname(info->ssl_ctx, host);
   if (ret != 0) {
     printf("error: mbedtls_ssl_set_hostname returned %d\n\n", ret);
-    return SC_UTILS_HTTPS_SSL_ERROR;
+    ret = SC_UTILS_HTTPS_SSL_ERROR;
+    goto exit;
   }
 
   // Here is Blocking mode
@@ -104,7 +126,8 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
     if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
       printf("error: mbedtls_ssl_handshake returned -0x%x\n\n", -ret);
       mbedtls_ssl_session_reset(info->ssl_ctx);
-      return SC_UTILS_HTTPS_SSL_ERROR;
+      ret = SC_UTILS_HTTPS_SSL_ERROR;
+      goto exit;
     }
   }
 
@@ -116,7 +139,10 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
     mbedtls_x509_crt_verify_info(vrfy_buf, sizeof(vrfy_buf), "", flags);
     printf("error: %s\n", vrfy_buf);
   }
-  return SC_OK;
+
+exit:
+  free_info_context(info);
+  return ret;
 }
 
 status_t http_send_request(connect_info_t *const info, const char *req) {
@@ -166,26 +192,7 @@ status_t http_read_response(connect_info_t *const info, char *res, size_t res_le
 }
 
 status_t http_close(connect_info_t *const info) {
-  if (info->https) {
-    mbedtls_ssl_close_notify(info->ssl_ctx);
-
-    mbedtls_net_free(info->net_ctx);
-    mbedtls_entropy_free(info->entropy);
-    mbedtls_ctr_drbg_free(info->ctr_drbg);
-    mbedtls_ssl_free(info->ssl_ctx);
-    mbedtls_ssl_config_free(info->ssl_config);
-    mbedtls_x509_crt_free(info->cacert);
-    free(info->net_ctx);
-    free(info->ssl_ctx);
-    free(info->ssl_config);
-    free(info->ctr_drbg);
-    free(info->entropy);
-    free(info->cacert);
-  } else {
-    mbedtls_net_free(info->net_ctx);
-    free(info->net_ctx);
-  }
-
+  free_info_context(info);
   return SC_OK;
 }
 
