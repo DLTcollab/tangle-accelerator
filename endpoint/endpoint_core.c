@@ -54,9 +54,9 @@ void endpoint_destroy() {
   logger_helper_destroy();
 }
 
-status_t send_transaction_information(int value, const char* message, const char* message_fmt,
-                                      const char* tag, const char* address, const char* next_address,
-                                      const uint8_t* private_key, const char* device_id, uint8_t* iv) {
+status_t send_transaction_information(int value, const char* message, const char* message_fmt, const char* tag,
+                                      const char* address, const char* next_address, const uint8_t* private_key,
+                                      const char* device_id, uint8_t* iv) {
   char tryte_msg[MAX_MSG_LEN] = {0};
   char msg[MAX_MSG_LEN] = {0};
   char req_body[MAX_MSG_LEN] = {0};
