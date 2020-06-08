@@ -17,6 +17,10 @@
 extern "C" {
 #endif
 
+/**
+ * @file utils/cipher.h
+ */
+
 #define AES_BLOCK_SIZE 16
 #define AES_CBC_KEY_SIZE AES_BLOCK_SIZE * 2
 #define AES_IV_SIZE AES_BLOCK_SIZE
@@ -55,7 +59,7 @@ int cipher_logger_release();
 /**
  * @brief Encrypt plaintext
  *
- * @param[in] ctx The ta_cipher_ctx to be encrypted
+ * @param[in] cipher_ctx The ta_cipher_ctx to be encrypted
  *
  * @return #status_t
  */
@@ -64,7 +68,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx);
 /**
  * @brief Decrypt ciphertext
  *
- * @param[in] ctx The ta_cipher_ctx to be decrypted
+ * @param[in] cipher_ctx The ta_cipher_ctx to be decrypted
  *
  * @return #status_t
  */

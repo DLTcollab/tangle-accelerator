@@ -6,6 +6,9 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#ifndef UTILS_CPUINFO_H_
+#define UTILS_CPUINFO_H_
+
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -16,7 +19,7 @@
 #endif
 
 /**
- * @file cpu-utils.h
+ * @file utils/cpuinfo.h
  * @brief Utility functions for acquiring CPU information.
  */
 
@@ -85,3 +88,8 @@ static inline int get_nthds_per_phys_proc() {
 #endif
   return nthread;
 }
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // UTILS_CPUINFO_H_

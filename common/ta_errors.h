@@ -10,6 +10,7 @@
 #define COMMON_TA_ERRORS_H_
 
 #include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

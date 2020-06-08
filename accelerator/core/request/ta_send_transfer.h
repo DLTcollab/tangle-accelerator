@@ -41,7 +41,7 @@ typedef struct {
 } ta_send_transfer_req_t;
 
 /**
- * Allocate memory of ta_send_transfer_req_t
+ * @brief Allocate memory of ta_send_transfer_req_t
  *
  * @return
  * - struct of ta_send_transfer_req_t on success
@@ -50,9 +50,9 @@ typedef struct {
 ta_send_transfer_req_t* ta_send_transfer_req_new();
 
 /**
- * Free memory of ta_send_transfer_req_t
+ * @brief Free memory of ta_send_transfer_req_t
  *
- * @param req Data type of ta_send_transfer_req_t
+ * @param[in] req Data type of ta_send_transfer_req_t
  */
 void ta_send_transfer_req_free(ta_send_transfer_req_t** req);
 

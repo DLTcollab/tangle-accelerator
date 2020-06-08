@@ -22,8 +22,8 @@ extern "C" {
 
 /** struct of ta_recv_mam_res_t */
 typedef struct recv_mam_res_s {
-  UT_array* payload_array;
-  char chid1[NUM_TRYTES_HASH + 1];
+  UT_array* payload_array;         /**< An array of MAM messages */
+  char chid1[NUM_TRYTES_HASH + 1]; /**< The Channel ID of next Channel */
 } ta_recv_mam_res_t;
 
 /**
@@ -38,7 +38,7 @@ ta_recv_mam_res_t* recv_mam_res_new();
 /**
  * @brief Free memory of ta_recv_mam_res_t
  *
- * @param res[in,out] Data type of ta_recv_mam_res_t
+ * @param[in] res Pointer of pointer of ta_recv_mam_res_t object
  */
 void recv_mam_res_free(ta_recv_mam_res_t** res);
 

@@ -19,6 +19,10 @@ extern "C" {
 #include <string.h>
 #include "common/ta_errors.h"
 
+/**
+ * @file endpoint/hal/device.h
+ */
+
 /*! device initialization entry point */
 #define DECLARE_DEVICE(name)                                  \
   void init_##name##_init(void) __attribute__((constructor)); \

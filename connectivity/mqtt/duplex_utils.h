@@ -53,7 +53,7 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
  * The arguments `host` can be NULL value. But only one of value among `sub_topic` and `pub_topic` can be NULL.
  * Therefore this function can be used whenever we want to subscribe or publish to a new topic.
  *
- * @param[in] config_cfg pointer of `mosq_config_t` object
+ * @param[in] channel_cfg pointer of `mosq_config_t` object
  * @param[in] host broker's IP in string
  * @param[in] sub_topic topic string for subscribing
  * @param[in] pub_topic topic string for publishing
@@ -70,7 +70,7 @@ status_t gossip_channel_set(mosq_config_t *channel_cfg, char *host, char *sub_to
  * This function only set the topics that mqtt server will listen to (subscribe). It doesn't set the topics that mqtt
  * server is going to publish to.
  *
- * @param[in] config_cfg pointer of `mosq_config_t` object
+ * @param[in] channel_cfg pointer of `mosq_config_t` object
  * @param[in] host broker's IP in string
  * @param[in] root_path root path of topics in the same system
  *

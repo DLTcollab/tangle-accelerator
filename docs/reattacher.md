@@ -6,8 +6,7 @@ When enabling the external database for transaction reattachment, `Tangle-Accele
 
 `Transaction reattacher` will periodically read pending transactions from a specific ScyllaDB cluster, and get the latest inclusion status of those transactions from an IOTA full node. `Reattacher` will update the newest inclusion status to the ScyllaDB cluster. For persistent transactions, `reattacher` performs reattachment, which will do tips selection and PoW for the original bundle, and reattach it to the Tangle. After reattachment, `reattacher` will update the new transaction hash to the ScyllaDB cluster.
 
-
-See [docs/build.md] for more information about enabling transaction reattachment.
+See [docs/build.md](docs/build.md) for more information about enabling transaction reattachment.
 
 ## Build Instructions
 

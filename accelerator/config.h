@@ -26,8 +26,6 @@
 #include "utils/cache/cache.h"
 #include "utils/handles/lock.h"
 
-#define FILE_PATH_SIZE 128
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,39 +35,49 @@ extern "C" {
  * @brief Configuration of tangle-accelerator
  */
 
+/** @name tangle-accelerator configures */
+/** @{ */
 #define TA_VERSION "tangle-accelerator/0.9.2"
 #define TA_HOST "localhost"
+#define TA_PORT 8000
+#define SEED                                                                   \
+  "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
+  "NNAPGHA"
+/** @} */
+
+/** @name IOTA full node configures */
+/** @{ */
+#define NODE_HOST "localhost"
+#define NODE_PORT 443
+#define MAX_NODE_LIST_ELEMENTS 5
+#define MILESTONE_DEPTH 3
+#define MWM 14
+/** @} */
+
+/** @name Redis connection configures */
+/** @{ */
+#define REDIS_HOST "localhost" /**< Address of Redis server */
+#define REDIS_PORT 6379        /**< port of Redis server */
+/** @} */
 
 #ifdef MQTT_ENABLE
 #define MQTT_HOST "localhost"
 #define TOPIC_ROOT "root/topics"
 #endif
 
-#define TA_PORT 8000
 #define DEFAULT_HTTP_TPOOL_SIZE 4 /**< Thread number of MHD thread pool */
 #define MAX_HTTP_TPOOL_SIZE \
-  (get_nprocs_conf() - get_nthds_per_phys_proc()) /** < Preserve at least one physical processor */
-#define NODE_HOST "localhost"
-#define NODE_PORT 443
-#define MAX_NODE_LIST_ELEMENTS 5
+  (get_nprocs_conf() - get_nthds_per_phys_proc()) /**< Preserve at least one physical processor */
 #define DB_HOST "localhost"
-#define MILESTONE_DEPTH 3
-#define MWM 14
-#define SEED                                                                   \
-  "AMRWQP9BUMJALJHBXUCHOD9HFFD9LGTGEAWMJWWXSDVOF9PI9YGJAPBQLQUOMNYEQCZPGCTHGV" \
-  "NNAPGHA"
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
 #define BUFFER_LIST_NAME "txn_buff_list"
 #define DONE_LIST_NAME "done_txn_buff_list"
-#define CACHE_MAX_CAPACITY 170 * 1024 * 1024  // default to 170MB
-#define HEALTH_TRACK_PERIOD 1800              // Check every half hour in default
-#define RESULT_SET_LIMIT 100  // The maximun returned transaction object number when querying transaction object by tag
-
-/** @name Redis connection config */
-/** @{ */
-#define REDIS_HOST "localhost" /**< Address of Redis server */
-#define REDIS_PORT 6379        /**< port of Redis server */
-/** @} */
+#define CACHE_MAX_CAPACITY \
+  170 * 1024 * 1024              /**< Default cache server maximum capacity. It is set to 170MB by default. */
+#define HEALTH_TRACK_PERIOD 1800 /**< Check every half hour in default */
+#define RESULT_SET_LIMIT \
+  100 /**< The maximun returned transaction object number when querying transaction object by tag */
+#define FILE_PATH_SIZE 128
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
@@ -124,7 +132,7 @@ typedef struct ta_core_s {
 /**
  * Initializes configurations with default values
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
@@ -143,14 +151,25 @@ static inline struct option* cli_build_options() {
   return long_options;
 };
 
+/**
+ * Set configurations with command line inputs
+ *
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
+ * @param[in] key CLI command key
+ * @param[in] value Command value
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
 status_t cli_core_set(ta_core_t* const core, int key, char* const value);
 
 /**
  * Initializes configurations with configuration file
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
- * @param argc[in] Number of argument of CLI
- * @param argv[in] Argument of CLI
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
+ * @param[in] argc Number of argument of CLI
+ * @param[in] argv Argument of CLI
  *
  * @return
  * - SC_OK on success
@@ -161,9 +180,9 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv);
 /**
  * Initializes configurations with CLI values
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
- * @param argc[in] Number of argument of CLI
- * @param argv[in] Argument of CLI
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
+ * @param[in] argc Number of argument of CLI
+ * @param[in] argv Argument of CLI
  *
  * @return
  * - SC_OK on success
@@ -174,7 +193,7 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv);
 /**
  * Start services after configurations are set
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
@@ -185,7 +204,7 @@ status_t ta_core_set(ta_core_t* const core);
 /**
  * Free memory of configuration variables
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure.
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure.
  *
  */
 void ta_core_destroy(ta_core_t* const core);
@@ -193,10 +212,10 @@ void ta_core_destroy(ta_core_t* const core);
 /**
  * Initializes iota_client_service
  *
- * @param service[in] IOTA client service
- * @param host[in] host of connecting service
- * @param port[in] port of connecting service
- * @param ca_pem[in] CA PEM path
+ * @param[in] service IOTA client service
+ * @param[in] host host of connecting service
+ * @param[in] port port of connecting service
+ * @param[in] ca_pem CA PEM path
  *
  * @return
  * - SC_OK on success

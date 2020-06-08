@@ -43,11 +43,10 @@ int apis_logger_release();
 /**
  * @brief Dump tangle accelerator information.
  *
- * @param info[in] Tangle-accelerator configuration variables
- * @param tangle[in] iota configuration variables
- * @param cache[in] redis configuration variables
- * @param service[in] IOTA full node connection configuration variables
- * @param json_result[out] Result containing tangle accelerator information in json format
+ * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] tangle iota configuration variables
+ * @param[in] cache redis configuration variables
+ * @param[out] json_result Result containing tangle accelerator information in json format
  *
  * @return
  * - SC_OK on success
@@ -61,10 +60,10 @@ status_t api_get_ta_info(ta_config_t* const info, iota_config_t* const tangle, t
  *
  * Receive a MAM message from given channel id or bundle hash.
  *
- * @param iconf[in] IOTA API parameter configurations
- * @param service[in] IOTA node service
- * @param obj[in] Input data in JSON
- * @param json_result[out] Fetched MAM message in JSON format
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IOTA node service
+ * @param[in] obj Input data in JSON
+ * @param[out] json_result Fetched MAM message in JSON format
  *
  * @return
  * - SC_OK on success
@@ -80,11 +79,11 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  * There is no need to decode the ascii payload to tryte, since the
  * api_send_mam_message() will take this job.
  *
- * @param info[in] Tangle-accelerator configuration variables
- * @param iconf[in] IOTA API parameter configurations
- * @param service[in] IOTA node service
- * @param obj[in] Input data in JSON
- * @param json_result[out] Result containing channel id, message id and bundle hash
+ * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IOTA node service
+ * @param[in] obj Input data in JSON
+ * @param[out] json_result Result containing channel id, message id and bundle hash
  *
  * @return
  * - SC_OK on success
@@ -206,7 +205,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
 /**
  * @brief Check the connection status between tangle-accelerator and IOTA full node.
  *
- * @param[in] iota_service IOTA node service
+ * @param[in] service IOTA node service
  * @param[out] json_result Result containing the current connection status.
  *
  * @return

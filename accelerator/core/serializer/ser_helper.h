@@ -19,16 +19,31 @@
 extern "C" {
 #endif
 
+/**
+ * @file accelerator/core/serializer/ser_helper.h
+ * @brief Helper functions for serialization
+ */
+
 logger_id_t ser_logger_id;
 
+/**
+ * @brief Examine whether the given string is a list of trytes in 'len' long
+ *
+ * @param[in] trytes The string to be examined.
+ * @param[in] len The length we to examine.
+ *
+ * @return
+ * - true on A trytes list in given length
+ * - false on Not a trytes list in given length
+ */
 bool valid_tryte(char* trytes, int len);
 
 /**
  * @brief Convert string array in utarray to cJSON array element
  *
- * @param ut[in] String array in utarray datatype
- * @param name[in] The name of this element in JSON
- * @param json_root[out] Output cJSON object
+ * @param[in] ut String array in utarray datatype
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -39,9 +54,9 @@ status_t ta_string_utarray_to_json_array(UT_array const* const ut, char const* c
 /**
  * @brief Convert cJSON array object to string array in utarray
  *
- * @param json_root[in] Input cJSON string array
- * @param name[in] The name of this element in JSON
- * @param ut[out] Output string array in utarray datatype
+ * @param[in] obj Input cJSON string array
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] ut Output string array in utarray datatype
  *
  * @return
  * - SC_OK on success
@@ -52,8 +67,8 @@ status_t ta_json_string_array_to_string_utarray(cJSON const* const obj, char con
 /**
  * @brief Convert hash243_stack_t to cJSON array element
  *
- * @param stack[in] hash243_stack_t object
- * @param json_root[out] Output cJSON object
+ * @param[in] stack hash243_stack_t object
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -64,9 +79,9 @@ status_t ta_hash243_stack_to_json_array(hash243_stack_t stack, cJSON* json_root)
 /**
  * @brief Convert cJSON array object to hash243_queue_t object
  *
- * @param json_root[in] Input cJSON string array
- * @param name[in] The name of this element in JSON
- * @param ut[out] Output hash243_queue_t object
+ * @param[in] obj Input cJSON string array
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] queue Output hash243_queue_t object
  *
  * @return
  * - SC_OK on success
@@ -77,8 +92,8 @@ status_t ta_json_array_to_hash243_queue(cJSON const* const obj, char const* cons
 /**
  * @brief Convert hash243_queue_t to cJSON array element
  *
- * @param queue[in] hash243_queue_t object
- * @param json_root[out] Output cJSON object
+ * @param[in] queue hash243_queue_t object
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -89,9 +104,9 @@ status_t ta_hash243_queue_to_json_array(hash243_queue_t queue, cJSON* const json
 /**
  * @brief Convert cJSON array object to hash8019_array_p object
  *
- * @param json_root[in] Input cJSON string array
- * @param name[in] The name of this element in JSON
- * @param array[out] Output hash8019_array_p object
+ * @param[in] obj Input cJSON string array
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] array Output hash8019_array_p object
  *
  * @return
  * - SC_OK on success
@@ -102,9 +117,9 @@ status_t ta_json_array_to_hash8019_array(cJSON const* const obj, char const* con
 /**
  * @brief Convert hash8019_array_p to cJSON array element
  *
- * @param array[in] hash8019_array_p object
- * @param name[in] The name of this element in JSON
- * @param json_root[out] Output cJSON object
+ * @param[in] array hash8019_array_p object
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -115,9 +130,8 @@ status_t ta_hash8019_array_to_json_array(hash8019_array_p array, char const* con
 /**
  * @brief Convert iota_transaction_t object to cJSON object
  *
- * @param txn[in] Input iota_transaction_t object
- * @param name[in] The name of this element in JSON
- * @param txn_json[out] Output cJSON string object
+ * @param[in] txn Input iota_transaction_t object
+ * @param[out] txn_json Output cJSON string object
  *
  * @return
  * - SC_OK on success
@@ -128,9 +142,8 @@ status_t ta_iota_transaction_to_json_object(iota_transaction_t const* const txn,
 /**
  * @brief Convert transaction_array_t to cJSON array element
  *
- * @param txn_array[in] transaction_array_t object
- * @param name[in] The name of this element in JSON
- * @param json_root[out] Output cJSON object
+ * @param[in] txn_array transaction_array_t object
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -141,9 +154,9 @@ status_t ta_transaction_array_to_json_array(const transaction_array_t* const txn
 /**
  * @brief Convert bundle_transactions_t to cJSON array element
  *
- * @param bundle[in] bundle_transactions_t object
- * @param name[in] The name of this element in JSON
- * @param json_root[out] Output cJSON object
+ * @param[in] bundle bundle_transactions_t object
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] json_root Output cJSON object
  *
  * @return
  * - SC_OK on success
@@ -155,10 +168,10 @@ status_t ta_bundle_transaction_to_json_array(const bundle_transactions_t* const 
 /**
  * @brief Get the string value from JSON
  *
- * @param json_obj[in] Input cJSON object
- * @param obj_name[in] The name of this element in JSON
- * @param text[in,out] Output string value
- * @param size[in] The length of string
+ * @param[in] json_obj Input cJSON object
+ * @param[in] obj_name The name of this element in JSON
+ * @param[in,out] text Output string value
+ * @param[in] size The length of string
  *
  * @return
  * - SC_OK on success

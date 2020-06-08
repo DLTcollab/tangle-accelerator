@@ -10,6 +10,10 @@
 #define ENDPOINT_H
 
 /**
+ * @file endpoint/endpointComp/endpoint.h
+ */
+
+/**
  * @brief Print the help message of endpoint application
  */
 static void print_help(void);
