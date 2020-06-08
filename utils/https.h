@@ -12,6 +12,20 @@
 #include "common/ta_errors.h"
 
 /**
+ * @brief Initialize logger of HTTP(S)
+ */
+void https_logger_init();
+
+/**
+ * @brief Release logger of https
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int https_logger_release();
+
+/**
  * @brief Send message via HTTP(S) protocol
  *
  * @param[in] host HTTP(S) host

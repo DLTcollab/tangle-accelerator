@@ -9,11 +9,27 @@
 #include "https.h"
 #include <stdlib.h>
 #include <string.h>
+#include "common/logger.h"
 #include "common/ta_errors.h"
 #include "http_parser.h"
 #include "utils/connectivity/conn_http.h"
 
 static http_parser parser;
+
+#define HTTPS_LOGGER "https"
+static logger_id_t logger_id;
+
+void https_logger_init() { logger_id = logger_helper_enable(HTTPS_LOGGER, LOGGER_DEBUG, true); }
+
+int https_logger_release() {
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", HTTPS_LOGGER);
+    return EXIT_FAILURE;
+  }
+
+  return 0;
+}
 
 status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed) {
   char res[4096] = {0};
@@ -21,7 +37,7 @@ status_t send_https_msg(char const *host, char const *port, char const *api, con
   status_t ret = SC_OK;
 
   set_post_request(api, host, atoi(port), msg, &req);
-  http_parser_settings settings;
+  http_parser_settings settings = {};
   settings.on_body = parser_body_callback;
 
 #ifdef ENDPOINT_HTTPS
@@ -30,18 +46,34 @@ status_t send_https_msg(char const *host, char const *port, char const *api, con
   connect_info_t info = {.https = false};
 #endif
 
-  /* FIXME:Provide some checks here */
-  http_open(&info, ssl_seed, host, port);
-  http_send_request(&info, req);
-  http_read_response(&info, res, sizeof(res) / sizeof(char));
-  http_close(&info);
+  ret = http_open(&info, ssl_seed, host, port);
+  if (ret != SC_OK) {
+    ta_log_error("http(s) open error, return code %d\n", ret);
+    return ret;
+  }
+
+  ret = http_send_request(&info, req);
+  if (ret != SC_OK) {
+    ta_log_error("http(s) send request error, return code %d\n", ret);
+    goto exit;
+  }
+
+  ret = http_read_response(&info, res, sizeof(res) / sizeof(char));
+  if (ret != SC_OK) {
+    ta_log_error("http(s) read response error, return code %d\n", ret);
+    goto exit;
+  }
+
   http_parser_init(&parser, HTTP_RESPONSE);
   http_parser_execute(&parser, &settings, res, strlen(res));
 
   if (parser.status_code != SC_HTTP_OK) {
+    ta_log_error("http(s): fail to parse response\n");
     ret = SC_UTILS_HTTPS_RESPONSE_ERROR;
   }
 
+exit:
+  http_close(&info);
   free(req);
   return ret;
 }
