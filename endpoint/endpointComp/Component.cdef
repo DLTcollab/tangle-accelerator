@@ -7,6 +7,7 @@ sources:
     ${CURDIR}/../../output_base/external/http_parser/http_parser.c
 
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aes.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aesni.c
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/arc4.c
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1parse.c
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1write.c
