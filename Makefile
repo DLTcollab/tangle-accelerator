@@ -3,11 +3,34 @@ DCURL_LIB := $(DCURL_DIR)/build/libdcurl.so
 MOSQUITTO_DIR := third_party/mosquitto
 MOSQUITTO_LIB := $(MOSQUITTO_DIR)/lib/libmosquitto.so.1
 PEM_DIR = pem
+# Default pem file. See pem/README.md for more information
 PEM := $(PEM_DIR)/cert.pem
 NAMESERVER := 8.8.8.8
 RESOLV_CONF_DIR := endpoint/endpointComp
 OUTPUT_BASE_DIR := output_base
+# Endpoint build target. The default intends to the platform of your development system.
+TARGET := simulator
+# Build test suite
+TESTS := false
+# Enable endpoint HTTPS connection to tangle-accelerator. 
+# The endpoint uses HTTP connection to transmit encrypted data by default.
+# See "HTTPS Connection Support" in docs/endpoint.md for more information.
+ENFORCE_EP_HTTPS := false
+# The CFLAGS to pass during endpoint app build
+ENDPOINT_CFLAGS :=
 DEPS += $(DCURL_LIB)
+
+# Determine to enable HTTPS connection
+ifeq ($(ENFORCE_EP_HTTPS), true)
+	ENDPOINT_CFLAGS += -C -DENDPOINT_HTTPS
+endif
+
+# Determine to build test suite
+ifeq ($(TESTS), true)
+	ENDPOINT_CFLAGS += -C -DENABLE_ENDPOINT_TEST
+endif
+
+include endpoint/platform/$(TARGET)/build.mk
 
 all: $(DEPS) cert
 
@@ -36,7 +59,7 @@ legato: cert
 	#        which can not be downloaded when the 'fetch' option is used.
 	bazel --output_base=$(OUTPUT_BASE_DIR) build //endpoint:libendpoint.so
 	# Generate endpoint Legato app
-	(cd endpoint && leaf shell -c "mkapp -v -t wp77xx endpoint.adef")
+	$(call platform-build-command)
 
 cert: check_pem
 	@xxd -i $(PEM) > $(PEM_DIR)/ca_crt.inc

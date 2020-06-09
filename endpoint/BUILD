@@ -25,9 +25,9 @@ cc_binary(
         "endpoint_core.h",
     ],
     defines = [
-        "TA_HOST=\"localhost\"",
-        "TA_PORT=\"443\"",
-        "TA_SSL_SEED=\"nonce\"",
+        "ENDPOINT_HOST=\"localhost\"",
+        "ENDPOINT_PORT=\"443\"",
+        "ENDPOINT_SSL_SEED=\"nonce\"",
     ],
     linkshared = True,
     deps = [

@@ -8,9 +8,10 @@
 
 #include "endpoint.h"
 
-#include "legato.h"
-
+#include "common/ta_errors.h"
 #include "endpoint/endpoint_core.h"
+#include "le_test.h"
+#include "legato.h"
 #include "utils/cipher.h"
 
 #define TEST_VALUE 0
@@ -102,8 +103,16 @@ COMPONENT_INIT {
   memcpy(iv, test_iv, AES_IV_SIZE);
   srand(time(NULL));
 
+#ifdef ENABLE_ENDPOINT_TEST
+  LE_TEST_INIT;
+  LE_TEST_INFO("=== ENDPOINT TEST BEGIN ===");
+  LE_TEST(SC_OK == send_transaction_information(value, message, message_fmt, tag, address, next_address, private_key,
+                                                device_id, iv));
+  LE_TEST_EXIT;
+#else
   while (true) {
     send_transaction_information(value, message, message_fmt, tag, address, next_address, private_key, device_id, iv);
     sleep(10);
   }
+#endif
 }

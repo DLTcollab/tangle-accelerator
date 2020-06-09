@@ -100,4 +100,4 @@ pem/*.inc
 resolv.conf
 output_base/
 _build_endpoint/
-endpoint.wp77xx.update
+endpoint.*.update
