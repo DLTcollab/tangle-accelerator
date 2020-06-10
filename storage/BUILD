@@ -5,6 +5,28 @@ cc_library(
     deps = [
         ":scylladb_identity",
         ":scylladb_permanode",
+        ":scylladb_permanode_thpool",
+    ],
+)
+
+cc_binary(
+    name = "scylladb_importer",
+    srcs = ["scylladb_importer.c"],
+    deps = [
+        ":storage",
+    ],
+)
+
+cc_binary(
+    name = "scylladb_listener",
+    srcs = ["scylladb_listener.c"],
+    linkopts = [
+        "-lzmq",
+    ],
+    deps = [
+        ":storage",
+        "//accelerator:ta_config",
+        "@entangled//cclient/api",
     ],
 )
 
@@ -30,6 +52,16 @@ cc_library(
     ],
     deps = [
         ":scylladb_utils",
+    ],
+)
+
+cc_library(
+    name = "scylladb_permanode_thpool",
+    srcs = ["scylladb_permanode_thpool.c"],
+    hdrs = ["scylladb_permanode_thpool.h"],
+    linkopts = ["-lpthread"],
+    deps = [
+        ":scylladb_permanode",
     ],
 )
 

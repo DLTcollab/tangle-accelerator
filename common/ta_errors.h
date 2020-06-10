@@ -250,7 +250,13 @@ typedef enum {
   SC_STORAGE_INVALID_INPUT = 0x03 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
   /**< Invalid input parameter, e.g., null pointer */
   SC_STORAGE_CASSANDRA_QUERY_FAIL = 0x04 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
-  /**< Failed to execute Cassandra query */
+  /**< Failed to execute Cassandra query   */
+  SC_STORAGE_SYNC_ERROR = 0x05 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Failed to synchronize lastest confirmed transactions from IRI */
+  SC_STORAGE_THPOOL_ADD_REQUEST_FAIL = 0x06 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Failed to add requests to permanode thread pool. (request queue full) */
+  SC_STORAGE_PTHREAD_ERROR = 0x07 | SC_MODULE_STORAGE | SC_SEVERITY_MAJOR,
+  /**< Failed when calling pthread library */
 
   // Core module
   SC_CORE_OOM = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
