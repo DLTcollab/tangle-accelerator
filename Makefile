@@ -35,8 +35,6 @@ legato: cert
 	#        The 'build' option is for getting the header file like 'mam/mam/mam_endpoint_t_set.h',
 	#        which can not be downloaded when the 'fetch' option is used.
 	bazel --output_base=$(OUTPUT_BASE_DIR) build //endpoint:libendpoint.so
-	# Add the soft link for handling the preprocessing of header file path inclusion like Bazel does
-	ln -f -s ./lib/high/Keccak/FIPS202 ./$(OUTPUT_BASE_DIR)/external/keccak/keccak
 	# Generate endpoint Legato app
 	(cd endpoint && leaf shell -c "mkapp -v -t wp77xx endpoint.adef")
 

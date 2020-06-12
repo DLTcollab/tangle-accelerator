@@ -4,6 +4,6 @@ cc_binary(
     deps = [
         "//accelerator:ta_config",
         "//storage",
-        "@entangled//cclient/api",
+        "@iota.c//cclient/api",
     ],
 )

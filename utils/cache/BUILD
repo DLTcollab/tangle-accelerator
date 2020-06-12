@@ -7,7 +7,7 @@ cc_library(
     deps = [
         "//common:ta_errors",
         "//common:ta_logger",
-        "@entangled//common/trinary:flex_trit",
         "@hiredis",
+        "@org_iota_common//common/trinary:flex_trit",
     ],
 )

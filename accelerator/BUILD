@@ -21,7 +21,7 @@ cc_binary(
     deps = [
         ":ta_config",
         "//connectivity/http",
-        "@entangled//utils/handles:signal",
+        "@org_iota_common//utils/handles:signal",
     ] + select({
         ":mqtt_enable": [
             "//connectivity/mqtt",
@@ -42,7 +42,8 @@ cc_library(
         ":build_option",
         "//utils/cache",
         "//utils:cpuinfo",
-        "@entangled//cclient/api",
+        "@iota.c//cclient/api:api",
+        "@iota.c//cclient:service",
         "@yaml",
     ] + select({
         ":db_enable": ["//storage"],

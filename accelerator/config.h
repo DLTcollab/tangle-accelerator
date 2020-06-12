@@ -16,6 +16,7 @@
 #include "accelerator/core/pow.h"
 #include "cclient/api/core/core_api.h"
 #include "cclient/api/extended/extended_api.h"
+#include "cclient/service.h"
 #include "utils/cpuinfo.h"
 #ifdef DB_ENABLE
 #include "storage/ta_storage.h"

@@ -3,7 +3,7 @@ load("//third_party:third_party.bzl", "third_party_deps")
 
 git_repository(
     name = "rules_iota",
-    commit = "e08b0038f376d6c82b80f5283bb0a86648bb58dc",
+    commit = "2d15c55f12cff0db106f45866312f61314c583cd",
     remote = "https://github.com/iotaledger/rules_iota.git",
 )
 
@@ -14,9 +14,21 @@ git_repository(
 )
 
 git_repository(
-    name = "entangled",
-    commit = "fe3929b8ac6e7377eed82b83aad96369b42d0641",
-    remote = "https://github.com/DLTcollab/entangled",
+    name = "iota.c",
+    commit = "fd9d67989dc5161117b39a9a3351afcfb118bcad",
+    remote = "https://github.com/iotaledger/iota.c.git",
+)
+
+git_repository(
+    name = "org_iota_common",
+    commit = "c644b7715662dc7b73191ae964f4ede06ee6c975",
+    remote = "https://github.com/iotaledger/iota_common.git",
+)
+
+git_repository(
+    name = "mam.c",
+    commit = "fca24aa8f98e535c6af9feea3394bdeea555d0d3",
+    remote = "https://github.com/iotaledger/mam.c.git",
 )
 
 git_repository(

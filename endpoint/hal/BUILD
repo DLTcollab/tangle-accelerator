@@ -5,6 +5,6 @@ cc_library(
     srcs = ["device.c"],
     hdrs = ["device.h"],
     deps = [
-        "//common",
+        "//common:ta_errors",
     ],
 )

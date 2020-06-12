@@ -24,9 +24,9 @@ cc_library(
         "//accelerator/core/serializer",
         "//utils:char_buffer_str",
         "//utils:hash_algo_djb2",
-        "@entangled//cclient/api",
-        "@entangled//cclient/request:requests",
-        "@entangled//cclient/response:responses",
+        "@iota.c//cclient/api",
+        "@iota.c//cclient/request:requests",
+        "@iota.c//cclient/response:responses",
     ],
 )
 
@@ -48,9 +48,9 @@ cc_library(
         "//utils:char_buffer_str",
         "//utils:timer",
         "@com_github_uthash//:uthash",
-        "@entangled//cclient/api",
-        "@entangled//utils:time",
-        "@entangled//utils/containers/hash:hash243_set",
+        "@iota.c//cclient/api",
+        "@org_iota_common//utils:time",
+        "@org_iota_common//utils/containers/hash:hash243_set",
     ],
 )
 
@@ -65,9 +65,9 @@ cc_library(
         "//accelerator/core/response",
         "//utils:fill_nines",
         "//utils:tryte_byte_conv",
-        "@entangled//common/trinary:flex_trit",
-        "@entangled//mam/api",
-        "@entangled//utils/containers/hash:hash_array",
+        "@mam.c//mam/api",
+        "@org_iota_common//common/trinary:flex_trit",
+        "@org_iota_common//utils/containers/hash:hash_array",
     ],
 )
 
@@ -81,9 +81,9 @@ cc_library(
         "//common:ta_logger",
         "//third_party:dcurl",
         "@com_github_uthash//:uthash",
-        "@entangled//common/helpers:digest",
-        "@entangled//common/model:bundle",
-        "@entangled//common/trinary:flex_trit",
-        "@entangled//utils:time",
+        "@org_iota_common//common/helpers:digest",
+        "@org_iota_common//common/model:bundle",
+        "@org_iota_common//common/trinary:flex_trit",
+        "@org_iota_common//utils:time",
     ],
 )

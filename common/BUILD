@@ -6,6 +6,7 @@ cc_library(
         "macros",
         ":debug",
         ":ta_errors",
+        ":ta_logger",
     ],
 )
 
@@ -21,7 +22,7 @@ cc_library(
     defines = ["LOGGER_ENABLE"],
     deps = [
         ":ta_errors",
-        "@entangled//utils:logger_helper",
+        "@org_iota_common//utils:logger_helper",
     ],
 )
 
@@ -29,11 +30,11 @@ cc_library(
     name = "macros",
     hdrs = ["macros.h"],
     deps = [
-        "@entangled//common/model:transaction",
-        "@entangled//common/trinary:tryte",
-        "@entangled//mam/mam:message",
-        "@entangled//utils/containers/hash:hash243_stack",
-        "@entangled//utils/containers/hash:hash_array",
+        "@mam.c//mam/mam:message",
+        "@org_iota_common//common/model:transaction",
+        "@org_iota_common//common/trinary:tryte",
+        "@org_iota_common//utils/containers/hash:hash243_stack",
+        "@org_iota_common//utils/containers/hash:hash_array",
     ],
 )
 
@@ -43,7 +44,7 @@ cc_library(
     hdrs = ["debug.h"],
     deps = [
         ":ta_logger",
-        "@entangled//common/model:bundle",
-        "@entangled//common/model:transaction",
+        "@org_iota_common//common/model:bundle",
+        "@org_iota_common//common/model:transaction",
     ],
 )
