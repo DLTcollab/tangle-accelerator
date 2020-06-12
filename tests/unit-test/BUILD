@@ -87,3 +87,14 @@ cc_test(
         "//utils:tryte_byte_conv",
     ],
 )
+
+cc_test(
+    name = "test_http",
+    srcs = [
+        "test_http.c",
+    ],
+    deps = [
+        "//tests:test_define",
+        "//utils/connectivity:conn_http",
+    ],
+)
