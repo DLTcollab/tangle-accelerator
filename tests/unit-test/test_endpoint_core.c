@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "common/ta_errors.h"
-#include "endpoint_core.h"
+#include "endpoint/endpoint_core.h"
 #include "tests/test_define.h"
 #include "utils/cipher.h"
 

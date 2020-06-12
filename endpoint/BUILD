@@ -4,7 +4,7 @@ cc_library(
     hdrs = ["endpoint_core.h"],
     defines = [
         "ENDPOINT_HOST=\"localhost\"",
-        "ENDPOINT_PORT=\"443\"",
+        "ENDPOINT_PORT=\"8000\"",
         "ENDPOINT_SSL_SEED=\"nonce\"",
     ],
     visibility = ["//visibility:public"],
@@ -15,19 +15,6 @@ cc_library(
         "//utils:https",
         "//utils:text_serializer",
         "//utils:tryte_byte_conv",
-    ],
-)
-
-cc_test(
-    name = "test_endpoint_core",
-    srcs = [
-        "test_endpoint_core.c",
-    ],
-    deps = [
-        ":endpoint_core",
-        "//common:ta_errors",
-        "//common:ta_logger",
-        "//tests:test_define",
     ],
 )
 
