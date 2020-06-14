@@ -33,7 +33,7 @@ static status_t api_check_consistency(const iota_client_service_t* const service
   check_consistency_res_t* res = check_consistency_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -72,7 +72,7 @@ static status_t api_find_transactions(const iota_client_service_t* const service
   find_transactions_res_t* res = find_transactions_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -111,7 +111,7 @@ static status_t api_get_balances(const iota_client_service_t* const service, con
   get_balances_res_t* res = get_balances_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -150,7 +150,7 @@ static status_t api_get_inclusion_states(const iota_client_service_t* const serv
   get_inclusion_states_res_t* res = get_inclusion_states_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -187,7 +187,7 @@ static status_t api_get_node_info(const iota_client_service_t* const service, ch
   get_node_info_res_t* res = get_node_info_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -218,7 +218,7 @@ static status_t api_get_trytes(const iota_client_service_t* const service, const
   get_trytes_res_t* res = get_trytes_res_new();
   char_buffer_t* res_buff = char_buffer_new();
   if (req == NULL || res == NULL || res_buff == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }

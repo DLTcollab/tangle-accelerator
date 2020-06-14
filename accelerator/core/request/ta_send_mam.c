@@ -20,18 +20,18 @@ ta_send_mam_req_t* send_mam_req_new() {
 
 status_t send_mam_req_v1_init(ta_send_mam_req_t* req) {
   if (req == NULL) {
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   memset(req->service_token, 0, SERVICE_TOKEN_LEN + 1);
 
   req->data = (send_mam_data_mam_v1_t*)malloc(sizeof(send_mam_data_mam_v1_t));
   if (req->data == NULL) {
-    return SC_TA_OOM;
+    return SC_OOM;
   }
   req->key = (send_mam_key_mam_v1_t*)malloc(sizeof(send_mam_key_mam_v1_t));
   if (req->key == NULL) {
-    return SC_TA_OOM;
+    return SC_OOM;
   }
 
   send_mam_data_mam_v1_t* data = req->data;

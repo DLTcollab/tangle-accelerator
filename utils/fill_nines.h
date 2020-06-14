@@ -41,7 +41,7 @@ extern "C" {
  */
 static inline status_t fill_nines(char* new_str, const char* const old_str, size_t new_str_len) {
   if (!new_str || !old_str || new_str_len != NUM_TRYTES_TAG) {
-    return SC_SERIALIZER_NULL;
+    return SC_NULL;
   }
 
   int old_str_len = strlen(old_str);
@@ -51,7 +51,7 @@ static inline status_t fill_nines(char* new_str, const char* const old_str, size
   if (diff) {
     memset((new_str + old_str_len), '9', diff);
   } else {
-    return SC_UTILS_WRONG_REQUEST_OBJ;
+    return SC_UTILS_WRONG_INPUT_ARG;
   }
   new_str[new_str_len] = '\0';
 

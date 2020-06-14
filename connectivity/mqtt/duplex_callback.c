@@ -47,8 +47,8 @@ status_t check_valid_tag(char *tag) {
 
 static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, char *req) {
   if (cfg == NULL || subscribe_topic == NULL || req == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   status_t ret = SC_OK;
@@ -177,8 +177,8 @@ static void log_callback_duplex_func(struct mosquitto *mosq, void *obj, int leve
 
 status_t duplex_callback_func_set(struct mosquitto *mosq) {
   if (mosq == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   mosquitto_log_callback_set(mosq, log_callback_duplex_func);

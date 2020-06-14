@@ -35,8 +35,8 @@ int http_logger_release() {
 
 static status_t ta_get_url_parameter(char const *const url, int index, char **param) {
   if (param == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
-    return SC_HTTP_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
   if (index < 0) {
     ta_log_warning("Index lower than 0, automatically set index to 0 instead.\n");
@@ -64,8 +64,8 @@ static status_t ta_get_url_parameter(char const *const url, int index, char **pa
   int token_len = strlen(tmp);
   *param = (char *)malloc(token_len * sizeof(char));
   if (param == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_OOM));
-    return SC_HTTP_OOM;
+    ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+    return SC_OOM;
   }
   strncpy(*param, tmp, token_len);
   return SC_OK;
@@ -321,11 +321,11 @@ static int request_log(void *cls, const struct sockaddr *addr, socklen_t addrlen
 static status_t build_request(ta_http_request_t *req, const char *data, size_t size) {
   if (req == NULL || data == NULL) {
     ta_log_error("Illegal NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (size == 0) {
     ta_log_error("Illegal data size : 0\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (size + req->request_len >= MAX_REQUEST_LEN) {
     req->answer_string = strdup(STR_HTTP_REQUEST_SIZE_EXCEED);
@@ -336,7 +336,7 @@ static status_t build_request(ta_http_request_t *req, const char *data, size_t s
   if (request == NULL) {
     req->answer_string = strdup(STR_HTTP_INTERNAL_SERVICE_ERROR);
     req->answer_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
-    return SC_TA_OOM;
+    return SC_OOM;
   }
   if (req->request != NULL) {
     memcpy(request, req->request, req->request_len);
@@ -450,8 +450,8 @@ cleanup:
 
 status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
   if (http == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
-    return SC_HTTP_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   http->core = core;
@@ -460,8 +460,8 @@ status_t ta_http_init(ta_http_t *const http, ta_core_t *const core) {
 
 status_t ta_http_start(ta_http_t *const http) {
   if (http == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
-    return SC_HTTP_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   http->daemon = MHD_start_daemon(MHD_USE_EPOLL_INTERNAL_THREAD | MHD_USE_ERROR_LOG | MHD_USE_DEBUG,
@@ -469,15 +469,15 @@ status_t ta_http_start(ta_http_t *const http) {
                                   MHD_OPTION_THREAD_POOL_SIZE, http->core->ta_conf.http_tpool_size, MHD_OPTION_END);
   if (http->daemon == NULL) {
     ta_log_error("%s\n", strerror(errno));
-    return SC_HTTP_OOM;
+    return SC_OOM;
   }
   return SC_OK;
 }
 
 status_t ta_http_stop(ta_http_t *const http) {
   if (http == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
-    return SC_HTTP_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   MHD_stop_daemon(http->daemon);

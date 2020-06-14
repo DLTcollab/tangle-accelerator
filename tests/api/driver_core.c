@@ -20,8 +20,8 @@ status_t prepare_transfer(const iota_config_t* const iconf, const iota_client_se
   transfer_array_t* transfers = transfer_array_new();
   transfer_t transfer[req_txn_num];
   if (transfers == NULL) {
-    ret = SC_CCLIENT_OOM;
-    printf("%s\n", "SC_CCLIENT_OOM");
+    ret = SC_OOM;
+    printf("%s\n", "SC_OOM");
     goto done;
   }
 
@@ -31,8 +31,8 @@ status_t prepare_transfer(const iota_config_t* const iconf, const iota_client_se
     transfer[i].msg_len = req[i]->msg_len;
 
     if (transfer_message_set_trytes(&transfer[i], req[i]->message, transfer[i].msg_len) != RC_OK) {
-      ret = SC_CCLIENT_OOM;
-      printf("%s\n", ta_error_to_string(SC_CCLIENT_OOM));
+      ret = SC_OOM;
+      printf("%s\n", ta_error_to_string(SC_OOM));
       goto done;
     }
     memcpy(transfer[i].address, hash243_queue_peek(req[i]->address), FLEX_TRIT_SIZE_243);

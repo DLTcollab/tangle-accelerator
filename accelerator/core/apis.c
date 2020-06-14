@@ -39,7 +39,7 @@ status_t api_find_transaction_object_single(const iota_client_service_t* const s
   ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -67,7 +67,7 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
   ta_find_transaction_objects_req_t* req = ta_find_transaction_objects_req_new();
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -99,7 +99,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
   find_transactions_req_t* req = find_transactions_req_new();
   find_transactions_res_t* res = find_transactions_res_new();
   if (req == NULL || res == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -143,7 +143,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
   find_transactions_req_t* req = find_transactions_req_new();
   transaction_array_t* res = transaction_array_new();
   if (req == NULL || res == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -186,7 +186,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   ta_recv_mam_req_t* req = recv_mam_req_new();
   ta_recv_mam_res_t* res = recv_mam_res_new();
   if (!req || !res) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
@@ -252,7 +252,7 @@ status_t api_send_transfer(const ta_core_t* const core, const iota_client_servic
   transaction_array_t* res_txn_array = transaction_array_new();
 
   if (req == NULL || res == NULL || txn_obj_req == NULL || res_txn_array == NULL) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -315,7 +315,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
   hash8019_array_p trytes = hash8019_array_new();
 
   if (!trytes) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -372,7 +372,7 @@ status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* cons
 
   ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
   if (res == NULL) {
-    ret = SC_CORE_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
@@ -399,7 +399,7 @@ status_t api_find_transactions_by_id(const iota_client_service_t* const iota_ser
                                      char** json_result) {
   if (obj == NULL) {
     ta_log_error("Invalid NULL pointer to uuid string\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   status_t ret = SC_OK;
   ta_log_info("find transaction by uuid string: %s\n", obj);
@@ -427,7 +427,7 @@ status_t api_get_identity_info_by_hash(const db_client_service_t* const db_servi
                                        char** json_result) {
   if (obj == NULL) {
     ta_log_error("Invalid NULL pointer to uuid string\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   status_t ret = SC_OK;
   ta_log_info("get identity info by hash : %s\n", obj);
@@ -454,7 +454,7 @@ status_t api_get_identity_info_by_id(const db_client_service_t* const db_service
                                      char** json_result) {
   if (obj == NULL) {
     ta_log_error("Invalid NULL pointer to uuid string\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   status_t ret = SC_OK;

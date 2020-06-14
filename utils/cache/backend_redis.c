@@ -43,8 +43,8 @@ int br_logger_release() {
 static status_t redis_del(redisContext* c, const char* const key) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "DEL %s", key);
@@ -60,8 +60,8 @@ static status_t redis_del(redisContext* c, const char* const key) {
 static status_t redis_get(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "GET %s", key);
@@ -81,8 +81,8 @@ static status_t redis_set(redisContext* c, const char* const key, const int key_
                           const int value_size, const int timeout) {
   status_t ret = SC_OK;
   if (c == NULL || key == NULL || value == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = NULL;
@@ -104,8 +104,8 @@ static status_t redis_list_push(redisContext* c, const char* const key, const in
                                 const int value_size) {
   status_t ret = SC_OK;
   if (c == NULL || key == NULL || value == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = NULL;
@@ -122,8 +122,8 @@ static status_t redis_list_push(redisContext* c, const char* const key, const in
 static status_t redis_list_at(redisContext* c, const char* const key, const int index, const int res_len, char* res) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "LINDEX %s %d", key, index);
@@ -142,8 +142,8 @@ static status_t redis_list_at(redisContext* c, const char* const key, const int 
 static status_t redis_list_peek(redisContext* c, const char* const key, const int res_len, char* res) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "LINDEX %s %d", key, 0);
@@ -162,8 +162,8 @@ static status_t redis_list_peek(redisContext* c, const char* const key, const in
 static status_t redis_list_size(redisContext* c, const char* const key, int* len) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "LLEN %s", key);
@@ -183,8 +183,8 @@ static status_t redis_list_exist(redisContext* c, const char* const key, const c
                                  bool* exist) {
   status_t ret = SC_OK;
   if (key == NULL || value == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
   char res[value_len + 1];
   int len = 0;
@@ -212,8 +212,8 @@ static status_t redis_list_exist(redisContext* c, const char* const key, const c
 static status_t redis_list_pop(redisContext* c, const char* const key, char* res) {
   status_t ret = SC_OK;
   if (key == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_CACHE_NULL));
-    return SC_CACHE_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   redisReply* reply = redisCommand(c, "LPOP %s", key);

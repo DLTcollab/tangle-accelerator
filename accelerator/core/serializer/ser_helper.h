@@ -157,7 +157,7 @@ status_t ta_bundle_transaction_to_json_array(const bundle_transactions_t* const 
  *
  * @param json_obj[in] Input cJSON object
  * @param obj_name[in] The name of this element in JSON
- * @param text[in/out] Output string value
+ * @param text[in,out] Output string value
  * @param size[in] The length of string
  *
  * @return

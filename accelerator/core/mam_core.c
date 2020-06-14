@@ -37,43 +37,47 @@ int ta_mam_logger_release() {
  * Internal functions
  ***********************************************************************************************************/
 
-static retcode_t ta_mam_write_header(mam_api_t *const api, tryte_t const *const channel_id, mam_psk_t_set_t psks,
-                                     mam_ntru_pk_t_set_t ntru_pks, bundle_transactions_t *const bundle,
-                                     trit_t *const msg_id) {
-  retcode_t ret = RC_OK;
-
-  // In TA we only write header on endpoint, since in our architecture we only post Message on signatures owned by
-  // endpoint, but not the signatures owned by channel.
-  ret = mam_api_bundle_write_header_on_channel(api, channel_id, psks, ntru_pks, bundle, msg_id);
+static status_t ta_mam_write_header(mam_api_t *const api, tryte_t const *const channel_id, mam_psk_t_set_t psks,
+                                    mam_ntru_pk_t_set_t ntru_pks, bundle_transactions_t *const bundle,
+                                    trit_t *const msg_id) {
+  retcode_t ret = mam_api_bundle_write_header_on_channel(api, channel_id, psks, ntru_pks, bundle, msg_id);
   if (ret) {
-    ta_log_error("ret: %d, %s\n", ret, error_2_string(ret));
+    ta_log_error("retcode: %d, %s\n", ret, error_2_string(ret));
+    return SC_MAM_FAILED_WRITE_HEADER;
   }
-  return ret;
+  return SC_OK;
 }
 
 /**
- * @brief Writes a packet on a bundle
+ * @brief Write a packet into a bundle
  *
  * @param api[in] The MAM API object
- * @param bundle[out] The bundle that the packet will be written into
  * @param payload[in] The payload to write
- * @param msg_id[in] The msg_id
+ * @param msg_id[in] The MAM msg_id of this packet
+ * @param bundle[out] The bundle that the packet will be written into
  *
- * @return return code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
-static retcode_t ta_mam_write_packet(mam_api_t *const api, bundle_transactions_t *const bundle,
-                                     char const *const payload, trit_t const *const msg_id) {
-  retcode_t ret = RC_OK;
+static status_t ta_mam_write_packet(mam_api_t *const api, char const *const payload, trit_t const *const msg_id,
+                                    bundle_transactions_t *const bundle) {
   const bool last_packet = true;
   const mam_msg_checksum_t checksum = MAM_MSG_CHECKSUM_SIG;
   tryte_t *payload_trytes = (tryte_t *)malloc(2 * strlen(payload) * sizeof(tryte_t));
 
   ascii_to_trytes(payload, payload_trytes);
 
-  ret = mam_api_bundle_write_packet(api, msg_id, payload_trytes, strlen(payload) * 2, checksum, last_packet, bundle);
+  retcode_t ret =
+      mam_api_bundle_write_packet(api, msg_id, payload_trytes, strlen(payload) * 2, checksum, last_packet, bundle);
+  if (ret) {
+    ta_log_error("retcode: %d, %s\n", ret, error_2_string(ret));
+    free(payload_trytes);
+    return SC_MAM_FAILED_WRITE;
+  }
 
   free(payload_trytes);
-  return ret;
+  return SC_OK;
 }
 
 /**
@@ -164,19 +168,6 @@ static mam_endpoint_t *mam_api_endpoint_get(mam_api_t const *const api, tryte_t 
 }
 
 /**
- * @brief Free 'mam_encrypt_key_t' object
- *
- * @param mam_key[in] 'mam_encrypt_key_t' object to be freed
- *
- * @return status code
- */
-static inline void mam_encrypt_key_free(mam_encrypt_key_t *mam_key) {
-  mam_psk_t_set_free(&mam_key->psks);
-  mam_ntru_pk_t_set_free(&mam_key->ntru_pks);
-  mam_ntru_sk_t_set_free(&mam_key->ntru_sks);
-}
-
-/**
  * @brief Add all the keys in the list of Pre-Shared Key and NTRU public key into corresponding key set.
  *
  * The PSK keys are converting the index into trytes as PSK ID.
@@ -186,7 +177,9 @@ static inline void mam_encrypt_key_free(mam_encrypt_key_t *mam_key) {
  * @param psk[in] List of Pre-Shared Key
  * @param ntru_pk[in] List of NTRU public key
  *
- * @return status code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
 static status_t ta_set_mam_key(mam_encrypt_key_t *const mam_keys, UT_array const *const psk,
                                UT_array const *const ntru_pk, UT_array const *const ntru_sk) {
@@ -241,17 +234,31 @@ static status_t ta_set_mam_key(mam_encrypt_key_t *const mam_keys, UT_array const
 }
 
 /**
- * @brief Initialize a mam_api_t object
+ * @brief Free 'mam_encrypt_key_t' object
+ *
+ * @param mam_key[in] 'mam_encrypt_key_t' object to be freed
+ *
+ */
+static inline void mam_encrypt_key_free(mam_encrypt_key_t *mam_key) {
+  mam_psk_t_set_free(&mam_key->psks);
+  mam_ntru_pk_t_set_free(&mam_key->ntru_pks);
+  mam_ntru_sk_t_set_free(&mam_key->ntru_sks);
+}
+
+/**
+ * @brief Initialize a 'mam_api_t' object
  *
  * @param api[in,out] The MAM API object
  * @param iconf[in] IOTA API parameter configurations
  * @param seed[in] Seed of MAM channels. It is an optional choice
  *
- * @return return code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
 static status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const iconf, tryte_t const *const seed) {
   if (!api || (!iconf && !seed)) {
-    return SC_MAM_NULL;
+    return SC_NULL;
   }
 
   if (seed) {
@@ -283,7 +290,7 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   find_transactions_req_t *txn_req = find_transactions_req_new();
   transaction_array_t *obj_res = transaction_array_new();
   if (!txn_req || !obj_res) {
-    ret = SC_MAM_NULL;
+    ret = SC_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -367,7 +374,9 @@ done:
  * @param msg_id[out] Unique Message identifier under each channel
  * @param mam_operation[out]
  *
- * @return return code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
 static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const service, mam_api_t *const api,
                                              const channel_info_t *channel_info, mam_encrypt_key_t mam_key,
@@ -376,7 +385,7 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
                                              mam_send_operation_t *mam_operation) {
   status_t ret = SC_OK;
   if (!service || !api || !chid || !msg_id || !channel_info || channel_info->ch_mss_depth < 1) {
-    ret = SC_MAM_NULL;
+    ret = SC_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
   }
@@ -443,9 +452,9 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
       used_key_num--;
       ch_remain_key_num--;
 
-      if (ta_mam_write_header(api, chid, mam_key.psks, mam_key.ntru_pks, *bundle, msg_id_trits)) {
-        ret = SC_MAM_FAILED_WRITE;
-        ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
+      ret = ta_mam_write_header(api, chid, mam_key.psks, mam_key.ntru_pks, *bundle, msg_id_trits);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
         goto done;
       }
 
@@ -472,7 +481,7 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
   }
 
   // Writing packet to bundle
-  if (ta_mam_write_packet(api, *bundle, payload, msg_id_trits)) {
+  if (ta_mam_write_packet(api, payload, msg_id_trits, *bundle)) {
     ret = SC_MAM_FAILED_WRITE;
     ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
     goto done;
@@ -497,7 +506,9 @@ done:
  * @param chid1[in] The next Channel ID
  * @param bundle[out] The bundle which contains the Header and Packets of the current Message
  *
- * @return return code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
 static status_t ta_mam_write_announce_to_bundle(mam_api_t *const api, const size_t channel_depth, tryte_t *const chid,
                                                 mam_encrypt_key_t mam_key, tryte_t *const chid1,
@@ -527,7 +538,9 @@ done:
  * @param bundle[in] The bundle that contains the message
  * @param payload_out[out] The output playload in ascii
  *
- * @return status code
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
  */
 static status_t ta_mam_api_bundle_read(mam_api_t *const api, bundle_transactions_t *bundle, char **payload_out) {
   status_t ret = SC_OK;
@@ -542,15 +555,15 @@ static status_t ta_mam_api_bundle_read(mam_api_t *const api, bundle_transactions
     } else {
       *payload_out = calloc(payload_size * 2 + 1, sizeof(char));
       if (*payload_out == NULL) {
-        ret = SC_TA_OOM;
+        ret = SC_OOM;
         ta_log_error("%s\n", ta_error_to_string(ret));
         goto done;
       }
       trytes_to_ascii(payload_trytes, payload_size, *payload_out);
     }
   } else {
-    ret = SC_MAM_MESSAGE_NOT_FOUND;
-    ta_log_error("retcode_t:%d, %s\n", rc, error_2_string(rc));
+    ret = SC_MAM_READ_MESSAGE_ERROR;
+    ta_log_error("retcode_t: %d, %s\n", rc, error_2_string(rc));
   }
 
 done:

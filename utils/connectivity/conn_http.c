@@ -229,7 +229,7 @@ status_t set_post_request(char const *const path, char const *const host, const 
       strlen(post_req_format) + strlen(path) + strlen(host) + MAX_PORT_LEN + MAX_CONTENT_LENGTH_LEN + strlen(req_body);
   *out = (char *)malloc(sizeof(char) * out_len);
   if (!*out) {
-    return SC_UTILS_OOM_ERROR;
+    return SC_OOM;
   }
   snprintf(*out, out_len, post_req_format, path, host, port, (int)strlen(req_body), req_body);
 
@@ -245,7 +245,7 @@ status_t set_get_request(char const *const path, char const *const host, const u
   size_t out_len = strlen(get_req_format) + strlen(path) + strlen(host) + MAX_PORT_LEN;
   *out = (char *)malloc(sizeof(char) * out_len);
   if (!*out) {
-    return SC_UTILS_OOM_ERROR;
+    return SC_OOM;
   }
   snprintf(*out, out_len, get_req_format, path, host, port);
 

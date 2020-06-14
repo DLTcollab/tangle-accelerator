@@ -61,16 +61,16 @@ void recv_mam_req_free(ta_recv_mam_req_t** req) {
 
 status_t recv_mam_req_v1_init(ta_recv_mam_req_t* req) {
   if (req == NULL) {
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   req->data_id = (recv_mam_data_id_mam_v1_t*)malloc(sizeof(recv_mam_data_id_mam_v1_t));
   if (req->data_id == NULL) {
-    return SC_TA_OOM;
+    return SC_OOM;
   }
   req->key = (recv_mam_key_mam_v1_t*)malloc(sizeof(recv_mam_key_mam_v1_t));
   if (req->key == NULL) {
-    return SC_TA_OOM;
+    return SC_OOM;
   }
 
   recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
@@ -87,7 +87,7 @@ status_t recv_mam_req_v1_init(ta_recv_mam_req_t* req) {
 
 status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* msg_id) {
   if (req == NULL || (!bundle_hash && !chid && !msg_id)) {
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   status_t ret = SC_OK;
 
@@ -95,21 +95,21 @@ status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, 
   if (bundle_hash) {
     data_id->bundle_hash = (tryte_t*)strdup(bundle_hash);
     if (!data_id->bundle_hash) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }
   if (chid) {
     data_id->chid = (tryte_t*)strdup(chid);
     if (!data_id->chid) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }
   if (msg_id) {
     data_id->msg_id = (tryte_t*)strdup(msg_id);
     if (!data_id->msg_id) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }

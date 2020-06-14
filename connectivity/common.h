@@ -26,7 +26,7 @@ extern "C" {
  * @param[in] regex_rule Regex rule
  *
  * @return
- * - SC_HTTP_NULL if regular expression is NULL
+ * - SC_NULL if regular expression is NULL
  * - SC_HTTP_INVALID_REGEX if failed to compile regular expression
  * - SC_HTTP_URL_NOT_MATCH if regular expression does not match the given path
  * - SC_OK on success

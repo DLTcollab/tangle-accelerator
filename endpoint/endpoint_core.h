@@ -38,7 +38,7 @@ void endpoint_destroy(void);
  * @param[in] next_address Next address to be sent inside message
  * @param[in] private_key Private key from device
  * @param[in] device_id Device id from device
- * @param[in/out] iv Initialization vector, must be read/write. The length of iv must be AES_IV_SIZE @see #ta_cipher_ctx
+ * @param[in,out] iv Initialization vector, must be read/write. The length of iv must be AES_IV_SIZE @see #ta_cipher_ctx
  *
  * @return #status_t
  */

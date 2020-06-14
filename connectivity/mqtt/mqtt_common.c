@@ -35,8 +35,8 @@ static int mosquitto__parse_socks_url(mosq_config_t *cfg, char *url);
 status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   status_t ret = SC_OK;
   if (cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   memset(cfg, 0, sizeof(mosq_config_t));
@@ -44,7 +44,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   cfg->general_config = (mosq_general_config_t *)malloc(sizeof(mosq_general_config_t));
   cfg->property_config = (mosq_property_config_t *)malloc(sizeof(mosq_property_config_t));
   if (cfg->general_config == NULL || cfg->property_config == NULL) {
-    ret = SC_MQTT_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto oom_err;
   }
@@ -54,7 +54,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
 #ifdef WITH_TLS
   cfg->tls_config = (mosq_tls_config_t *)malloc(sizeof(mosq_tls_config_t));
   if (cfg->tls_config == NULL) {
-    ret = SC_MQTT_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto oom_err;
   }
@@ -64,7 +64,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
 #ifdef WITH_SOCKS
   cfg->socks_config = (mosq_socks_config_t *)malloc(sizeof(mosq_socks_config_t));
   if (cfg->socks_config == NULL) {
-    ret = SC_MQTT_OOM;
+    ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto oom_err;
   }
@@ -74,7 +74,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   if ((client_type == client_pub) || (client_type == client_duplex)) {
     cfg->pub_config = (mosq_pub_config_t *)malloc(sizeof(mosq_pub_config_t));
     if (cfg->pub_config == NULL) {
-      ret = SC_MQTT_OOM;
+      ret = SC_OOM;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto oom_err;
     }
@@ -84,7 +84,7 @@ status_t init_mosq_config(mosq_config_t *cfg, client_type_t client_type) {
   if ((client_type == client_sub) || (client_type == client_duplex)) {
     cfg->sub_config = (mosq_sub_config_t *)malloc(sizeof(mosq_sub_config_t));
     if (cfg->sub_config == NULL) {
-      ret = SC_MQTT_OOM;
+      ret = SC_OOM;
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto oom_err;
     }
@@ -118,8 +118,8 @@ oom_err:
 
 status_t mosq_config_free(mosq_config_t *cfg) {
   if (cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   if (cfg->general_config->client_type == client_pub || cfg->general_config->client_type == client_duplex) {
@@ -182,8 +182,8 @@ status_t mosq_config_free(mosq_config_t *cfg) {
 
 status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topic) {
   if (cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   if (mosquitto_validate_utf8(topic, strlen(topic))) {
@@ -205,8 +205,8 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
     cfg->sub_config->topic_count++;
     cfg->sub_config->topics = realloc(cfg->sub_config->topics, cfg->sub_config->topic_count * sizeof(char *));
     if (!cfg->sub_config->topics) {
-      ta_log_error("%s\n", ta_error_to_string(SC_MQTT_OOM));
-      return SC_MQTT_OOM;
+      ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+      return SC_OOM;
     }
     cfg->sub_config->topics[cfg->sub_config->topic_count - 1] = strdup(topic);
   }
@@ -215,8 +215,8 @@ status_t cfg_add_topic(mosq_config_t *cfg, client_type_t client_type, char *topi
 
 status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 #if defined(WITH_TLS) || defined(WITH_SOCKS)
   mosq_retcode_t ret;
@@ -311,8 +311,8 @@ status_t mosq_opts_set(struct mosquitto *mosq, mosq_config_t *cfg) {
 
 status_t generate_client_id(mosq_config_t *cfg) {
   if (cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   srand(time(NULL));
@@ -324,9 +324,9 @@ status_t generate_client_id(mosq_config_t *cfg) {
   }
   cfg->general_config->id = (char *)malloc(sizeof(char) * ID_LEN);
   if (!cfg->general_config->id) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_OOM));
+    ta_log_error("%s\n", ta_error_to_string(SC_OOM));
     mosquitto_lib_cleanup();
-    return SC_MQTT_OOM;
+    return SC_OOM;
   }
 
   strncpy(cfg->general_config->id, id, sizeof(char) * ID_LEN);
@@ -336,8 +336,8 @@ status_t generate_client_id(mosq_config_t *cfg) {
 
 status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_MQTT_NULL));
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   mosq_retcode_t ret;
@@ -383,7 +383,7 @@ status_t mosq_client_connect(struct mosquitto *mosq, mosq_config_t *cfg) {
       }
     }
     mosquitto_lib_cleanup();
-    return SC_CLIENT_CONNECT;
+    return SC_MQTT_CONNECT;
   }
   return SC_OK;
 }

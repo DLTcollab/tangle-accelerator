@@ -23,8 +23,8 @@ int conn_logger_release() {
 
 status_t api_path_matcher(char const *const path, char *const regex_rule) {
   if (regex_rule == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_HTTP_NULL));
-    return SC_HTTP_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
   regex_t reg;
   regmatch_t pmatch;

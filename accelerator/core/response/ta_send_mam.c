@@ -20,7 +20,7 @@ ta_send_mam_res_t* send_mam_res_new() {
 
 status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bundle_hash) {
   if (!bundle_hash || !res) {
-    return SC_RES_NULL;
+    return SC_NULL;
   }
 
   memcpy(res->bundle_hash, bundle_hash, NUM_TRYTES_HASH);
@@ -30,7 +30,7 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bun
 
 status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id) {
   if (!channel_id || !res) {
-    return SC_RES_NULL;
+    return SC_NULL;
   }
 
   memcpy(res->chid, channel_id, NUM_TRYTES_HASH);
@@ -40,7 +40,7 @@ status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* chan
 
 status_t send_mam_res_set_msg_id(ta_send_mam_res_t* res, const tryte_t* msg_id) {
   if (!msg_id || !res) {
-    return SC_RES_NULL;
+    return SC_NULL;
   }
 
   memcpy(res->msg_id, msg_id, NUM_TRYTES_MAM_MSG_ID);
@@ -69,7 +69,7 @@ done:
 
 status_t send_mam_res_set_announce_bundle_hash(ta_send_mam_res_t* res, const tryte_t* announcement_bundle_hash) {
   if (!announcement_bundle_hash || !res) {
-    return SC_RES_NULL;
+    return SC_NULL;
   }
 
   memcpy(res->announcement_bundle_hash, announcement_bundle_hash, NUM_TRYTES_HASH);
@@ -79,7 +79,7 @@ status_t send_mam_res_set_announce_bundle_hash(ta_send_mam_res_t* res, const try
 
 status_t send_mam_res_set_chid1(ta_send_mam_res_t* res, const tryte_t* chid1) {
   if (!chid1 || !res) {
-    return SC_RES_NULL;
+    return SC_NULL;
   }
 
   memcpy(res->chid1, chid1, NUM_TRYTES_HASH);

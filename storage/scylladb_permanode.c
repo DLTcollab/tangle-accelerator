@@ -76,11 +76,11 @@ static status_t insert_transaction(CassSession* session, const tryte_t* hash, co
 
   if (session == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client session for connection endpoint(s)");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (hash == NULL || trytes == NULL) {
     ta_log_error("NULL trytes pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   if (prepare_query(session, query, &prepared) != CASS_OK) {
@@ -137,7 +137,7 @@ static status_t insert_approvee(CassSession* session, const tryte_t* hash, const
 
   if (hash == NULL || approvee == NULL) {
     ta_log_error("NULL pointer to ScyllaDB transaction object\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   char* query = "UPDATE transaction SET approvees = approvees + ? WHERE hash = ?";
@@ -200,7 +200,7 @@ static status_t push_collection_into_queue(CassSession* session, CassStatement* 
       const cass_byte_t* buf;
       cass_value_get_bytes(cass_iterator_get_value(items_iterator), &buf, &len);
       if (hash243_queue_push(res_queue, (flex_trit_t*)buf) != RC_OK) {
-        ret = SC_STORAGE_OOM;
+        ret = SC_OOM;
         ta_log_error("%s\n", ta_error_to_string(ret));
         goto end_iterate;
       }
@@ -249,7 +249,7 @@ static status_t get_count(CassSession* session, CassStatement* statement, get_in
     }
     if (get_inclusion_states_res_states_add(res, (count > 0)) != RC_OK) {
       ta_log_error("Fail to push buf into queue\n");
-      ret = SC_STORAGE_OOM;
+      ret = SC_OOM;
       goto end_iterate;
     }
     ret = SC_OK;
@@ -294,7 +294,7 @@ static status_t push_columns_into_queue(CassSession* session, CassStatement* sta
     }
     if (hash243_queue_push(res_queue, (flex_trit_t*)buf) != RC_OK) {
       ta_log_error("Fail to push buf into queue\n");
-      ret = SC_STORAGE_OOM;
+      ret = SC_OOM;
       goto end_iterate;
     }
     ret = SC_OK;
@@ -337,8 +337,8 @@ static status_t get_trytes(CassSession* session, CassStatement* statement, hash8
       goto end_iterate;
     }
     if (hash8019_queue_push(res_queue, (flex_trit_t const* const)buf) != RC_OK) {
-      ta_log_error("%s\n", "SC_STORAGE_OOM");
-      ret = SC_STORAGE_OOM;
+      ta_log_error("%s\n", "SC_OOM");
+      ret = SC_OOM;
     }
     ret = SC_OK;
   }
@@ -485,7 +485,7 @@ status_t db_get_transactions_by_bundle(const db_client_service_t* service, hash2
                                        const flex_trit_t* bundle) {
   if (service == NULL || res == NULL || bundle == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return get_hash_from_transaction_table(service->session, res, "bundle", bundle, NUM_TRYTES_BUNDLE);
 }
@@ -494,7 +494,7 @@ status_t db_get_transactions_by_address(const db_client_service_t* service, hash
                                         const flex_trit_t* address) {
   if (service == NULL || res == NULL || address == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return get_hash_from_transaction_table(service->session, res, "address", address, NUM_TRYTES_ADDRESS);
 }
@@ -502,7 +502,7 @@ status_t db_get_transactions_by_address(const db_client_service_t* service, hash
 status_t db_get_transactions_by_tag(const db_client_service_t* service, hash243_queue_t* res, const flex_trit_t* tag) {
   if (service == NULL || res == NULL || tag == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return get_hash_from_transaction_table(service->session, res, "tag", tag, NUM_TRYTES_OBSOLETE_TAG);
 }
@@ -510,7 +510,7 @@ status_t db_get_transactions_by_tag(const db_client_service_t* service, hash243_
 status_t db_get_approvee(const db_client_service_t* service, hash243_queue_t* res, const flex_trit_t* hash) {
   if (service == NULL || res == NULL || hash == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return get_approvee_from_transaction_table(service->session, res, hash);
 }
@@ -518,7 +518,7 @@ status_t db_get_approvee(const db_client_service_t* service, hash243_queue_t* re
 status_t db_get_trytes(const db_client_service_t* service, hash8019_queue_t* res, const flex_trit_t* hash) {
   if (service == NULL || res == NULL || hash == NULL) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   return get_trytes_from_transaction_table(service->session, res, hash);
 }
@@ -562,7 +562,7 @@ status_t db_client_get_trytes(const db_client_service_t* service, get_trytes_req
   hash243_queue_t itr243 = NULL;
   if (!service || !req || !res) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   CDL_FOREACH(req->hashes, itr243) {
     ret = db_get_trytes(service, &res->trytes, itr243->hash);
@@ -580,7 +580,7 @@ status_t db_client_get_inclusion_states(const db_client_service_t* service, get_
 
   if (!service || !req || !res) {
     ta_log_error("Invalid NULL pointer\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   CDL_FOREACH(req->transactions, itr243) {
     ret = get_inclusion_status_from_transaction_table(service->session, res, itr243->hash);
@@ -604,7 +604,7 @@ status_t db_client_get_transaction_objects(const db_client_service_t* service, c
   get_trytes_res_t* out_trytes = get_trytes_res_new();
 
   if (!out_trytes) {
-    ret = SC_TA_OOM;
+    ret = SC_OOM;
     ta_log_error("Create get trytes response failed\n");
     goto done;
   }
@@ -633,7 +633,7 @@ status_t db_permanode_keyspace_init(const db_client_service_t* service, bool nee
 
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if ((ret = create_keyspace(service->session, keyspace_name)) != SC_OK) {
     ta_log_error("%s\n", "Create permanent keyspace failed");
