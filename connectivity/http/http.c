@@ -415,12 +415,13 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (http_req->answer_code == MHD_NO) {
     /* decide which API function should be called */
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, api->core->iota_service.http.host, api->core->iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, api->core->iota_service.http.host, api->core->iota_service.http.port,
+                               api->core->iota_service.http.ca_pem);
     http_req->answer_code =
         ta_http_process_request(api, &iota_service, url, http_req->request, &http_req->answer_string, options);
   }
-  response =
-      MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_MUST_COPY);
+  response = MHD_create_response_from_buffer(http_req->answer_string ? strlen(http_req->answer_string) : 0,
+                                             http_req->answer_string, MHD_RESPMEM_MUST_COPY);
   // Set response header
   MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
   if (options) {

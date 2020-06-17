@@ -281,7 +281,8 @@ status_t api_send_transfer(const ta_core_t* const core, const iota_client_servic
   }
 
   // return transaction object
-  if (hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash))) {
+  if (hash243_queue_count(res->hash) == 0 || hash243_queue_push(&txn_obj_req->hashes, hash243_queue_peek(res->hash))) {
+    ret = SC_CCLIENT_FAILED_RESPONSE;
     ta_log_error("%s\n", "hash243_queue_push failed");
     goto done;
   }

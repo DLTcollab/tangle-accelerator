@@ -30,7 +30,7 @@ def parse_cli_arg():
 
     logging.basicConfig(level=logging.DEBUG)
 
-    URL = f"http://{sys.argv[1]}"
+    URL = f"{sys.argv[1]}"
     TESTNET = (sys.argv[2].lower() == "testnet") or (sys.argv[2].lower() == "devnet")
     BAZEL_BUILD_CMDS = sys.argv[3]
     BAZEL_TEST_ARGS = sys.argv[4]

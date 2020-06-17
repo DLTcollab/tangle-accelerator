@@ -13,6 +13,28 @@
 #include "yaml.h"
 
 #define CONFIG_LOGGER "config"
+#define CA_PEM_LEN 1208
+#define DEFAULT_CA_PEM                                                   \
+  "-----BEGIN CERTIFICATE-----\r\n"                                      \
+  "MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\r\n" \
+  "ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\r\n" \
+  "b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\r\n" \
+  "MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\r\n" \
+  "b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\r\n" \
+  "ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\r\n" \
+  "9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\r\n" \
+  "IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\r\n" \
+  "VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\r\n" \
+  "93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\r\n" \
+  "jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\r\n" \
+  "AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\r\n" \
+  "A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\r\n" \
+  "U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\r\n" \
+  "N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\r\n" \
+  "o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\r\n" \
+  "5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\r\n" \
+  "rqXRfboQnoZsG4q5WTP468SQvvG5\r\n"                                     \
+  "-----END CERTIFICATE-----\r\n"
 
 static logger_id_t logger_id;
 
@@ -46,6 +68,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   iota_config_t* const iota_conf = &core->iota_conf;
   ta_cache_t* const cache = &core->cache;
   iota_client_service_t* const iota_service = &core->iota_service;
+  FILE* file = NULL;
   char* conf_file = core->conf_file;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
@@ -103,6 +126,19 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       }
       iota_service->http.port = ta_conf->iota_port_list[0];
       break;
+
+    case CA_PEM:
+      if ((file = fopen(value, "r")) == NULL) {
+        /* The specified configuration file does not exist */
+        ta_log_error("%s\n", ta_error_to_string(SC_CONF_FOPEN_ERROR));
+        return SC_CONF_FOPEN_ERROR;
+      }
+      char* temp_ca_pem_path = (char*)malloc(sizeof(char) * (CA_PEM_LEN + 1));
+      fread(temp_ca_pem_path, CA_PEM_LEN, 1, file);
+      iota_service->http.ca_pem = temp_ca_pem_path;
+      fclose(file);
+      break;
+
     case HEALTH_TRACK_PERIOD:
       strtol_temp = strtol(value, NULL, 10);
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
@@ -215,14 +251,15 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   return SC_OK;
 }
 
-status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port) {
+status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port,
+                                    char const* const ca_pem) {
   strncpy(service->http.path, "/", CONTENT_TYPE_MAX_LEN);
   strncpy(service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
   strncpy(service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
   strncpy(service->http.host, host, HOST_MAX_LEN);
   service->http.port = port;
   service->http.api_version = 1;
-  service->http.ca_pem = NULL;
+  service->http.ca_pem = ca_pem ? ca_pem : DEFAULT_CA_PEM;
   service->serializer_type = SR_JSON;
   init_json_serializer(&service->serializer);
 
@@ -280,6 +317,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   strncpy(iota_service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
   strncpy(iota_service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
   strncpy(iota_service->http.host, IRI_HOST, HOST_MAX_LEN);
+  iota_service->http.ca_pem = DEFAULT_CA_PEM;
   iota_service->http.port = IRI_PORT;
   iota_service->http.api_version = 1;
   iota_service->serializer_type = SR_JSON;

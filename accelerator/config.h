@@ -50,7 +50,7 @@ extern "C" {
 #define MAX_HTTP_TPOOL_SIZE \
   (get_nprocs_conf() - get_nthds_per_phys_proc()) /** < Preserve at least one physical processor */
 #define IRI_HOST "localhost"
-#define IRI_PORT 14265
+#define IRI_PORT 443
 #define MAX_IRI_LIST_ELEMENTS 5
 #define DB_HOST "localhost"
 #define MILESTONE_DEPTH 3
@@ -196,12 +196,14 @@ void ta_core_destroy(ta_core_t* const core);
  * @param service[in] IOTA client service
  * @param host[in] host of connecting service
  * @param port[in] port of connecting service
+ * @param ca_pem[in] CA PEM path
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port);
+status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port,
+                                    char const* const ca_pem);
 
 #ifdef __cplusplus
 }

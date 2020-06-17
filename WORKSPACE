@@ -15,13 +15,13 @@ git_repository(
 
 git_repository(
     name = "iota.c",
-    commit = "fd9d67989dc5161117b39a9a3351afcfb118bcad",
+    commit = "3f1c255bd6e7ccc19bd527a83fa4593d342cad32",
     remote = "https://github.com/iotaledger/iota.c.git",
 )
 
 git_repository(
     name = "org_iota_common",
-    commit = "c644b7715662dc7b73191ae964f4ede06ee6c975",
+    commit = "cf649803757abf48432d4fa60e9f27ac119bae5f",
     remote = "https://github.com/iotaledger/iota_common.git",
 )
 

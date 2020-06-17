@@ -58,6 +58,8 @@ typedef enum ta_cli_arg_value_e {
 
   /** LOGGER */
   QUIET,
+
+  CA_PEM,
 } ta_cli_arg_value_t;
 
 static struct ta_cli_argument_s {
@@ -75,6 +77,7 @@ static struct ta_cli_argument_s {
      "Determine thread pool size to process HTTP connections."},
     {"iri_host", required_argument, NULL, IRI_HOST_CLI, "IRI listening host"},
     {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
+    {"CA_PEM", required_argument, NULL, CA_PEM, "The path to CA PEM file"},
     {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
     {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
     {"iri_address", required_argument, NULL, IRI_ADDRESS_CLI, " List of IRI listening URL"},

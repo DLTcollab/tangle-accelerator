@@ -63,7 +63,8 @@ static status_t mqtt_request_handler(mosq_config_t *cfg, char *subscribe_topic, 
     goto done;
   }
   iota_client_service_t iota_service;
-  ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+  ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                             ta_core.iota_service.http.ca_pem);
 
   char *api_sub_topic = subscribe_topic + strlen(ta_core.ta_conf.mqtt_topic_root);
   if (api_path_matcher(api_sub_topic, "/tag/hashes") == SC_OK) {
