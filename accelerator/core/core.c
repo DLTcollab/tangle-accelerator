@@ -239,7 +239,12 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
     goto done;
   }
 
-  hash243_queue_copy(&obj_req->hashes, txn_res->hashes, hash243_queue_count(txn_res->hashes));
+  int txn_res_len = hash243_queue_count(txn_res->hashes);
+  for (int i = 0; i < RESULT_SET_LIMIT && i < txn_res_len; i++) {
+    hash243_queue_entry_t* tmp_queue_entry = hash243_queue_pop(&txn_res->hashes);
+    hash243_queue_push(&obj_req->hashes, tmp_queue_entry->hash);
+    free(tmp_queue_entry);
+  }
 
   ret = ta_find_transaction_objects(service, obj_req, res);
   if (ret) {

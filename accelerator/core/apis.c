@@ -78,6 +78,11 @@ status_t api_find_transaction_objects(const iota_client_service_t* const service
     goto done;
   }
 
+  // Limit the returned transaction objects less equal than 'RESULT_SET_LIMIT'
+  while (hash243_queue_count(req->hashes) > RESULT_SET_LIMIT) {
+    hash243_queue_pop(&req->hashes);
+  }
+
   ret = ta_find_transaction_objects(service, req, res);
   if (ret) {
     ta_log_error("%d\n", ret);
