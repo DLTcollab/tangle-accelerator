@@ -26,12 +26,7 @@ void cipher_logger_init() { logger_id = logger_helper_enable(CIPHER_LOGGER, LOGG
 
 int cipher_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", CIPHER_LOGGER);
-    return EXIT_FAILURE;
-  }
-
-  return 0;
+  return SC_OK;
 }
 
 status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
