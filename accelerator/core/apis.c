@@ -343,30 +343,30 @@ done:
   return ret;
 }
 
-status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result) {
+status_t api_get_node_status(const iota_client_service_t* const service, char** json_result) {
   status_t ret = SC_OK;
 
-  ret = ta_get_iri_status(service);
+  ret = ta_get_node_status(service);
   switch (ret) {
     /*
      * The values of each status_t are listed as the following. Not listed status code are unexpected errors which
      * would cause TA return error.
      *
-     * SC_CCLIENT_FAILED_RESPONSE: Can't connect to IRI host
-     * SC_CORE_IRI_UNSYNC: IRI host is not at the latest milestone
-     * SC_OK: IRI host works fine.
+     * SC_CCLIENT_FAILED_RESPONSE: Can't connect to IOTA full node
+     * SC_CORE_NODE_UNSYNC: IOTA full node is not at the latest milestone
+     * SC_OK: IOTA full node works fine.
      **/
     case SC_CCLIENT_FAILED_RESPONSE:
-    case SC_CORE_IRI_UNSYNC:
+    case SC_CORE_NODE_UNSYNC:
     case SC_OK:
-      ret = get_iri_status_res_serialize(ret, json_result);
+      ret = get_node_status_res_serialize(ret, json_result);
       if (ret) {
         ta_log_error("failed to serialize. status code: %d\n", ret);
       }
       break;
 
     default:
-      ta_log_error("check IRI connection failed. status code: %d\n", ret);
+      ta_log_error("check IOTA full node connection failed. status code: %d\n", ret);
       break;
   }
 

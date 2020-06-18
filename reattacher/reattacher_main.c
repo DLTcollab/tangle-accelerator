@@ -30,7 +30,7 @@ static status_t init_iota_client_service(iota_client_service_t* const serv) {
   serv->http.ca_pem = NULL;
   serv->serializer_type = SR_JSON;
   if (iota_client_core_init(serv) != RC_OK) {
-    ta_log_error("Failed to connect to IRI.\n");
+    ta_log_error("Failed to connect to IOTA full node.\n");
     return SC_OOM;
   }
   return SC_OK;
@@ -114,8 +114,8 @@ int main(int argc, char** argv) {
   iota_service.http.host = "localhost";
   iota_service.http.port = 14265;
 
-  const struct option longOpt[] = {{"iri_host", required_argument, NULL, 'h'},
-                                   {"iri_port", required_argument, NULL, 'p'},
+  const struct option longOpt[] = {{"node_host", required_argument, NULL, 'h'},
+                                   {"node_port", required_argument, NULL, 'p'},
                                    {"db_host", required_argument, NULL, 'd'},
                                    {NULL, 0, NULL, 0}};
 

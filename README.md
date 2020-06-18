@@ -19,7 +19,7 @@ use scenarios such as MAM and [TangleID](https://tangleid.github.io/).
 
 At the moment, it is not feasible to host fully-functioned full nodes on Raspberry Pi class
 Arm devices, but Raspberry Pi 3 is known to be capable to execute `Tangle-accelerator`
-without problems. Since it is written in C/C++ with [entangled](https://github.com/iotaledger/entangled),
+without problems. Since it is written in C/C++ with [iota.c](https://github.com/iotaledger/iota.c),
 both footprint and startup time are behaved pretty well.
 
 ## Architecture
@@ -90,19 +90,21 @@ Tangle-accelerator is built and launched through Bazel, it also requires Redis t
 
 ## Build from Source
 
-Before running tangle-accelerator, please edit binding address/port of accelerator instance, IRI, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [entangled](https://github.com/iotaledger/entangled), IRI address doesn't support https at the moment. Here are some configurations and command you might need to change and use:
+Before running tangle-accelerator, please edit binding address/port of accelerator instance, IOTA full node, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [iota.c](https://github.com/iotaledger/iota.c), IOTA full node address doesn't support https at the moment. Here are some configurations and command you might need to change and use:
 
-* `TA_HOST`: binding address of accelerator instance
-* `TA_PORT`: port of accelerator instance
-* `IRI_HOST`: binding address of IRI
-* `IRI_PORT`: port of IRI
-* `HTTP_THREADS`: Determine thread pool size to process HTTP connections.
-* `quiet`: Turn off logging message
+* `ta_host`: Binding address of accelerator instance.
+* `ta_port`: Port of accelerator instance.
+* `node_host`: Binding address of IOTA full node which includes IRI and Hornet or other community implementation.
+* `node_port`: Port of IOTA full node.
+* `http_threads`: Determine thread pool size to process HTTP connections.
+* `quiet`: Turn off logging message.
 
 ```
 $ make && bazel run //accelerator
 ```
+
 ### Building Options
+
 Tangle-accelerator supports several different build time options.
 
 * Docker images
@@ -110,7 +112,8 @@ Tangle-accelerator supports several different build time options.
 * External database
 * Debug Mode
 
-    Debug mode enables tangle-accelerator to display extra `debug` logs.
+Debug mode enables tangle-accelerator to display extra `debug` logs.
+
 ```
 bazel run --define build_type=debug //accelerator
 ```
@@ -160,13 +163,13 @@ clang-format can be installed by command:
 ## Usage
 `Tangle-accelerator` currently supports two categories of APIs
 * Direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
-* Proxy API to IRI core functionalities
+* Proxy API to IOTA core functionalities
 
-### IRI Proxy API
-`tangle-accelerator` allows the use of IRI core APIs. The calling process does not have to be aware of the destination machine running IRI. With the exactly same format of IRI API, `tangle-accelerator` would help users forward the request to IRI and forward the response back to users.
-We support two way to forward Proxy APIs to IRI:
-1. Bypass Proxy APIs directly to IRI.
-2. Process the Proxy APIs, then transmit them to IRI.
+### Full Node Proxy API
+`tangle-accelerator` allows the use of IOTA core APIs. The calling process does not have to be aware of the destination machine running IOTA full node. With the exactly same format of IOTA core APIs, `tangle-accelerator` would help users forward the request to IOTA full node and forward the response back to users.
+We support two way to forward Proxy APIs to IOTA full node:
+1. Bypass Proxy APIs directly to IOTA full node.
+2. Process the Proxy APIs, then transmit them to IOTA full node.
 
 The user can choose which way they want with CLI argument `--proxy_passthrough`.
 All the Proxy APIs are supported with the first way.

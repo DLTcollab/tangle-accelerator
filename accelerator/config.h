@@ -49,9 +49,9 @@ extern "C" {
 #define DEFAULT_HTTP_TPOOL_SIZE 4 /**< Thread number of MHD thread pool */
 #define MAX_HTTP_TPOOL_SIZE \
   (get_nprocs_conf() - get_nthds_per_phys_proc()) /** < Preserve at least one physical processor */
-#define IRI_HOST "localhost"
-#define IRI_PORT 443
-#define MAX_IRI_LIST_ELEMENTS 5
+#define NODE_HOST "localhost"
+#define NODE_PORT 443
+#define MAX_NODE_LIST_ELEMENTS 5
 #define DB_HOST "localhost"
 #define MILESTONE_DEPTH 3
 #define MWM 14
@@ -73,12 +73,12 @@ extern "C" {
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
-  char* version;                                  /**< Binding version of tangle-accelerator */
-  char* host;                                     /**< Binding address of tangle-accelerator */
-  int port;                                       /**< Binding port of tangle-accelerator */
-  char* iota_host_list[MAX_IRI_LIST_ELEMENTS];    /**< List of binding hosts of IOTA services */
-  uint16_t iota_port_list[MAX_IRI_LIST_ELEMENTS]; /**< List of binding ports of IOTA services */
-  int health_track_period;                        /**< The period for checking IRI host connection status */
+  char* version;                                   /**< Binding version of tangle-accelerator */
+  char* host;                                      /**< Binding address of tangle-accelerator */
+  int port;                                        /**< Binding port of tangle-accelerator */
+  char* iota_host_list[MAX_NODE_LIST_ELEMENTS];    /**< List of binding hosts of IOTA services */
+  uint16_t iota_port_list[MAX_NODE_LIST_ELEMENTS]; /**< List of binding ports of IOTA services */
+  int health_track_period;                         /**< The period for checking full node connection status */
 #ifdef MQTT_ENABLE
   char* mqtt_host;       /**< Address of MQTT broker host */
   char* mqtt_topic_root; /**< The topic root of MQTT topic */

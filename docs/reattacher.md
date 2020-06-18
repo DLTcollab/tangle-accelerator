@@ -16,7 +16,7 @@ See [docs/build.md] for more information about enabling transaction reattachment
 The reattacher support following options :
 
 * `DB_HOST`: binding address of ScyllDB cluster
-* `IRI_HOST`: binding address of IRI
-* `IRI_PORT`: port of IRI
+* `NODE_HOST`: binding address of IOTA full node
+* `NODE_PORT`: port of IOTA full node
 
-If you do not specify `DB_HOST` or `IRI_HOST`, the address will be set as `localhost`.
+If you do not specify `DB_HOST` or `NODE_HOST`, the address will be set as `localhost`.

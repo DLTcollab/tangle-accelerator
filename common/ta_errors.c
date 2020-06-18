@@ -170,8 +170,8 @@ const char* ta_error_to_string(status_t err) {
       return "Failed to execute Cassandra query.";
 
     // Core
-    case SC_CORE_IRI_UNSYNC:
-      return "IRI host is not synchronized.";
+    case SC_CORE_NODE_UNSYNC:
+      return "IOTA full node host is not synchronized.";
 
       // Endpoint
     case SC_ENDPOINT_DEVICE_INIT:

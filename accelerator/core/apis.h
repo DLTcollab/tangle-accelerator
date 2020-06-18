@@ -46,7 +46,7 @@ int apis_logger_release();
  * @param info[in] Tangle-accelerator configuration variables
  * @param tangle[in] iota configuration variables
  * @param cache[in] redis configuration variables
- * @param service[in] IRI connection configuration variables
+ * @param service[in] IOTA full node connection configuration variables
  * @param json_result[out] Result containing tangle accelerator information in json format
  *
  * @return
@@ -204,7 +204,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
                          const iota_client_service_t* const service, const char* const obj, char** json_result);
 
 /**
- * @brief Check the connection status between tangle-accelerator and IRI host.
+ * @brief Check the connection status between tangle-accelerator and IOTA full node.
  *
  * @param[in] iota_service IOTA node service
  * @param[out] json_result Result containing the current connection status.
@@ -213,7 +213,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_get_iri_status(const iota_client_service_t* const service, char** json_result);
+status_t api_get_node_status(const iota_client_service_t* const service, char** json_result);
 
 /**
  * @brief Fetch transaction information with UUID.

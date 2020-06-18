@@ -308,7 +308,7 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   flex_trit_t chid_flex_trit[NUM_TRITS_ADDRESS];
   flex_trits_from_trytes(chid_flex_trit, NUM_TRITS_ADDRESS, chid, NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
   hash243_queue_push(&txn_req->addresses, chid_flex_trit);
-  // TODO use `ta_find_transaction_objects(service, obj_req, obj_res)` instead of the original entangled function
+  // TODO use `ta_find_transaction_objects(service, obj_req, obj_res)` instead of the original 'iota.c' function
   retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, obj_res);
   if (ret_rc && ret_rc != RC_NULL_PARAM) {
     ret = SC_MAM_FAILED_DESTROYED;
@@ -343,7 +343,7 @@ static bool is_setting_changed(const iota_client_service_t *const service, mam_a
   flex_trit_t chid_flex_trit[NUM_TRITS_ADDRESS];
   flex_trits_from_trytes(chid_flex_trit, NUM_TRITS_ADDRESS, chid, NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
   hash243_queue_push(&txn_req->addresses, chid_flex_trit);
-  // TODO use `ta_find_transaction_objects(service, txn_req, txn_res)` instead of the original entangled function
+  // TODO use `ta_find_transaction_objects(service, txn_req, txn_res)` instead of the original 'iota.c' function
   retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, txn_res);
   if (ret_rc && ret_rc != RC_NULL_PARAM) {
     ta_log_error("%s\n", SC_MAM_FAILED_DESTROYED);

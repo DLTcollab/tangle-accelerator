@@ -227,8 +227,8 @@ typedef enum {
   /**< Failed to execute Cassandra query */
 
   // Core module
-  SC_CORE_IRI_UNSYNC = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
-  /**< IRI host is not synchronized */
+  SC_CORE_NODE_UNSYNC = 0x01 | SC_MODULE_CORE | SC_SEVERITY_FATAL,
+  /**< IOTA full node host is not synchronized */
 
   // Endpoint module
   SC_ENDPOINT_DEVICE_INIT = 0x01 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,

@@ -106,17 +106,17 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       }
       break;
 
-    // IRI configuration
-    case IRI_HOST_CLI:
+    // IOTA full node configuration
+    case NODE_HOST_CLI:
       idx = 0;
-      for (char* p = strtok(value, ","); p && idx < MAX_IRI_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+      for (char* p = strtok(value, ","); p && idx < MAX_NODE_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
         ta_conf->iota_host_list[idx] = p;
       }
       strncpy(iota_service->http.host, ta_conf->iota_host_list[0], HOST_MAX_LEN);
       break;
-    case IRI_PORT_CLI:
+    case NODE_PORT_CLI:
       idx = 0;
-      for (char* p = strtok(value, ","); p && idx < MAX_IRI_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+      for (char* p = strtok(value, ","); p && idx < MAX_NODE_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
         strtol_temp = strtol(p, &strtol_p, 10);
         if (strtol_p != p && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= USHRT_MAX) {
           ta_conf->iota_port_list[idx] = (uint16_t)strtol_temp;
@@ -133,9 +133,9 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
         ta_log_error("%s\n", ta_error_to_string(SC_CONF_FOPEN_ERROR));
         return SC_CONF_FOPEN_ERROR;
       }
-      char* temp_ca_pem_path = (char*)malloc(sizeof(char) * (CA_PEM_LEN + 1));
-      fread(temp_ca_pem_path, CA_PEM_LEN, 1, file);
-      iota_service->http.ca_pem = temp_ca_pem_path;
+      char* temp_ca_pem = (char*)malloc(sizeof(char) * (CA_PEM_LEN + 1));
+      fread(temp_ca_pem, CA_PEM_LEN, 1, file);
+      iota_service->http.ca_pem = temp_ca_pem;
       fclose(file);
       break;
 
@@ -285,8 +285,8 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
   memset(ta_conf->iota_host_list, 0, sizeof(ta_conf->iota_host_list));
-  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
-    ta_conf->iota_port_list[i] = IRI_PORT;
+  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS; i++) {
+    ta_conf->iota_port_list[i] = NODE_PORT;
   }
   ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
   ta_conf->proxy_passthrough = false;
@@ -304,7 +304,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   cache->done_list_name = DONE_LIST_NAME;
   cache->capacity = CACHE_MAX_CAPACITY;
 
-  ta_log_info("Initializing IRI configuration\n");
+  ta_log_info("Initializing IOTA full node configuration\n");
   iota_conf->milestone_depth = MILESTONE_DEPTH;
   iota_conf->mwm = MWM;
   iota_conf->seed = SEED;
@@ -312,13 +312,13 @@ status_t ta_core_default_init(ta_core_t* const core) {
   mkstemp(mam_file_path);
   iota_conf->mam_file_path = strdup(mam_file_path);
 
-  ta_log_info("Initializing IRI connection\n");
+  ta_log_info("Initializing IOTA full node connection\n");
   strncpy(iota_service->http.path, "/", CONTENT_TYPE_MAX_LEN);
   strncpy(iota_service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
   strncpy(iota_service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
-  strncpy(iota_service->http.host, IRI_HOST, HOST_MAX_LEN);
+  strncpy(iota_service->http.host, NODE_HOST, HOST_MAX_LEN);
   iota_service->http.ca_pem = DEFAULT_CA_PEM;
-  iota_service->http.port = IRI_PORT;
+  iota_service->http.port = NODE_PORT;
   iota_service->http.api_version = 1;
   iota_service->serializer_type = SR_JSON;
 #ifdef DB_ENABLE
@@ -478,7 +478,7 @@ status_t ta_core_set(ta_core_t* core) {
   db_client_service_t* const db_service = &core->db_service;
 #endif
   if (iota_client_service_init(iota_service)) {
-    ta_log_error("Initializing IRI connection failed!\n");
+    ta_log_error("Initializing IOTA full node connection failed!\n");
     ret = SC_OOM;
     goto exit;
   }
@@ -504,7 +504,7 @@ exit:
 }
 
 void ta_core_destroy(ta_core_t* const core) {
-  ta_log_info("Destroying IRI connection\n");
+  ta_log_info("Destroying IOTA full node connection\n");
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);

@@ -496,7 +496,7 @@ void test_proxy_apis_command_req_deserialize(void) {
   TEST_ASSERT_EQUAL_STRING(command, TEST_PROXY_API(addNeighbors));
 }
 
-void test_get_iri_status_milestone_deserialize(void) {
+void test_get_node_status_milestone_deserialize(void) {
   const char* json =
       "{\"appName\": \"IRI\",\"appVersion\": \"1.7.0-RELEASE\",\"jreAvailableProcessors\": 8,\"jreFreeMemory\": "
       "2115085674,\"jreVersion\": \"1.8.0_191\",\"jreMaxMemory\": 20997734400,\"jreTotalMemory\": "
@@ -513,16 +513,16 @@ void test_get_iri_status_milestone_deserialize(void) {
   const int latestSolidSubtangleMilestoneIndex = 1050373;
   int deserialize_latestMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex;
 
-  TEST_ASSERT_EQUAL_INT(SC_OK, get_iri_status_milestone_deserialize(json, &deserialize_latestMilestoneIndex,
-                                                                    &deserialize_latestSolidSubtangleMilestoneIndex));
+  TEST_ASSERT_EQUAL_INT(SC_OK, get_node_status_milestone_deserialize(json, &deserialize_latestMilestoneIndex,
+                                                                     &deserialize_latestSolidSubtangleMilestoneIndex));
   TEST_ASSERT_EQUAL_INT(latestMilestoneIndex, deserialize_latestMilestoneIndex);
   TEST_ASSERT_EQUAL_INT(latestSolidSubtangleMilestoneIndex, deserialize_latestSolidSubtangleMilestoneIndex);
 }
 
-void test_get_iri_status_res_serialize(void) {
-  const char* json = "{\"status\":false,\"status_code\":\"SC_CORE_IRI_UNSYNC\"}";
+void test_get_node_status_res_serialize(void) {
+  const char* json = "{\"status\":false,\"status_code\":\"SC_CORE_NODE_UNSYNC\"}";
   char* json_result = NULL;
-  TEST_ASSERT_EQUAL_STRING(SC_OK, get_iri_status_res_serialize(SC_CORE_IRI_UNSYNC, &json_result));
+  TEST_ASSERT_EQUAL_STRING(SC_OK, get_node_status_res_serialize(SC_CORE_NODE_UNSYNC, &json_result));
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
@@ -653,8 +653,8 @@ int main(void) {
   RUN_TEST(test_mqtt_transaction_hash_req_deserialize);
 #endif
   RUN_TEST(test_proxy_apis_command_req_deserialize);
-  RUN_TEST(test_get_iri_status_milestone_deserialize);
-  RUN_TEST(test_get_iri_status_res_serialize);
+  RUN_TEST(test_get_node_status_milestone_deserialize);
+  RUN_TEST(test_get_node_status_res_serialize);
   RUN_TEST(test_fetch_txn_with_uuid_res_sent_serialize);
   RUN_TEST(test_fetch_txn_with_uuid_res_not_exist_serialize);
   serializer_logger_release();

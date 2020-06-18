@@ -21,7 +21,7 @@ BAZEL_TEST_ARGS = ""
 BAZEL_BUILD_CMDS = ""
 
 
-# Send a transaction with IRI core API.
+# Send a transaction with IOTA core API.
 def parse_cli_arg():
     global URL
     global TESTNET

@@ -22,14 +22,14 @@ extern "C" {
  */
 
 typedef enum ta_cli_arg_value_e {
-  /** TA */
+  /** tangle-accelerator */
   TA_HOST_CLI = 127,
   TA_PORT_CLI,
 
-  /** IRI */
-  IRI_HOST_CLI,
-  IRI_PORT_CLI,
-  IRI_ADDRESS_CLI,
+  /** IOTA full node */
+  NODE_HOST_CLI,
+  NODE_PORT_CLI,
+  NODE_ADDRESS_CLI,
 
   /** MQTT */
   MQTT_HOST_CLI,
@@ -75,23 +75,23 @@ static struct ta_cli_argument_s {
     {"ta_port", required_argument, NULL, TA_PORT_CLI, "TA listening port"},
     {"http_threads", required_argument, NULL, HTTP_THREADS_CLI,
      "Determine thread pool size to process HTTP connections."},
-    {"iri_host", required_argument, NULL, IRI_HOST_CLI, "IRI listening host"},
-    {"iri_port", required_argument, NULL, IRI_PORT_CLI, "IRI listening port"},
+    {"node_host", required_argument, NULL, NODE_HOST_CLI, "IOTA full node listening host"},
+    {"node_port", required_argument, NULL, NODE_PORT_CLI, "IOTA full node listening port"},
     {"CA_PEM", required_argument, NULL, CA_PEM, "The path to CA PEM file"},
     {"mqtt_host", required_argument, NULL, MQTT_HOST_CLI, "MQTT listening host"},
     {"mqtt_root", required_argument, NULL, MQTT_ROOT_CLI, "MQTT listening topic root"},
-    {"iri_address", required_argument, NULL, IRI_ADDRESS_CLI, " List of IRI listening URL"},
+    {"node_address", required_argument, NULL, NODE_ADDRESS_CLI, " List of IOTA full node listening URL"},
     {"redis_host", required_argument, NULL, REDIS_HOST_CLI, "Redis server listening host"},
     {"redis_port", required_argument, NULL, REDIS_PORT_CLI, "Redis server listening port"},
     {"db_host", required_argument, NULL, DB_HOST_CLI, "DB server listening host"},
-    {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IRI milestone depth"},
+    {"milestone_depth", optional_argument, NULL, MILESTONE_DEPTH_CLI, "IOTA full node milestone depth"},
     {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
     {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
     {"cache", required_argument, NULL, CACHE, "Enable/Disable cache server. It defaults to off"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
-    {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IRI without processing"},
+    {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IOTA full node without processing"},
     {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,
-     "The period for checking IRI host connection status"},
+     "The period for checking IOTA full node host connection status"},
     {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transaction"},
     {"buffer_list", required_argument, NULL, BUFFER_LIST, "Set the value of `buffer_list_name`"},
     {"done_list", required_argument, NULL, DONE_LIST, "Set the value of `done_list_name`"},
