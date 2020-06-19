@@ -3,9 +3,9 @@ cc_library(
     srcs = ["endpoint_core.c"],
     hdrs = ["endpoint_core.h"],
     defines = [
-        "ENDPOINT_HOST=\"localhost\"",
-        "ENDPOINT_PORT=\"8000\"",
-        "ENDPOINT_SSL_SEED=\"nonce\"",
+        "EP_TA_HOST=localhost",
+        "EP_TA_PORT=8000",
+        "EP_SSL_SEED=nonce",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -25,9 +25,9 @@ cc_binary(
         "endpoint_core.h",
     ],
     defines = [
-        "ENDPOINT_HOST=\"localhost\"",
-        "ENDPOINT_PORT=\"443\"",
-        "ENDPOINT_SSL_SEED=\"nonce\"",
+        "EP_TA_HOST=localhost",
+        "EP_TA_PORT=8000",
+        "EP_SSL_SEED=nonce",
     ],
     linkshared = True,
     deps = [

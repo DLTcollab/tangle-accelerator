@@ -30,6 +30,18 @@ ifeq ($(TESTS), true)
 	ENDPOINT_CFLAGS += -C -DENABLE_ENDPOINT_TEST
 endif
 
+ifdef EP_TA_HOST
+	ENDPOINT_CFLAGS += -C -DEP_TA_HOST=${EP_TA_HOST}
+endif
+
+ifdef EP_TA_PORT
+	ENDPOINT_CFLAGS += -C -DEP_TA_PORT=${EP_TA_PORT}
+endif
+
+ifdef EP_SSL_SEED
+	ENDPOINT_CFLAGS += -C -DEP_SSL_SEED=${EP_SSL_SEED}
+endif
+
 include endpoint/platform/$(TARGET)/build.mk
 
 all: $(DEPS) cert

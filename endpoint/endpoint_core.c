@@ -23,9 +23,15 @@
 #define STR_HELPER(num) #num
 #define STR(num) STR_HELPER(num)
 
-static const char* HOST = STR(ENDPOINT_HOST);
-static const char* PORT = STR(ENDPOINT_PORT);
-static const char* SSL_SEED = STR(ENDPOINT_SSL_SEED);
+#ifndef EP_TA_HOST
+#define EP_TA_HOST localhost
+#endif
+#ifndef EP_TA_PORT
+#define EP_TA_PORT 8000
+#endif
+#ifndef EP_SSL_SEED
+#define EP_SSL_SEED nonce
+#endif
 
 #define REQ_BODY \
   "{\"value\": %d, \"message\": \"%s\", \"message_format\": \"%s\", \"tag\": \"%s\", \"address\": \"%s\"}\r\n\r\n"
@@ -54,7 +60,8 @@ void endpoint_destroy() {
   logger_helper_destroy();
 }
 
-status_t send_transaction_information(int value, const char* message, const char* message_fmt, const char* tag,
+status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, int value,
+                                      const char* message, const char* message_fmt, const char* tag,
                                       const char* address, const char* next_address, const uint8_t* private_key,
                                       const char* device_id, uint8_t* iv) {
   char tryte_msg[MAX_MSG_LEN] = {0};
@@ -62,6 +69,9 @@ status_t send_transaction_information(int value, const char* message, const char
   char req_body[MAX_MSG_LEN] = {0};
   uint8_t ciphertext[MAX_MSG_LEN] = {0};
   uint8_t raw_msg[MAX_MSG_LEN] = {0};
+  const char* ta_host = host ? host : STR(EP_TA_HOST);
+  const char* ta_port = port ? port : STR(EP_TA_PORT);
+  const char* seed = ssl_seed ? ssl_seed : STR(EP_SSL_SEED);
 
   int ret = snprintf((char*)raw_msg, MAX_MSG_LEN, "%s:%s", next_address, message);
   if (ret < 0) {
@@ -102,7 +112,7 @@ status_t send_transaction_information(int value, const char* message, const char
     return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(HOST, PORT, SEND_TRANSACTION_API, req_body, SSL_SEED) != SC_OK) {
+  if (send_https_msg(ta_host, ta_port, SEND_TRANSACTION_API, req_body, seed) != SC_OK) {
     ta_log_error("http message sending error.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
   }

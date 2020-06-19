@@ -28,6 +28,9 @@ void endpoint_destroy(void);
 /**
  * @brief Send transaction information to tangle accelerator
  *
+ * @param[in] host The host of the tangle-accelerator
+ * @param[in] port The port of the tangle-accelerator
+ * @param[in] ssl_seed The random seed of the SSL configuration
  * @param[in] value Amount of the IOTA currency will be sent
  * @param[in] message Message of the transaction in Trytes format
  * @param[in] message_fmt Treating message field as specified format. Can be one of `ascii` or `trytes`. Default:
@@ -42,7 +45,8 @@ void endpoint_destroy(void);
  *
  * @return #status_t
  */
-status_t send_transaction_information(const int value, const char* message, const char* message_fmt, const char* tag,
+status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, const int value,
+                                      const char* message, const char* message_fmt, const char* tag,
                                       const char* address, const char* next_address, const uint8_t* private_key,
                                       const char* device_id, uint8_t* iv);
 

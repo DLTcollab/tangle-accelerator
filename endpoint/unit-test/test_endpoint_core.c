@@ -54,8 +54,8 @@ void test_endpoint(void) {
   strftime(time_str, 26, "%Y-%m-%d %H:%M:%S", tm_info);
   gen_rand_trytes(next_addr, ADDR_LEN);
 
-  status_t ret = send_transaction_information(TEST_VALUE, TEST_MESSAGE, TEST_MESSAGE_FMT, TEST_TAG, TEST_ADDRESS,
-                                              (char *)next_addr, test_key, TEST_DEVICE_ID, iv);
+  status_t ret = send_transaction_information(NULL, NULL, NULL, TEST_VALUE, TEST_MESSAGE, TEST_MESSAGE_FMT, TEST_TAG,
+                                              TEST_ADDRESS, (char *)next_addr, test_key, TEST_DEVICE_ID, iv);
   TEST_ASSERT(ret == SC_OK);
 }
 
