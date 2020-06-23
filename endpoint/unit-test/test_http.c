@@ -32,9 +32,12 @@ Content-Length: 224\r\n\
 
 static char* req = NULL;
 
-void setUp(void) {}
+void setUp(void) { conn_http_logger_init(); }
 
-void tearDown(void) { free(req); }
+void tearDown(void) {
+  conn_http_logger_release();
+  free(req);
+}
 
 void test_http(void) {
   connect_info_t info = {.https = false};
@@ -64,10 +67,8 @@ int main(void) {
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }
-  conn_http_logger_init();
 
   RUN_TEST(test_http);
 
-  conn_http_logger_release();
   return UNITY_END();
 }
