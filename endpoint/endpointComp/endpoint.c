@@ -7,12 +7,15 @@
  */
 
 #include "endpoint.h"
+#include "hal/device.h"
 
 #include "common/ta_errors.h"
 #include "endpoint/endpoint_core.h"
 #include "le_test.h"
 #include "legato.h"
 #include "utils/cipher.h"
+
+#include "le_log.h"
 
 #define TEST_VALUE 0
 #define TEST_MESSAGE "THISISMSG9THISISMSG9THISISMSG"
@@ -24,11 +27,7 @@
 #define TEST_NEXT_ADDRESS                                                      \
   "POWEREDBYTANGLEACCELERATOR999999999999999999999999999999999999999999999999" \
   "999999B"
-#define TEST_DEVICE_ID "470010171566423"
 
-const uint8_t test_private_key[AES_CBC_KEY_SIZE] = {82,  142, 184, 64,  74,  105, 126, 65,  154, 116, 14,
-                                                    193, 208, 41,  8,   115, 158, 252, 228, 160, 79,  5,
-                                                    167, 185, 13,  159, 135, 113, 49,  209, 58,  68};
 const uint8_t test_iv[AES_IV_SIZE] = {164, 3, 98, 193, 52, 162, 107, 252, 184, 42, 74, 225, 157, 26, 88, 72};
 
 static void print_help(void) {
@@ -104,7 +103,10 @@ COMPONENT_INIT {
   const char* tag = TEST_TAG;
   const char* address = TEST_ADDRESS;
   const char* next_address = TEST_NEXT_ADDRESS;
-  const char* device_id = TEST_DEVICE_ID;
+
+  char device_id[16] = {0};
+  const char* device_id_ptr = device_id;
+
   uint8_t private_key[AES_CBC_KEY_SIZE] = {0};
   uint8_t iv[AES_IV_SIZE] = {0};
 
@@ -120,20 +122,24 @@ COMPONENT_INIT {
   le_arg_SetFlagCallback(print_help, "h", "help");
   le_arg_Scan();
 
-  memcpy(private_key, test_private_key, AES_CBC_KEY_SIZE);
   memcpy(iv, test_iv, AES_IV_SIZE);
   srand(time(NULL));
+
+  device_t* device = ta_device(STRINGIZE(TARGET));
+  device->op->get_key(private_key);
+  device->op->get_device_id(device_id);
 
 #ifdef ENABLE_ENDPOINT_TEST
   LE_TEST_INIT;
   LE_TEST_INFO("=== ENDPOINT TEST BEGIN ===");
   LE_TEST(SC_OK == send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address,
-                                                next_address, private_key, device_id, iv));
+                                                next_address, private_key, device_id_ptr, iv));
   LE_TEST_EXIT;
 #else
   while (true) {
-    send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address, next_address,
-                                 private_key, device_id, iv);
+    status_t ret = send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address,
+                                                next_address, private_key, device_id_ptr, iv);
+    LE_INFO("Send transaction information return: %d", ret);
     sleep(10);
   }
 #endif

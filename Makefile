@@ -5,8 +5,6 @@ MOSQUITTO_LIB := $(MOSQUITTO_DIR)/lib/libmosquitto.so.1
 PEM_DIR = pem
 # Default pem file. See pem/README.md for more information
 PEM := $(PEM_DIR)/cert.pem
-NAMESERVER := 8.8.8.8
-RESOLV_CONF_DIR := endpoint/endpointComp
 OUTPUT_BASE_DIR := output_base
 # Endpoint build target. The default intends to the platform of your development system.
 TARGET := simulator
@@ -16,32 +14,41 @@ TESTS := false
 # The endpoint uses HTTP connection to transmit encrypted data by default.
 # See "HTTPS Connection Support" in docs/endpoint.md for more information.
 ENFORCE_EP_HTTPS := false
-# The CFLAGS to pass during endpoint app build
-ENDPOINT_CFLAGS :=
+# The flags that will be preprocessed by mkapp program, part of Legato Application Framework. 
+# Eventually, the processed flags are passed as compiler-time options.
+LEGATO_FLAGS :=
 DEPS += $(DCURL_LIB)
 
 # Determine to enable HTTPS connection
 ifeq ($(ENFORCE_EP_HTTPS), true)
-	ENDPOINT_CFLAGS += -C -DENDPOINT_HTTPS
+	LEGATO_FLAGS += -DENDPOINT_HTTPS
 endif
 
 # Determine to build test suite
 ifeq ($(TESTS), true)
-	ENDPOINT_CFLAGS += -C -DENABLE_ENDPOINT_TEST
+	LEGATO_FLAGS += -DENABLE_ENDPOINT_TEST
 endif
 
+# The tangle-acclerator host for endpoint to connect
 ifdef EP_TA_HOST
-	ENDPOINT_CFLAGS += -C -DEP_TA_HOST=${EP_TA_HOST}
+	LEGATO_FLAGS += -DEP_TA_HOST=${EP_TA_HOST}
 endif
-
+# The tangle-acclerator port for endpoint to connect
 ifdef EP_TA_PORT
-	ENDPOINT_CFLAGS += -C -DEP_TA_PORT=${EP_TA_PORT}
+	LEGATO_FLAGS += -DEP_TA_PORT=${EP_TA_PORT}
 endif
-
+# The ssl seed for endpoint (optional)
 ifdef EP_SSL_SEED
-	ENDPOINT_CFLAGS += -C -DEP_SSL_SEED=${EP_SSL_SEED}
+	LEGATO_FLAGS += -DEP_SSL_SEED=${EP_SSL_SEED}
 endif
 
+# Pass target into endpoint build process
+LEGATO_FLAGS += -DTARGET=$(TARGET)
+
+# Prepend the "-C" flag at the beginging for passing cflags into mkapp
+LEGATO_FLAGS := $(foreach flags, $(LEGATO_FLAGS), -C $(flags))
+
+# Include the build command from the specific target
 include endpoint/platform/$(TARGET)/build.mk
 
 all: $(DEPS) cert
@@ -63,8 +70,6 @@ $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 
 # Build endpoint Legato app
 legato: cert
-	# Generate resolv.conf
-	echo "nameserver $(NAMESERVER)" > $(RESOLV_CONF_DIR)/resolv.conf
 	# Fetch the required external source code
 	# FIXME: Use 'fetch' instead of 'build' to avoid extra building actions.
 	#        The 'build' option is for getting the header file like 'mam/mam/mam_endpoint_t_set.h',

@@ -1,6 +1,8 @@
 sources:
 {
     ${CURDIR}/../endpoint_core.c
+    ${CURDIR}/../hal/device.c
+    ${CURDIR}/../platform/wp77xx/impl.c
 
     ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
 
@@ -85,19 +87,16 @@ cflags:
     -I${CURDIR}/../../output_base/external/mbedtls_2_16_6/include
 }
 
-bundles:
-{
-    // List of files copied from the build host into the App for runtime usage
-    file:
-    {
-        resolv.conf /etc/
-    }
-}
-
 requires:
 {
     device:
     {
         [rw] /dev/ttyHS0 /dev/ttyHS0
+    }
+    
+    api:
+    {
+        le_secStore.api
+        modemServices/le_sim.api
     }
 }

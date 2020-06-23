@@ -49,5 +49,13 @@ status_t send_transaction_information(const char* host, const char* port, const 
                                       const char* message, const char* message_fmt, const char* tag,
                                       const char* address, const char* next_address, const uint8_t* private_key,
                                       const char* device_id, uint8_t* iv);
+/**
+ * @brief Resolve the server address name
+ *
+ * @param[in] host The domain name of the host
+ * @param[out] result The buffer to store the IPV4 address output
+ * @return #status_t
+ */
+status_t resolve_ip_address(const char* host, char result[16]);
 
 #endif  // ENDPOINT_CORE_H
