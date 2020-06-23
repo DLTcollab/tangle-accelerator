@@ -481,6 +481,7 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
       ret = ta_get_bundle(service, bundle_hash, bundle);
       if (ret != SC_OK) {
         ta_log_error("%s\n", ta_error_to_string(ret));
+        bundle_transactions_free(&bundle);
         goto done;
       }
 
@@ -542,7 +543,8 @@ status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_servi
   status_t ret = SC_OK;
   for (int i = 0; i < MAX_NODE_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
     // update new IOTA full node
-    strncpy(service->http.host, ta_conf->iota_host_list[i], HOST_MAX_LEN);
+    strncpy(service->http.host, ta_conf->iota_host_list[i], HOST_MAX_LEN - 1);
+    service->http.host[HOST_MAX_LEN - 1] = '\0';
     service->http.port = ta_conf->iota_port_list[i];
     ta_log_info("Try to connect to %s:%d\n", service->http.host, service->http.port);
 

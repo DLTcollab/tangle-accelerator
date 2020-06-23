@@ -193,7 +193,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
   if (!req || !res) {
     ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
-    return ret;
+    goto done;
   }
 
   ret = recv_mam_message_req_deserialize(obj, req);

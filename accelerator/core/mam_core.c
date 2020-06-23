@@ -334,6 +334,10 @@ static bool is_setting_changed(const iota_client_service_t *const service, mam_a
   bool changed = true;
   find_transactions_req_t *txn_req = find_transactions_req_new();
   transaction_array_t *txn_res = transaction_array_new();
+  if (!txn_req || !txn_res) {
+    ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+    goto done;
+  }
 
   if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
     ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_CREATE_OR_GET_ID));
@@ -346,7 +350,7 @@ static bool is_setting_changed(const iota_client_service_t *const service, mam_a
   // TODO use `ta_find_transaction_objects(service, txn_req, txn_res)` instead of the original 'iota.c' function
   retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, txn_res);
   if (ret_rc && ret_rc != RC_NULL_PARAM) {
-    ta_log_error("%s\n", SC_MAM_FAILED_DESTROYED);
+    ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_DESTROYED));
     goto done;
   }
 

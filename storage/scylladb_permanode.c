@@ -339,6 +339,7 @@ static status_t get_trytes(CassSession* session, CassStatement* statement, hash8
     if (hash8019_queue_push(res_queue, (flex_trit_t const* const)buf) != RC_OK) {
       ta_log_error("%s\n", "SC_OOM");
       ret = SC_OOM;
+      goto end_iterate;
     }
     ret = SC_OK;
   }
