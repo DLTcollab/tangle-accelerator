@@ -128,9 +128,9 @@ static inline int process_recv_mam_msg_request(ta_http_t *const http, iota_clien
   return set_response_content(ret, out);
 }
 
-static inline int process_get_iri_status(iota_client_service_t *const iota_service, char **const out) {
+static inline int process_get_node_status(iota_client_service_t *const iota_service, char **const out) {
   status_t ret;
-  ret = api_get_iri_status(iota_service, out);
+  ret = api_get_node_status(iota_service, out);
   return set_response_content(ret, out);
 }
 
@@ -254,7 +254,7 @@ static int ta_http_process_request(ta_http_t *const http, iota_client_service_t 
   } else if (api_path_matcher(url, "/tag/[A-Z9]{1,27}[/]?") == SC_OK) {
     return process_find_txns_obj_by_tag_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/status[/]?") == SC_OK) {
-    return process_get_iri_status(iota_service, out);
+    return process_get_node_status(iota_service, out);
   }
 #ifdef DB_ENABLE
   else if (api_path_matcher(url, "/identity/hash/[A-Z9]{81}[/]?") == SC_OK) {
@@ -415,12 +415,13 @@ static int ta_http_handler(void *cls, struct MHD_Connection *connection, const c
   if (http_req->answer_code == MHD_NO) {
     /* decide which API function should be called */
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, api->core->iota_service.http.host, api->core->iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, api->core->iota_service.http.host, api->core->iota_service.http.port,
+                               api->core->iota_service.http.ca_pem);
     http_req->answer_code =
         ta_http_process_request(api, &iota_service, url, http_req->request, &http_req->answer_string, options);
   }
-  response =
-      MHD_create_response_from_buffer(strlen(http_req->answer_string), http_req->answer_string, MHD_RESPMEM_MUST_COPY);
+  response = MHD_create_response_from_buffer(http_req->answer_string ? strlen(http_req->answer_string) : 0,
+                                             http_req->answer_string, MHD_RESPMEM_MUST_COPY);
   // Set response header
   MHD_add_response_header(response, MHD_HTTP_HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, "*");
   if (options) {

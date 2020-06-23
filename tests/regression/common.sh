@@ -4,8 +4,8 @@ setup_build_opts() {
     # <bazel build args> | <binary cli arguments> 
     OPTIONS=(
         "|"
-        "|--iri_host ${IRI_HOST}"
-        "|--iri_port ${IRI_PORT}"
+        "|--node_host ${NODE_HOST}"
+        "|--node_port ${NODE_PORT}"
         "|--ta_host ${TA_HOST}"
         "|--db_host ${DB_HOST}"
         "|--quiet"
@@ -21,8 +21,8 @@ setup_build_opts() {
 # Check environment variables
 check_env() {
     ENV_NAME=(
-        "IRI_HOST" 
-        "IRI_PORT" 
+        "NODE_HOST" 
+        "NODE_PORT" 
         "TA_HOST" 
         "TA_PORT" 
         "DB_HOST" 

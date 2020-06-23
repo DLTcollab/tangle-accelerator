@@ -23,12 +23,13 @@ static void ta_stop(int signal) {
 static void* health_track(void* arg) {
   ta_core_t* core = (ta_core_t*)arg;
   while (core->cache.state) {
-    status_t ret = ta_get_iri_status(&core->iota_service);
-    if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
-      ta_log_error("IRI status error %d. Try to connect to another IRI host on priority list\n", ret);
-      ret = ta_update_iri_connection(&core->ta_conf, &core->iota_service);
+    status_t ret = ta_get_node_status(&core->iota_service);
+    if (ret == SC_CORE_NODE_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
+      ta_log_error("IOTA full node status error %d. Try to connect to another IOTA full node host on priority list\n",
+                   ret);
+      ret = ta_update_node_connection(&core->ta_conf, &core->iota_service);
       if (ret) {
-        ta_log_error("Update IRI host failed: %d\n", ret);
+        ta_log_error("Update IOTA full node host failed: %d\n", ret);
       }
     }
 

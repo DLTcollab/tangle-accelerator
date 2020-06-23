@@ -29,7 +29,7 @@ extern "C" {
  * @brief General tangle-accelerator core functions
  *
  * tangle-accelerator core functions provide major IOTA usage with
- * `entangled/cclient` and can be wrapped into vary APIs.
+ * `iota.c/cclient` and can be wrapped into vary APIs.
  * The arguments and return data structure are specified in different
  * requests.
  *
@@ -59,7 +59,7 @@ int cc_logger_release();
  *
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] cache redis configuration variables
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
@@ -82,7 +82,7 @@ status_t ta_send_transfer(const ta_config_t* const info, const iota_config_t* co
  *
  * @param[in] info Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in, out] trytes Trytes that will be attached to tangle. The output trytes are the ones with completed PoW and
  * Tangle broadcasting, and broadcast to Tangle.
  *
@@ -99,7 +99,7 @@ status_t ta_send_trytes(const ta_config_t* const info, const iota_config_t* cons
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction hash in ta_find_transactions_by_tag_res_t.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] req tag in trytes
  * @param[out] res Result containing a list of transaction hash in
  *             ta_find_transactions_by_tag_res_t
@@ -117,7 +117,7 @@ status_t ta_find_transactions_by_tag(const iota_client_service_t* const service,
  * Retreive all transactions that have same given tag. The result is a list of
  * transaction objects in ta_find_transactions_obj_res_t.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] req find_transactions_req_t object which contains tags
  * @param[out] res Result containing list of transaction objects in
  *                 transaction_array_t
@@ -136,7 +136,7 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
  * return whole transaction object details in transaction_array_t
  * instead of raw trytes, includes address, value, timestamp, mwm, nonce...
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] req Given transaction hashes
  * @param[out] res Result containing transaction objects in transaction_array_t.
  *
@@ -154,7 +154,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
  * return only one bundle objects in bundle_transactions_t instead of all
  * transactions like reattached ones.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] bundle_hash bundle hash in trytes
  * @param[out] bundle Result containing bundle object in bundle_transactions_t
  *
@@ -172,7 +172,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
  * send message with this function.
  *
  * @param[in] info Tangle-accelerator configuration variables
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] bundle bundle object to send
  * @param[out] bundle Result containing bundle object in bundle_transactions_t
  *
@@ -189,7 +189,7 @@ status_t ta_send_bundle(const ta_config_t* const info, const iota_config_t* cons
  * We can get a bundle with any address in the bundle. Moreover, because the channel ID in MAM is actually the address
  * of a transaction, we can use this function to search which bundle contains the message transaction we want to fetch.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  * @param[in] addr searched address in tryte_t
  * @param[in] bundle_array a bundle array object that will contain the MAM transactions
  *
@@ -203,34 +203,34 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 /**
  * @brief Get current connection status. The status will be responded with return value.
  *
- * We would check out the connection status with IRI core API getNodeInfo. At the first step, we would check whether
- * tangle-accelerator can connect to the IRI host which is assigned in iota_client_service_t object. If the
- * tangle-accelerator connects to the IRI host, the next step we are going to check out whether the connected IRI has
- * synchronized to the latest milestone. The mentioned two errors above would trigger tangle-accelerator connect to
- * another IRI host on IRI priority host list.
+ * We would check out the connection status with IOTA core API getNodeInfo. At the first step, we would check whether
+ * tangle-accelerator can connect to the IOTA full node which is assigned in iota_client_service_t object. If the
+ * tangle-accelerator connects to the IOTA full node, the next step we are going to check out whether the connected node
+ * has synchronized to the latest milestone. The mentioned two errors above would trigger tangle-accelerator connect to
+ * another IOTA full node on node priority host list.
  *
- * @param[in] service IRI node end point service
+ * @param[in] service IOTA full node end point service
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_get_iri_status(const iota_client_service_t* const service);
+status_t ta_get_node_status(const iota_client_service_t* const service);
 
 /**
- * @brief Update the binding IRI host to another valid host on priority list
+ * @brief Update the binding IOTA full node to another valid host on priority list
  *
- * ta_update_iri_connection would check the connection status of all the IRI host on priority list iteratively. Once it
- * connect to one of the IRI host on the priority list, it would return SC_OK.
+ * ta_update_node_connection would check the connection status of all the IOTA full node on priority list iteratively.
+ * Once it connects to one of the IOTA full node on the priority list, it would return SC_OK.
  *
  * @param ta_conf[in] Tangle-accelerator configuration variables
- * @param service[in] service IRI node end point service
+ * @param service[in] service IOTA full node end point service
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_update_iri_connection(ta_config_t* const ta_conf, iota_client_service_t* const service);
+status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_service_t* const service);
 
 /**
  * @brief Push failed transactions in raw trytes into transaction buffer

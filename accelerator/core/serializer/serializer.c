@@ -518,8 +518,8 @@ done:
   return ret;
 }
 
-status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestoneIndex,
-                                              int* const latestSolidSubtangleMilestoneIndex) {
+status_t get_node_status_milestone_deserialize(char const* const obj, int* const latestMilestoneIndex,
+                                               int* const latestSolidSubtangleMilestoneIndex) {
   if (obj == NULL) {
     ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
     return SC_SERIALIZER_NULL;
@@ -556,7 +556,7 @@ done:
   return ret;
 }
 
-status_t get_iri_status_res_serialize(const status_t status, char** obj) {
+status_t get_node_status_res_serialize(const status_t status, char** obj) {
   status_t ret = SC_OK;
   cJSON* json_root = cJSON_CreateObject();
   if (json_root == NULL) {
@@ -573,8 +573,8 @@ status_t get_iri_status_res_serialize(const status_t status, char** obj) {
 
   if (status == SC_CCLIENT_FAILED_RESPONSE) {
     cJSON_AddStringToObject(json_root, "status_code", "SC_CCLIENT_FAILED_RESPONSE");
-  } else if (status == SC_CORE_IRI_UNSYNC) {
-    cJSON_AddStringToObject(json_root, "status_code", "SC_CORE_IRI_UNSYNC");
+  } else if (status == SC_CORE_NODE_UNSYNC) {
+    cJSON_AddStringToObject(json_root, "status_code", "SC_CORE_NODE_UNSYNC");
   }
 
   *obj = cJSON_PrintUnformatted(json_root);

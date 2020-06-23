@@ -62,7 +62,7 @@ int serializer_logger_release();
  * @param[in] ta_config Tangle-accelerator configuration variables
  * @param[in] tangle IOTA configuration variables
  * @param[in] cache Redis configuration variables
- * @param[in] iota_service IRI connection configuration variables
+ * @param[in] iota_service IOTA full node connection configuration variables
  *
  * @return
  * - SC_OK on success
@@ -246,7 +246,7 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
 
 /**
- * @brief Deserialize latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
+ * @brief Deserialize latestMilestone and latestSolidSubtangleMilestone from IOTA core API getNodeInfo
  *
  * @param[in] obj getNodeInfo response in JSON.
  * @param[out] latestMilestoneIndex Index of latestMilestone
@@ -256,11 +256,11 @@ status_t proxy_apis_command_req_deserialize(const char* const obj, char* command
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
-                                              int* const latestSolidSubtangleMilestone);
+status_t get_node_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
+                                               int* const latestSolidSubtangleMilestone);
 
 /**
- * @brief Serialize the response of IRI connection status.
+ * @brief Serialize the response of IOTA full node connection status.
  *
  * @param[in] status Reponse status code
  * @param[out] obj Serialized API response
@@ -269,7 +269,7 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, int* const 
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_iri_status_res_serialize(const status_t status, char** obj);
+status_t get_node_status_res_serialize(const status_t status, char** obj);
 
 /**
  * @brief Serialize the response of `fetch_txn_with_uuid()`.

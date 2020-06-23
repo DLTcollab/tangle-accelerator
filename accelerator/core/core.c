@@ -499,26 +499,26 @@ done:
   return ret;
 }
 
-status_t ta_get_iri_status(const iota_client_service_t* const service) {
+status_t ta_get_node_status(const iota_client_service_t* const service) {
   status_t ret = SC_OK;
   char const* const getnodeinfo = "{\"command\": \"getNodeInfo\"}";
-  char* iri_result = NULL;
+  char* node_result = NULL;
   char_buffer_t* res_buff = char_buffer_new();
   char_buffer_t* req_buff = char_buffer_new();
   char_buffer_set(req_buff, getnodeinfo);
 
-  // Check IRI host connection
+  // Check IOTA full node connection
   retcode_t result = iota_service_query(service, req_buff, res_buff);
   if (result != RC_OK) {
     ta_log_error("%s\n", error_2_string(result));
     ret = SC_CCLIENT_FAILED_RESPONSE;
     goto done;
   }
-  str_from_char_buffer(res_buff, &iri_result);
+  str_from_char_buffer(res_buff, &node_result);
 
-  // Check whether IRI host is at the latest milestone
+  // Check whether IOTA full node is at the latest milestone
   int latestMilestoneIndex, latestSolidSubtangleMilestoneIndex;
-  ret = get_iri_status_milestone_deserialize(iri_result, &latestMilestoneIndex, &latestSolidSubtangleMilestoneIndex);
+  ret = get_node_status_milestone_deserialize(node_result, &latestMilestoneIndex, &latestSolidSubtangleMilestoneIndex);
   if (ret != SC_OK) {
     ta_log_error("check iri connection failed deserialized. status code: %d\n", ret);
     goto done;
@@ -526,35 +526,34 @@ status_t ta_get_iri_status(const iota_client_service_t* const service) {
 
   // The tolerant difference between latestSolidSubtangleMilestoneIndex and latestMilestoneIndex is less equal than 1.
   if ((latestSolidSubtangleMilestoneIndex - latestMilestoneIndex) > 1) {
-    ret = SC_CORE_IRI_UNSYNC;
+    ret = SC_CORE_NODE_UNSYNC;
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:
-  free(iri_result);
+  free(node_result);
   char_buffer_free(req_buff);
   char_buffer_free(res_buff);
 
   return ret;
 }
 
-status_t ta_update_iri_connection(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_service_t* const service) {
   status_t ret = SC_OK;
-  for (int i = 0; i < MAX_IRI_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
-    // update new IRI host
-
+  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
+    // update new IOTA full node
     strncpy(service->http.host, ta_conf->iota_host_list[i], HOST_MAX_LEN);
     service->http.port = ta_conf->iota_port_list[i];
     ta_log_info("Try to connect to %s:%d\n", service->http.host, service->http.port);
 
     // Run from the first one until found a good one.
-    if (ta_get_iri_status(service) == SC_OK) {
+    if (ta_get_node_status(service) == SC_OK) {
       ta_log_info("Connect to %s:%d\n", service->http.host, service->http.port);
       goto done;
     }
   }
   if (ret) {
-    ta_log_error("All IRI host on priority list failed.\n");
+    ta_log_error("All IOTA full node on priority list failed.\n");
   }
 
 done:

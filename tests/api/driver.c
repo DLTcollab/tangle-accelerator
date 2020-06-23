@@ -48,7 +48,8 @@ void test_send_transfer(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_transfer(&ta_core, &iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
@@ -83,7 +84,8 @@ void test_send_trytes(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(SC_OK,
                             api_send_trytes(&ta_core.ta_conf, &ta_core.iota_conf, &iota_service, json, &json_result));
@@ -103,7 +105,8 @@ void test_find_transaction_objects(void) {
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
     test_time_start(&start_time);
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transaction_objects(&iota_service, json, &json_result));
     test_time_end(&start_time, &end_time, &sum);
@@ -120,7 +123,8 @@ void test_find_transactions_by_tag(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
 
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_tag(&iota_service, test_case.tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
@@ -136,7 +140,8 @@ void test_find_transactions_by_id(void) {
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
 
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_by_id(&iota_service, &ta_core.db_service,
                                                                identities[count].uuid_string, &json_result));
@@ -183,7 +188,8 @@ void test_find_transactions_obj_by_tag(void) {
     test_time_start(&start_time);
 
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
 
     TEST_ASSERT_EQUAL_INT32(SC_OK, api_find_transactions_obj_by_tag(&iota_service, test_case.tag, &json_result));
     test_time_end(&start_time, &end_time, &sum);
@@ -206,7 +212,7 @@ void test_fetch_txn_with_uuid(void) {
   printf("Average time of fetch_txn_with_uuid: %lf\n", sum / TEST_COUNT);
 }
 
-void test_get_iri_status(void) {
+void test_get_node_status(void) {
   char* json_result;
   double sum = 0;
 
@@ -214,13 +220,14 @@ void test_get_iri_status(void) {
     test_time_start(&start_time);
 
     iota_client_service_t iota_service;
-    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port);
+    ta_set_iota_client_service(&iota_service, ta_core.iota_service.http.host, ta_core.iota_service.http.port,
+                               ta_core.iota_service.http.ca_pem);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_iri_status(&iota_service, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_get_node_status(&iota_service, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
-  printf("Average time of get_iri_status: %lf\n", sum / TEST_COUNT);
+  printf("Average time of get_node_status: %lf\n", sum / TEST_COUNT);
 }
 
 int main(int argc, char* argv[]) {
@@ -252,7 +259,7 @@ int main(int argc, char* argv[]) {
 #endif
   // TODO recover proxy tests
   // RUN_TEST(test_proxy_apis);
-  RUN_TEST(test_get_iri_status);
+  RUN_TEST(test_get_node_status);
   RUN_TEST(test_fetch_txn_with_uuid);
   ta_core_destroy(&ta_core);
   return UNITY_END();
