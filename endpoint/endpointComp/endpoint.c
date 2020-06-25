@@ -45,6 +45,9 @@ static void print_help(void) {
       "           [--tag=\"tag\"]\n"
       "           [--addr=\"address\"]\n"
       "           [--next-addr=\"next-address\"]\n"
+      "           [--host=\"host\"]\n"
+      "           [--port=\"port\"]\n"
+      "           [--ssl-seed=\"ssl-seed\"]\n"
       "\n"
       "OPTIONS\n"
       "  -h\n"
@@ -71,6 +74,18 @@ static void print_help(void) {
       "  --next-addr=\"next-address\"\n"
       "    Assign the next address with string for send_transaction_information.\n"
       "    The \"next-address\" should be composed with [9A-Z] and the length should be 81.\n"
+      "\n"
+      "  --host=\"host\"\n"
+      "    Assign the host of the tangle-accelerator for send_transaction_information.\n"
+      "    The default value is NULL.\n"
+      "\n"
+      "  --port=\"port\"\n"
+      "    Assign the port of the tangle-accelerator for send_transaction_information.\n"
+      "    The default value is NULL.\n"
+      "\n"
+      "  --ssl-seed=\"ssl-seed\"\n"
+      "    Assign the random seed of the SSL configuration for send_transaction_information.\n"
+      "    The default value is NULL.\n"
       "\n");
 
   exit(EXIT_SUCCESS);
@@ -81,6 +96,9 @@ COMPONENT_INIT {
   // The current code is a prototype for passing the CI.
   // The initialization of hardware and the input from hardware are not implemented yet.
   int value = TEST_VALUE;
+  const char* host = NULL;
+  const char* port = NULL;
+  const char* ssl_seed = NULL;
   const char* message = TEST_MESSAGE;
   const char* message_fmt = TEST_MESSAGE_FMT;
   const char* tag = TEST_TAG;
@@ -91,6 +109,9 @@ COMPONENT_INIT {
   uint8_t iv[AES_IV_SIZE] = {0};
 
   le_arg_SetIntVar(&value, NULL, "val");
+  le_arg_SetStringVar(&host, NULL, "host");
+  le_arg_SetStringVar(&port, NULL, "port");
+  le_arg_SetStringVar(&ssl_seed, NULL, "ssl-seed");
   le_arg_SetStringVar(&message, NULL, "msg");
   le_arg_SetStringVar(&message_fmt, NULL, "msg-fmt");
   le_arg_SetStringVar(&tag, NULL, "tag");
@@ -106,12 +127,13 @@ COMPONENT_INIT {
 #ifdef ENABLE_ENDPOINT_TEST
   LE_TEST_INIT;
   LE_TEST_INFO("=== ENDPOINT TEST BEGIN ===");
-  LE_TEST(SC_OK == send_transaction_information(value, message, message_fmt, tag, address, next_address, private_key,
-                                                device_id, iv));
+  LE_TEST(SC_OK == send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address,
+                                                next_address, private_key, device_id, iv));
   LE_TEST_EXIT;
 #else
   while (true) {
-    send_transaction_information(value, message, message_fmt, tag, address, next_address, private_key, device_id, iv);
+    send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address, next_address,
+                                 private_key, device_id, iv);
     sleep(10);
   }
 #endif
