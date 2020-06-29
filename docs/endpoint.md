@@ -52,11 +52,15 @@ $ leaf setup legato-stable -p swi-wp77_3.0.0
 
 Finally, make the wp77xx endpoint target. Be careful with the directory of tangle-accelerator. It should be located within the workspace directory.
 
+The host-port pair and SSL seed can be set at build-time and run-time. The run-time command line option '--host', '--port' and '--ssl-seed" are added. 
+
+For setting `host`, `port` and `ssl seed` during compile-time. Add `EP_TA_HOST=xxx.xxxx.xxx`, `EP_TA_HOST=xxxx` and `EP_SSL_SEED=xxxxxxxxx` option. If you doesn't change the host and port, the default host will be set to `localhost` and default port will be set to `8000`.
+
 ```shell
 $ git clone https://github.com/DLTcollab/tangle-accelerator.git
 $ cd tangle-accelerator
-$ make TARGET=wp77xx legato # build endpoint as wp77xx target
-$ make TESTS=true TARGET=wp77xx legato # build endpoint as wp77xx target in test mode
+$ make TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target, and set the connected host to "node.deviceproof.org" with port 5566
+$ make TESTS=true TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target in test mode
 ```
 
 ### How to build endpoint application for native target

@@ -180,6 +180,8 @@ const char* ta_error_to_string(status_t err) {
       return "Failed to finalize the device";
     case SC_ENDPOINT_UART:
       return "UART error occurred in device component";
+    case SC_ENDPOINT_UART_SET_ATTR:
+      return "UART error occurred when setting UART attribute";
     case SC_ENDPOINT_SEC_FAULT:
       return "Error occurred inside secure storage";
     case SC_ENDPOINT_SEC_ITEM_NOT_FOUND:
@@ -187,7 +189,13 @@ const char* ta_error_to_string(status_t err) {
     case SC_ENDPOINT_SEC_UNAVAILABLE:
       return "Secure storage service is unavailable";
     case SC_ENDPOINT_SEND_TRANSFER:
-      return "Error occurred when the sending transfer message";
+      return "Error occurred when sending the transfer message";
+    case SC_ENDPOINT_GET_KEY_ERROR:
+      return "Error occurred when get private key from endpoint device";
+    case SC_ENDPOINT_GET_DEVICE_ID_ERROR:
+      return "Error occurred when get device id from endpoint device";
+    case SC_ENDPOINT_DNS_RESOLVE_ERROR:
+      return "Error occurred when resolving the domain name";
 
     default:
       return "Unknown error.";

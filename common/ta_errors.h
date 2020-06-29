@@ -237,14 +237,22 @@ typedef enum {
   /**< Failed to finalize the device */
   SC_ENDPOINT_UART = 0x03 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< UART error occurred in device component */
-  SC_ENDPOINT_SEC_FAULT = 0x04 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
+  SC_ENDPOINT_UART_SET_ATTR = 0x04 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when setting UART attribute */
+  SC_ENDPOINT_SEC_FAULT = 0x05 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
   /**< Error occurred inside secure storage */
-  SC_ENDPOINT_SEC_ITEM_NOT_FOUND = 0x05 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
+  SC_ENDPOINT_SEC_ITEM_NOT_FOUND = 0x06 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
   /**< Item not found inside secure storage */
-  SC_ENDPOINT_SEC_UNAVAILABLE = 0x06 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
+  SC_ENDPOINT_SEC_UNAVAILABLE = 0x07 | SC_MODULE_ENDPOINT | SC_SEVERITY_MINOR,
   /**< Secure storage service is unavailable */
-  SC_ENDPOINT_SEND_TRANSFER = 0x07 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
-  /**< Error occurred when the sending transfer message */
+  SC_ENDPOINT_SEND_TRANSFER = 0x08 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when sending transfer message */
+  SC_ENDPOINT_GET_KEY_ERROR = 0x09 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to get the private key */
+  SC_ENDPOINT_GET_DEVICE_ID_ERROR = 0x0A | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to get the device id */
+  SC_ENDPOINT_DNS_RESOLVE_ERROR = 0x0B | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to resolve the domain name address */
 
 } status_t;
 

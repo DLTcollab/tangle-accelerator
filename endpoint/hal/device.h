@@ -27,14 +27,14 @@ extern "C" {
 typedef struct device_type device_t;
 
 struct device_operations {
-  status_t (*init)(void);               /**< initialize device */
-  void (*fini)(void);                   /**< destructor of device  */
-  status_t (*get_key)(uint8_t *);       /**< get device private key */
-  status_t (*get_device_id)(uint8_t *); /**< get device id          */
+  status_t (*init)(void);            /**< initialize device */
+  void (*fini)(void);                /**< destructor of device  */
+  status_t (*get_key)(uint8_t *);    /**< get device private key */
+  status_t (*get_device_id)(char *); /**< get device id          */
 };
 
 struct uart_operations {
-  status_t (*init)(const uint8_t *device);      /**< initialize uart */
+  status_t (*init)(const char *device);         /**< initialize uart */
   void (*write)(const int fd, const char *cmd); /**< write command to uart */
   char *(*read)(const int fd);                  /**< read from uart */
   void (*clean)(const int fd);                  /**< flush uart buffer */
@@ -51,7 +51,6 @@ struct secure_store_operations {
    *
    * @return
    * - #SC_OK on success
-   * - #RET_NO_MEMORY on no memory error
    * - #SC_ENDPOINT_SEC_UNAVAILABLE on unavailable secure storage
    * - #SC_ENDPOINT_SEC_FAULT on some other error
    */

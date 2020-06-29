@@ -5,4 +5,4 @@
 # "LICENSE" at the root of this distribution.
 
 platform-build-command = \
-	cd endpoint && mkapp -v -t localhost -C -DENABLE_ENDPOINT_TEST $(ENDPOINT_CFLAGS) endpoint.adef;
+	cd endpoint && mkapp -v -t localhost -C -DENABLE_ENDPOINT_TEST $(LEGATO_FLAGS) endpoint.adef;
