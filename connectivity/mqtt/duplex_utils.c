@@ -47,7 +47,7 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
   init_check_error(config_cfg, client_pub);
 
   *config_mosq = mosquitto_new(config_cfg->general_config->id, true, NULL);
-  if (!config_mosq) {
+  if (!(*config_mosq)) {
     switch (errno) {
       case ENOMEM:
         ta_log_error("%s\n", "Out of memory");
