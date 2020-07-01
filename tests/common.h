@@ -30,10 +30,10 @@ struct option* driver_cli_build_options();
 /**
  * @brief Initialize configurations with default values for driver tests
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
- * @param argc[in] Pointer to Tangle-accelerator core configuration structure
- * @param argv[in] Pointer to Tangle-accelerator core configuration structure
- * @param test_cases[in] Pointer to Tangle-accelerator core configuration structure
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
+ * @param[in] argc Pointer to Tangle-accelerator core configuration structure
+ * @param[in] argv Pointer to Tangle-accelerator core configuration structure
+ * @param[in] test_cases Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
@@ -44,33 +44,30 @@ status_t driver_core_cli_init(ta_core_t* const core, int argc, char** argv, driv
 /**
  * @brief Start testing clock
  *
- * @param start[out] `struct timespec` object for recording starting time.
- *
+ * @param[out] start `struct timespec` object for recording starting time.
  */
 static inline void test_time_start(struct timespec* start) { clock_gettime(CLOCK_REALTIME, start); }
 
 /**
  * @brief Initialize configurations with default values
  *
- * @param start[in] `struct timespec` object for recording starting time.
- * @param end[out] `struct timespec` object for recording ending time.
- * @param start[out] The total elapsing time.
+ * @param[in] start `struct timespec` object for recording starting time.
+ * @param[out] end `struct timespec` object for recording ending time.
+ * @param[out] sum The total elapsing time.
  *
  */
 void test_time_end(struct timespec* start, struct timespec* end, double* sum);
 
 /**
  * @brief Initialize random number generator. Call it before 'gen_rand_trytes()'.
- *
  */
 void rand_trytes_init();
 
 /**
  * @brief Generate a random tryte combination with given length
  *
- * @param len[in] The length of generated trytes
- * @param trytes[out] Output trytes combination
- *
+ * @param[in] len The length of generated trytes
+ * @param[out] trytes Output trytes combination
  */
 static inline void gen_rand_trytes(int len, tryte_t* trytes) {
   const char tryte_alphabet[] = "NOPQRSTUVWXYZ9ABCDEFGHIJKLM";

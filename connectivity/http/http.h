@@ -44,18 +44,18 @@ int http_logger_release();
 status_t ta_http_init(ta_http_t *const http, ta_core_t *const core);
 
 /**
- * Starts an HTTP API
+ * @brief Starts an HTTP API
  *
- * @param api The HTTP API
+ * @param http The HTTP API
  *
  * @return a status code
  */
 status_t ta_http_start(ta_http_t *const http);
 
 /**
- * Stops an HTTP API
+ * @brief Stops an HTTP API
  *
- * @param api The HTTP API
+ * @param http The HTTP API
  *
  * @return a status code
  */

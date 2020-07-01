@@ -6,14 +6,19 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef TRYTE_BYTE_CONV_H
-#define TRYTE_BYTE_CONV_H
+#ifndef UTILS_TRYTE_BYTE_CONV_H
+#define UTILS_TRYTE_BYTE_CONV_H
 
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file utils/tryte_byte_conv.h
+ * @brief Conversion between trytes and bytes.
+ */
 
 /**
  * @brief Convert bytes to trytes
@@ -37,4 +42,4 @@ void trytes_to_bytes(unsigned char const *const input, uint32_t input_len, char 
 }
 #endif
 
-#endif  // TRYTE_BYTE_CONV_H
+#endif  // UTILS_TRYTE_BYTE_CONV_H

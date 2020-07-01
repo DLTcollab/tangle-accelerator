@@ -33,7 +33,6 @@ extern "C" {
  * The arguments and return data structure are specified in different
  * requests.
  *
- * @example test_common.cc
  */
 
 /**
@@ -57,9 +56,9 @@ int cc_logger_release();
  * fields include address, value, tag, and message. This API would also try to
  * find the transactions after bundle sent.
  *
- * @param[in] info Tangle-accelerator configuration variables
+ * @param info [in] Tangle-accelerator configuration variables
  * @param[in] iconf IOTA API parameter configurations
- * @param[in] service IOTA full node end point service
+ * @param service [in] IOTA full node end point service
  * @param[in] cache redis configuration variables
  * @param[in] req Request containing address value, message, tag in
  *                ta_send_transfer_req_t
@@ -172,6 +171,7 @@ status_t ta_get_bundle(const iota_client_service_t* const service, tryte_t const
  * send message with this function.
  *
  * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] iconf IOTA API parameter configurations
  * @param[in] service IOTA full node end point service
  * @param[in] bundle bundle object to send
  * @param[out] bundle Result containing bundle object in bundle_transactions_t
@@ -223,14 +223,14 @@ status_t ta_get_node_status(const iota_client_service_t* const service);
  * ta_update_node_connection would check the connection status of all the IOTA full node on priority list iteratively.
  * Once it connects to one of the IOTA full node on the priority list, it would return SC_OK.
  *
- * @param ta_conf[in] Tangle-accelerator configuration variables
- * @param service[in] service IOTA full node end point service
+ * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] service service IOTA full node end point service
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_service_t* const service);
+status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_t* const service);
 
 /**
  * @brief Push failed transactions in raw trytes into transaction buffer
@@ -239,9 +239,9 @@ status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_servi
  * their request. The UUIDs are stored in a list, so once reaching the capacity of the buffer, buffered transactions can
  * be popped from the buffer.
  *
- * @param cache[in] Redis configuration variables
- * @param raw_txn_flex_trit_array[in] Raw transcation trytes array in flex_trit_t type
- * @param uuid[out] Returned UUID for fetching transaction status and information
+ * @param[in] cache Redis configuration variables
+ * @param[in] raw_txn_flex_trit_array Raw transcation trytes array in flex_trit_t type
+ * @param[out] uuid Returned UUID for fetching transaction status and information
  *
  * @return
  * - SC_OK on success
@@ -255,7 +255,7 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
  * Failed transactions would be stored in transaction buffer. Once tangle-accelerator retrieve the connetion with
  * Tangle, then tangle-accelerator will start to broadcast these failed transaction trytes.
  *
- * @param core[in] Pointer to Tangle-accelerator core configuration structure
+ * @param[in] core Pointer to Tangle-accelerator core configuration structure
  *
  * @return
  * - SC_OK on success
@@ -271,9 +271,9 @@ status_t broadcast_buffered_txn(const ta_core_t* const core);
  * UUID in redis then it will return no_exist. In the current implementation, we used Redis to buffer all the
  * transactions.
  *
- * @param cache[in] redis configuration variables
- * @param uuid[in] Given UUID
- * @param res[out] ta_fetch_txn_with_uuid_res_t contains the transaction object and status
+ * @param[in] cache redis configuration variables
+ * @param[in] uuid Given UUID
+ * @param[out] res ta_fetch_txn_with_uuid_res_t contains the transaction object and status
  *
  * @return
  * - SC_OK on success

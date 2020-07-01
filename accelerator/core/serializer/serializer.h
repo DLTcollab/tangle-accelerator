@@ -23,21 +23,26 @@ extern "C" {
 /**
  * @file accelerator/core/serializer/serializer.h
  * @brief Serialization of data strings
- * @example test_serializer.c
+ * @example unit-test/test_serializer.c
  */
 
-//
 /** @name Default input fields */
 /** @{ */
-/** Tag with mnemonic presentation of 'Powered by Tangle-Accelerator' */
+/**
+ * Tag with mnemonic presentation of 'Powered by Tangle-Accelerator'
+ */
 #define DEFAULT_TAG "POWEREDBYTANGLEACCELERATOR9"
-/** Address with mnemonic presentation of 'Powered by Tangle-Accelerator' */
-#define DEFAULT_ADDRESS                      \
-  "POWEREDBYTANGLEACCELERATOR99999999999999" \
-  "99999999999999999999999999999999999999999"
-/** 'Powered by tangle-accelerator' in ASCII */
+/**
+ * Address with mnemonic presentation of 'Powered by Tangle-Accelerator'
+ */
+#define DEFAULT_ADDRESS "POWEREDBYTANGLEACCELERATOR9999999999999999999999999999999999999999999999999999999"
+/**
+ * 'Powered by tangle-accelerator' in ASCII
+ */
 #define DEFAULT_MSG "ZBCDKDTCFDTCSCEAQCMDEAHDPCBDVC9DTCRAPCRCRCTC9DTCFDPCHDCDFD"
-/** Default message length */
+/**
+ * Default message length
+ */
 #define DEFAULT_MSG_LEN 58
 /** @} */
 
@@ -62,7 +67,6 @@ int serializer_logger_release();
  * @param[in] ta_config Tangle-accelerator configuration variables
  * @param[in] tangle IOTA configuration variables
  * @param[in] cache Redis configuration variables
- * @param[in] iota_service IOTA full node connection configuration variables
  *
  * @return
  * - SC_OK on success
@@ -162,7 +166,7 @@ status_t ta_find_transaction_object_single_res_serialize(transaction_array_t* re
  * @brief Deserialize type of ta_find_transaction_objects_req_t from JSON string
  *
  * @param[in] obj List of transaction hashes
- * @param[out] res Response data in type of ta_find_transaction_objects_req_t
+ * @param[out] req Response data in type of ta_find_transaction_objects_req_t
  *
  * @return
  * - SC_OK on success
@@ -249,8 +253,8 @@ status_t proxy_apis_command_req_deserialize(const char* const obj, char* command
  * @brief Deserialize latestMilestone and latestSolidSubtangleMilestone from IOTA core API getNodeInfo
  *
  * @param[in] obj getNodeInfo response in JSON.
- * @param[out] latestMilestoneIndex Index of latestMilestone
- * @param[out] latestSolidSubtangleMilestoneIndex Index of latestSolidSubtangleMilestone
+ * @param[out] latestMilestone Index of latestMilestone
+ * @param[out] latestSolidSubtangleMilestone Index of latestSolidSubtangleMilestone
  *
  * @return
  * - SC_OK on success

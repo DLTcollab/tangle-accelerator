@@ -53,7 +53,7 @@ static status_t ta_mam_write_header(mam_api_t *const api, tryte_t const *const c
  *
  * @param api[in] The MAM API object
  * @param payload[in] The payload to write
- * @param msg_id[in] The MAM msg_id of this packet
+ * @param[in] msg_id The MAM msg_id of this packet
  * @param bundle[out] The bundle that the packet will be written into
  *
  * @return
@@ -174,7 +174,7 @@ static mam_endpoint_t *mam_api_endpoint_get(mam_api_t const *const api, tryte_t 
  *
  * @param psks[out] Pre-Shared Key set
  * @param ntru_pks[out] NTRU public key set
- * @param psk[in] List of Pre-Shared Key
+ * @param[in] psk List of Pre-Shared Key
  * @param ntru_pk[in] List of NTRU public key
  *
  * @return
@@ -249,7 +249,7 @@ static inline void mam_encrypt_key_free(mam_encrypt_key_t *mam_key) {
  * @brief Initialize a 'mam_api_t' object
  *
  * @param api[in,out] The MAM API object
- * @param iconf[in] IOTA API parameter configurations
+ * @param[in] iconf IOTA API parameter configurations
  * @param seed[in] Seed of MAM channels. It is an optional choice
  *
  * @return
@@ -368,7 +368,7 @@ done:
  * With given channel_depth and endpoint_depth, generate the corresponding Channel ID and Endpoint ID, and write the
  * payload to a bundle. The payload is signed with secret key which has the smallest ordinal number.
  *
- * @param service[in] IOTA node service
+ * @param[in] service IOTA node service
  * @param api[in,out] The MAM API object
  * @param channel_depth[in] Depth of channel merkle tree
  * @param mam_key[in] Key object to encrypt MAM mesage
@@ -505,7 +505,7 @@ done:
  *
  * @param api[in,out] The MAM API object
  * @param channel_depth[in] Depth of channel merkle tree
- * @param chid[in] Channel ID
+ * @param[in] chid Channel ID
  * @param mam_key[in] Key object to encrypt MAM mesage
  * @param chid1[in] The next Channel ID
  * @param bundle[out] The bundle which contains the Header and Packets of the current Message

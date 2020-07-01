@@ -22,7 +22,7 @@ extern "C" {
 /**
  * @file accelerator/core/pow.h
  * @brief PoW interface
- * @example test_pow.c
+ * @example unit-test/test_pow.c
  */
 
 /**

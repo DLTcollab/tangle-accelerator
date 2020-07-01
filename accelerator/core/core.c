@@ -539,13 +539,13 @@ done:
   return ret;
 }
 
-status_t ta_update_node_connection(ta_config_t* const ta_conf, iota_client_service_t* const service) {
+status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_t* const service) {
   status_t ret = SC_OK;
-  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS && ta_conf->iota_host_list[i]; i++) {
+  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS && info->iota_host_list[i]; i++) {
     // update new IOTA full node
-    strncpy(service->http.host, ta_conf->iota_host_list[i], HOST_MAX_LEN - 1);
+    strncpy(service->http.host, info->iota_host_list[i], HOST_MAX_LEN - 1);
     service->http.host[HOST_MAX_LEN - 1] = '\0';
-    service->http.port = ta_conf->iota_port_list[i];
+    service->http.port = info->iota_port_list[i];
     ta_log_info("Try to connect to %s:%d\n", service->http.host, service->http.port);
 
     // Run from the first one until found a good one.

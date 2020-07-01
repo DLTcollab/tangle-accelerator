@@ -11,6 +11,14 @@
 
 #include "common/ta_errors.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @file utils/https.h
+ */
+
 /**
  * @brief Initialize logger of HTTP(S)
  */
@@ -37,4 +45,8 @@ int https_logger_release();
  * @return #status_t
  */
 status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed);
+
+#ifdef __cplusplus
+}
+#endif
 #endif  // UTILS_HTTPS_H

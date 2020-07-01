@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -26,7 +26,7 @@ extern "C" {
 /**
  * @brief Renew the given bundle
  *
- * @param bundle[in,out] The bundle that will be renewed
+ * @param[in,out] bundle The bundle that will be renewed
  *
  */
 static inline void bundle_transactions_renew(bundle_transactions_t **bundle) {
@@ -49,7 +49,7 @@ static inline void bundle_array_copy(void *_dst, const void *_src) {
 static UT_icd bundle_array_icd = {sizeof(bundle_transactions_t), 0, bundle_array_copy, 0};
 
 /**
- * Allocate memory of bundle_array_t
+ * @brief Allocate memory of bundle_array_t
  */
 static inline void bundle_array_new(bundle_array_t **const bundle_array) {
   utarray_new(*bundle_array, &bundle_array_icd);
@@ -107,7 +107,7 @@ static inline bundle_transactions_t *bundle_array_at(bundle_array_t *const bundl
 }
 
 /**
- * Free memory of bundle_array_t
+ * @brief Free memory of bundle_array_t
  */
 static inline void bundle_array_free(bundle_array_t **const bundle_array) {
   // TODO set dtor and use utarray_free() instead.

@@ -18,17 +18,24 @@ extern "C" {
 /**
  * @file accelerator/core/response/ta_fetch_txn_with_uuid.h
  */
-typedef enum { UNSENT, NOT_EXIST, SENT } txn_with_uuid_status_t;
+
+/**
+ * The enumeration of the status of buffered requests
+ */
+typedef enum {
+  UNSENT /**< Buffered request hasn't be broadcasted */,
+  NOT_EXIST /**< A request with given UUID is not existed */,
+  SENT /**< Buffered request has be broadcasted */
+} txn_with_uuid_status_t;
 
 /** struct of ta_fetch_txn_with_uuid_res */
-typedef struct ta_fetch_txn_with_uuid_res {
-  /** bundle transaction object. */
-  bundle_transactions_t* bundle;
-  txn_with_uuid_status_t status;
+typedef struct ta_fetch_txn_with_uuid_res_s {
+  bundle_transactions_t* bundle; /**< bundle transaction object. */
+  txn_with_uuid_status_t status; /**< request status. */
 } ta_fetch_txn_with_uuid_res_t;
 
 /**
- * Allocate memory of ta_fetch_txn_with_uuid_res_t
+ * @brief Allocate memory of ta_fetch_txn_with_uuid_res_t
  *
  * @return
  * - struct of ta_fetch_txn_with_uuid_res_t on success
@@ -37,9 +44,9 @@ typedef struct ta_fetch_txn_with_uuid_res {
 ta_fetch_txn_with_uuid_res_t* ta_fetch_txn_with_uuid_res_new();
 
 /**
- * Free memory of ta_fetch_txn_with_uuid_res_t
+ * @brief Free memory of ta_fetch_txn_with_uuid_res_t
  *
- * @param res Data type of ta_fetch_txn_with_uuid_res_t
+ * @param[in] res Data type of ta_fetch_txn_with_uuid_res_t
  */
 void ta_fetch_txn_with_uuid_res_free(ta_fetch_txn_with_uuid_res_t** res);
 

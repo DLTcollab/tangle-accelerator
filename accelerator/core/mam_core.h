@@ -50,10 +50,11 @@ typedef struct mam_encrypt_key_s {
 /**
  * @brief Send a MAM message.
  *
- * @param iconf[in] IOTA API parameter configurations
- * @param service[in] IOTA node service
- * @param req[in] Request in 'ta_send_mam_req_t' datatype
- * @param res[out] Result in 'ta_send_mam_res_t' datatype
+ * @param[in] info Tangle-accelerator configuration variables
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IOTA node service
+ * @param[in] req Request in 'ta_send_mam_req_t' datatype
+ * @param[out] res Result in 'ta_send_mam_res_t' datatype
  *
  * @return
  * - SC_OK on success
@@ -66,10 +67,10 @@ status_t ta_send_mam_message(const ta_config_t* const info, const iota_config_t*
 /**
  * @brief Receive MAM messages.
  *
- * @param iconf[in] IOTA API parameter configurations
- * @param service[in] IOTA node service
- * @param req[in] Request in 'ta_recv_mam_req_t' datatype
- * @param res[out] Result in 'ta_recv_mam_res_t' datatype
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IOTA node service
+ * @param[in] req Request in 'ta_recv_mam_req_t' datatype
+ * @param[out] res Result in 'ta_recv_mam_res_t' datatype
  *
  * @return
  * - SC_OK on success

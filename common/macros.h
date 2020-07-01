@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /**
- * @file common/ta_macros.h
+ * @file common/macros.h
  * @brief Macros for tangle-accelerator
  */
 
@@ -30,8 +30,10 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 
 #define NUM_TRYTES_MAM_MSG_ID MAM_MSG_ID_SIZE / 3
 #define NUM_TRYTES_MAM_NTRU_PK_SIZE MAM_NTRU_PK_SIZE / 3
-#define NUM_TRYTES_MAM_NTRU_SK_SIZE \
-  342  // MAM_NTRU_SK_SIZE = 1024, so if we transform ntru secret key from trit to tryte, it would be 1024/3 = 341.33
+/**
+ * MAM_NTRU_SK_SIZE = 1024, so if we transform ntru secret key from trit to tryte, it would be 1024/3 = 341.33 \
+ */
+#define NUM_TRYTES_MAM_NTRU_SK_SIZE 342
 #define NUM_TRYTES_MAM_PSK_KEY_SIZE MAM_PSK_KEY_SIZE / 3
 #define NUM_TRYTES_MAM_PSK_ID_SIZE MAM_PSK_ID_SIZE / 3
 
@@ -40,8 +42,7 @@ typedef enum mam_protocol_e { MAM_V1 } mam_protocol_t;
 #define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
 
-// How many different letters are used in tryte alphabet
-#define TRINARY_ALPHABET_LEN 27
+#define TRINARY_ALPHABET_LEN 27 /** <How many different letters are used in tryte alphabet */
 #define TRINARY_ALPHABET "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
 // TODO The temporary default timeout in cache server is 1 week. We should investigate the performance of redis to

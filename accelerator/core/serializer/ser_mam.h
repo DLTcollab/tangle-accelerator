@@ -17,6 +17,11 @@ extern "C" {
 #endif
 
 /**
+ * @file accelerator/core/serializer/ser_mam.h
+ * @brief Functions for MAM request/response serialization
+ */
+
+/**
  * @brief Deserialize JSON string to type of ta_send_mam_req_t
  *
  * @param[in] obj Input values in JSON
@@ -41,7 +46,7 @@ status_t send_mam_message_req_deserialize(const char* const obj, ta_send_mam_req
 status_t send_mam_message_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
 
 /**
- * @brief Serialze type of ta_send_mam_res_t to JSON string
+ * @brief Serialize type of ta_send_mam_res_t to JSON string
  *
  * @param[out] obj send mam response object in JSON
  * @param[in] res Response data in type of ta_send_mam_res_t
@@ -68,7 +73,7 @@ status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req
  * @brief Deserialize JSON string to type of ta_recv_mam_res_t
  *
  * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of ta_recv_mam_res_t
+ * @param[out] res Response in datatype ta_recv_mam_res_t
  *
  * @return
  * - SC_OK on success
@@ -79,8 +84,8 @@ status_t recv_mam_message_res_deserialize(const char* const obj, ta_recv_mam_res
 /**
  * @brief Serialize response of mam message
  *
- * @param payload_array[in]  Response of payload message in 'ta_recv_mam_res_t' datatype
- * @param obj[out] Message array formed in JSON
+ * @param[in] res Response of payload message in 'ta_recv_mam_res_t' datatype
+ * @param[out] obj Message array formed in JSON
  *
  * @return
  * - SC_OK on success

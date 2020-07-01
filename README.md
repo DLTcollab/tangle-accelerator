@@ -28,7 +28,7 @@ both footprint and startup time are behaved pretty well.
 
 ```
                 +-------------------------------------------+
-+----------+    |  +-----------------+       +-----------+  |       
++----------+    |  +-----------------+       +-----------+  |
 |          |    |  | Service         |       | Cache     |  |
 |  Client  <-----> |                 | <---> |           |  |
 |          |    |  | -Explorer       |       | -Trytes   |  |
@@ -37,7 +37,7 @@ both footprint and startup time are behaved pretty well.
                 |  | -Proxy          |       |           |  |
                 |  +-----------------+       +-----------+  |
                 |         ^                                 |
-                +---------|---------------------------------+     
+                +---------|---------------------------------+
                           v
                 +-------------------------------------------+  
                 | Full Node                                 |
@@ -52,7 +52,7 @@ both footprint and startup time are behaved pretty well.
 
 `Tangle-accelerator` helps to reattach pending transactions were attached from `Tangle-accelerator`.
 Reattachment increases chances of confirmation and prevents messages being pruned when full nodes perform snapshot.
-Clients should provide a unique ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachment. 
+Clients should provide a unique ID as the identifier to each message and it's corresponding transaction hash since a new transaction hash will be generated after reattachment.
 
 `Tangle-accelerator` uses ScyllaDB to store each transaction's ID, hash and status(Pending or confirmed). `Tangle-accelerator` will periodically check the status of pending transactions and reattach transactions which have been pended too long. Confirmed transactions will be stored into permanodes.
 
@@ -61,20 +61,23 @@ Clients can find the transaction alone with wanted message by using the ID to qu
 ## Connectivity
 
 `Tangle-accelerator`, at this moment, supports the following TCP/IP derived protocols:
+
 * `HTTP`
-* `MQTT` 
+* `MQTT`
 
 ### HTTP
+
 `HTTP` can be used in the normal internet service. User can use RESTful APIs to interact with `tangle-accelerator`.
 
 ### MQTT
+
 `MQTT` is a lightweight communication protocol which can be used in the IoT scenarios. `Tangle-accelerator`'s support to `MQTT` allows embedded devices to write data on IOTA internet with relative low quality hardware devices. We hope this will speed up DLT into our daily life.
 
 ## Documentation
 
 This page contains basic instructions for setting up tangle-accelerator, You can generate full documentation and API reference via Doxygen. The documentation is under `docs/` after generated:
 
-```
+```bash
 $ doxygen Doxyfile
 ```
 
@@ -99,7 +102,7 @@ Before running tangle-accelerator, please edit binding address/port of accelerat
 * `http_threads`: Determine thread pool size to process HTTP connections.
 * `quiet`: Turn off logging message.
 
-```
+```bash
 $ make && bazel run //accelerator
 ```
 
@@ -114,14 +117,16 @@ Tangle-accelerator supports several different build time options.
 
 Debug mode enables tangle-accelerator to display extra `debug` logs.
 
+```bash
+$ bazel run --define build_type=debug //accelerator
 ```
-bazel run --define build_type=debug //accelerator
-```
+
 * Profiling Mode
 
-    Profiling mode adds `-pg` flag when compiling tangle-accelerator. This allows tangle-accelerator to write profile information for the analysis program gprof.
-```
-bazel run --define build_type=profile //accelerator
+Profiling mode adds `-pg` flag when compiling tangle-accelerator. This allows tangle-accelerator to write profile information for the analysis program gprof.
+
+```bash
+$ bazel run --define build_type=profile //accelerator
 ```
 
 See [docs/build.md](docs/build.md) for more information.
@@ -129,17 +134,21 @@ See [docs/build.md](docs/build.md) for more information.
 ## Developing
 
 The codebase of this repository follows [Google's C++ guidelines](https://google.github.io/styleguide/cppguide.html):
-- Please run `hooks/autohook.sh install` after initial checkout.
-- Pass `-c dbg` for building with debug symbols.
+
+* Please run `hooks/autohook.sh install` after initial checkout.
+* Pass `-c dbg` for building with debug symbols.
 
 ### Tools required for running git commit hook
-- buildifier
-- clang-format
+
+* buildifier
+* clang-format
 
 ### Buildifier
+
 Buildifier can be installed with `bazel` or `go`
 
 #### Install with go
+
 1. change directory to `$GOPATH`
 2. run `$ go get github.com/bazelbuild/buildtools/buildifier`
    The executable file will be located under `$GOPATH/bin`
@@ -147,33 +156,40 @@ Buildifier can be installed with `bazel` or `go`
    `$ sudo ln -s $HOME/go/bin/buildifier /usr/bin/buildifier`
 
 #### Install with bazel
+
 1. clone `bazelbuild/buildtools` repository
    `$ git clone https://github.com/bazelbuild/buildtools.git`
 2. change directory to `buildtools`
 3. build it with bazel command, `$ bazel build //buildifier`
    The executable file will be located under `path/to/buildtools/bazel-bin`
-4. make a soft link or move the executable file under `/usr/bin` 
+4. make a soft link or move the executable file under `/usr/bin`
 
 ### clang-format
-clang-format can be installed by command:
-- Debian/Ubuntu based systems: `$ sudo apt-get install clang-format`
-- macOS: `$ brew install clang-format`
 
+clang-format can be installed by command:
+
+* Debian/Ubuntu based systems: `$ sudo apt-get install clang-format`
+* macOS: `$ brew install clang-format`
 
 ## Usage
+
 `Tangle-accelerator` currently supports two categories of APIs
+
 * Direct API: check [wiki page](https://github.com/DLTcollab/tangle-accelerator/wiki) for details.
 * Proxy API to IOTA core functionalities
 
 ### Full Node Proxy API
+
 `tangle-accelerator` allows the use of IOTA core APIs. The calling process does not have to be aware of the destination machine running IOTA full node. With the exactly same format of IOTA core APIs, `tangle-accelerator` would help users forward the request to IOTA full node and forward the response back to users.
 We support two way to forward Proxy APIs to IOTA full node:
+
 1. Bypass Proxy APIs directly to IOTA full node.
 2. Process the Proxy APIs, then transmit them to IOTA full node.
 
 The user can choose which way they want with CLI argument `--proxy_passthrough`.
 All the Proxy APIs are supported with the first way.
 However, the second way currently only supports the followings Proxy APIs:
+
 * checkConsistency
 * findTransactions
 * getBalances
@@ -182,5 +198,6 @@ However, the second way currently only supports the followings Proxy APIs:
 * getTrytes
 
 ## Licensing
+
 `Tangle-accelerator` is freely redistributable under the MIT License. Use of this source
 code is governed by a MIT-style license that can be found in the `LICENSE` file.

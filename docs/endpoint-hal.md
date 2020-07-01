@@ -5,30 +5,34 @@ Hardware Abstract Layer(HAL) defines a standard interface for hardware vendors t
 ## How to implement new device
 
 Create a directory for the new device under `devices`.
+
+```bash
+$ mkdir -p devices/mydevice
 ```
-$mkdir -p devices/mydevice
-```
+
 * Create `impl.c` and `Makefile` under the new device directory.
 * Include `device.h` into the new device header or the new device source file.
 
 Here are some operations needed to be implemented for new device:
+
 * device_operations
-    * init : initialize device
-    * fini : finalize device
-    * get_key : get device key
-    * get_device_id : get device id(IMEI or other identifier)
+* init : initialize device
+* fini : finalize device
+* get_key : get device key
+* get_device_id : get device id(IMEI or other identifier)
 * uart_operations
-    * init : initialize uart
-    * write : write command to uart device
-    * read : read from uart device
-    * clean : flush buffer
+* init : initialize uart
+* write : write command to uart device
+* read : read from uart device
+* clean : flush buffer
 * secure_store_operations
-    * init : initialize secure storage
-    * write : write item to secure storage
-    * read : read item from secure storage
-    * delete : delete item inside secure storage
+* init : initialize secure storage
+* write : write item to secure storage
+* read : read item from secure storage
+* delete : delete item inside secure storage
 
 Here are the functions needed to be registered/unregistered inside `impl.c`:
+
 * register_device : register device on startup
 * unregister_device : unregistered device
 * DECLARE_DEVICE : this must be declared inside `impl.c`
@@ -36,8 +40,10 @@ Here are the functions needed to be registered/unregistered inside `impl.c`:
 Add the new device into `hal/Makefile`:
 
 * Append the device object to DEVICE_OBJS
+
 * Add the new device build target(mydevice.o)
-```
+
+```makefile
 DEVICE_OBJS = wp7702.o emulator.o device.o mydevice.o
 export DEVICE_OBJS
 
@@ -48,14 +54,17 @@ mydevice.o: device.o
 ```
 
 Implement a new device which is created under `devices` directory, and edit the Makefile. The example device is named as `mydevice`:
-```
+
+```makefile
 all: mydevice.o
 mydevice.o: impl.c
         $(CC) $(CFLAGS) $(INCLUDES) -c $^ -o $@
 ```
+
 `$(CC)`,`$(CFLAGS)` and `$(INCLUDES)` are specified by build system. `CC` sets the default compiler for the project. `CFLAGS` are the default flags that would be passed to default compiler during compiling time. `INCLUDES` flag includes headers inside sub-projects and third-party libraries. You can also modify these flags inside your device's Makefile.
 
 impl.c
+
 ```c
 #include "device.h"
 

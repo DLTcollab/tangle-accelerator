@@ -16,6 +16,10 @@
 #include "common/ta_errors.h"
 
 /**
+ * @file endpoint/endpoint_core.h
+ */
+
+/**
  * @brief Initialization of endpoint
  */
 void endpoint_init(void);

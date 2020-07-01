@@ -19,6 +19,11 @@ extern "C" {
 #endif
 
 /**
+ * @file utils/char_buffer_str.h
+ * @brief Get string from 'char_buffer_t' object.
+ */
+
+/**
  * @brief Get string from char_buffer_t
  * @param[in] char_buff char_buffer_t object
  * @param[out] json_result Response message

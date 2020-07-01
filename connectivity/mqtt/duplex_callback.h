@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * @file connectivity/mqtt/duplex_callbacks.h
+ * @file connectivity/mqtt/duplex_callback.h
  * @brief Callback functions to handle MQTT requests
  */
 

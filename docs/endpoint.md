@@ -2,22 +2,22 @@
 
 The endpoint is one of the components provided by Tangle-accelerator, running on a resource-constrained network connectivity module. The embedded devices can send messages to blockchain network (Tangle) with a connectivity module loaded endpoint. The message would be transmitted to connectivity module through UART. Message would be encrypted and send to tangle.
 
-# Streaming Message Channel Implementation
+## Streaming Message Channel Implementation
 
 The encrypted message would be sent to Tangle with a streaming message channel API. The streaming message channel API would ensure the order of messages in the channel. The user who wants to fetch/send message to Tangle needs to provide `data_id`, `key` and `protocol` to identify a specific message.
-A message sent by endpoint needs to be encrypted locally, which avoids message being peeked and modified. 
+A message sent by endpoint needs to be encrypted locally, which avoids message being peeked and modified.
 
-# How to build endpoint
+## How to build endpoint
 
-## Setup Legato application framework development environment 
+### Setup Legato application framework development environment
 
 The endpoint uses the Legato application framework as based runtime system. Developers need to set up the Sierra development environment to build endpoint as specific target.
 
-### How to build endpoint application for wp77xx
+#### How to build endpoint application for wp77xx
 
 [Leaf](https://docs.legato.io/latest/toolsLeaf.html) is a workspace manager that will download, install and configure the required software packages for a Legato development environment.
 
-#### prerequisite packages required by leaf
+##### prerequisite packages required by leaf
 
 ```shell
 $ sudo apt install \
@@ -63,7 +63,7 @@ $ make TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # bu
 $ make TESTS=true TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target in test mode
 ```
 
-### How to build endpoint application for native target
+#### How to build endpoint application for native target
 
 Install required packages:
 
@@ -142,11 +142,11 @@ $ make legato # build endpoint as native target
 
 The endpoint will be built at `endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint`
 
-## HTTPS Connection Support
+### HTTPS Connection Support
 
 The endpoint uses HTTP connection as default. The message sent to tangle-accelerator has been encrypted, so the HTTP connection would not be unsafe. To build with HTTPS connection support, add `ENFORCE_EP_HTTPS=true` option.
 
-For HTTPS connection support, the PEM file should also be set. The default pem file is located at `pem/cert.pem`. If the `PEM` is not set, the build system will use the default pem. The endpoint will verify the connection server with the trusted certificate from the pem file. The default pem is only for the build system. The user should provide the certificate from the server you want to connect. See pem/README.md for more information. 
+For HTTPS connection support, the PEM file should also be set. The default pem file is located at `pem/cert.pem`. If the `PEM` is not set, the build system will use the default pem. The endpoint will verify the connection server with the trusted certificate from the pem file. The default pem is only for the build system. The user should provide the certificate from the server you want to connect. See pem/README.md for more information.
 
 ```shell
 $ make ENFORCE_EP_HTTPS=true PEM=/path/to/pem legato

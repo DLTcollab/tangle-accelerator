@@ -9,6 +9,9 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#ifndef COMMON_DEBUG_H_
+#define COMMON_DEBUG_H_
+
 #include "common/crypto/iss/v1/iss_kerl.h"
 #include "common/helpers/sign.h"
 #include "common/model/bundle.h"
@@ -27,12 +30,21 @@
 #include "logger.h"
 
 /**
+ * @file common/debug.h
+ * @brief Debugging tool for tangle-accelerator
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
  * Initialize logger
  */
 void debug_logger_init();
 
 /**
- * Release logger
+ * @brief Release logger
  *
  * @return
  * - zero on success
@@ -41,29 +53,35 @@ void debug_logger_init();
 int debug_logger_release();
 
 /**
- * Print the content of all the transaction objects in this bundle
+ * @brief Print the content of all the transaction objects in this bundle
  *
- * @param bundle[in] Bundle is going to dump message.
+ * @param[in] bundle Bundle is going to dump message.
  *
  */
 void dump_bundle(bundle_transactions_t *bundle);
 
 /**
- * Print the all the contents this transaction object
+ * @brief Print the all the contents this transaction object
  *
- * @param tx_obj[in] Bundle is going to dump message.
+ * @param[in] tx_obj Bundle is going to dump message.
  *
  */
 void dump_transaction_obj(iota_transaction_t *tx_obj);
 
 /**
- * Compare two transaction objects
+ * @brief Compare two transaction objects
  *
- * @param tx1[in] Compared transaction object one
- * @param tx1[in] Compared transaction object two
+ * @param[in] tx1 Compared transaction object one
+ * @param[in] tx2 Compared transaction object two
  *
  * @return
  * - true on success
  * - false on error
  */
 bool transaction_cmp(iota_transaction_t *tx1, iota_transaction_t *tx2);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // COMMON_DEBUG_H_

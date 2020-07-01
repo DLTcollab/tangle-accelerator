@@ -28,38 +28,34 @@ extern "C" {
 
 /** struct of ta_send_mam_req_t */
 typedef struct send_mam_req_s {
-  /** Optional. Service token which should be provided by the paid users. */
-  char service_token[SERVICE_TOKEN_LEN + 1];
-  /** Required. Data identifier. This struct pointer points to the implementation of data ID struct. */
-  void* data;
-  /** Optional. Decryption key. This struct pointer points to the implementation of payload decryption key struct. */
-  void* key;
-  /** Required. Specified protocol. The protocol used in the current data. */
-  mam_protocol_t protocol;
+  /*@{*/
+  char service_token[SERVICE_TOKEN_LEN + 1]; /**< Optional. Service token which should be provided by the paid users. */
+  void* data; /**< Required. Data identifier. This struct pointer points to the implementation of data ID struct. */
+  void* key;  /**< Optional. Decryption key. This struct pointer points to the implementation of payload decryption key
+                 struct. */
+  mam_protocol_t protocol; /**< Required. Specified protocol. The protocol used in the current data. */
+  /*@}*/
 } ta_send_mam_req_t;
 
 /** struct of send_mam_data_mam_v1_t */
 typedef struct send_mam_data_mam_v1_s {
-  /** Optional. MAM channel seed. Assigning with load balancer in LAN. Assinging with public requests
-   * are accepted, but tangle-accelerator won't ensure the security during seed transmission. */
-  tryte_t* seed;
-  /** Optional. The depth of channel merkle tree. */
-  int32_t ch_mss_depth;
-  /** Optional. The Channel ID which tangle-accelerator starts to search available message slot. */
-  tryte_t* chid;
-  /** Required. The message will be append to the channel. */
-  char* message;
+  tryte_t* seed; /**< Optional. MAM channel seed. Assigning with load balancer in LAN. Assinging with public requests
+                  * are accepted, but tangle-accelerator won't ensure the security during seed transmission. */
+  int32_t ch_mss_depth; /**< Optional. The depth of channel merkle tree. */
+  tryte_t* chid; /**< Optional. The Channel ID which tangle-accelerator starts to search available message slot. */
+  char* message; /**< Required. The message will be append to the channel. */
 } send_mam_data_mam_v1_t;
 
+/** struct of send_mam_key_mam_v1_t */
 typedef struct send_mam_key_mam_v1_s {
-  /** Optional. The pre-shared key to encrypt the message. Each psk is in length of 81 trytes. Default: NULL. */
-  UT_array* psk_array;
-  /** Optional. The NTRU public key to encrypt the message. Each psk is in length of 1024 trytes. Default: NULL. */
-  UT_array* ntru_array;
+  UT_array* psk_array;  /**< Optional. The pre-shared key to encrypt the message. Each psk is in length of 81 trytes.
+                           Default: NULL. */
+  UT_array* ntru_array; /**< Optional. The NTRU public key to encrypt the message. Each psk is in length of 1024 trytes.
+                           Default: NULL. */
 } send_mam_key_mam_v1_t;
 
 /**
- * Allocate memory of ta_send_mam_req_t
+ * @brief Allocate memory of ta_send_mam_req_t
  *
  * @return
  * - struct of ta_send_mam_req_t on success
@@ -68,14 +64,16 @@ typedef struct send_mam_key_mam_v1_s {
 ta_send_mam_req_t* send_mam_req_new();
 
 /**
- * Free memory of ta_send_mam_req_t
+ * @brief Free memory of ta_send_mam_req_t
  *
- * @param req Data type of ta_send_mam_req_t
+ * @param[in] req Data type of ta_send_mam_req_t
  */
 void send_mam_req_free(ta_send_mam_req_t** req);
 
 /**
- * Initialize a `ta_send_mam_req_t` object as a mam_v1 object.
+ * @brief Initialize a `ta_send_mam_req_t` object as a mam_v1 object.
+ *
+ * @param[out] req 'ta_send_mam_req_t' object to be initialized
  *
  * @return
  * - struct of ta_send_mam_req_t on success
@@ -86,8 +84,8 @@ status_t send_mam_req_v1_init(ta_send_mam_req_t* req);
 /**
  * @brief Return NTRU public key at assigning index.
  *
- * @param req Data type of ta_send_mam_req_t
- * @param index Assigning index for fecthing NTRU public key.
+ * @param[in] req 'ta_send_mam_req_t' object
+ * @param[in] index Assigning index for fecthing NTRU public key.
  *
  * @return
  * - NTRU public key in const char*
@@ -100,8 +98,8 @@ static inline char const* mamv1_ntru_key_at(ta_send_mam_req_t* req, unsigned int
 /**
  * @brief Return Pre-Shared Key at assigning index.
  *
- * @param req Data type of ta_send_mam_req_t
- * @param index Assigning index for fecthing Pre-Shared Key.
+ * @param[in] req Data type of ta_send_mam_req_t
+ * @param[in] index Assigning index for fecthing Pre-Shared Key.
  *
  * @return
  * - Pre-Shared Key in const char*

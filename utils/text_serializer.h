@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef TEXT_SERIALIZER_H
-#define TEXT_SERIALIZER_H
+#ifndef UTILS_TEXT_SERIALIZER_H
+#define UTILS_TEXT_SERIALIZER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -17,6 +17,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file utils/text_serializer.h
+ */
 
 /**
  * @brief Serialize ciphertext and initialize vector together, the out put message
@@ -52,4 +56,4 @@ status_t deserialize_msg(const char *msg, ta_cipher_ctx *ctx);
 #ifdef __cplusplus
 }
 #endif
-#endif  // TEXT_SERIALIZER_H
+#endif  // UTILS_TEXT_SERIALIZER_H
