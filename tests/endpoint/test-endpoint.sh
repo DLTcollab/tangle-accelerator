@@ -16,12 +16,24 @@ if [ ! -f "$COMMON_FILE" ]; then
 fi
 source $COMMON_FILE
 
+TA_HOST="$1"
+TA_PORT="$2"
 # Check ip is validity or not
 validate_host "$1"
 validate_port "$2"
 
 # Create endpoint app
-make EP_TA_HOST="$1" EP_TA_PORT="$2" legato
+make EP_TA_HOST="$TA_HOST" EP_TA_PORT="$TA_PORT" legato
 
-# Run endpoint app test here
+# Start TA server for testing
+bazel run //accelerator -- --ta_port="$TA_PORT" --cache=on &
+TA=$!
+trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
+
+sleep 10
+
 endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint
+ret_code=$?
+
+kill -9 ${TA}
+exit $ret_code

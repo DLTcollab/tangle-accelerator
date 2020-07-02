@@ -17,16 +17,10 @@
 
 #include "le_log.h"
 
-#define TEST_VALUE 0
 #define TEST_MESSAGE "THISISMSG9THISISMSG9THISISMSG"
-#define TEST_MESSAGE_FMT "ascii"
-#define TEST_TAG "POWEREDBYTANGLEACCELERATOR9"
-#define TEST_ADDRESS                                                           \
+#define TEST_MAM_SEED                                                          \
   "POWEREDBYTANGLEACCELERATOR999999999999999999999999999999999999999999999999" \
   "999999A"
-#define TEST_NEXT_ADDRESS                                                      \
-  "POWEREDBYTANGLEACCELERATOR999999999999999999999999999999999999999999999999" \
-  "999999B"
 
 const uint8_t test_iv[AES_IV_SIZE] = {164, 3, 98, 193, 52, 162, 107, 252, 184, 42, 74, 225, 157, 26, 88, 72};
 
@@ -38,12 +32,8 @@ static void print_help(void) {
       "SYNOPSIS\n"
       "  endpoint [-h]\n"
       "  endpoint [--help]\n"
-      "  endpoint [--val=number]\n"
+      "  endpoint [--mam-seed=\"seed\"]\n"
       "           [--msg=\"message\"]\n"
-      "           [--msg-fmt=\"message-format\"]\n"
-      "           [--tag=\"tag\"]\n"
-      "           [--addr=\"address\"]\n"
-      "           [--next-addr=\"next-address\"]\n"
       "           [--host=\"host\"]\n"
       "           [--port=\"port\"]\n"
       "           [--ssl-seed=\"ssl-seed\"]\n"
@@ -53,26 +43,11 @@ static void print_help(void) {
       "  --help\n"
       "    Print the information for helping the users. Ignore other arguments.\n"
       "\n"
-      "  --val=number\n"
-      "    Assign the integer value for send_transaction_information.\n"
+      "  --mam-seed=\"seed\"\n"
+      "    Channel root seed. It is an 81-trytes string.\n"
       "\n"
       "  --msg=\"message\"\n"
       "    Assign the message value with string for send_transaction_information.\n"
-      "\n"
-      "  --msg-fmt=\"message-format\"\n"
-      "    Assign the message format of --msg with string.\n"
-      "\n"
-      "  --tag=\"tag\"\n"
-      "    Assign the tag value with string for send_transaction_information.\n"
-      "    The length should be 27.\n"
-      "\n"
-      "  --addr=\"address\"\n"
-      "    Assign the address with string for send_transaction_information.\n"
-      "    The \"address\" should be composed with [9A-Z] and the length should be 81.\n"
-      "\n"
-      "  --next-addr=\"next-address\"\n"
-      "    Assign the next address with string for send_transaction_information.\n"
-      "    The \"next-address\" should be composed with [9A-Z] and the length should be 81.\n"
       "\n"
       "  --host=\"host\"\n"
       "    Assign the host of the tangle-accelerator for send_transaction_information.\n"
@@ -94,15 +69,11 @@ COMPONENT_INIT {
   // FIXME:
   // The current code is a prototype for passing the CI.
   // The initialization of hardware and the input from hardware are not implemented yet.
-  int value = TEST_VALUE;
   const char* host = NULL;
   const char* port = NULL;
   const char* ssl_seed = NULL;
   const char* message = TEST_MESSAGE;
-  const char* message_fmt = TEST_MESSAGE_FMT;
-  const char* tag = TEST_TAG;
-  const char* address = TEST_ADDRESS;
-  const char* next_address = TEST_NEXT_ADDRESS;
+  const char* mam_seed = TEST_MAM_SEED;
 
   char device_id[16] = {0};
   const char* device_id_ptr = device_id;
@@ -110,15 +81,11 @@ COMPONENT_INIT {
   uint8_t private_key[AES_CBC_KEY_SIZE] = {0};
   uint8_t iv[AES_IV_SIZE] = {0};
 
-  le_arg_SetIntVar(&value, NULL, "val");
   le_arg_SetStringVar(&host, NULL, "host");
   le_arg_SetStringVar(&port, NULL, "port");
   le_arg_SetStringVar(&ssl_seed, NULL, "ssl-seed");
   le_arg_SetStringVar(&message, NULL, "msg");
-  le_arg_SetStringVar(&message_fmt, NULL, "msg-fmt");
-  le_arg_SetStringVar(&tag, NULL, "tag");
-  le_arg_SetStringVar(&address, NULL, "addr");
-  le_arg_SetStringVar(&next_address, NULL, "next-addr");
+  le_arg_SetStringVar(&mam_seed, NULL, "mam-seed");
   le_arg_SetFlagCallback(print_help, "h", "help");
   le_arg_Scan();
 
@@ -136,8 +103,7 @@ COMPONENT_INIT {
 
   status_t ret = SC_OK;
   LE_INFO("=== ENDPOINT TEST BEGIN ===");
-  ret = send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address, next_address,
-                                     private_key, device_id_ptr, iv);
+  ret = send_mam_message(host, port, ssl_seed, mam_seed, message, private_key, device_id_ptr, iv);
   LE_INFO("Send transaction information return: %d", ret);
   exit(ret == SC_OK ? EXIT_SUCCESS : EXIT_FAILURE);
 }

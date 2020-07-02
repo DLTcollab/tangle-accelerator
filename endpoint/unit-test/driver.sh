@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+if [ "$#" -ne 3 ]; then
+	echo "Usage: ./driver.sh [NODE_HOST] [NODE_PORT] [TEST_TA_PORT]" >&2
+	exit 1
+fi
+
+IOTA_NODE=$1
+IOTA_PORT=$2
+TEST_TA_PORT=$3
+
 set -uo pipefail
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,7 +32,7 @@ function failed() {
 }
 
 function run_test_suite() {
-	bazel test -c dbg --config "$1" //endpoint/unit-test/...
+	bazel test -c dbg --config "$1" //endpoint/unit-test/... --test_arg=localhost --test_arg="$TEST_TA_PORT"
 	ret=$?
 	if [[ ret -ne 0 ]]; then
 		TEST_CASE="$1"
@@ -33,7 +42,7 @@ function run_test_suite() {
 
 function start_ta() {
 	# Create tangle-accelerator for unit-test
-	bazel run accelerator &
+	bazel run //accelerator -- --ta_port="$TEST_TA_PORT" --node_host="$IOTA_NODE" --node_port="$IOTA_PORT" --cache=on &
 	TA=$!
 	# Wait until tangle-accelerator has been initialized
 	echo "==============Wait for TA starting=============="

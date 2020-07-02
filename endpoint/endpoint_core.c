@@ -37,10 +37,9 @@
 #define EP_SSL_SEED nonce
 #endif
 
-#define REQ_BODY \
-  "{\"value\": %d, \"message\": \"%s\", \"message_format\": \"%s\", \"tag\": \"%s\", \"address\": \"%s\"}\r\n\r\n"
+#define REQ_BODY "{\"data\":{\"seed\":\"%s\",\"message\":\"%s\"},\"protocol\":\"MAM_V1\"}\r\n\r\n"
 
-#define SEND_TRANSACTION_API "transaction/"
+#define SEND_MAM_API "mam/send/"
 
 #define ENDPOINT_LOGGER "endpoint"
 
@@ -66,10 +65,9 @@ void endpoint_destroy() {
   logger_helper_destroy();
 }
 
-status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, int value,
-                                      const char* message, const char* message_fmt, const char* tag,
-                                      const char* address, const char* next_address, const uint8_t* private_key,
-                                      const char* device_id, uint8_t* iv) {
+status_t send_mam_message(const char* host, const char* port, const char* ssl_seed, const char* mam_seed,
+                          const char* message, const uint8_t* private_key, const char* device_id, uint8_t* iv) {
+  int ret = 0;
   char tryte_msg[MAX_MSG_LEN] = {0};
   char msg[MAX_MSG_LEN] = {0};
   char req_body[MAX_MSG_LEN] = {0};
@@ -80,12 +78,6 @@ status_t send_transaction_information(const char* host, const char* port, const 
   const char* ta_port = port ? port : STR(EP_TA_PORT);
 
   const char* seed = ssl_seed ? ssl_seed : STR(EP_SSL_SEED);
-
-  int ret = snprintf((char*)raw_msg, MAX_MSG_LEN, "%s:%s", next_address, message);
-  if (ret < 0) {
-    ta_log_error("The message is too long.\n");
-    return SC_ENDPOINT_SEND_TRANSFER;
-  }
 
   size_t msg_len = 0;
   struct timespec t;
@@ -114,7 +106,7 @@ status_t send_transaction_information(const char* host, const char* port, const 
 
   memset(req_body, 0, sizeof(char) * MAX_MSG_LEN);
 
-  ret = snprintf(req_body, MAX_MSG_LEN, REQ_BODY, value, tryte_msg, message_fmt, tag, address);
+  ret = snprintf(req_body, MAX_MSG_LEN, REQ_BODY, mam_seed, tryte_msg);
   if (ret < 0) {
     ta_log_error("The message is too long.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
@@ -129,7 +121,7 @@ status_t send_transaction_information(const char* host, const char* port, const 
   https_ctx_t https_ctx = {
       .host = ta_host,
       .port = atoi(ta_port),
-      .api = SEND_TRANSACTION_API,
+      .api = SEND_MAM_API,
       .ssl_seed = seed,
       .s_req = &req,
       .s_res = &res,
