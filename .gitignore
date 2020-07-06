@@ -101,3 +101,5 @@ resolv.conf
 output_base/
 _build_endpoint/
 endpoint.*.update
+.repo
+legato/

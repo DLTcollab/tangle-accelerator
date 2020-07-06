@@ -106,37 +106,9 @@ $ sudo apt-get install -y   \
     zlib1g-dev
 ```
 
-Create a workspace
+Use GNU Make to build endpoint application at the root directory of tangle-accelerator.
 
 ```shell
-$ mkdir -p workspace
-$ cd workspace
-```
-
-Clone a specific version of `legato`. The `19.07.0` is the preferred stable version.
-
-```shell
-$ repo init -u git://github.com/legatoproject/manifest -m legato/releases/19.07.0.xml # specific legato 19.07.0 version
-$ repo sync
-```
-
-Build legato as native target
-
-```shell
-$ cd legato
-$ make localhost
-```
-
-Checkout the shell to legato shell
-
-```shell
-$ source framework/tools/scripts/configlegatoenv
-```
-
-Finally, use GNU Make to build endpoint application at the root directory of tangle-accelerator.
-
-```shell
-$ cd tangle-accelerator
 $ make legato # build endpoint as native target
 ```
 
