@@ -7,7 +7,7 @@ PEM_DIR = pem
 PEM := $(PEM_DIR)/cert.pem
 OUTPUT_BASE_DIR := output_base
 # Endpoint build target. The default intends to the platform of your development system.
-TARGET := simulator
+EP_TARGET := simulator
 # Build test suite
 TESTS := false
 # Enable endpoint HTTPS connection to tangle-accelerator. 
@@ -43,14 +43,14 @@ ifdef EP_SSL_SEED
 endif
 
 # Pass target into endpoint build process
-LEGATO_FLAGS += -DTARGET=$(TARGET)
+LEGATO_FLAGS += -DEP_TARGET=$(EP_TARGET)
 
 # Prepend the "-C" flag at the beginging for passing cflags into mkapp
 LEGATO_FLAGS := $(foreach flags, $(LEGATO_FLAGS), -C $(flags))
 
 # Include the build command from the specific target
-include endpoint/platform/$(TARGET)/build.mk
-export TARGET
+include endpoint/platform/$(EP_TARGET)/build.mk
+export EP_TARGET
 
 all: $(DEPS) cert
 

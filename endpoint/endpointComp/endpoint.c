@@ -125,7 +125,7 @@ COMPONENT_INIT {
   memcpy(iv, test_iv, AES_IV_SIZE);
   srand(time(NULL));
 
-  device_t* device = ta_device(STRINGIZE(TARGET));
+  device_t* device = ta_device(STRINGIZE(EP_TARGET));
   device->op->get_key(private_key);
   device->op->get_device_id(device_id);
 

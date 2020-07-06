@@ -4,7 +4,7 @@ sources:
     ${CURDIR}/../hal/device.c
     
     // include the specific platform
-    ${CURDIR}/../platform/${TARGET}/impl.c 
+    ${CURDIR}/../platform/${EP_TARGET}/impl.c 
 
     ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
 

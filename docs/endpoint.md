@@ -59,8 +59,8 @@ For setting `host`, `port` and `ssl seed` during compile-time. Add `EP_TA_HOST=x
 ```shell
 $ git clone https://github.com/DLTcollab/tangle-accelerator.git
 $ cd tangle-accelerator
-$ make TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target, and set the connected host to "node.deviceproof.org" with port 5566
-$ make TESTS=true TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target in test mode
+$ make EP_TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target, and set the connected host to "node.deviceproof.org" with port 5566
+$ make TESTS=true EP_TARGET=wp77xx EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato # build endpoint as wp77xx target in test mode
 ```
 
 #### How to build endpoint application for native target
