@@ -60,6 +60,6 @@ status_t send_transaction_information(const char* host, const char* port, const 
  * @param[out] result The buffer to store the IPV4 address output
  * @return #status_t
  */
-status_t resolve_ip_address(const char* host, char result[16]);
+status_t resolve_ip_address(const char* host, char* result);
 
 #endif  // ENDPOINT_CORE_H

@@ -6,7 +6,10 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include "legato.h"
+
 #include "device.h"
+#include "le_log.h"
 
 static struct device_type *devices;
 
@@ -20,14 +23,12 @@ static struct device_type **find_device(const char *name, unsigned len) {
 device_t *ta_device(const char *type) {
   struct device_type **p;
   if (devices->next) {
-    // TODO:Use logger
-    fprintf(stderr, "No device type registered!");
+    LE_ERROR("No device type registered!");
     return NULL;
   }
   p = find_device(type, strlen(type));
   if (*p) {
-    // TODO:Use logger
-    fprintf(stderr, "Device type %s not found", type);
+    LE_INFO("Device type %s not found", type);
   }
   return *p;
 }

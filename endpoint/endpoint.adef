@@ -11,10 +11,13 @@ processes:
     }
 }
 
+#if ${LEGATO_TARGET} = localhost
+#else
 bindings:
 {
     endpoint.endpointComp.le_secStore -> secStore.le_secStore
     endpoint.endpointComp.le_sim -> modemService.le_sim
 }
+#endif
 
 start: manual
