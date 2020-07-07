@@ -18,6 +18,17 @@ setup_build_opts() {
     fail=()
 }
 
+# Set sanitizer options
+setup_sanitizer_opts() {
+    SAN_OPTIONS=(
+        "--config=asan"
+        "--config=tsan"
+        "--config=ubsan"
+    )
+    success=()
+    fail=()
+}
+
 # Check environment variables
 check_env() {
     ENV_NAME=(

@@ -134,6 +134,10 @@ int main(int argc, char* argv[]) {
     br_logger_init();
   }
 
+  // Once tangle-accelerator finished initializing, return 'SIGUSR1' to parent process
+  pid_t pid = getppid();
+  kill(pid, SIGUSR1);
+
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
    */
