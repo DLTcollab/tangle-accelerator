@@ -142,6 +142,7 @@ The codebase of this repository follows [Google's C++ guidelines](https://google
 
 * buildifier
 * clang-format
+* [shfmt](https://github.com/mvdan/sh)
 
 ### Buildifier
 
@@ -170,6 +171,14 @@ clang-format can be installed by command:
 
 * Debian/Ubuntu based systems: `$ sudo apt-get install clang-format`
 * macOS: `$ brew install clang-format`
+
+### shfmt
+
+It requires Go 1.13 or above, and install it with following command.
+
+```shell
+GO111MODULE=on go get mvdan.cc/sh/v3/cmd/shfmt
+```
 
 ## Usage
 
