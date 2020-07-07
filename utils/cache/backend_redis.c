@@ -268,7 +268,7 @@ bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, i
   cache.conn = (connection_private*)malloc(sizeof(connection_private));
   CONN(cache)->rc = redisConnect(host, port);
   if (!CONN(cache)->rc || CONN(cache)->rc->err) {
-    ta_log_error("Failed to initialize redis: %s\n", CONN(cache)->rc->err);
+    ta_log_error("Failed to initialize redis: %d\n", CONN(cache)->rc->err);
     return false;
   }
 

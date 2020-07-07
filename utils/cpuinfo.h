@@ -56,6 +56,7 @@ static inline int get_nthds_per_phys_proc() {
   if (fgets(nthd, sizeof(nthd), fd) == NULL) return -1;
   nthread = (int)strtol(nthd, NULL, 10);
   if (errno == ERANGE || nthread == 0) {
+    pclose(fd);
     return -1;
   }
 
