@@ -86,7 +86,7 @@ static status_t sec_init(void) {
 
 static status_t sec_write(const char *name, const uint8_t *buf, size_t buf_size) {
   uint8_t *data = malloc(buf_size);
-  if(data == NULL){
+  if (data == NULL) {
     LE_ERROR("Cannot fetch enough memory");
     return SC_OOM;
   }
