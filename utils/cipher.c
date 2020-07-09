@@ -182,7 +182,7 @@ status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
   memcpy(cipher_ctx->hmac, digest, TA_AES_HMAC_SIZE);
   status = SC_OK;
 exit:
-  if (!err) ta_log_error("%s\n", err);
+  if (err != NULL) ta_log_error("%s\n", err);
   mbedtls_aes_free(&ctx);
   mbedtls_md_free(&sha_ctx);
   return status;
