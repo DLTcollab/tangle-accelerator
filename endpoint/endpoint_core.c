@@ -53,11 +53,13 @@ void endpoint_init() {
 
   // Logger initialization of other included components
   cipher_logger_init();
+  https_logger_init();
 }
 
 void endpoint_destroy() {
   // Logger release of other included components
   cipher_logger_release();
+  https_logger_release();
 
   // Logger release of endpoint
   logger_helper_release(logger_id);
@@ -118,9 +120,29 @@ status_t send_transaction_information(const char* host, const char* port, const 
     return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(ta_host, ta_port, SEND_TRANSACTION_API, req_body, seed) != SC_OK) {
+  https_response_t req = {
+      .buffer = req_body,
+      .len = ret,
+  };
+
+  https_response_t res = {0};
+  https_ctx_t https_ctx = {
+      .host = ta_host,
+      .port = atoi(ta_port),
+      .api = SEND_TRANSACTION_API,
+      .ssl_seed = seed,
+      .s_req = &req,
+      .s_res = &res,
+  };
+
+  if (send_https_msg(&https_ctx) != SC_OK) {
     ta_log_error("http message sending error.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
+  }
+
+  if (https_ctx.s_res->buffer != NULL) {
+    ta_log_debug("HTTP Response: %s\n", https_ctx.s_res->buffer);
+    free(https_ctx.s_res->buffer);
   }
 
   return SC_OK;

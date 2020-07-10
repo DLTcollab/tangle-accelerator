@@ -15,7 +15,6 @@ extern "C" {
 
 #include <stdbool.h>
 #include "common/ta_errors.h"
-#include "http_parser.h"
 #include "mbedtls/certs.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -139,19 +138,6 @@ status_t set_post_request(char const *const path, char const *const host, const 
  * @see #status_t
  */
 status_t set_get_request(char const *const path, char const *const host, const uint32_t port, char **out);
-
-/**
- * @brief Callback function for http parser
- *
- * @param[in] parser HTTP(S) parser
- * @param[in] at HTTP(S) message to parse
- * @param[in] length Length of text at
- *
- * @return
- * - 0 on success
- * - non-zero on error
- */
-int parser_body_callback(http_parser *parser, const char *at, size_t length);
 
 #ifdef __cplusplus
 }

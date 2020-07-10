@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -uo pipefail
+set -euo pipefail
 
 # Create endpoint app
 make EP_TA_HOST=node.deviceproof.org EP_TA_PORT=5566 legato
