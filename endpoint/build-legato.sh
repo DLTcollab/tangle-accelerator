@@ -12,5 +12,17 @@ then
 fi
 source $COMMON_FILE
 
-download_legato_repo
-build_legato_repo
+if [ ! -d "legato" ]
+then 
+    if ! download_legato_repo;
+    then
+        echo "Download Legato AF failed. Try to download again..."
+        rm -rf legato/ .repo/
+        if ! download_legato_repo;
+        then
+            echo "Failed to download the Legato AF. Please check your connection" 
+            exit 1
+        fi
+    fi
+    build_legato_repo
+fi
