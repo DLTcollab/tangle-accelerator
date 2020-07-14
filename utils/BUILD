@@ -45,46 +45,6 @@ cc_library(
 )
 
 cc_library(
-    name = "cipher",
-    srcs = ["cipher.c"],
-    hdrs = ["cipher.h"],
-    deps = [
-        "//common:ta_errors",
-        "//common:ta_logger",
-        "@mbedtls_2_16_6",
-    ],
-)
-
-cc_library(
-    name = "https",
-    srcs = ["https.c"],
-    hdrs = ["https.h"],
-    defines = select({
-        ":https_enable": ["ENDPOINT_HTTPS"],
-        "//conditions:default": [],
-    }),
-    deps = [
-        "//common:ta_errors",
-        "//utils/connectivity:conn_http",
-    ],
-)
-
-config_setting(
-    name = "https_enable",
-    values = {"define": "https=enable"},
-)
-
-cc_library(
-    name = "text_serializer",
-    srcs = ["text_serializer.c"],
-    hdrs = ["text_serializer.h"],
-    deps = [
-        ":cipher",
-        "//common:ta_errors",
-    ],
-)
-
-cc_library(
     name = "tryte_byte_conv",
     srcs = ["tryte_byte_conv.c"],
     hdrs = ["tryte_byte_conv.h"],

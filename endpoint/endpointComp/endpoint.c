@@ -10,10 +10,10 @@
 #include "hal/device.h"
 
 #include "common/ta_errors.h"
+#include "endpoint/cipher.h"
 #include "endpoint/endpoint_core.h"
 #include "le_test.h"
 #include "legato.h"
-#include "utils/cipher.h"
 
 #include "le_log.h"
 

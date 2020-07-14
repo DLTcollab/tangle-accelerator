@@ -12,11 +12,11 @@
 #include <string.h>
 #include <time.h>
 #include "common/logger.h"
+#include "endpoint/cipher.h"
+#include "endpoint/connectivity/conn_http.h"
+#include "endpoint/https.h"
+#include "endpoint/text_serializer.h"
 #include "http_parser.h"
-#include "utils/cipher.h"
-#include "utils/connectivity/conn_http.h"
-#include "utils/https.h"
-#include "utils/text_serializer.h"
 #include "utils/tryte_byte_conv.h"
 
 #include <netdb.h>

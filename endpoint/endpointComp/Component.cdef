@@ -64,10 +64,10 @@ sources:
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509.c
     ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509_crt.c
 
-    ${CURDIR}/../../utils/cipher.c
-    ${CURDIR}/../../utils/connectivity/conn_http.c
-    ${CURDIR}/../../utils/https.c
-    ${CURDIR}/../../utils/text_serializer.c
+    ${CURDIR}/../../endpoint/cipher.c
+    ${CURDIR}/../../endpoint/connectivity/conn_http.c
+    ${CURDIR}/../../endpoint/https.c
+    ${CURDIR}/../../endpoint/text_serializer.c
     ${CURDIR}/../../utils/tryte_byte_conv.c
 
     endpoint.c

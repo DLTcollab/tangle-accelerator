@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 /**
- * @file utils/cipher.h
+ * @file endpoint/cipher.h
  */
 
 #define AES_BLOCK_SIZE 16

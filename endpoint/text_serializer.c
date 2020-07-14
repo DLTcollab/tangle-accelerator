@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "utils/cipher.h"
 
 #define IV_LEN 16
 #define UINT32_LEN 10

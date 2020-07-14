@@ -12,14 +12,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "common/ta_errors.h"
-#include "utils/cipher.h"
+#include "endpoint/cipher.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @file utils/text_serializer.h
+ * @file endpoint/text_serializer.h
  */
 
 /**
