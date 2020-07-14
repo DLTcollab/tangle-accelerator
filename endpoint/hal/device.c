@@ -27,9 +27,11 @@ device_t *ta_device(const char *type) {
     return NULL;
   }
   p = find_device(type, strlen(type));
-  if (*p) {
-    LE_INFO("Device type %s not found", type);
+  if (*p == NULL) {
+    LE_ERROR("Device type %s not found", type);
+    return NULL;
   }
+  LE_DEBUG("Successfully get %s device", type);
   return *p;
 }
 
