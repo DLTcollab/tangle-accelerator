@@ -1,11 +1,11 @@
 #!/bin/bash
 
-for file in $(find $(git rev-parse --show-toplevel) | egrep "\.(c|cc|cpp|h|hh|hpp|m|mm)\$" | egrep -v "third_party|output_base");
+for file in $(find $(git rev-parse --show-toplevel) | egrep "\.(c|cc|cpp|h|hh|hpp|m|mm)\$" | egrep -v -f hooks/format-exclude-list)
 do
   clang-format -style=file -fallback-style=none -i $file
 done
 
-for file in $(find $(git rev-parse --show-toplevel) | egrep "\BUILD\$" | egrep -v "third_party|output_base" )
+for file in $(find $(git rev-parse --show-toplevel) | egrep "\BUILD\$" | egrep -v -f hooks/format-exclude-list )
 do
   buildifier $file
 done
