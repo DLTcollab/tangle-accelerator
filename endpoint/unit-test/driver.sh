@@ -34,22 +34,18 @@ function run_test_suite(){
 
 function start_ta(){
     # Create tangle-accelerator for unit-test
-    trap 'TA_INIT=1' USR1
     bazel run accelerator &
     TA=$!
-    TA_INIT=0
-
-    # Wait for tangle-acclerator build finish
-    while [ "$TA_INIT" -ne 1 ]; do
-        if ps -p $TA > /dev/null; then
-            echo "waiting for tangle-accelerator initialization"
-            sleep 1
-            continue
-        else
-            # pid does not exist
-            break
-        fi
-    done
+    # Wait until tangle-accelerator has been initialized
+    echo "==============Wait for TA starting=============="
+    while read -r line  
+    do  
+        if [[ "$line" == "TA-START" ]]
+    then 
+        echo "$line"
+    fi
+    done <<< $(nc -U -l $socket | tr '\0' '\n')
+    echo "==============TA has successfully started=============="
 }
 
 echo "Start unit-test for endpoint"

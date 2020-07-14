@@ -9,6 +9,9 @@
 #include "config.h"
 #include <errno.h>
 #include <limits.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
 #include "utils/macros.h"
 #include "yaml.h"
 
@@ -516,4 +519,35 @@ void ta_core_destroy(ta_core_t* const core) {
   logger_destroy_client_extended();
   logger_destroy_json_serializer();
   br_logger_release();
+}
+
+#define DOMAIN_SOCKET "/tmp/tangle-accelerator-socket"
+#define START_NOTIFICATION "TA-START"
+void notification_trigger() {
+  int connect_fd;
+  static struct sockaddr_un srv_addr;
+
+  // Create UNIX domain socket
+  connect_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+  if (connect_fd < 0) {
+    ta_log_error("Can't create communication socket.\n");
+    goto done;
+  }
+
+  srv_addr.sun_family = AF_UNIX;
+  strncpy(srv_addr.sun_path, DOMAIN_SOCKET, strlen(DOMAIN_SOCKET));
+
+  // Connect to UNIX domain socket server
+  if (connect(connect_fd, (struct sockaddr*)&srv_addr, sizeof(srv_addr)) == -1) {
+    ta_log_error("Can't connect to UNIX domain socket server.\n");
+    goto done;
+  }
+
+  // Send notification to UNIX domain socket
+  if (write(connect_fd, START_NOTIFICATION, strlen(START_NOTIFICATION)) == -1) {
+    ta_log_error("Can't write message to UNIX domain socket server.\n");
+  }
+
+done:
+  close(connect_fd);
 }
