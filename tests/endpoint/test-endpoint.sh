@@ -21,7 +21,7 @@ validate_host "$1"
 validate_port "$2"
 
 # Create endpoint app
-make EP_TA_HOST="$1" EP_TA_PORT="$2" legato
+make EP_TARGET=simulator TESTS=true EP_TA_HOST="$1" EP_TA_PORT="$2" legato
 
 # Run endpoint app test here
 endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint

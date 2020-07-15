@@ -49,7 +49,12 @@ LEGATO_FLAGS += -DEP_TARGET=$(EP_TARGET)
 LEGATO_FLAGS := $(foreach flags, $(LEGATO_FLAGS), -C $(flags))
 
 # Include the build command from the specific target
-include endpoint/platform/$(EP_TARGET)/build.mk
+ifeq ($(EP_TARGET), simulator)
+    include endpoint/platform/simulator/build.mk
+else 
+    include endpoint/platform/default/build.mk
+endif 
+
 export EP_TARGET
 
 all: $(DEPS) cert

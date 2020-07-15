@@ -16,15 +16,12 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
-#include "endpoint/hal/device.h"
+
+#include "endpoint/platform/impl.h"
 
 #include "legato.h"
 
 #include "interfaces.h"
-#include "le_log.h"
-#include "le_mdmDefs_interface.h"
-#include "le_secStore_common.h"
-#include "le_sim_common.h"
 
 #define MAXLINE 1024
 
@@ -33,21 +30,11 @@
 #define READ_BUFFER_SIZE 32
 #define DEFAULT_PORT "/dev/ttyHS0"
 
-extern struct device_type wp77xx_device_type;
-
 static le_sim_Id_t SimId;
 /* UART file descriptor */
 static int uart_fd;
 
-static status_t wp77xx_init(void) {
-  status_t err = register_device(&wp77xx_device_type);
-  LE_ERROR_IF(err != SC_OK, "register wp77xx device error: %d", err);
-  return err;
-}
-
-static void wp77xx_release(void) { LE_INFO("Finalize the device success"); }
-
-static status_t wp77xx_get_key(uint8_t *key) {
+status_t get_device_key(uint8_t *key) {
   // FIXME:Need to implement the private key generate algorithm
   if (key == NULL) {
     LE_ERROR("Failed to get key");
@@ -72,7 +59,7 @@ static status_t cm_sim_GetSimImsi(char *sim_id) {
   return ret;
 }
 
-static status_t wp77xx_get_device_id(char *device_id) {
+status_t get_device_id(char *device_id) {
   if (cm_sim_GetSimImsi(device_id) != SC_OK) {
     return SC_ENDPOINT_GET_DEVICE_ID_ERROR;
   }
@@ -113,7 +100,7 @@ static status_t set_interface_attribs(int fd, int speed) {
   return SC_OK;
 }
 
-static status_t uart_init(const char *device) {
+status_t uart_init(const char *device) {
   if (device == NULL) device = DEFAULT_PORT;
   int fd;
 
@@ -129,7 +116,7 @@ static status_t uart_init(const char *device) {
   return SC_OK;
 }
 
-static void uart_write(const int fd, const char *cmd) {
+void uart_write(const int fd, const char *cmd) {
   /* simple output */
   ssize_t cmd_len = strlen(cmd);
   ssize_t wlen = write(fd, cmd, cmd_len);
@@ -139,7 +126,7 @@ static void uart_write(const int fd, const char *cmd) {
   tcdrain(fd); /* delay for output */
 }
 
-static char *uart_read(const int fd) {
+char *uart_read(const int fd) {
   unsigned char buf[READ_BUFFER_SIZE];
   char *response = NULL;
 
@@ -155,7 +142,7 @@ static char *uart_read(const int fd) {
   return response;
 }
 
-static void uart_clean(const int fd) {
+void uart_clean(const int fd) {
   if (tcflush(fd, TCIOFLUSH) != 0) {
     LE_ERROR("tcflush error");
   }
@@ -208,33 +195,3 @@ status_t sec_delete(const char *name) {
       return SC_ENDPOINT_SEC_FAULT;
   }
 }
-
-static const struct device_operations wp77xx_ops = {
-    .init = wp77xx_init,
-    .fini = wp77xx_release,
-    .get_key = wp77xx_get_key,
-    .get_device_id = wp77xx_get_device_id,
-};
-
-static const struct uart_operations wp77xx_uart = {
-    .init = uart_init,
-    .write = uart_write,
-    .read = uart_read,
-    .clean = uart_clean,
-};
-
-static const struct secure_store_operations wp77xx_sec_ops = {
-    .init = sec_init,
-    .write = sec_write,
-    .read = sec_read,
-    .delete = sec_delete,
-};
-
-struct device_type wp77xx_device_type = {
-    .name = "wp77xx",
-    .op = &wp77xx_ops,
-    .uart = &wp77xx_uart,
-    .sec_ops = &wp77xx_sec_ops,
-};
-
-DECLARE_DEVICE(wp77xx);

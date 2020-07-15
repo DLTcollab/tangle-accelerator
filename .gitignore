@@ -103,3 +103,6 @@ _build_endpoint/
 endpoint.*.update
 .repo
 legato/
+leaf-data
+leaf-workspace.json
+*.tgz

@@ -1,10 +1,13 @@
 sources:
 {
     ${CURDIR}/../endpoint_core.c
-    ${CURDIR}/../hal/device.c
     
     // include the specific platform
-    ${CURDIR}/../platform/${EP_TARGET}/impl.c 
+#if ${LEGATO_TARGET} = localhost
+    ${CURDIR}/../platform/simulator/impl.c
+#else
+    ${CURDIR}/../platform/default/impl.c
+#endif
 
     ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
 
@@ -102,6 +105,8 @@ requires:
     {
         le_secStore.api
         modemServices/le_sim.api
+        modemServices/le_mdc.api
+        le_data.api                 [manual-start]
     }
 }
 #endif

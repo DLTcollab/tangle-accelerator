@@ -10,4 +10,4 @@ export LEGATO_TARGET := localhost
 
 platform-build-command = \
 	sh -c "endpoint/build-legato.sh"; \
-	cd endpoint && mkapp -v -t localhost -C -DENABLE_ENDPOINT_TEST $(LEGATO_FLAGS) endpoint.adef;
+	cd endpoint && mkapp -t $(LEGATO_TARGET) -C -DENABLE_ENDPOINT_TEST $(LEGATO_FLAGS) endpoint.adef;

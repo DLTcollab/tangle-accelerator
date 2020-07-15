@@ -5,4 +5,5 @@
 # "LICENSE" at the root of this distribution.
 
 platform-build-command = \
-	cd endpoint && leaf shell -c "mkapp -v -t wp77xx $(LEGATO_FLAGS) endpoint.adef"
+	cd endpoint && \
+	mkapp -t $(EP_TARGET) $(LEGATO_FLAGS) -i ${LEGATO_ROOT}/interfaces/modemServices endpoint.adef
