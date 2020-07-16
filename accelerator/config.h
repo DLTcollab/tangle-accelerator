@@ -130,7 +130,7 @@ typedef struct ta_core_s {
 } ta_core_t;
 
 /**
- * Initializes configurations with default values
+ * @brief Initializes configurations with default values
  *
  * @param[in] core Pointer to Tangle-accelerator core configuration structure
  *
@@ -152,7 +152,7 @@ static inline struct option* cli_build_options() {
 };
 
 /**
- * Set configurations with command line inputs
+ * @brief Set configurations with command line inputs
  *
  * @param[in] core Pointer to Tangle-accelerator core configuration structure
  * @param[in] key CLI command key
@@ -165,7 +165,7 @@ static inline struct option* cli_build_options() {
 status_t cli_core_set(ta_core_t* const core, int key, char* const value);
 
 /**
- * Initializes configurations with configuration file
+ * @brief Initializes configurations with configuration file
  *
  * @param[in] core Pointer to Tangle-accelerator core configuration structure
  * @param[in] argc Number of argument of CLI
@@ -178,7 +178,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value);
 status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv);
 
 /**
- * Initializes configurations with CLI values
+ * @brief Initializes configurations with CLI values
  *
  * @param[in] core Pointer to Tangle-accelerator core configuration structure
  * @param[in] argc Number of argument of CLI
@@ -191,7 +191,7 @@ status_t ta_core_file_init(ta_core_t* const core, int argc, char** argv);
 status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv);
 
 /**
- * Start services after configurations are set
+ * @brief Start services after configurations are set
  *
  * @param[in] core Pointer to Tangle-accelerator core configuration structure
  *
@@ -210,7 +210,7 @@ status_t ta_core_set(ta_core_t* const core);
 void ta_core_destroy(ta_core_t* const core);
 
 /**
- * Initializes iota_client_service
+ * @brief Initializes iota_client_service
  *
  * @param[in] service IOTA client service
  * @param[in] host host of connecting service
@@ -223,6 +223,11 @@ void ta_core_destroy(ta_core_t* const core);
  */
 status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port,
                                     char const* const ca_pem);
+
+/**
+ * @brief Notify other process with unix domain socket
+ */
+void notification_trigger();
 
 #ifdef __cplusplus
 }
