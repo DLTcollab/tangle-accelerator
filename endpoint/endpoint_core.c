@@ -76,10 +76,6 @@ status_t send_transaction_information(const char* host, const char* port, const 
 
   const char* ta_host = host ? host : STR(EP_TA_HOST);
   const char* ta_port = port ? port : STR(EP_TA_PORT);
-  char ipv4[NI_MAXHOST];
-  if (resolve_ip_address(ta_host, ipv4) != SC_OK) {
-    return SC_ENDPOINT_DNS_RESOLVE_ERROR;
-  }
 
   const char* seed = ssl_seed ? ssl_seed : STR(EP_SSL_SEED);
 
@@ -122,46 +118,10 @@ status_t send_transaction_information(const char* host, const char* port, const 
     return SC_ENDPOINT_SEND_TRANSFER;
   }
 
-  if (send_https_msg(ipv4, ta_port, SEND_TRANSACTION_API, req_body, seed) != SC_OK) {
+  if (send_https_msg(ta_host, ta_port, SEND_TRANSACTION_API, req_body, seed) != SC_OK) {
     ta_log_error("http message sending error.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
   }
-
-  return SC_OK;
-}
-
-status_t resolve_ip_address(const char* host, char* result) {
-  struct addrinfo hints;
-  struct addrinfo* res;
-
-  /* Obtain address(es) matching host */
-  memset(result, 0, 16);
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_INET;      /* Allow IPV4 format */
-  hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
-
-  int ret = getaddrinfo(host, NULL, &hints, &res);
-  if (ret != 0) {
-    ta_log_error("Getaddrinfo returned: %s\n", gai_strerror(ret));
-    return SC_ENDPOINT_DNS_RESOLVE_ERROR;
-  }
-
-  if (res == NULL) { /* No address succeeded */
-    ta_log_error("Could not resolve host: %s\n", host);
-    return SC_ENDPOINT_DNS_RESOLVE_ERROR;
-  }
-
-  for (struct addrinfo* re = res; res != NULL; re = re->ai_next) {
-    char host_buf[NI_MAXHOST];
-    int ret = getnameinfo(re->ai_addr, re->ai_addrlen, host_buf, sizeof(host_buf), NULL, 0, NI_NUMERICHOST);
-    if (ret == 0) {
-      snprintf(result, NI_MAXHOST, "%s", host_buf);
-      break;
-    } else {
-      ta_log_error("Getnameinfo returned: %s\n", gai_strerror(ret));
-    }
-  }
-  freeaddrinfo(res); /* No longer needed */
 
   return SC_OK;
 }
