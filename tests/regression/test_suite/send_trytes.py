@@ -3,6 +3,7 @@ import json
 import unittest
 import time
 import logging
+from urllib import request
 import urllib3
 
 class SendTrytes(unittest.TestCase):
@@ -80,16 +81,13 @@ class SendTrytes(unittest.TestCase):
                 "command": "getTransactionsToApprove",
                 "depth": 4,
             }
-
-            stringified = json.dumps(command)
-
             headers = {
                 'content-type': 'application/json',
                 'X-IOTA-API-Version': '1'
             }
             global URL
-            request = urllib3.Request(url=URL, data=stringified, headers=headers)
-            returnData = urllib3.urlopen(request).read()
+            req = request.Request(url=URL, data=json.dumps(command).encode(), headers=headers)
+            returnData = request.urlopen(req).read()
 
             jsonData = json.loads(returnData)
             rand_trytes.append(all_9_context + jsonData["trunkTransaction"] +

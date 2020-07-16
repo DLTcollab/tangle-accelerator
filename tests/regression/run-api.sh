@@ -22,7 +22,7 @@ for ((i = 0; i < ${#OPTIONS[@]}; i++)); do
 	cli_arg=$(echo ${option} | cut -d '|' -f 2)
 	build_arg=$(echo ${option} | cut -d '|' -f 1)
 
-	bazel run accelerator ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} &
+	bazel run accelerator ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} --proxy_passthrough &
 	TA=$!
 	trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
@@ -34,11 +34,6 @@ for ((i = 0; i < ${#OPTIONS[@]}; i++)); do
 		fi
 	done <<<$(nc -U -l $socket | tr '\0' '\n')
 	echo "==============TA has successfully started=============="
-
-	python3 tests/regression/runner.py ${remaining_args} --url localhost:${TA_PORT}
-	rc=$?
-
-	trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
 	python3 tests/regression/runner.py ${remaining_args} --url localhost:${TA_PORT}
 	rc=$?

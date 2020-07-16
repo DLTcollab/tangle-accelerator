@@ -9,7 +9,6 @@ setup_build_opts() {
 		"|--ta_host ${TA_HOST}"
 		"|--db_host ${DB_HOST}"
 		"|--quiet"
-		"|--proxy_passthrough"
 		"--define db=enable|"
 		"--define build_type=debug|"
 		"--define build_type=profile|"
