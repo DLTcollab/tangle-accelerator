@@ -159,7 +159,6 @@ status_t http_open(connect_info_t *const info, char const *const seed_nonce, cha
   }
 
 exit:
-  if (ret != SC_OK) free_info_context(info);
   return ret;
 }
 
