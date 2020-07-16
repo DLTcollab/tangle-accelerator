@@ -158,7 +158,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     if (json_value == NULL) {
       ret = SC_CCLIENT_JSON_KEY;
       ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
+      goto done;
     }
     if (cJSON_IsString(json_value) && (json_value->valuestring != NULL) &&
         (strlen(json_value->valuestring) == NUM_TRYTES_HASH)) {
@@ -167,7 +167,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     } else {
       ret = SC_CCLIENT_JSON_PARSE;
       ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
+      goto done;
     }
     goto set_data_id;
   }
@@ -177,7 +177,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     if (json_value == NULL) {
       ret = SC_CCLIENT_JSON_KEY;
       ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
+      goto done;
     }
     if (cJSON_IsString(json_value) &&
         (json_value->valuestring != NULL && (strlen(json_value->valuestring) == NUM_TRYTES_HASH))) {
@@ -186,7 +186,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     } else {
       ret = SC_CCLIENT_JSON_PARSE;
       ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
+      goto done;
     }
   }
 
@@ -204,7 +204,7 @@ static status_t recv_mam_message_mam_v1_req_deserialize(cJSON const* const json_
     } else {
       ret = SC_CCLIENT_JSON_PARSE;
       ta_log_error("%s\n", ta_error_to_string(ret));
-      return ret;
+      goto done;
     }
   }
 

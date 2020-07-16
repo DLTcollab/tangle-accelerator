@@ -35,7 +35,7 @@ void dump_bundle(bundle_transactions_t *bundle) {
 void dump_transaction_obj(iota_transaction_t *tx_obj) {
   field_mask_t old_mask = {};
   memcpy(&old_mask, &tx_obj->loaded_columns_mask, sizeof(field_mask_t));
-  memset(&tx_obj->loaded_columns_mask, 0xFFFFF, sizeof(field_mask_t));
+  memset(&tx_obj->loaded_columns_mask, 0xFF, sizeof(field_mask_t));
 
   ta_log_debug("==========Transaction Object==========\n");
   // address
@@ -92,9 +92,9 @@ bool transaction_cmp(iota_transaction_t *tx1, iota_transaction_t *tx2) {
   bool equal = true;
   field_mask_t old_mask1 = {}, old_mask2 = {};
   memcpy(&old_mask1, &tx1->loaded_columns_mask, sizeof(field_mask_t));
-  memset(&tx1->loaded_columns_mask, 0xFFFFF, sizeof(field_mask_t));
+  memset(&tx1->loaded_columns_mask, 0xFF, sizeof(field_mask_t));
   memcpy(&old_mask2, &tx2->loaded_columns_mask, sizeof(field_mask_t));
-  memset(&tx2->loaded_columns_mask, 0xFFFFF, sizeof(field_mask_t));
+  memset(&tx2->loaded_columns_mask, 0xFF, sizeof(field_mask_t));
   uint64_t result = 0;
 
   // address

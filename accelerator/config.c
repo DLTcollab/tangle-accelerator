@@ -16,7 +16,6 @@
 #include "yaml.h"
 
 #define CONFIG_LOGGER "config"
-#define CA_PEM_LEN 1208
 #define DEFAULT_CA_PEM                                                   \
   "-----BEGIN CERTIFICATE-----\r\n"                                      \
   "MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\r\n" \
@@ -62,6 +61,42 @@ static int get_conf_key(char const* const key) {
   return 0;
 }
 
+#define CA_BUFFER_SIZE 2048
+static char* read_ca_pem(char* ca_pem_path) {
+  FILE* file = NULL;
+  if ((file = fopen(ca_pem_path, "r")) == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_CONF_FOPEN_ERROR));
+    goto done;
+  }
+
+  char* ca_pem = (char*)malloc(sizeof(char) * (CA_BUFFER_SIZE));
+  if (!ca_pem) {
+    ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+    goto done;
+  }
+
+  char c;
+  int i = 0, buffer_nums = 1;
+  while ((c = fgetc(file)) != EOF) {
+    ca_pem[i++] = c;
+    if (!(i < CA_BUFFER_SIZE)) {
+      ca_pem = realloc(ca_pem, sizeof(char) * buffer_nums * CA_BUFFER_SIZE);
+      buffer_nums++;
+    }
+  }
+  ca_pem[i] = '\0';
+
+  if (feof(file)) {
+    ta_log_debug("Read the End Of File.\n");
+  } else {
+    ta_log_error("Read file error\n");
+  }
+
+done:
+  fclose(file);
+  return ca_pem;
+}
+
 status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET && key != NO_GTTA)) {
     ta_log_error("%s\n", "SC_NULL");
@@ -71,7 +106,6 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
   iota_config_t* const iota_conf = &core->iota_conf;
   ta_cache_t* const cache = &core->cache;
   iota_client_service_t* const iota_service = &core->iota_service;
-  FILE* file = NULL;
   char* conf_file = core->conf_file;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
@@ -115,7 +149,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       for (char* p = strtok(value, ","); p && idx < MAX_NODE_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
         ta_conf->iota_host_list[idx] = p;
       }
-      strncpy(iota_service->http.host, ta_conf->iota_host_list[0], HOST_MAX_LEN);
+      strncpy(iota_service->http.host, ta_conf->iota_host_list[0], HOST_MAX_LEN - 1);
       break;
     case NODE_PORT_CLI:
       idx = 0;
@@ -131,15 +165,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       break;
 
     case CA_PEM:
-      if ((file = fopen(value, "r")) == NULL) {
-        /* The specified configuration file does not exist */
-        ta_log_error("%s\n", ta_error_to_string(SC_CONF_FOPEN_ERROR));
-        return SC_CONF_FOPEN_ERROR;
-      }
-      char* temp_ca_pem = (char*)malloc(sizeof(char) * (CA_PEM_LEN + 1));
-      fread(temp_ca_pem, CA_PEM_LEN, 1, file);
-      iota_service->http.ca_pem = temp_ca_pem;
-      fclose(file);
+      iota_service->http.ca_pem = read_ca_pem(value);
       break;
 
     case HEALTH_TRACK_PERIOD:
@@ -257,12 +283,12 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port,
                                     char const* const ca_pem) {
   strncpy(service->http.path, "/", CONTENT_TYPE_MAX_LEN);
-  strncpy(service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
-  strncpy(service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
-  strncpy(service->http.host, host, HOST_MAX_LEN);
+  strncpy(service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN - 1);
+  strncpy(service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN - 1);
+  strncpy(service->http.host, host, HOST_MAX_LEN - 1);
   service->http.port = port;
   service->http.api_version = 1;
-  service->http.ca_pem = ca_pem ? ca_pem : DEFAULT_CA_PEM;
+  service->http.ca_pem = ca_pem;
   service->serializer_type = SR_JSON;
   init_json_serializer(&service->serializer);
 
