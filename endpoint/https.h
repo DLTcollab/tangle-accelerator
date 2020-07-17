@@ -9,6 +9,7 @@
 #ifndef UTILS_HTTPS_H
 #define UTILS_HTTPS_H
 
+#include <stddef.h>
 #include "common/ta_errors.h"
 
 #ifdef __cplusplus
@@ -18,6 +19,22 @@ extern "C" {
 /**
  * @file endpoint/https.h
  */
+
+/* struct type of HTTP(S) response */
+typedef struct {
+  char* buffer; /**< Message body **/
+  size_t len;   /**< Length of message body */
+} https_response_t;
+
+/* struct type of HTTP(S) context */
+typedef struct {
+  const char* host; /**< HTTP(S) host */
+  const int port;   /**< HTTP(S) port */
+  const char* api; /**< API path for POST or GET request to HTTP(S) server, i.e "transaction/". It must be in string. */
+  const char* ssl_seed;    /**< Seed for ssl connection. This column is optional. */
+  https_response_t* s_req; /**< [in] The message to send */
+  https_response_t* s_res; /**< [out] The message body of HTTP(S) response */
+} https_ctx_t;
 
 /**
  * @brief Initialize logger of HTTP(S)
@@ -34,17 +51,13 @@ void https_logger_init();
 int https_logger_release();
 
 /**
- * @brief Send message via HTTP(S) protocol
+ * @brief Send a POST request message via HTTP(S) protocol
  *
- * @param[in] host HTTP(S) host
- * @param[in] port HTTP(S) port
- * @param[in] api API path for POST request to HTTP(S) server, i.e "transaction/". It must be in string.
- * @param[in] msg Message to send
- * @param[in] ssl_seed Seed for ssl connection
+ * @param[in, out] ctx The pointer points to http context
  *
  * @return #status_t
  */
-status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed);
+status_t send_https_msg(https_ctx_t* ctx);
 
 #ifdef __cplusplus
 }

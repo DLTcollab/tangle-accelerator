@@ -4,6 +4,7 @@ cc_test(
         "test_http.c",
     ],
     deps = [
+        "//endpoint:https",
         "//endpoint/connectivity:conn_http",
         "//tests:test_define",
     ],

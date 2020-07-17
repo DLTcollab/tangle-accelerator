@@ -251,8 +251,3 @@ status_t set_get_request(char const *const path, char const *const host, const u
 
   return SC_OK;
 }
-
-int parser_body_callback(http_parser *parser, const char *at, size_t length) {
-  ta_log_debug("HTTP Response: %s\n", at);
-  return 0;
-}

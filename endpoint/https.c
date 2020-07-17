@@ -23,22 +23,46 @@ void https_logger_init() { logger_id = logger_helper_enable(HTTPS_LOGGER, LOGGER
 
 int https_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", HTTPS_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
-status_t send_https_msg(char const *host, char const *port, char const *api, const char *msg, const char *ssl_seed) {
+static int https_parser_callback(http_parser* parser, const char* at, size_t length) {
+  if (parser == NULL || parser->data == NULL) {
+    ta_log_error("http(s) parser: parser or parser->data cannot be NULL");
+    /* Returning a non-zero value indicates error to the parser */
+    return 1;
+  }
+  https_response_t* my_data = (https_response_t*)parser->data;
+
+  my_data->buffer = malloc(sizeof(char) * (length + 1));
+  if (my_data->buffer == NULL) {
+    ta_log_error("http(s) parser: cannot allocate enough memory");
+    /* Returning a non-zero value indicates error to the parser */
+    return 1;
+  }
+  snprintf(my_data->buffer, length + 1, "%s", at);
+  my_data->len = length;
+  return 0;
+}
+
+status_t send_https_msg(https_ctx_t* ctx) {
   char res[4096] = {0};
-  char *req = NULL;
+  char* req = NULL;
   status_t ret = SC_OK;
 
-  set_post_request(api, host, atoi(port), msg, &req);
+  const char* host = ctx->host;
+  const char* api = ctx->api;
+  const int port = ctx->port;
+  const char* ssl_seed = ctx->ssl_seed;
+  const char* msg = ctx->s_req->buffer;
+
+  set_post_request(api, host, ctx->port, msg, &req);
+
   http_parser_settings settings = {};
-  settings.on_body = parser_body_callback;
+  settings.on_body = https_parser_callback;
+
+  https_response_t my_data = {0};
+  parser.data = &my_data;
 
 #ifdef ENDPOINT_HTTPS
   connect_info_t info = {.https = true};
@@ -46,10 +70,12 @@ status_t send_https_msg(char const *host, char const *port, char const *api, con
   connect_info_t info = {.https = false};
 #endif
 
-  ret = http_open(&info, ssl_seed, host, port);
+  char net_port[12] = {0};
+  snprintf(net_port, 12, "%d", port);
+  ret = http_open(&info, ssl_seed, host, net_port);
   if (ret != SC_OK) {
     ta_log_error("http(s) open error, return code %d\n", ret);
-    return ret;
+    goto exit;
   }
 
   ret = http_send_request(&info, req);
@@ -71,6 +97,9 @@ status_t send_https_msg(char const *host, char const *port, char const *api, con
     ta_log_error("http(s): fail to parse response\n");
     ret = SC_UTILS_HTTPS_RESPONSE_ERROR;
   }
+
+  ctx->s_res->buffer = my_data.buffer;
+  ctx->s_res->len = my_data.len;
 
 exit:
   http_close(&info);

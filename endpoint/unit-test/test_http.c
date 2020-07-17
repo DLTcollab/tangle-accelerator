@@ -2,6 +2,7 @@
 #include <string.h>
 #include "common/ta_errors.h"
 #include "endpoint/connectivity/conn_http.h"
+#include "endpoint/https.h"
 #include "http_parser.h"
 #include "tests/test_define.h"
 
@@ -31,11 +32,13 @@ Content-Length: 224\r\n\
 #define BUF_SIZE 4096
 
 static char* req = NULL;
+static https_response_t my_data;
 
 void setUp(void) { conn_http_logger_init(); }
 
 void tearDown(void) {
   conn_http_logger_release();
+  free(my_data.buffer);
   free(req);
 }
 
@@ -44,7 +47,7 @@ void test_http(void) {
   char post_message[BUF_SIZE] = {0}, response[BUF_SIZE] = {0};
   http_parser parser;
   http_parser_settings settings = {};
-  settings.on_body = parser_body_callback;
+  parser.data = &my_data;
 
   snprintf(post_message, BUF_SIZE, "%s", TEST_POST_MESSAGE);
 
