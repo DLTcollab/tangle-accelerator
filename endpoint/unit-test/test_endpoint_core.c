@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include "common/ta_errors.h"
+#include "endpoint/cipher.h"
 #include "endpoint/endpoint_core.h"
 #include "tests/test_define.h"
-#include "utils/cipher.h"
 
 #define TEST_VALUE 0
 #define TEST_MESSAGE "THISISMSG9THISISMSG9THISISMSG"

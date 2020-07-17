@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "endpoint/cipher.h"
 #include "tests/test_define.h"
-#include "utils/cipher.h"
 
 #define MAXLINE 1024
 

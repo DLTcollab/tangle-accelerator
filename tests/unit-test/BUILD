@@ -60,9 +60,9 @@ cc_test(
         "test_text_serializer.c",
     ],
     deps = [
+        "//endpoint:cipher",
+        "//endpoint:text_serializer",
         "//tests:test_define",
-        "//utils:cipher",
-        "//utils:text_serializer",
     ],
 )
 
@@ -72,8 +72,8 @@ cc_test(
         "test_cipher.c",
     ],
     deps = [
+        "//endpoint:cipher",
         "//tests:test_define",
-        "//utils:cipher",
     ],
 )
 

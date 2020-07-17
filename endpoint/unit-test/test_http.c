@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common/ta_errors.h"
+#include "endpoint/connectivity/conn_http.h"
 #include "http_parser.h"
 #include "tests/test_define.h"
-#include "utils/connectivity/conn_http.h"
 
 #define TEST_PORT "8000"
 #define TEST_HOST "localhost"

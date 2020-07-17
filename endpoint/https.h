@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 /**
- * @file utils/https.h
+ * @file endpoint/https.h
  */
 
 /**

@@ -9,9 +9,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "endpoint/cipher.h"
+#include "endpoint/text_serializer.h"
 #include "tests/test_define.h"
-#include "utils/cipher.h"
-#include "utils/text_serializer.h"
 
 const uint8_t iv[AES_BLOCK_SIZE] = {164, 3, 98, 193, 52, 162, 107, 252, 184, 42, 74, 225, 157, 26, 88, 72};
 const uint8_t payload[] = {

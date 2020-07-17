@@ -11,8 +11,8 @@
 #include <string.h>
 #include "common/logger.h"
 #include "common/ta_errors.h"
+#include "endpoint/connectivity/conn_http.h"
 #include "http_parser.h"
-#include "utils/connectivity/conn_http.h"
 
 static http_parser parser;
 
