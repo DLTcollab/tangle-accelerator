@@ -22,7 +22,7 @@ for ((i = 0; i < ${#OPTIONS[@]}; i++)); do
 	cli_arg=${option} | cut -d '|' -f 1
 	build_arg=${option} | cut -d '|' -f 2
 
-	bazel run accelerator --define mqtt=enable ${build_arg} -- --quiet --ta_port=${TA_PORT} ${cli_arg} &
+	bazel run accelerator --define mqtt=enable ${build_arg} -- --quiet --ta_port=${TA_PORT} ${cli_arg} --proxy_passthrough &
 	TA=$!
 	trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
