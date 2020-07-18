@@ -47,20 +47,6 @@ extern "C" {
 /** @} */
 
 /**
- * Initialize logger
- */
-void serializer_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int serializer_logger_release();
-
-/**
  * @brief Serialize tangle accelerator info into JSON
  *
  * @param[out] obj Tangle-accelerator info in JSON

@@ -21,11 +21,6 @@ void serializer_logger_init() { logger_id = logger_helper_enable(SERI_LOGGER, LO
 
 int serializer_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", SERI_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
@@ -47,7 +42,7 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
   cJSON_AddNumberToObject(json_root, "redis_port", cache->port);
   cJSON_AddNumberToObject(json_root, "milestone_depth", tangle->milestone_depth);
   cJSON_AddNumberToObject(json_root, "mwm", tangle->mwm);
-  cJSON_AddBoolToObject(json_root, "quiet", quiet_mode);
+  cJSON_AddBoolToObject(json_root, "quiet", is_option_enabled(ta_config, CLI_QUIET_MODE));
 
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {

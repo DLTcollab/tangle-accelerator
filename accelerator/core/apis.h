@@ -27,20 +27,6 @@ extern "C" {
  */
 
 /**
- * Initialize logger
- */
-void apis_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int apis_logger_release();
-
-/**
  * @brief Dump tangle accelerator information.
  *
  * @param[in] info Tangle-accelerator configuration variables

@@ -20,20 +20,6 @@ typedef struct ta_http_s {
 } ta_http_t;
 
 /**
- * Initialize logger
- */
-void http_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int http_logger_release();
-
-/**
  * Initializes an HTTP API
  *
  * @param http The HTTP status object

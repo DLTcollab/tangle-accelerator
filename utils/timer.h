@@ -28,20 +28,6 @@ extern "C" {
 #include <sys/time.h>
 #include "common/ta_errors.h"
 
-/**
- * Initialize logger
- */
-void timer_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int timer_logger_release();
-
 typedef struct _ta_timer_t ta_timer_t;
 
 /**

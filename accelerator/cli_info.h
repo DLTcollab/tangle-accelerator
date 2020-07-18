@@ -18,13 +18,14 @@ extern "C" {
 
 /**
  * @file accelerator/cli_info.h
- * @brief Message and options for tangled-accelerator configures
+ * @brief Message and options for tangle-accelerator configuration
  */
 
 typedef enum ta_cli_arg_value_e {
   /** tangle-accelerator */
   TA_HOST_CLI = 127,
   TA_PORT_CLI,
+  RUNTIME_CLI,
 
   /** IOTA full node */
   NODE_HOST_CLI,
@@ -97,6 +98,7 @@ static struct ta_cli_argument_s {
     {"done_list", required_argument, NULL, DONE_LIST, "Set the value of `done_list_name`"},
     {"cache_capacity", required_argument, NULL, CACHE_CAPACITY, "Set the maximum capacity of caching server"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
+    {"runtime_cli", no_argument, NULL, RUNTIME_CLI, "Enable runtime command line"},
     {NULL, 0, NULL, 0, NULL}};
 
 static const int cli_cmd_num = ARRAY_SIZE(ta_cli_arguments_g);

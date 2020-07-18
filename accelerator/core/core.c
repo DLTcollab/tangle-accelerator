@@ -17,11 +17,6 @@ void cc_logger_init() { logger_id = logger_helper_enable(CC_LOGGER, LOGGER_DEBUG
 
 int cc_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", CC_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
@@ -76,7 +71,7 @@ status_t ta_send_trytes(const ta_config_t* const info, const iota_config_t* cons
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
-  if (info->gtta) {
+  if (is_option_enabled(info, CLI_GTTA)) {
     get_transactions_to_approve_req_set_depth(tx_approve_req, iconf->milestone_depth);
     if (iota_client_get_transactions_to_approve(service, tx_approve_req, tx_approve_res)) {
       ret = SC_CCLIENT_FAILED_RESPONSE;

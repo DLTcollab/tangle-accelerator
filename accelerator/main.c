@@ -5,6 +5,7 @@
 #include "connectivity/common.h"
 #include "connectivity/http/http.h"
 #include "pthread.h"
+#include "runtime_cli.h"
 #include "time.h"
 #include "utils/handles/signal.h"
 
@@ -100,8 +101,13 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  pthread_t thread;
-  pthread_create(&thread, NULL, health_track, (void*)&ta_core);
+  pthread_t health_thread;
+  pthread_create(&health_thread, NULL, health_track, (void*)&ta_core);
+
+  if (is_option_enabled(&ta_core.ta_conf, CLI_RUNTIME_CLI)) {
+    pthread_t cli_thread;
+    pthread_create(&cli_thread, NULL, cli_routine, (void*)&ta_core);
+  }
 
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
     ta_log_error("HTTP initialization failed %s.\n", MAIN_LOGGER);
@@ -114,25 +120,7 @@ int main(int argc, char* argv[]) {
   }
 
   log_info(logger_id, "Tangle-accelerator starts running\n");
-
-  // Disable loggers when quiet mode is on
-  if (quiet_mode) {
-    // Destroy logger when quiet mode is on
-    logger_helper_release(logger_id);
-    if (logger_helper_destroy() != RC_OK) {
-      ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
-      return EXIT_FAILURE;
-    }
-  } else {
-    http_logger_init();
-    apis_logger_init();
-    cc_logger_init();
-    pow_logger_init();
-    timer_logger_init();
-    conn_logger_init();
-    // Enable backend_redis logger
-    br_logger_init();
-  }
+  ta_logger_switch(is_option_enabled(&ta_core.ta_conf, CLI_QUIET_MODE), true, &(ta_core.ta_conf));
 
   // Once tangle-accelerator finished initializing, notify regression test script with unix domain socket
   notification_trigger();
@@ -148,22 +136,12 @@ int main(int argc, char* argv[]) {
 
 cleanup:
   log_info(logger_id, "Destroying TA configurations\n");
+  ta_logger_switch(true, false, &(ta_core.ta_conf));
   ta_core_destroy(&ta_core);
-
-  if (quiet_mode == false) {
-    http_logger_release();
-    conn_logger_release();
-    apis_logger_release();
-    cc_logger_release();
-    serializer_logger_release();
-    pow_logger_release();
-    timer_logger_release();
-    logger_helper_release(logger_id);
-    br_logger_release();
-    if (logger_helper_destroy() != RC_OK) {
-      ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
-      return EXIT_FAILURE;
-    }
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
+    return EXIT_FAILURE;
   }
   return 0;
 }

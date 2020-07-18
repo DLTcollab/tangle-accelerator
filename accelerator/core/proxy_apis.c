@@ -18,11 +18,6 @@ void proxy_apis_logger_init() { logger_id = logger_helper_enable(PROXY_APIS_LOGG
 
 int proxy_apis_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", PROXY_APIS_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
@@ -253,7 +248,7 @@ done:
 status_t proxy_api_wrapper(const ta_config_t* const iconf, const iota_client_service_t* const service,
                            const char* const obj, char** json_result) {
   status_t ret = SC_OK;
-  if (iconf->proxy_passthrough) {
+  if (is_option_enabled(iconf, CLI_PROXY_PASSTHROUGH)) {
     char_buffer_t* res_buff = char_buffer_new();
     char_buffer_t* req_buff = char_buffer_new();
     char_buffer_set(req_buff, obj);

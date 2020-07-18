@@ -5,6 +5,7 @@ cc_test(
     ],
     linkopts = ["-luuid"],
     deps = [
+        "//tests:logger_lib",
         "//tests:test_define",
         "//utils/cache",
         "@unity",
@@ -19,6 +20,7 @@ cc_test(
     deps = [
         "//accelerator/core/serializer",
         "//tests:common",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
@@ -30,15 +32,19 @@ cc_test(
     ],
     deps = [
         "//accelerator/core:pow",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
 
 cc_test(
     name = "test_scylladb",
-    srcs = ["test_scylladb.c"],
+    srcs = [
+        "test_scylladb.c",
+    ],
     deps = [
         "//storage",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
@@ -49,6 +55,8 @@ cc_test(
         "test_timer.c",
     ],
     deps = [
+        "//connectivity/http",
+        "//tests:logger_lib",
         "//tests:test_define",
         "//utils:timer",
     ],
@@ -62,6 +70,7 @@ cc_test(
     deps = [
         "//endpoint:cipher",
         "//endpoint:text_serializer",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
@@ -73,6 +82,7 @@ cc_test(
     ],
     deps = [
         "//endpoint:cipher",
+        "//tests:logger_lib",
         "//tests:test_define",
     ],
 )
@@ -83,6 +93,7 @@ cc_test(
         "test_tryte_byte_conv.c",
     ],
     deps = [
+        "//tests:logger_lib",
         "//tests:test_define",
         "//utils:tryte_byte_conv",
     ],

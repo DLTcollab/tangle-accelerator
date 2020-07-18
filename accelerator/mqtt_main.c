@@ -41,28 +41,9 @@ int main(int argc, char *argv[]) {
     ta_log_error("Configure failed %s.\n", CONN_MQTT_LOGGER);
     return EXIT_FAILURE;
   }
+  ta_mqtt_init(&ta_core);
 
-  // Disable loggers when quiet mode is on
-  if (quiet_mode) {
-    // Destroy logger when quiet mode is on
-    logger_helper_release(logger_id);
-    if (logger_helper_destroy() != RC_OK) {
-      ta_log_error("Destroying logger failed %s.\n", CONN_MQTT_LOGGER);
-      return EXIT_FAILURE;
-    }
-  } else {
-    mqtt_utils_logger_init();
-    mqtt_common_logger_init();
-    mqtt_callback_logger_init();
-    mqtt_pub_logger_init();
-    mqtt_sub_logger_init();
-    apis_logger_init();
-    cc_logger_init();
-    pow_logger_init();
-    timer_logger_init();
-    // Enable backend_redis logger
-    br_logger_init();
-  }
+  ta_logger_switch(is_option_enabled(&ta_core.ta_conf, CLI_QUIET_MODE), true, &(ta_core.ta_conf));
 
   // Initialize `mosq` and `cfg`
   // if we want to operate this program under multi-threading, see https://github.com/eclipse/mosquitto/issues/450
@@ -103,23 +84,6 @@ done:
   mosquitto_destroy(mosq);
   mosquitto_lib_cleanup();
   mosq_config_free(&cfg);
-
-  if (quiet_mode == false) {
-    mqtt_utils_logger_release();
-    mqtt_common_logger_release();
-    mqtt_callback_logger_release();
-    mqtt_pub_logger_release();
-    mqtt_sub_logger_release();
-    apis_logger_release();
-    cc_logger_release();
-    serializer_logger_release();
-    pow_logger_release();
-    timer_logger_release();
-    br_logger_release();
-    logger_helper_release(logger_id);
-    if (logger_helper_destroy() != RC_OK) {
-      return EXIT_FAILURE;
-    }
-  }
+  ta_logger_switch(true, false, &(ta_core.ta_conf));
   return ret;
 }

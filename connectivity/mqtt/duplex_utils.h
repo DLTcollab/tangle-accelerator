@@ -22,20 +22,6 @@ extern "C" {
  */
 
 /**
- * @brief Initialize logger
- */
-void mqtt_utils_logger_init();
-
-/**
- * @brief Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int mqtt_utils_logger_release();
-
-/**
  * @brief Initialize `mosq_config_t` object for a duplex client.
  *
  * @param[in] config_mosq pointer of pointer of `struct mosquitto` object

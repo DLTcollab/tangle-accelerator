@@ -18,3 +18,15 @@ cc_library(
         "//common",
     ],
 )
+
+cc_library(
+    name = "logger_lib",
+    visibility = [
+        "//endpoint/unit-test:__pkg__",
+        "//tests:__subpackages__",
+    ],
+    deps = select({
+        "//accelerator:mqtt_enable": ["//connectivity/mqtt"],
+        "//conditions:default": ["//connectivity/http"],
+    }),
+)

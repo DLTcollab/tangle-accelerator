@@ -42,8 +42,6 @@ status_t api_path_matcher(char const *const path, char *const regex_rule);
  * @return HTTP status code
  */
 status_t set_response_content(status_t ret, char **json_result);
-void conn_logger_init();
-int conn_logger_release();
 
 #ifdef __cplusplus
 }

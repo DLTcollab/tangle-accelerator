@@ -25,20 +25,6 @@ extern "C" {
  */
 
 /**
- * @brief Initialize logger
- */
-void mqtt_pub_logger_init();
-
-/**
- * @brief Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int mqtt_pub_logger_release();
-
-/**
  * @brief Connect callback function of publisher.
  *
  * This callback function is called when the broker sends a CONNACK message in response to a connection owned by
