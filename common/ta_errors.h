@@ -260,6 +260,14 @@ typedef enum {
   /**< Failed to get the device id */
   SC_ENDPOINT_DNS_RESOLVE_ERROR = 0x0B | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Failed to resolve the domain name address */
+  SC_ENDPOINT_CAN_OPEN_ERROR = 0x0C | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to open CAN BUS socket */
+  SC_ENDPOINT_CAN_SEND_ERROR = 0x0D | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to write message to CAN BUS socket */
+  SC_ENDPOINT_CAN_RECV_ERROR = 0x0E | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to read message from CAN BUS socket */
+  SC_ENDPOINT_CAN_CLOSE_ERROR = 0x0F | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to close CAN BUS socket */
 
 } status_t;
 

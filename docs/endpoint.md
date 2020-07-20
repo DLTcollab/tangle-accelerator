@@ -9,6 +9,10 @@ A message sent by endpoint needs to be encrypted locally, which avoids message b
 
 ## How to build endpoint
 
+### Install flatcc compiler
+The endpoint use flatbuffer as serializer. The `flatcc` tool should be found in `$PATH` environment variable.
+About the installation of flatcc compiler, you can refer to [dvidelabs flatcc](https://github.com/dvidelabs/flatcc#quickstart).
+
 ### Setup Legato application framework development environment
 
 The endpoint uses the Legato application framework as based runtime system. Developers need to set up the Sierra development environment to build endpoint as specific target.

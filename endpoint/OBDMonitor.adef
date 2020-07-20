@@ -1,0 +1,26 @@
+executables:
+{
+    OBDService = ( OBDComp/monitor )
+}
+
+processes:
+{
+    run:
+    {
+        (OBDService)
+    }
+}
+
+sandboxed: false
+start: manual
+
+#if ${LEGATO_TARGET} = localhost
+#else
+bindings:
+{
+    OBDService.monitor.le_secStore -> secStore.le_secStore
+    OBDService.monitor.le_sim -> modemService.le_sim
+    OBDService.monitor.le_mdc -> modemService.le_mdc
+    OBDService.monitor.le_data -> dataConnectionService.le_data
+}
+#endif
