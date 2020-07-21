@@ -18,7 +18,7 @@ extern "C" {
  * @brief Implementation of one-shot timer.
  *
  * The wrapper wraps and executes the callback, executes in a different thread, and cancels the thread after the given
- * tiemout.
+ * timeout.
  */
 
 #include <pthread.h>
@@ -27,20 +27,6 @@ extern "C" {
 #include <stdlib.h>
 #include <sys/time.h>
 #include "common/ta_errors.h"
-
-/**
- * Initialize logger
- */
-void timer_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int timer_logger_release();
 
 typedef struct _ta_timer_t ta_timer_t;
 

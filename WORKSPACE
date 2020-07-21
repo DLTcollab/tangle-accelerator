@@ -3,7 +3,7 @@ load("//third_party:third_party.bzl", "third_party_deps")
 
 git_repository(
     name = "rules_iota",
-    commit = "e08b0038f376d6c82b80f5283bb0a86648bb58dc",
+    commit = "2d15c55f12cff0db106f45866312f61314c583cd",
     remote = "https://github.com/iotaledger/rules_iota.git",
 )
 
@@ -14,15 +14,34 @@ git_repository(
 )
 
 git_repository(
-    name = "entangled",
-    commit = "fe3929b8ac6e7377eed82b83aad96369b42d0641",
-    remote = "https://github.com/DLTcollab/entangled",
+    name = "iota.c",
+    commit = "3f1c255bd6e7ccc19bd527a83fa4593d342cad32",
+    remote = "https://github.com/iotaledger/iota.c.git",
+)
+
+git_repository(
+    name = "org_iota_common",
+    commit = "cf649803757abf48432d4fa60e9f27ac119bae5f",
+    remote = "https://github.com/iotaledger/iota_common.git",
+)
+
+git_repository(
+    name = "mam.c",
+    commit = "fca24aa8f98e535c6af9feea3394bdeea555d0d3",
+    remote = "https://github.com/iotaledger/mam.c.git",
 )
 
 git_repository(
     name = "io_bazel_rules_docker",
     remote = "https://github.com/bazelbuild/rules_docker.git",
     tag = "v0.9.0",
+)
+
+new_git_repository(
+    name = "mbedtls_2_16_6",
+    build_file = "//third_party:mbedtls.BUILD",
+    remote = "https://github.com/ARMmbed/mbedtls.git",
+    tag = "mbedtls-2.16.6",
 )
 
 load("@rules_iota//:defs.bzl", "iota_deps")

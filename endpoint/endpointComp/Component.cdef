@@ -1,0 +1,107 @@
+sources:
+{
+    ${CURDIR}/../endpoint_core.c
+    ${CURDIR}/../hal/device.c
+    
+    // include the specific platform
+    ${CURDIR}/../platform/${EP_TARGET}/impl.c 
+
+    ${CURDIR}/../../output_base/external/org_iota_common/utils/logger_helper.c
+
+    ${CURDIR}/../../output_base/external/http_parser/http_parser.c
+
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aes.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/aesni.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/arc4.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1parse.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/asn1write.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/base64.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/bignum.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/blowfish.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/camellia.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ccm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/certs.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/chacha20.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/chachapoly.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/cipher.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/cipher_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ctr_drbg.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/debug.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/des.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/dhm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecdh.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecdsa.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecp.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ecp_curves.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/entropy.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/entropy_poll.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/gcm.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/hmac_drbg.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md5.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/md_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/net_sockets.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/oid.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pem.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pk.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkcs12.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkcs5.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pkparse.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/pk_wrap.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/platform_util.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/poly1305.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ripemd160.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/rsa.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/rsa_internal.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha1.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha256.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/sha512.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_ciphersuites.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_cli.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_srv.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/ssl_tls.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/timing.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509.c
+    ${CURDIR}/../../output_base/external/mbedtls_2_16_6/library/x509_crt.c
+
+    ${CURDIR}/../../endpoint/cipher.c
+    ${CURDIR}/../../endpoint/connectivity/conn_http.c
+    ${CURDIR}/../../endpoint/https.c
+    ${CURDIR}/../../endpoint/text_serializer.c
+    ${CURDIR}/../../utils/tryte_byte_conv.c
+
+    endpoint.c
+}
+
+cflags:
+{
+    -g -O0
+
+    -I${CURDIR}/../..
+
+    // The header files under this directory are downloaded only when the corresponding 'bazel build' command is used
+    -I${CURDIR}/../../output_base/execroot/__main__/bazel-out/k8-fastbuild/bin/external/org_iota_common
+
+    -I${CURDIR}/../../output_base/external/com_github_uthash/src
+    -I${CURDIR}/../../output_base/external/com_github_embear_logger/include
+    -I${CURDIR}/../../output_base/external/org_iota_common
+    -I${CURDIR}/../../output_base/external/http_parser
+    -I${CURDIR}/../../output_base/external/mbedtls_2_16_6/include
+}
+
+#if ${LEGATO_TARGET} = localhost
+#else
+requires:
+{
+    device:
+    {
+        [rw] /dev/ttyHS0 /dev/ttyHS0
+    }
+    
+    api:
+    {
+        le_secStore.api
+        modemServices/le_sim.api
+    }
+}
+#endif

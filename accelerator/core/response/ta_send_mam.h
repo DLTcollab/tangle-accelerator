@@ -29,8 +29,6 @@ typedef struct send_mam_res_s {
   char bundle_hash[NUM_TRYTES_HASH + 1];
   /** ascii string channel id */
   char chid[NUM_TRYTES_HASH + 1];
-  /** ascii string endpoint id */
-  char epid[NUM_TRYTES_HASH + 1];
   /** channel ordinal which is the number of channel we generated */
   char msg_id[NUM_TRYTES_MAM_MSG_ID + 1];
   /** bundle hash of announcement bundle */
@@ -40,7 +38,7 @@ typedef struct send_mam_res_s {
 } ta_send_mam_res_t;
 
 /**
- * Allocate memory of ta_send_mam_res_t
+ * @brief Allocate memory of ta_send_mam_res_t
  *
  * @return
  * - struct of ta_send_mam_res_t on success
@@ -81,19 +79,7 @@ status_t send_mam_res_set_bundle_hash(ta_send_mam_res_t* res, const tryte_t* bun
 status_t send_mam_res_set_channel_id(ta_send_mam_res_t* res, const tryte_t* channel_id);
 
 /**
- * @brief Set the endpoint_id field of send_mam_res object.
- *
- * @param[in] res ta_send_mam_res_t struct object
- * @param[in] endpoint_id endpoint id decoded in trytes string
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_set_endpoint_id(ta_send_mam_res_t* res, const tryte_t* endpoint_id);
-
-/**
- * @brief Set the msgl_id field of send_mam_res object.
+ * @brief Set the msg_id field of send_mam_res object.
  *
  * @param[in] res ta_send_mam_res_t struct object
  * @param[in] msg_id Message id decoded in trytes string
@@ -118,7 +104,7 @@ status_t send_mam_res_set_msg_id(ta_send_mam_res_t* res, const tryte_t* msg_id);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_res_set_announcement_bundle_hash(ta_send_mam_res_t* res, const tryte_t* announcement_bundle_hash);
+status_t send_mam_res_set_announce_bundle_hash(ta_send_mam_res_t* res, const tryte_t* announcement_bundle_hash);
 
 /**
  * @brief Set the next channel_id field of send_mam_res object.
@@ -137,9 +123,36 @@ status_t send_mam_res_set_announcement_bundle_hash(ta_send_mam_res_t* res, const
 status_t send_mam_res_set_chid1(ta_send_mam_res_t* res, const tryte_t* chid1);
 
 /**
+ * @brief Set the content of the response of a MAM message request
+ *
+ * @param[in,out] res ta_send_mam_res_t struct object
+ * @param[in] chid Current Channel ID decoded in trytes string
+ * @param[in] msg_id Message ID decoded in trytes string
+ * @param[in] bundle Bundle object with MAM message
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_set_msg_result(ta_send_mam_res_t* res, const tryte_t* chid, const tryte_t* msg_id,
+                                     bundle_transactions_t* bundle);
+/**
+ * @brief Set the content of the response of a MAM announcement
+ *
+ * @param[in,out] res ta_send_mam_res_t struct object
+ * @param[in] chid1 Next Channel ID (chid1) decoded in trytes string
+ * @param[in] bundle Bundle object with MAM announcement
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_res_set_announce(ta_send_mam_res_t* res, const tryte_t* chid1, bundle_transactions_t* bundle);
+
+/**
  * Free memory of ta_send_mam_res_t
  *
- * @param req Data type of ta_send_mam_res_t
+ * @param[in] res Pointer of pointer of ta_send_mam_res_t object
  */
 void send_mam_res_free(ta_send_mam_res_t** res);
 

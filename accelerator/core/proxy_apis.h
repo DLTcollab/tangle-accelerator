@@ -22,7 +22,7 @@ extern "C" {
  * @file accelerator/core/proxy_apis.h
  * @brief Implement Proxy APIs
  *
- * tangle-accelerator provides major IRI Proxy APIs wrapper.
+ * tangle-accelerator provides major IOTA Proxy APIs wrapper.
  * The arguments and return strings are all in json format. There can be
  * different server or protocol integration with these APIs.
  */
@@ -62,7 +62,8 @@ status_t proxy_apis_lock_destroy();
 /**
  * @brief Proxy API of IOTA core functionalities
  *
- * @param[in] service IRI node end point service
+ * @param[in] iconf IOTA API parameter configurations
+ * @param[in] service IOTA full node service
  * @param[in] obj IOTA core APIs request body
  * @param[out] json_result Result of IOTA core APIs
  *

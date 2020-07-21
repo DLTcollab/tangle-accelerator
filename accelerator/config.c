@@ -9,10 +9,34 @@
 #include "config.h"
 #include <errno.h>
 #include <limits.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
 #include "utils/macros.h"
 #include "yaml.h"
 
 #define CONFIG_LOGGER "config"
+#define DEFAULT_CA_PEM                                                   \
+  "-----BEGIN CERTIFICATE-----\r\n"                                      \
+  "MIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\r\n" \
+  "ADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\r\n" \
+  "b24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\r\n" \
+  "MAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\r\n" \
+  "b3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\r\n" \
+  "ca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\r\n" \
+  "9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\r\n" \
+  "IFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\r\n" \
+  "VOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\r\n" \
+  "93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\r\n" \
+  "jgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\r\n" \
+  "AYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\r\n" \
+  "A4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\r\n" \
+  "U5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\r\n" \
+  "N+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\r\n" \
+  "o/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\r\n" \
+  "5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\r\n" \
+  "rqXRfboQnoZsG4q5WTP468SQvvG5\r\n"                                     \
+  "-----END CERTIFICATE-----\r\n"
 
 static logger_id_t logger_id;
 
@@ -37,11 +61,59 @@ static int get_conf_key(char const* const key) {
   return 0;
 }
 
-status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
-  if (value == NULL && (key != CACHE && key != PROXY_API && key != QUIET && key != NO_GTTA)) {
-    ta_log_error("%s\n", "SC_CONF_NULL");
-    return SC_CONF_NULL;
+#define CA_BUFFER_SIZE 2048
+static char* read_ca_pem(char* ca_pem_path) {
+  FILE* file = NULL;
+  if ((file = fopen(ca_pem_path, "r")) == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_CONF_FOPEN_ERROR));
+    goto done;
   }
+
+  char* ca_pem = (char*)malloc(sizeof(char) * (CA_BUFFER_SIZE));
+  if (!ca_pem) {
+    ta_log_error("%s\n", ta_error_to_string(SC_OOM));
+    goto done;
+  }
+
+  char c;
+  int i = 0, buffer_nums = 1;
+  while ((c = fgetc(file)) != EOF) {
+    ca_pem[i++] = c;
+    if (!(i < CA_BUFFER_SIZE)) {
+      ca_pem = realloc(ca_pem, sizeof(char) * buffer_nums * CA_BUFFER_SIZE);
+      buffer_nums++;
+    }
+  }
+  ca_pem[i] = '\0';
+
+  if (feof(file)) {
+    ta_log_debug("Read the End Of File.\n");
+  } else {
+    ta_log_error("Read file error\n");
+  }
+
+done:
+  fclose(file);
+  return ca_pem;
+}
+
+status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
+  if (value == NULL) {
+    switch (key) {
+      /* No argument */
+      case CACHE:
+      case PROXY_API:
+      case QUIET:
+      case NO_GTTA:
+      case RUNTIME_CLI:
+        break;
+      /* Need argument but no value found */
+      default:
+        ta_log_error("%s\n", "SC_NULL");
+        return SC_NULL;
+    }
+  }
+
   ta_config_t* const ta_conf = &core->ta_conf;
   iota_config_t* const iota_conf = &core->iota_conf;
   ta_cache_t* const cache = &core->cache;
@@ -52,6 +124,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
 #endif
   char* strtol_p = NULL;
   long int strtol_temp;
+  uint8_t idx;
   switch (key) {
     // TA configuration
     case TA_HOST_CLI:
@@ -62,60 +135,49 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         ta_conf->port = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
-    case TA_THREAD_COUNT_CLI:
+    case HTTP_THREADS_CLI:
       strtol_temp = strtol(value, &strtol_p, 10);
-      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-        ta_conf->thread_count = (int)strtol_temp;
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= UCHAR_MAX) {
+        ta_log_debug("Number of logical processors : %d, physical processors : %d\n", get_nprocs_conf(),
+                     get_nprocs_conf() / get_nthds_per_phys_proc());
+        if ((uint8_t)strtol_temp > MAX_HTTP_TPOOL_SIZE) {
+          ta_log_warning("Requiring thread number %d exceed limitation. Set it to the maximum allowed number: %d\n",
+                         (uint8_t)strtol_temp, MAX_HTTP_TPOOL_SIZE);
+          ta_conf->http_tpool_size = (uint8_t)MAX_HTTP_TPOOL_SIZE;
+        } else {
+          ta_conf->http_tpool_size = (uint8_t)strtol_temp;
+        }
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
 
-    // IRI configuration
-    case IRI_HOST_CLI:
-      iota_service->http.host = value;
-      break;
-    case IRI_PORT_CLI:
-      strtol_temp = strtol(value, &strtol_p, 10);
-      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-        iota_service->http.port = (int)strtol_temp;
-      } else {
-        ta_log_error("Malformed input or illegal input character\n");
+    // IOTA full node configuration
+    case NODE_HOST_CLI:
+      idx = 0;
+      for (char* p = strtok(value, ","); p && idx < MAX_NODE_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+        ta_conf->iota_host_list[idx] = p;
       }
+      strncpy(iota_service->http.host, ta_conf->iota_host_list[0], HOST_MAX_LEN - 1);
       break;
-    case IRI_ADDRESS_CLI:
-      for (int i = 0; i < MAX_IRI_LIST_ELEMENTS; i++) {
-        if (!ta_conf->host_list[i]) {
-          char *host, *port;
-          host = strtok(value, ":");
-          port = strtok(NULL, "");
-          if (!port) {
-            ta_log_error("Malformed input or illegal input character\n");
-            break;
-          }
-
-          if (i == 0) {
-            iota_service->http.host = host;
-            strtol_temp = strtol(port, NULL, 10);
-            if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-              iota_service->http.port = (int)strtol_temp;
-            } else {
-              ta_log_error("Malformed input or illegal input character\n");
-            }
-          }
-          ta_conf->host_list[i] = host;
-          strtol_temp = strtol(port, NULL, 10);
-          if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
-            ta_conf->port_list[i] = (int)strtol_temp;
-          } else {
-            ta_log_error("Malformed input or illegal input character\n");
-          }
-          break;
+    case NODE_PORT_CLI:
+      idx = 0;
+      for (char* p = strtok(value, ","); p && idx < MAX_NODE_LIST_ELEMENTS; p = strtok(NULL, ","), idx++) {
+        strtol_temp = strtol(p, &strtol_p, 10);
+        if (strtol_p != p && errno != ERANGE && strtol_temp >= 0 && strtol_temp <= USHRT_MAX) {
+          ta_conf->iota_port_list[idx] = (uint16_t)strtol_temp;
+        } else {
+          ta_log_error("Malformed input\n");
         }
       }
+      iota_service->http.port = ta_conf->iota_port_list[0];
+      break;
+
+    case CA_PEM:
+      iota_service->http.ca_pem = read_ca_pem(value);
       break;
 
     case HEALTH_TRACK_PERIOD:
@@ -123,8 +185,18 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         ta_conf->health_track_period = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
+      break;
+    case CACHE:
+      ta_log_info("Initializing cache state\n");
+      cache->state = !cache->state;
+      if (cache->state) {
+        if (cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
+          ta_log_error("%s\n", "Failed to initialize lock to caching service.");
+        }
+      }
+
       break;
 
 #ifdef MQTT_ENABLE
@@ -146,7 +218,19 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         cache->port = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input character\n");
+      }
+      break;
+    case CACHE_MAX_CAPACITY:
+      strtol_temp = strtol(value, NULL, 10);
+      if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
+        if (strtol_temp <= 0) {
+          ta_log_error("The capacity of caching service should greater then 0.\n");
+          break;
+        }
+        cache->capacity = strtol_temp;
+      } else {
+        ta_log_error("Malformed input\n");
       }
       break;
 
@@ -164,7 +248,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         iota_conf->milestone_depth = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
     case MWM_CLI:
@@ -172,25 +256,31 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         iota_conf->mwm = (int)strtol_temp;
       } else {
-        ta_log_error("Malformed input or illegal input character\n");
+        ta_log_error("Malformed input\n");
       }
       break;
     case SEED_CLI:
       iota_conf->seed = value;
       break;
-    case CACHE:
-      cache->cache_state = true;
+    case BUFFER_LIST:
+      cache->buffer_list_name = value;
+      break;
+    case DONE_LIST:
+      cache->done_list_name = value;
       break;
 
-    // Quiet mode configuration
+    // Command line options configuration
     case QUIET:
-      quiet_mode = true;
+      ta_conf->cli_options |= CLI_QUIET_MODE;
       break;
     case PROXY_API:
-      ta_conf->proxy_passthrough = true;
+      ta_conf->cli_options |= CLI_PROXY_PASSTHROUGH;
       break;
     case NO_GTTA:
-      ta_conf->gtta = false;
+      ta_conf->cli_options |= CLI_GTTA;
+      break;
+    case RUNTIME_CLI:
+      ta_conf->cli_options |= CLI_RUNTIME_CLI;
       break;
 
     // File configuration
@@ -201,6 +291,22 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       break;
     }
   }
+
+  return SC_OK;
+}
+
+status_t ta_set_iota_client_service(iota_client_service_t* service, char const* host, uint16_t port,
+                                    char const* const ca_pem) {
+  strncpy(service->http.path, "/", CONTENT_TYPE_MAX_LEN);
+  strncpy(service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN - 1);
+  strncpy(service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN - 1);
+  strncpy(service->http.host, host, HOST_MAX_LEN - 1);
+  service->http.port = port;
+  service->http.api_version = 1;
+  service->http.ca_pem = ca_pem;
+  service->serializer_type = SR_JSON;
+  init_json_serializer(&service->serializer);
+
   return SC_OK;
 }
 
@@ -208,7 +314,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   status_t ret = SC_OK;
 
   logger_id = logger_helper_enable(CONFIG_LOGGER, LOGGER_DEBUG, true);
-  ta_log_info("enable logger %s.\n", CONFIG_LOGGER);
+  ta_log_info("Enable logger %s.\n", CONFIG_LOGGER);
 
   ta_config_t* const ta_conf = &core->ta_conf;
   iota_config_t* const iota_conf = &core->iota_conf;
@@ -222,12 +328,12 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_conf->version = TA_VERSION;
   ta_conf->host = TA_HOST;
   ta_conf->port = TA_PORT;
-  memset(ta_conf->host_list, 0, sizeof(ta_conf->host_list));
-  memset(ta_conf->port_list, 0, sizeof(ta_conf->port_list));
-  ta_conf->thread_count = TA_THREAD_COUNT;
-  ta_conf->proxy_passthrough = false;
-  ta_conf->health_track_period = IRI_HEALTH_TRACK_PERIOD;
-  ta_conf->gtta = true;
+  memset(ta_conf->iota_host_list, 0, sizeof(ta_conf->iota_host_list));
+  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS; i++) {
+    ta_conf->iota_port_list[i] = NODE_PORT;
+  }
+  ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
+  ta_conf->health_track_period = HEALTH_TRACK_PERIOD;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
@@ -235,9 +341,12 @@ status_t ta_core_default_init(ta_core_t* const core) {
   ta_log_info("Initializing Redis information\n");
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
-  cache->cache_state = false;
+  cache->state = false;
+  cache->buffer_list_name = BUFFER_LIST_NAME;
+  cache->done_list_name = DONE_LIST_NAME;
+  cache->capacity = CACHE_MAX_CAPACITY;
 
-  ta_log_info("Initializing IRI configuration\n");
+  ta_log_info("Initializing IOTA full node configuration\n");
   iota_conf->milestone_depth = MILESTONE_DEPTH;
   iota_conf->mwm = MWM;
   iota_conf->seed = SEED;
@@ -245,20 +354,26 @@ status_t ta_core_default_init(ta_core_t* const core) {
   mkstemp(mam_file_path);
   iota_conf->mam_file_path = strdup(mam_file_path);
 
-  ta_log_info("Initializing IRI connection\n");
-  iota_service->http.path = "/";
-  iota_service->http.content_type = "application/json";
-  iota_service->http.accept = "application/json";
-  iota_service->http.host = IRI_HOST;
-  iota_service->http.port = IRI_PORT;
+  ta_log_info("Initializing IOTA full node connection\n");
+  strncpy(iota_service->http.path, "/", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.content_type, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.accept, "application/json", CONTENT_TYPE_MAX_LEN);
+  strncpy(iota_service->http.host, NODE_HOST, HOST_MAX_LEN);
+  iota_service->http.ca_pem = DEFAULT_CA_PEM;
+  iota_service->http.port = NODE_PORT;
   iota_service->http.api_version = 1;
   iota_service->serializer_type = SR_JSON;
 #ifdef DB_ENABLE
   ta_log_info("Initializing DB connection\n");
   db_service->host = strdup(DB_HOST);
 #endif
-  // Turn off quiet mode default
-  quiet_mode = false;
+  // Command line options set default to 0
+  ta_conf->cli_options &= ~CLI_QUIET_MODE;
+  ta_conf->cli_options &= ~CLI_RUNTIME_CLI;
+  ta_conf->cli_options &= ~CLI_PROXY_PASSTHROUGH;
+
+  // Command line options set default to 1
+  ta_conf->cli_options |= CLI_GTTA;
 
   return ret;
 }
@@ -405,23 +520,25 @@ status_t ta_core_cli_init(ta_core_t* const core, int argc, char** argv) {
 status_t ta_core_set(ta_core_t* core) {
   status_t ret = SC_OK;
 
-  ta_cache_t* const cache = &core->cache;
   iota_client_service_t* const iota_service = &core->iota_service;
 #ifdef DB_ENABLE
   db_client_service_t* const db_service = &core->db_service;
 #endif
-  if (iota_client_core_init(iota_service)) {
-    ta_log_error("Initializing IRI connection failed!\n");
-    ret = SC_TA_OOM;
+  if (iota_client_service_init(iota_service)) {
+    ta_log_error("Initializing IOTA full node connection failed!\n");
+    ret = SC_OOM;
     goto exit;
   }
-  iota_client_extended_init();
+
+  // Initialize logger in 'iota.c'
+  logger_helper_init(LOGGER_DEBUG);
+  logger_init_client_core(LOGGER_DEBUG);
+  logger_init_client_extended(LOGGER_DEBUG);
+  logger_init_json_serializer(LOGGER_DEBUG);
 
   ta_log_info("Initializing PoW implementation context\n");
   pow_init();
 
-  ta_log_info("Initializing cache state\n");
-  cache_init(cache->cache_state, cache->host, cache->port);
 #ifdef DB_ENABLE
   ta_log_info("Initializing db client service\n");
   if ((ret = db_client_service_init(db_service, DB_USAGE_REATTACH)) != SC_OK) {
@@ -434,16 +551,92 @@ exit:
 }
 
 void ta_core_destroy(ta_core_t* const core) {
-  ta_log_info("Destroying IRI connection\n");
-  iota_client_extended_destroy();
-  iota_client_core_destroy(&core->iota_service);
+  ta_log_info("Destroying IOTA full node connection\n");
 #ifdef DB_ENABLE
   ta_log_info("Destroying DB connection\n");
   db_client_service_free(&core->db_service);
 #endif
-  free(core->iota_conf.mam_file_path);
   pow_destroy();
-  cache_stop();
+  cache_stop(&core->cache.rwlock);
   logger_helper_release(logger_id);
-  br_logger_release();
+  logger_destroy_client_core();
+  logger_destroy_client_extended();
+  logger_destroy_json_serializer();
+}
+
+bool is_option_enabled(const ta_config_t* const ta_config, uint32_t option) {
+  return (bool)(ta_config->cli_options & option);
+}
+
+void ta_logger_switch(bool quiet, bool init, ta_config_t* ta_conf) {
+  if (quiet != is_option_enabled(ta_conf, CLI_QUIET_MODE) || init) {
+    if (quiet == false) {
+#ifdef MQTT_ENABLE
+      mqtt_utils_logger_init();
+      mqtt_common_logger_init();
+      mqtt_callback_logger_init();
+      mqtt_pub_logger_init();
+      mqtt_sub_logger_init();
+#else
+      http_logger_init();
+#endif
+      conn_logger_init();
+      apis_logger_init();
+      cc_logger_init();
+      serializer_logger_init();
+      pow_logger_init();
+      timer_logger_init();
+      br_logger_init();
+      ta_conf->cli_options &= ~CLI_QUIET_MODE;
+    } else {
+#ifdef MQTT_ENABLE
+      mqtt_utils_logger_release();
+      mqtt_common_logger_release();
+      mqtt_callback_logger_release();
+      mqtt_pub_logger_release();
+      mqtt_sub_logger_release();
+#else
+      http_logger_release();
+#endif
+      conn_logger_release();
+      apis_logger_release();
+      cc_logger_release();
+      serializer_logger_release();
+      pow_logger_release();
+      timer_logger_release();
+      br_logger_release();
+      ta_conf->cli_options |= CLI_QUIET_MODE;
+    }
+  }
+}
+
+#define DOMAIN_SOCKET "/tmp/tangle-accelerator-socket"
+#define START_NOTIFICATION "TA-START"
+void notification_trigger() {
+  int connect_fd;
+  static struct sockaddr_un srv_addr;
+
+  // Create UNIX domain socket
+  connect_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+  if (connect_fd < 0) {
+    ta_log_error("Can't create communication socket.\n");
+    goto done;
+  }
+
+  srv_addr.sun_family = AF_UNIX;
+  strncpy(srv_addr.sun_path, DOMAIN_SOCKET, strlen(DOMAIN_SOCKET));
+
+  // Connect to UNIX domain socket server
+  if (connect(connect_fd, (struct sockaddr*)&srv_addr, sizeof(srv_addr)) == -1) {
+    ta_log_error("Can't connect to UNIX domain socket server.\n");
+    goto done;
+  }
+
+  // Send notification to UNIX domain socket
+  if (write(connect_fd, START_NOTIFICATION, strlen(START_NOTIFICATION)) == -1) {
+    ta_log_error("Can't write message to UNIX domain socket server.\n");
+  }
+
+done:
+  close(connect_fd);
 }

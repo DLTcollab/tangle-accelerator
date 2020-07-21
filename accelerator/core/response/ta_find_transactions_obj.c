@@ -24,7 +24,6 @@ void ta_find_transactions_obj_res_free(ta_find_transactions_obj_res_t** res) {
   }
 
   if ((*res)->txn_obj) {
-    utarray_clear((*res)->txn_obj);
     utarray_free((*res)->txn_obj);
   }
   free(*res);

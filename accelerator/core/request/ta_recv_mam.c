@@ -20,14 +20,12 @@ ta_recv_mam_req_t* recv_mam_req_new() {
 
 static void recv_mam_req_v1_free(ta_recv_mam_req_t** req) {
   if ((*req)->data_id) {
-    data_id_mam_v1_t* data_id = (*req)->data_id;
+    recv_mam_data_id_mam_v1_t* data_id = (*req)->data_id;
     free(data_id->bundle_hash);
     free(data_id->chid);
-    free(data_id->epid);
     free(data_id->msg_id);
     data_id->bundle_hash = NULL;
     data_id->chid = NULL;
-    data_id->epid = NULL;
     data_id->msg_id = NULL;
 
     free((*req)->data_id);
@@ -35,8 +33,9 @@ static void recv_mam_req_v1_free(ta_recv_mam_req_t** req) {
   }
 
   if ((*req)->key) {
-    key_mam_v1_t* key = (*req)->key;
-    free(key->enc_key);
+    recv_mam_key_mam_v1_t* key = (*req)->key;
+    utarray_free(key->psk_array);
+    utarray_free(key->ntru_array);
     free(key);
     (*req)->key = NULL;
   }
@@ -60,47 +59,57 @@ void recv_mam_req_free(ta_recv_mam_req_t** req) {
   *req = NULL;
 }
 
-status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* epid, char* msg_id) {
-  if (req == NULL || (!bundle_hash && !chid && !epid && !msg_id)) {
-    return SC_TA_NULL;
+status_t recv_mam_req_v1_init(ta_recv_mam_req_t* req) {
+  if (req == NULL) {
+    return SC_NULL;
+  }
+
+  req->data_id = (recv_mam_data_id_mam_v1_t*)malloc(sizeof(recv_mam_data_id_mam_v1_t));
+  if (req->data_id == NULL) {
+    return SC_OOM;
+  }
+  req->key = (recv_mam_key_mam_v1_t*)malloc(sizeof(recv_mam_key_mam_v1_t));
+  if (req->key == NULL) {
+    return SC_OOM;
+  }
+
+  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
+  data_id->bundle_hash = NULL;
+  data_id->chid = NULL;
+  data_id->msg_id = NULL;
+
+  recv_mam_key_mam_v1_t* key = (recv_mam_key_mam_v1_t*)req->key;
+  utarray_new(key->psk_array, &ut_str_icd);
+  utarray_new(key->ntru_array, &ut_str_icd);
+
+  return SC_OK;
+}
+
+status_t recv_mam_set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chid, char* msg_id) {
+  if (req == NULL || (!bundle_hash && !chid && !msg_id)) {
+    return SC_NULL;
   }
   status_t ret = SC_OK;
 
-  req->data_id = (data_id_mam_v1_t*)malloc(sizeof(data_id_mam_v1_t));
-  if (!req->data_id) {
-    return SC_TA_OOM;
-  }
-
-  data_id_mam_v1_t* data_id = (data_id_mam_v1_t*)req->data_id;
-  data_id->bundle_hash = NULL;
-  data_id->chid = NULL;
-  data_id->epid = NULL;
-  data_id->msg_id = NULL;
+  recv_mam_data_id_mam_v1_t* data_id = (recv_mam_data_id_mam_v1_t*)req->data_id;
   if (bundle_hash) {
-    data_id->bundle_hash = strdup(bundle_hash);
+    data_id->bundle_hash = (tryte_t*)strdup(bundle_hash);
     if (!data_id->bundle_hash) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }
   if (chid) {
-    data_id->chid = strdup(chid);
+    data_id->chid = (tryte_t*)strdup(chid);
     if (!data_id->chid) {
-      ret = SC_TA_OOM;
-      goto error;
-    }
-  }
-  if (epid) {
-    data_id->epid = strdup(epid);
-    if (!data_id->epid) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }
   if (msg_id) {
-    data_id->msg_id = strdup(msg_id);
+    data_id->msg_id = (tryte_t*)strdup(msg_id);
     if (!data_id->msg_id) {
-      ret = SC_TA_OOM;
+      ret = SC_OOM;
       goto error;
     }
   }
@@ -108,38 +117,8 @@ status_t set_mam_v1_data_id(ta_recv_mam_req_t* req, char* bundle_hash, char* chi
   return ret;
 
 error:
-  free(req->data_id);
-  req->data_id = NULL;
+  free(data_id->bundle_hash);
+  free(data_id->chid);
+  free(data_id->msg_id);
   return ret;
-}
-
-status_t set_mam_v1_key(ta_recv_mam_req_t* req, tryte_t* psk, tryte_t* ntru) {
-  if (!req) {
-    return SC_TA_NULL;
-  }
-
-  req->key = (key_mam_v1_t*)malloc(sizeof(key_mam_v1_t));
-  if (!req->key) {
-    return SC_TA_OOM;
-  }
-
-  key_mam_v1_t* key = (key_mam_v1_t*)req->key;
-  // We will set either psk or ntru, so initializing both fields will avoid errors in the future.
-  key->enc_key = NULL;
-
-  if (psk) {
-    key->enc_key = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
-    if (!key->enc_key) {
-      return SC_TA_OOM;
-    }
-    memcpy(key->enc_key, psk, sizeof(tryte_t) * NUM_TRYTES_MAM_PSK_KEY_SIZE);
-  } else if (ntru) {
-    key->enc_key = (tryte_t*)malloc(sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
-    if (!key->enc_key) {
-      return SC_TA_OOM;
-    }
-    memcpy(key->enc_key, ntru, sizeof(tryte_t) * NUM_TRYTES_MAM_NTRU_PK_SIZE);
-  }
-
-  return SC_OK;
 }

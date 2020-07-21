@@ -27,19 +27,17 @@ extern "C" {
 
 /** struct of ta_send_transfer_res_t */
 typedef struct {
-  /** Transaction address is a 243 long flex trits hash queue. */
-  hash243_queue_t hash;
-  transaction_array_t* txn_array;
-  // If the value of `CASS_UUID_STRING_LENGTH` changes, then we may need to modify array length of uuid_string as well,
-  // since UUID_STR_LEN is defined in `uuid/uuid.h`.
-  char uuid[UUID_STR_LEN];
+  hash243_queue_t hash;           /**< Transaction address is a 243 long flex trits hash queue. */
+  transaction_array_t* txn_array; /**< Transaction object array */
+  char* uuid;                     /**< Returned UUID for querying the buffered transaction */
+  tryte_t* address;               /**< Returned transaction address of the buffered transaction */
 #ifdef DB_ENABLE
-  char uuid_string[DB_UUID_STRING_LENGTH];
+  char uuid_string[DB_UUID_STRING_LENGTH]; /**< Returned UUID for querying the transactions in DB */
 #endif
 } ta_send_transfer_res_t;
 
 /**
- * Allocate memory of ta_send_transfer_res_t
+ * @brief Allocate memory of ta_send_transfer_res_t
  *
  * @return
  * - struct of ta_send_transfer_res_t on success
@@ -48,9 +46,9 @@ typedef struct {
 ta_send_transfer_res_t* ta_send_transfer_res_new();
 
 /**
- * Free memory of ta_send_transfer_res_t
+ * @brief Free memory of ta_send_transfer_res_t
  *
- * @param res Data type of ta_send_transfer_res_t
+ * @param[in] res Pointer of pointer of ta_send_transfer_res_t object
  */
 void ta_send_transfer_res_free(ta_send_transfer_res_t** res);
 

@@ -1,0 +1,18 @@
+requires:
+{
+    api:
+    {
+        modemServices/le_mrc.api
+        positioning/le_gnss.api
+    }
+}
+
+sources:
+{
+    diagnose.c
+}
+
+cflags:
+{
+    -g -O0
+}

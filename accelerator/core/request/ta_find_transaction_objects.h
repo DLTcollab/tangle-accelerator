@@ -28,7 +28,7 @@ typedef struct ta_find_transaction_objects_req {
 } ta_find_transaction_objects_req_t;
 
 /**
- * Allocate memory of ta_find_transaction_objects_req_t
+ * @brief Allocate memory of ta_find_transaction_objects_req_t
  *
  * @return
  * - struct of ta_find_transaction_objects_req_t on success
@@ -37,9 +37,9 @@ typedef struct ta_find_transaction_objects_req {
 ta_find_transaction_objects_req_t* ta_find_transaction_objects_req_new();
 
 /**
- * Free memory of ta_find_transaction_objects_req_t
+ * @brief Free memory of ta_find_transaction_objects_req_t
  *
- * @param req Data type of ta_find_transaction_objects_req_t
+ * @param[in] req Data type of ta_find_transaction_objects_req_t
  */
 void ta_find_transaction_objects_req_free(ta_find_transaction_objects_req_t** req);
 

@@ -22,12 +22,12 @@ extern "C" {
 
 /** struct of ta_find_transactions_obj_res_t */
 typedef struct ta_find_transactions_obj_res {
-  /** Transaction objects is transaction_array_t. */
+  /**< Transaction objects is transaction_array_t. */
   transaction_array_t* txn_obj;
 } ta_find_transactions_obj_res_t;
 
 /**
- * Allocate memory of ta_find_transactions_obj_res_t
+ * @brief Allocate memory of ta_find_transactions_obj_res_t
  *
  * @return
  * - struct of ta_find_transactions_obj_res_t on success
@@ -36,9 +36,9 @@ typedef struct ta_find_transactions_obj_res {
 ta_find_transactions_obj_res_t* ta_find_transactions_obj_res_new();
 
 /**
- * Free memory of ta_find_transactions_obj_res_t
+ * @brief Free memory of ta_find_transactions_obj_res_t
  *
- * @param res Data type of ta_find_transactions_obj_res_t
+ * @param[in] res Pointer of pointer of ta_find_transactions_obj_res_t object
  */
 void ta_find_transactions_obj_res_free(ta_find_transactions_obj_res_t** res);
 

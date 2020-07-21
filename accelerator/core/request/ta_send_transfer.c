@@ -13,6 +13,7 @@ ta_send_transfer_req_t* ta_send_transfer_req_new() {
   if (req != NULL) {
     req->tag = NULL;
     req->address = NULL;
+    memset(req->message, 0, sizeof(tryte_t) * NUM_TRYTES_MESSAGE);
     return req;
   }
   return NULL;

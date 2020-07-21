@@ -67,6 +67,7 @@ class FindTransactionsObjectsByTag(unittest.TestCase):
         eval_stat(time_cost, "find transactions objects by tag")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         rand_trytes_26 = gen_rand_trytes(26)
         rand_tag = gen_rand_trytes(LEN_TAG)

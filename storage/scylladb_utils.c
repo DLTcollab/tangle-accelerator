@@ -17,10 +17,6 @@ void scylladb_logger_init() { logger_id = logger_helper_enable(SCYLLADB_LOGGER, 
 
 int scylladb_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    log_critical(logger_id, "%s.\n", SCYLLADB_LOGGER);
-    return EXIT_FAILURE;
-  }
   return 0;
 }
 
@@ -81,15 +77,13 @@ CassError execute_statement(CassSession* session, CassStatement* statement) {
   }
 
   cass_future_free(future);
-  cass_statement_free(statement);
-
   return rc;
 }
 
 status_t make_query(char** result, const char* head_desc, const char* position, const char* left_desc) {
   if (head_desc == NULL || position == NULL || left_desc == NULL) {
     ta_log_error("NULL pointer to CQL query\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   size_t head_len = strlen(head_desc);
   size_t pos_len = strlen(position);
@@ -97,8 +91,8 @@ status_t make_query(char** result, const char* head_desc, const char* position, 
   size_t result_len = head_len + pos_len + left_len + 1;
   *result = malloc(result_len * sizeof(char));
   if (*result == NULL) {
-    ta_log_error("%s\n", "SC_STORAGE_OOM");
-    return SC_STORAGE_OOM;
+    ta_log_error("%s\n", "SC_OOM");
+    return SC_OOM;
   }
   memcpy(*result, head_desc, head_len);
   memcpy(*result + head_len, position, pos_len);
@@ -118,7 +112,7 @@ status_t db_truncate_table(CassSession* session, const char* table_name) {
   }
   if (execute_query(session, query) != CASS_OK) {
     ta_log_error("Fail to truncate table:  %s\n", table_name);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
   free(query);
   return ret;
@@ -136,7 +130,7 @@ status_t create_keyspace(CassSession* session, const char* keyspace_name) {
   }
   if (execute_query(session, create_query) != CASS_OK) {
     ta_log_error("Create keyspace %s fail\n", keyspace_name);
-    ret = SC_STORAGE_CASSANDRA_QUREY_FAIL;
+    ret = SC_STORAGE_CASSANDRA_QUERY_FAIL;
   }
 
   free(create_query);

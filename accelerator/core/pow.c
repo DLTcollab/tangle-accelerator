@@ -20,11 +20,6 @@ void pow_logger_init() { logger_id = logger_helper_enable(POW_LOGGER, LOGGER_DEB
 
 int pow_logger_release() {
   logger_helper_release(logger_id);
-  if (logger_helper_destroy() != RC_OK) {
-    ta_log_error("Destroying logger failed %s.\n", POW_LOGGER);
-    return EXIT_FAILURE;
-  }
-
   return 0;
 }
 
@@ -41,6 +36,9 @@ flex_trit_t* ta_pow_flex(const flex_trit_t* const trits_in, const uint8_t mwm) {
   flex_trits_to_trytes(trytes_in, NUM_TRYTES_SERIALIZED_TRANSACTION, trits_in, NUM_TRITS_SERIALIZED_TRANSACTION,
                        NUM_TRITS_SERIALIZED_TRANSACTION);
   int8_t* ret_trytes = ta_pow_dcurl(trytes_in, mwm, 0);
+  if (ret_trytes == NULL) {
+    return NULL;
+  }
   memcpy(nonce_trytes, ret_trytes + NUM_TRYTES_SERIALIZED_TRANSACTION - NUM_TRYTES_NONCE, NUM_TRYTES_NONCE);
 
   flex_trit_t* nonce_trits = (flex_trit_t*)calloc(NUM_TRITS_NONCE, sizeof(flex_trit_t));
@@ -64,8 +62,8 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
 
   tx = (iota_transaction_t*)utarray_back(bundle);
   if (tx == NULL) {
-    ret = SC_TA_NULL;
-    ta_log_error("%s\n", "SC_TA_NULL");
+    ret = SC_NULL;
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
   cur_idx = transaction_last_index(tx) + 1;
@@ -83,15 +81,15 @@ status_t ta_pow(const bundle_transactions_t* bundle, const flex_trit_t* const tr
     size_t offset = transaction_serialize_on_flex_trits(tx, tx_trits);
     if (offset != NUM_TRITS_SERIALIZED_TRANSACTION) {
       ret = SC_CCLIENT_INVALID_FLEX_TRITS;
-      ta_log_error("%s\n", "SC_CCLIENT_INVALID_FLEX_TRITS");
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
     // get nonce
     flex_trit_t* nonce = ta_pow_flex(tx_trits, mwm);
     if (nonce == NULL) {
-      ret = SC_TA_OOM;
-      ta_log_error("%s\n", "SC_TA_OOM");
+      ret = SC_OOM;
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
     transaction_set_nonce(tx, nonce);

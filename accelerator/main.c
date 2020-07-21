@@ -5,6 +5,7 @@
 #include "connectivity/common.h"
 #include "connectivity/http/http.h"
 #include "pthread.h"
+#include "runtime_cli.h"
 #include "time.h"
 #include "utils/handles/signal.h"
 
@@ -20,20 +21,52 @@ static void ta_stop(int signal) {
   }
 }
 
-void check_iri_connection(void* arg) {
+static void* health_track(void* arg) {
   ta_core_t* core = (ta_core_t*)arg;
-  while (true) {
-    status_t ret = ta_get_iri_status(&core->iota_service);
-    if (ret == SC_CORE_IRI_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
-      ta_log_error("IRI status error %d. Try to connect to another IRI host on priority list\n", ret);
-      ret = ta_update_iri_conneciton(&core->ta_conf, &core->iota_service);
+  while (core->cache.state) {
+    status_t ret = ta_get_node_status(&core->iota_service);
+    if (ret == SC_CORE_NODE_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
+      ta_log_error("IOTA full node status error %d. Try to connect to another IOTA full node host on priority list\n",
+                   ret);
+      ret = ta_update_node_connection(&core->ta_conf, &core->iota_service);
       if (ret) {
-        ta_log_error("Update IRI host failed: %d\n", ret);
+        ta_log_error("Update IOTA full node host failed: %d\n", ret);
+      }
+    }
+
+    // Broadcast buffered transactions
+    if (ret == SC_OK) {
+      ret = broadcast_buffered_txn(core);
+      if (ret) {
+        ta_log_error("Broadcast buffered transactions failed. %s\n", ta_error_to_string(ret));
+      }
+    }
+
+    char uuid[UUID_STR_LEN] = {};
+    // The usage exceeds the maximum redis capacity
+    while (core->cache.capacity < cache_occupied_space()) {
+      if (pthread_rwlock_trywrlock(core->cache.rwlock)) {
+        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
+        break;
+      }
+
+      ret = cache_list_pop(core->cache.done_list_name, uuid);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+      }
+      ret = cache_del(uuid);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+      }
+
+      if (pthread_rwlock_unlock(core->cache.rwlock)) {
+        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
       }
     }
 
     sleep(core->ta_conf.health_track_period);
   }
+  return ((void*)NULL);
 }
 
 int main(int argc, char* argv[]) {
@@ -68,13 +101,12 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  pthread_t thread;
-  pthread_create(&thread, NULL, check_iri_connection, &ta_core);
+  pthread_t health_thread;
+  pthread_create(&health_thread, NULL, health_track, (void*)&ta_core);
 
-  // Initialize apis cJSON lock
-  if (apis_lock_init() != SC_OK) {
-    ta_log_error("Lock initialization failed %s.\n", MAIN_LOGGER);
-    return EXIT_FAILURE;
+  if (is_option_enabled(&ta_core.ta_conf, CLI_RUNTIME_CLI)) {
+    pthread_t cli_thread;
+    pthread_create(&cli_thread, NULL, cli_routine, (void*)&ta_core);
   }
 
   if (ta_http_init(&ta_http, &ta_core) != SC_OK) {
@@ -88,22 +120,10 @@ int main(int argc, char* argv[]) {
   }
 
   log_info(logger_id, "Tangle-accelerator starts running\n");
+  ta_logger_switch(is_option_enabled(&ta_core.ta_conf, CLI_QUIET_MODE), true, &(ta_core.ta_conf));
 
-  // Disable loggers when quiet mode is on
-  if (quiet_mode) {
-    // Destroy logger when quiet mode is on
-    logger_helper_release(logger_id);
-    logger_helper_destroy();
-  } else {
-    http_logger_init();
-    apis_logger_init();
-    cc_logger_init();
-    pow_logger_init();
-    timer_logger_init();
-    conn_logger_init();
-    // Enable backend_redis logger
-    br_logger_init();
-  }
+  // Once tangle-accelerator finished initializing, notify regression test script with unix domain socket
+  notification_trigger();
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.
@@ -115,28 +135,13 @@ int main(int argc, char* argv[]) {
   }
 
 cleanup:
-  log_info(logger_id, "Destroying API lock\n");
-  if (apis_lock_destroy() != SC_OK) {
-    ta_log_error("Destroying api lock failed %s.\n", MAIN_LOGGER);
-    return EXIT_FAILURE;
-  }
   log_info(logger_id, "Destroying TA configurations\n");
+  ta_logger_switch(true, false, &(ta_core.ta_conf));
   ta_core_destroy(&ta_core);
-
-  if (quiet_mode == false) {
-    http_logger_release();
-    conn_logger_release();
-    apis_logger_release();
-    cc_logger_release();
-    serializer_logger_release();
-    pow_logger_release();
-    timer_logger_release();
-    logger_helper_release(logger_id);
-    br_logger_release();
-    if (logger_helper_destroy() != RC_OK) {
-      ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
-      return EXIT_FAILURE;
-    }
+  logger_helper_release(logger_id);
+  if (logger_helper_destroy() != RC_OK) {
+    ta_log_error("Destroying logger failed %s.\n", MAIN_LOGGER);
+    return EXIT_FAILURE;
   }
   return 0;
 }

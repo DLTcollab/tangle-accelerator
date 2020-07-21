@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 BiiLabs Co., Ltd. and Contributors
+ * Copyright (C) 2019-2020 BiiLabs Co., Ltd. and Contributors
  * All Rights Reserved.
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the MIT license. A copy of the license can be found in the file
@@ -12,7 +12,7 @@
 static struct db_keyspace_names_s {
   db_client_usage_t usage;
   const char* name;
-} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}};
+} db_keyspace_names[] = {{DB_USAGE_REATTACH, "reattachment"}, {DB_USAGE_PERMANODE, "db_chronicle"}};
 static const int db_keyspace_name_nums = sizeof(db_keyspace_names) / sizeof(struct db_keyspace_names_s);
 
 static const char* get_keyspace_name(db_client_usage_t usage) {
@@ -59,11 +59,11 @@ static CassError connect_session(CassSession* session, const CassCluster* cluste
 status_t db_client_service_init(db_client_service_t* service, db_client_usage_t usage) {
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (service->host == NULL) {
     ta_log_error("NULL pointer to ScyllaDB hostname\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
 
   /**< This object is thread-safe. It is best practice to create and reuse a single object per application. */
@@ -83,7 +83,7 @@ status_t db_client_service_init(db_client_service_t* service, db_client_usage_t 
 status_t db_client_service_free(db_client_service_t* service) {
   if (service == NULL) {
     ta_log_error("NULL pointer to ScyllaDB client service for connection endpoint(s)\n");
-    return SC_TA_NULL;
+    return SC_NULL;
   }
   if (service->uuid_gen != NULL) {
     cass_uuid_gen_free(service->uuid_gen);

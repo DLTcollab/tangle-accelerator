@@ -1,0 +1,20 @@
+executables:
+{
+    diagnose = ( diagnoseComp )
+}
+
+processes:
+{
+    run:
+    {
+        (diagnose)
+    }
+}
+
+bindings:
+{
+    diagnose.diagnoseComp.le_gnss -> positioningService.le_gnss
+    diagnose.diagnoseComp.le_mrc -> modemService.le_mrc
+}
+
+start: manual

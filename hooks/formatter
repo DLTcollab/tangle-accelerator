@@ -1,12 +1,14 @@
 #!/bin/bash
 
-for file in $(find $(git rev-parse --show-toplevel) | grep -E "\.(c|cc|cpp|h|hh|hpp|m|mm)\$" | grep -Ev "/third_party/")
-do
-  clang-format -style=file -fallback-style=none -i $file
+for file in $(find $(git rev-parse --show-toplevel) | egrep "\.(c|cc|cpp|h|hh|hpp|m|mm)\$" | egrep -v -f hooks/format-exclude-list); do
+	clang-format -style=file -fallback-style=none -i $file
 done
 
-for file in $(find $(git rev-parse --show-toplevel) | grep -E "\BUILD\$" | grep -Ev "/third_party/")
-do
-  buildifier $file
+for file in $(find $(git rev-parse --show-toplevel) | egrep "\BUILD\$" | egrep -v -f hooks/format-exclude-list); do
+	buildifier $file
 done
 buildifier WORKSPACE
+
+for file in $(find $(git rev-parse --show-toplevel) | egrep "\.sh\$" | egrep -v -f hooks/format-exclude-list); do
+       shfmt -w $file
+done
