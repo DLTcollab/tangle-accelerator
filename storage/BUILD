@@ -4,6 +4,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":scylladb_identity",
+        ":scylladb_permanode",
     ],
 )
 
@@ -33,12 +34,27 @@ cc_library(
 )
 
 cc_library(
+    name = "scylladb_permanode",
+    srcs = ["scylladb_permanode.c"],
+    hdrs = ["scylladb_permanode.h"],
+    linkopts = ["-lcassandra"],
+    deps = [
+        ":scylladb_client",
+        "@com_github_uthash//:uthash",
+        "@iota.c//cclient/request:requests",
+        "@iota.c//cclient/response:responses",
+        "@org_iota_common//utils/containers/hash:hash243_queue",
+        "@org_iota_common//utils/containers/hash:hash8019_queue",
+    ],
+)
+
+cc_library(
     name = "scylladb_utils",
     srcs = ["scylladb_utils.c"],
     hdrs = ["scylladb_utils.h"],
     linkopts = ["-lcassandra"],
     deps = [
         "//common",
-        "@entangled//common/model:bundle",
+        "@org_iota_common//common/model:bundle",
     ],
 )

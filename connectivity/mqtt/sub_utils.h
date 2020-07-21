@@ -22,20 +22,6 @@ extern "C" {
  */
 
 /**
- * @brief Initialize logger
- */
-void mqtt_sub_logger_init();
-
-/**
- * @brief Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int mqtt_sub_logger_release();
-
-/**
  * @brief Publish callback function of subscriber.
  *
  * when a message initiated with <mosquitto_publish> has been sent to the broker. This callback will be called both if

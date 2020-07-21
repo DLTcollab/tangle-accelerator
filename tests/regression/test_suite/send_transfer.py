@@ -7,7 +7,7 @@ import logging
 
 class SendTransfer(unittest.TestCase):
 
-    # Positive value, tryte maessage, tryte tag, tryte address (pass)
+    # Positive value, tryte message, tryte tag, tryte address (pass)
     @test_logger
     def test_normal(self):
         res = API("/transaction/",
@@ -26,6 +26,7 @@ class SendTransfer(unittest.TestCase):
     def test_chinese_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[2]))
+        self._verify_pass(res)
 
     # Zero value, chinese message, tryte tag, tryte address (fail)
     @test_logger
@@ -41,47 +42,68 @@ class SendTransfer(unittest.TestCase):
                   post_data=map_field(self.post_field, self.query_string[4]))
         self.assertEqual(STATUS_CODE_500, res["status_code"])
 
-    # Negative value, tryte maessage, tryte tag, tryte address (pass)
+    # Negative value, tryte message, tryte tag, tryte address (pass)
     @test_logger
     def test_negative_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[5]))
         self._verify_pass(res)
 
-    # No value, tryte maessage, tryte tag, tryte address (pass)
+    # No value, tryte message, tryte tag, tryte address (pass)
     @test_logger
     def test_no_value(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[6]))
         self._verify_pass(res)
 
-    # Zero value, no maessage, tryte tag, tryte address (pass)
+    # Zero value, no message, tryte tag, tryte address (pass)
     @test_logger
     def test_no_message(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[7]))
         self._verify_pass(res)
 
-    # Zero value, tryte maessage, no tag, tryte address (pass)
+    # Zero value, tryte message, no tag, tryte address (pass)
     @test_logger
     def test_no_tag(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[8]))
         self._verify_pass(res)
 
-    # Zero value, tryte maessage, tryte tag, no address (pass)
+    # Zero value, tryte message, tryte tag, no address (pass)
     @test_logger
     def test_no_address(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[9]))
         self._verify_pass(res)
 
-    # Zero value, tryte maessage, tryte tag, unicode address (pass)
+    # Zero value, tryte message, tryte tag, unicode address (fail)
     @test_logger
     def test_unicode_address(self):
         res = API("/transaction/",
                   post_data=map_field(self.post_field, self.query_string[10]))
-        self._verify_pass(res)
+        self.assertEqual(STATUS_CODE_500, res["status_code"])
+    
+    # Zero value, tryte message, invalid tag, tryte address (fail)
+    @test_logger
+    def test_invalid_tag(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[11]))
+        self.assertEqual(STATUS_CODE_500, res["status_code"])
+    
+    # Zero value, tryte message, tryte tag, invalid address (fail)
+    @test_logger
+    def test_invalid_address(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[12]))
+        self.assertEqual(STATUS_CODE_500, res["status_code"])
+
+    # Zero value, tryte message, invalid tag, invalid address (fail)
+    @test_logger
+    def test_invalid_tag_and_address(self):
+        res = API("/transaction/",
+                  post_data=map_field(self.post_field, self.query_string[13]))
+        self.assertEqual(STATUS_CODE_500, res["status_code"])
 
     # Time statistics
     @test_logger
@@ -105,10 +127,13 @@ class SendTransfer(unittest.TestCase):
         eval_stat(time_cost, "send transfer")
 
     @classmethod
+    @test_logger
     def setUpClass(cls):
         rand_msg = gen_rand_trytes(30)
         rand_tag = gen_rand_trytes(27)
         rand_addr = gen_rand_trytes(81)
+        rand_invalid_tag = gen_rand_trytes(999)
+        rand_invalid_addr = gen_rand_trytes(999)
         cls.post_field = ["value", "message", "tag", "address"]
         cls.query_string = [[420, rand_msg, rand_tag, rand_addr],
                             [0, rand_msg, rand_tag, rand_addr],
@@ -120,7 +145,11 @@ class SendTransfer(unittest.TestCase):
                             [0, None, rand_tag, rand_addr],
                             [0, rand_msg, None, rand_addr],
                             [0, rand_msg, rand_tag, None],
-                            [0, rand_msg, rand_tag, "我思故我在"]]
+                            [0, rand_msg, rand_tag, "我思故我在"],
+                            [0, rand_msg, "ololaola", rand_addr],
+                            [0, rand_msg, rand_tag, "dio"],
+                            [0, rand_msg, "olaolaola", "dio"],
+                           ]
 
     def _verify_pass(self, res):
         self.assertEqual(STATUS_CODE_200, res["status_code"])

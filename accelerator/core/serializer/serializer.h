@@ -13,10 +13,8 @@
 #include "accelerator/core/request/request.h"
 #include "accelerator/core/response/response.h"
 #include "cJSON.h"
-#include "cclient/response/responses.h"
 #include "common/trinary/tryte_ascii.h"
-#include "utils/char_buffer.h"
-#include "utils/containers/hash/hash_array.h"
+#include "ser_mam.h"
 #include "utils/fill_nines.h"
 
 #ifdef __cplusplus
@@ -25,46 +23,36 @@ extern "C" {
 /**
  * @file accelerator/core/serializer/serializer.h
  * @brief Serialization of data strings
- * @example test_serializer.c
+ * @example unit-test/test_serializer.c
  */
 
-//
 /** @name Default input fields */
 /** @{ */
-/** Tag with mnemonic presentation of 'Powered by Tangle-Accelerator' */
+/**
+ * Tag with mnemonic presentation of 'Powered by Tangle-Accelerator'
+ */
 #define DEFAULT_TAG "POWEREDBYTANGLEACCELERATOR9"
-/** Address with mnemonic presentation of 'Powered by Tangle-Accelerator' */
-#define DEFAULT_ADDRESS                      \
-  "POWEREDBYTANGLEACCELERATOR99999999999999" \
-  "99999999999999999999999999999999999999999"
-/** 'Powered by tangle-accelerator' in ASCII */
+/**
+ * Address with mnemonic presentation of 'Powered by Tangle-Accelerator'
+ */
+#define DEFAULT_ADDRESS "POWEREDBYTANGLEACCELERATOR9999999999999999999999999999999999999999999999999999999"
+/**
+ * 'Powered by tangle-accelerator' in ASCII
+ */
 #define DEFAULT_MSG "ZBCDKDTCFDTCSCEAQCMDEAHDPCBDVC9DTCRAPCRCRCTC9DTCFDPCHDCDFD"
-/** Default message length */
+/**
+ * Default message length
+ */
 #define DEFAULT_MSG_LEN 58
 /** @} */
 
 /**
- * Initialize logger
- */
-void serializer_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int serializer_logger_release();
-
-/**
- * @brief Serialze tangle accelerator info into JSON
+ * @brief Serialize tangle accelerator info into JSON
  *
  * @param[out] obj Tangle-accelerator info in JSON
  * @param[in] ta_config Tangle-accelerator configuration variables
  * @param[in] tangle IOTA configuration variables
  * @param[in] cache Redis configuration variables
- * @param[in] iota_service IRI connection configuration variables
  *
  * @return
  * - SC_OK on success
@@ -75,7 +63,7 @@ status_t ta_get_info_serialize(char** obj, ta_config_t* const ta_config, iota_co
 
 #ifdef DB_ENABLE
 /**
- * @brief Serialze identity info into JSON
+ * @brief Serialize identity info into JSON
  *
  * @param[out] obj db identity info in JSON
  * @param[in] id_obj pointer to db_identity_t;
@@ -87,31 +75,7 @@ status_t db_identity_serialize(char** obj, db_identity_t* id_obj);
 #endif
 
 /**
- * @brief Serialze type of ta_generate_address_res_t to JSON string
- *
- * @param[out] obj Address hash in JSON
- * @param[in] res Response data in type of ta_generate_address_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_generate_address_res_serialize(const ta_generate_address_res_t* const res, char** obj);
-
-/**
- * @brief Serialze object `get_tips_res_t` into JSON
- *
- * @param[in] res Result `get_tips_res_t` object with tips inside
- * @param[out] obj Output tips in JSON
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
-
-/**
- * @brief Serialze the response of api_insert_identity()
+ * @brief Serialize the response of api_insert_identity()
  *
  * @param[in] hash Response transaction hash
  * @param[in] uuid_string Response uuid string
@@ -124,7 +88,7 @@ status_t ta_get_tips_res_serialize(const get_tips_res_t* const res, char** obj);
 status_t ta_insert_identity_res_serialize(const char* hash, const char* uuid_string, char** obj);
 
 /**
- * @brief Deserialze JSON string to type of ta_send_transfer_req_t
+ * @brief Deserialize JSON string to type of ta_send_transfer_req_t
  *
  * @param[in] obj Input values in JSON
  * @param[out] req Request data in type of ta_send_transfer_req_t
@@ -136,7 +100,7 @@ status_t ta_insert_identity_res_serialize(const char* hash, const char* uuid_str
 status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfer_req_t* req);
 
 /**
- * @brief Serialze the response of api_send_transfer()
+ * @brief Serialize the response of api_send_transfer()
  *
  * @param[in] res Response data in type of ta_send_transfer_res_t
  * @param[out] obj Input values in JSON
@@ -148,7 +112,7 @@ status_t ta_send_transfer_req_deserialize(const char* const obj, ta_send_transfe
 status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj);
 
 /**
- * @brief Deserialze JSON string to hash8019_array_p
+ * @brief Deserialize JSON string to hash8019_array_p
  *
  * @param[in] obj Input values in JSON
  * @param[out] out_trytes trytes arrary in the request data in type of
@@ -161,7 +125,7 @@ status_t ta_send_transfer_res_serialize(ta_send_transfer_res_t* res, char** obj)
 status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p out_trytes);
 
 /**
- * @brief Serialze hash8019_array_p to JSON string
+ * @brief Serialize hash8019_array_p to JSON string
  *
  * @param[in] trytes trytes array returned in type of hash8019_array_p
  * @param[out] obj output serialized JSON values
@@ -173,7 +137,7 @@ status_t ta_send_trytes_req_deserialize(const char* const obj, hash8019_array_p 
 status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj);
 
 /**
- * @brief Serialze response of api_transaction_object_single into JSON
+ * @brief Serialize response of api_transaction_object_single into JSON
  *
  * @param[in] res Transaction object array, but we take only the first one
  * @param[out] obj Result of serialization in JSON format.
@@ -185,10 +149,10 @@ status_t ta_send_trytes_res_serialize(const hash8019_array_p trytes, char** obj)
 status_t ta_find_transaction_object_single_res_serialize(transaction_array_t* res, char** obj);
 
 /**
- * @brief Deserialze type of ta_find_transaction_objects_req_t from JSON string
+ * @brief Deserialize type of ta_find_transaction_objects_req_t from JSON string
  *
  * @param[in] obj List of transaction hashes
- * @param[out] res Response data in type of ta_find_transaction_objects_req_t
+ * @param[out] req Response data in type of ta_find_transaction_objects_req_t
  *
  * @return
  * - SC_OK on success
@@ -198,7 +162,7 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
                                                      ta_find_transaction_objects_req_t* const req);
 
 /**
- * @brief Serialze type of ta_find_transaction_objects_res_t to JSON string
+ * @brief Serialize type of ta_find_transaction_objects_res_t to JSON string
  *
  * @param[out] obj List of transaction object in JSON
  * @param[in] res Response data in type of ta_find_transaction_objects_res_t
@@ -210,7 +174,7 @@ status_t ta_find_transaction_objects_req_deserialize(const char* const obj,
 status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* const res, char** obj);
 
 /**
- * @brief Serialze type of ta_find_transactions_by_tag_res_t to JSON string
+ * @brief Serialize type of ta_find_transactions_by_tag_res_t to JSON string
  *
  * @param[out] obj List of transaction hash in JSON
  * @param[in] res Response data in type of ta_find_transactions_by_tag_res_t
@@ -220,66 +184,6 @@ status_t ta_find_transaction_objects_res_serialize(const transaction_array_t* co
  * - non-zero on error
  */
 status_t ta_find_transactions_by_tag_res_serialize(const ta_find_transactions_by_tag_res_t* const res, char** obj);
-
-/**
- * @brief Deserialize request of recv_mam_message
- *
- * @param[in] obj message formed in JSON
- * @param[out] req ta_recv_mam_req_t object
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t recv_mam_message_req_deserialize(const char* const obj, ta_recv_mam_req_t* const req);
-
-/**
- * @brief Serialize response of mam message
- *
- * @param[in] payload_array Response of payload message in utarray
- * @param[out] obj message array formed in JSON
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t recv_mam_message_res_serialize(UT_array* const payload_array, char** obj);
-
-/**
- * @brief Deserialze JSON string to type of ta_send_mam_req_t
- *
- * @param[in] obj Input values in JSON
- * @param[out] req Request data in type of ta_send_mam_req_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
-
-/**
- * @brief Deserialze JSON string to type of ta_send_mam_res_t
- *
- * @param[in] obj Input values in JSON
- * @param[out] res Response data in type of ta_send_mam_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_deserialize(const char* const obj, ta_send_mam_res_t* const res);
-
-/**
- * @brief Serialze type of ta_send_mam_res_t to JSON string
- *
- * @param[out] obj send mam response object in JSON
- * @param[in] res Response data in type of ta_send_mam_res_t
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 
 #ifdef MQTT_ENABLE
 /**
@@ -295,7 +199,7 @@ status_t send_mam_res_serialize(const ta_send_mam_res_t* const res, char** obj);
 status_t mqtt_device_id_deserialize(const char* const obj, char* device_id);
 
 /**
- * @brief Deserialze tag in string from MQTT JSON request.
+ * @brief Deserialize tag in string from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with tag field
  * @param[out] tag Tag in string
@@ -307,7 +211,7 @@ status_t mqtt_device_id_deserialize(const char* const obj, char* device_id);
 status_t mqtt_tag_req_deserialize(const char* const obj, char* tag);
 
 /**
- * @brief Deserialze transaction hash in string from MQTT JSON request.
+ * @brief Deserialize transaction hash in string from MQTT JSON request.
  *
  * @param[in] obj Input request in JSON with hash field
  * @param[out] hash Transaction hash in string
@@ -320,7 +224,7 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
 #endif
 
 /**
- * @brief Deserialze proxy api command.
+ * @brief Deserialize proxy api command.
  *
  * @param[in] obj Input request in JSON with hash field
  * @param[out] command Proxy API command name in string
@@ -332,21 +236,21 @@ status_t mqtt_transaction_hash_req_deserialize(const char* const obj, char* hash
 status_t proxy_apis_command_req_deserialize(const char* const obj, char* command);
 
 /**
- * @brief Deserialze latestMilestone and latestSolidSubtangleMilestone from IRI core API getNodeInfo
+ * @brief Deserialize latestMilestone and latestSolidSubtangleMilestone from IOTA core API getNodeInfo
  *
  * @param[in] obj getNodeInfo response in JSON.
- * @param[out] latestMilestoneIndex Index of latestMilestone
- * @param[out] latestSolidSubtangleMilestoneIndex Index of latestSolidSubtangleMilestone
+ * @param[out] latestMilestone Index of latestMilestone
+ * @param[out] latestSolidSubtangleMilestone Index of latestSolidSubtangleMilestone
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_iri_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
-                                              int* const latestSolidSubtangleMilestone);
+status_t get_node_status_milestone_deserialize(char const* const obj, int* const latestMilestone,
+                                               int* const latestSolidSubtangleMilestone);
 
 /**
- * @brief Serialze the response of IRI connection status.
+ * @brief Serialize the response of IOTA full node connection status.
  *
  * @param[in] status Reponse status code
  * @param[out] obj Serialized API response
@@ -355,7 +259,19 @@ status_t get_iri_status_milestone_deserialize(char const* const obj, int* const 
  * - SC_OK on success
  * - non-zero on error
  */
-status_t get_iri_status_res_serialize(const status_t status, char** obj);
+status_t get_node_status_res_serialize(const status_t status, char** obj);
+
+/**
+ * @brief Serialize the response of `fetch_txn_with_uuid()`.
+ *
+ * @param[in] res ta_fetch_txn_with_uuid_res_t object
+ * @param[out] obj Serialized API response
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj);
 
 #ifdef __cplusplus
 }

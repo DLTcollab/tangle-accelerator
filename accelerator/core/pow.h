@@ -22,22 +22,8 @@ extern "C" {
 /**
  * @file accelerator/core/pow.h
  * @brief PoW interface
- * @example test_pow.c
+ * @example unit-test/test_pow.c
  */
-
-/**
- * Initialize logger
- */
-void pow_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int pow_logger_release();
 
 /**
  * Initiate pow module

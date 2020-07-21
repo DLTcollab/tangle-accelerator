@@ -11,11 +11,11 @@ cc_library(
     deps = [
         "//common",
         "//accelerator:build_option",
-        "@entangled//common:errors",
-        "@entangled//common/model:transaction",
-        "@entangled//mam/mam:message",
-        "@entangled//utils/containers/hash:hash243_queue",
-        "@entangled//utils/containers/hash:hash243_stack",
+        "@org_iota_common//common:errors",
+        "@org_iota_common//common/model:transaction",
+        "@mam.c//mam/mam:message",
+        "@org_iota_common//utils/containers/hash:hash243_queue",
+        "@org_iota_common//utils/containers/hash:hash243_stack",
     ] + select({
         "//accelerator:db_enable": ["//storage"],
         "//conditions:default": [],

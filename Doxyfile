@@ -1,6 +1,6 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "tangle-accelerator"
-PROJECT_NUMBER         = 0.1.0
+PROJECT_NUMBER         = 0.9.5
 OUTPUT_DIRECTORY       = docs/
 OPTIMIZE_OUTPUT_FOR_C  = YES
 INPUT                  = . \
@@ -9,13 +9,19 @@ INPUT                  = . \
                         accelerator/core/request \
                         accelerator/core/response \
                         accelerator/core/serializer \
+                        endpoint \
+                        endpoint/endpointComp \
+                        endpoint/hal \
+                        endpoint \
                         utils \ 
+                        utils/cache \ 
                         common \
                         storage \
                         connectivity/mqtt \
                         connectivity/http
 FILE_PATTERNS          = *.h \
-                        *.md
+                        *.md \
+                        *.c
 EXAMPLE_PATH           = tests
 EXAMPLE_PATTERNS       = test_*
 USE_MDFILE_AS_MAINPAGE = README.md

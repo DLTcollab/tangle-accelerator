@@ -13,7 +13,7 @@
 #include "common/logger.h"
 #include "common/macros.h"
 
-#define MQTT_UTILS_LOGGER "mqtt-utils"
+#define MQTT_UTILS_LOGGER "duplex_utils"
 
 static logger_id_t logger_id;
 
@@ -32,8 +32,8 @@ int mqtt_utils_logger_release() {
 status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *config_cfg) {
   status_t ret = SC_OK;
   if (config_mosq == NULL || config_cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   init_mosq_config(config_cfg, client_duplex);
@@ -47,7 +47,7 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
   init_check_error(config_cfg, client_pub);
 
   *config_mosq = mosquitto_new(config_cfg->general_config->id, true, NULL);
-  if (!config_mosq) {
+  if (!(*config_mosq)) {
     switch (errno) {
       case ENOMEM:
         ta_log_error("%s\n", "Out of memory");
@@ -56,7 +56,7 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
         ta_log_error("%s\n", "Invalid id");
         break;
     }
-    return SC_MOSQ_OBJ_INIT_ERROR;
+    return SC_MQTT_MOSQ_OBJ_INIT_ERROR;
   }
 
   ret = mosq_opts_set(*config_mosq, config_cfg);
@@ -67,8 +67,8 @@ status_t duplex_config_init(struct mosquitto **config_mosq, mosq_config_t *confi
 status_t gossip_channel_set(mosq_config_t *channel_cfg, char *host, char *sub_topic, char *pub_topic) {
   status_t ret = SC_OK;
   if (channel_cfg == NULL || (host == NULL && sub_topic == NULL && pub_topic == NULL)) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   if (host) {
@@ -95,8 +95,8 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
   status_t ret = SC_OK;
 
   if (channel_cfg == NULL || host == NULL || root_path == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   channel_cfg->general_config->host = strdup(host);
@@ -105,8 +105,8 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
   char *sub_topic = NULL;
   int sub_topic_len, api_name_len;
   int root_path_len = strlen(root_path);
-  char *api_names[] = {"address",     "tag/hashes",       "tag/object", "transaction/object", "tryte",
-                       "transaction", "transaction/send", "tips/all",   "tips/pair"};
+  char *api_names[] = {"address", "tag/hashes",  "tag/object",      "transaction/object",
+                       "tryte",   "transaction", "transaction/send"};
 
   const int api_num = ARRAY_SIZE(api_names);
   for (int i = 0; i < api_num; i++) {
@@ -114,7 +114,8 @@ status_t gossip_api_channels_set(mosq_config_t *channel_cfg, char *host, char *r
     sub_topic_len = root_path_len + 1 + api_name_len;
     sub_topic = (char *)malloc(sub_topic_len + 1);
     if (sub_topic == NULL) {
-      ret = SC_MQTT_OOM;
+      ret = SC_OOM;
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
 
@@ -136,8 +137,8 @@ done:
 
 status_t gossip_message_set(mosq_config_t *cfg, char *message) {
   if (cfg == NULL || message == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   cfg->pub_config->message = strdup(message);
@@ -149,8 +150,8 @@ status_t gossip_message_set(mosq_config_t *cfg, char *message) {
 status_t duplex_client_start(struct mosquitto *mosq, mosq_config_t *cfg) {
   status_t ret = MOSQ_ERR_SUCCESS;
   if (mosq == NULL || cfg == NULL) {
-    ta_log_error("%s\n", "SC_TA_NULL");
-    return SC_MQTT_NULL;
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
   }
 
   cfg->general_config->client_type = client_sub;

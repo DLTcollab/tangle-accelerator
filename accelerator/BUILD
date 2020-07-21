@@ -20,14 +20,28 @@ cc_binary(
     }),
     deps = [
         ":ta_config",
+        ":ta_cli",
         "//connectivity/http",
-        "@entangled//utils/handles:signal",
+        "@org_iota_common//utils/handles:signal",
     ] + select({
         ":mqtt_enable": [
             "//connectivity/mqtt",
         ],
         "//conditions:default": [],
     }),
+)
+
+cc_library(
+    name = "ta_cli",
+    srcs = ["runtime_cli.c"],
+    hdrs = ["runtime_cli.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ta_config",
+        "//common:ta_logger",
+        "//utils/cache",
+        "@org_iota_common//utils:macros",
+    ],
 )
 
 cc_library(
@@ -39,9 +53,12 @@ cc_library(
         ":cli_info",
         "//accelerator/core:pow",
         "//common",
+        "//utils:timer",
         ":build_option",
         "//utils/cache",
-        "@entangled//cclient/api",
+        "//utils:cpuinfo",
+        "@iota.c//cclient/api:api",
+        "@iota.c//cclient:service",
         "@yaml",
     ] + select({
         ":db_enable": ["//storage"],

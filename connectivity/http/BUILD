@@ -7,7 +7,7 @@ cc_library(
         "//accelerator/core:apis",
         "//accelerator/core:proxy_apis",
         "//connectivity:common",
-        "@entangled//utils:macros",
         "@libmicrohttpd",
+        "@org_iota_common//utils:macros",
     ],
 )

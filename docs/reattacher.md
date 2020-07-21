@@ -6,8 +6,7 @@ When enabling the external database for transaction reattachment, `Tangle-Accele
 
 `Transaction reattacher` will periodically read pending transactions from a specific ScyllaDB cluster, and get the latest inclusion status of those transactions from an IOTA full node. `Reattacher` will update the newest inclusion status to the ScyllaDB cluster. For persistent transactions, `reattacher` performs reattachment, which will do tips selection and PoW for the original bundle, and reattach it to the Tangle. After reattachment, `reattacher` will update the new transaction hash to the ScyllaDB cluster.
 
-
-See [docs/build.md] for more information about enabling transaction reattachment.
+See [docs/build.md](docs/build.md) for more information about enabling transaction reattachment.
 
 ## Build Instructions
 
@@ -16,7 +15,7 @@ See [docs/build.md] for more information about enabling transaction reattachment
 The reattacher support following options :
 
 * `DB_HOST`: binding address of ScyllDB cluster
-* `IRI_HOST`: binding address of IRI
-* `IRI_PORT`: port of IRI
+* `NODE_HOST`: binding address of IOTA full node
+* `NODE_PORT`: port of IOTA full node
 
-If you do not specify `DB_HOST` or `IRI_HOST`, the address will be set as `localhost`.
+If you do not specify `DB_HOST` or `NODE_HOST`, the address will be set as `localhost`.

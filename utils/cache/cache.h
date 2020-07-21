@@ -15,6 +15,7 @@
 #include <string.h>
 #include "common/ta_errors.h"
 #include "common/trinary/flex_trit.h"
+#include "utils/handles/lock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,7 @@ extern "C" {
 /**
  * @file utils/cache/cache.h
  * @brief Caching service interface
- * @example test_cache.c
+ * @example unit-test/test_cache.c
  */
 
 /** struct of cache_t */
@@ -34,38 +35,27 @@ typedef struct {
 } cache_t;
 
 /**
- * Initialize logger
- */
-void br_logger_init();
-
-/**
- * Release logger
+ * @brief Initiate cache module. This function can be called in 'config.c' only.
  *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int br_logger_release();
-
-/**
- * Initiate cache module
- *
- * @param[in] state if cache server should open
+ * @param[in,out] rwlock Read/Write lock object.
+ * @param[in] input_state Whether cache server should be activated
  * @param[in] host cache server host
  * @param[in] port cache server port
  * @return
  * - True on success
  * - False on error
  */
-bool cache_init(bool state, const char* host, int port);
+bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, int port);
 
 /**
- * Stop interacting with cache module
+ * @brief Stop interacting with cache module. This function can be called in 'config.c' only.
+ *
+ * @param[in,out] rwlock Read/Write lock object.
  */
-void cache_stop();
+void cache_stop(pthread_rwlock_t** rwlock);
 
 /**
- * Delete certain key-value store from cache
+ * @brief Delete certain key-value storage from cache
  *
  * @param[in] key Key string to search
  *
@@ -76,7 +66,7 @@ void cache_stop();
 status_t cache_del(const char* const key);
 
 /**
- * Get key-value store from in-memory cache
+ * @brief Get key-value storage from in-memory cache
  *
  * @param[in] key Key string to search
  * @param[out] res Result of GET key
@@ -88,9 +78,8 @@ status_t cache_del(const char* const key);
 status_t cache_get(const char* const key, char* res);
 
 /**
- * Set key-value store into in-memory cache
+ * @brief Set key-value storage in in-memory cache
  *
- * @param[in] cache Data type for Cache module
  * @param[in] key Key string to store
  * @param[in] key_size Size of key string to store
  * @param[in] value Value string to store
@@ -105,29 +94,27 @@ status_t cache_set(const char* const key, const int key_size, const void* const 
                    const int timeout);
 
 /**
- * Push a elements to a list into in-memory cache
+ * @brief Push an element to a list in in-memory cache
  *
  * @param[in] key Key string to store
  * @param[in] key_size Size of key string to store
  * @param[in] value Value string to store
  * @param[in] value_size Size of value string to store
- * @param[in] timeout Set the timeout of the key in second. If arg timeout is equal less than 0, then no timeout will be
  * set.
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size,
-                         const int timeout);
+status_t cache_list_push(const char* const key, const int key_size, const void* const value, const int value_size);
 
 /**
- * Get an element of a list from in-memory cache
+ * @brief Get an element of a list from in-memory cache
  *
  * @param[in] key Key string to search
  * @param[in] index Assigned index for fetching element
- * @param[in] res_len Expected length of the respose
- * @param[out] res The element with assigning index
+ * @param[in] res_len Expected length of the response
+ * @param[out] res The element with assigned index
  *
  * @return
  * - SC_OK on success
@@ -136,7 +123,20 @@ status_t cache_list_push(const char* const key, const int key_size, const void* 
 status_t cache_list_at(const char* const key, const int index, const int res_len, char* res);
 
 /**
- * Fetch the length of the list in in-memory cache
+ * @brief Get the top element of a list from in-memory cache
+ *
+ * @param[in] key Key string to search
+ * @param[in] res_len Expected length of the response
+ * @param[out] res The element with assigned index
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_peek(const char* const key, const int res_len, char* res);
+
+/**
+ * @brief Fetch the length of the list in in-memory cache
  *
  * @param[in] key Key string to store
  * @param[out] len The returned length of list
@@ -148,16 +148,58 @@ status_t cache_list_at(const char* const key, const int index, const int res_len
 status_t cache_list_size(const char* const key, int* len);
 
 /**
- * Pop an element from the list in in-memory cache
+ * @brief Push an element to a list in in-memory cache
  *
- * @param[in] key Key for key-value starage
- * @param[out] res The element with assigning index
+ * @param[in] key Key string to store
+ * @param[in] value Value string to store
+ * @param[in] value_len Size of value string to store
+ * @param[out] exist Whether the given value existed in the key storage.
+ * set.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t cache_list_exist(const char* const key, const char* const value, const int value_len, bool* exist);
+
+/**
+ * @brief Pop an element from the list in in-memory cache
+ *
+ * @param[in] key Key for key-value storage
+ * @param[out] res The element with assigned index
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t cache_list_pop(const char* const key, char* res);
+
+/**
+ * @brief Get the occupied size by Redis in bytes.
+ *
+ * @return
+ * - Used size of the cache database on success
+ * - -1 on error
+ */
+long int cache_occupied_space();
+
+/**
+ * @brief Set maximum memory limit of Redis
+ *
+ * @return
+ * - SC_CACHE_OFF if cache module is not enabled
+ * - 1 if cache module is enabled
+ */
+long int cache_set_capacity(char* size);
+
+/**
+ * @brief Get maximum memory limit of Redis
+ *
+ * @return
+ * - SC_CACHE_OFF if cache module is not enabled
+ * - 1 if cache module is enabled
+ */
+long int cache_get_capacity();
 
 #ifdef __cplusplus
 }

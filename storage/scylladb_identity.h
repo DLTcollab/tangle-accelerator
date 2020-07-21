@@ -22,7 +22,7 @@ extern "C" {
  * The identity table contains following 4 columns.
  * id : A UUID as the identifer of transactions.
  * hash : The transaction hash that would be updated after reattachment.
- * status : The inclustion status of transaction.
+ * status : The inclusion status of transaction.
  * ts : The timestamp of update time of status or hash.
  */
 
@@ -46,13 +46,13 @@ db_identity_array_t* db_identity_array_new();
        itr = (db_identity_t*)utarray_next(identities, itr))
 
 /**
- * Free memory of db_identity_array_t
+ * @brief Free memory of db_identity_array_t
  */
 static inline void db_identity_array_free(db_identity_array_t** const db_identity_array) {
   if (db_identity_array && *db_identity_array) {
     utarray_free(*db_identity_array);
+    *db_identity_array = NULL;
   }
-  *db_identity_array = NULL;
 }
 
 /**
@@ -62,7 +62,7 @@ static inline void db_identity_array_free(db_identity_array_t** const db_identit
  *
  * @return
  * - SC_OK on success
- * - SC_STORAGE_OOM on error
+ * - SC_OOM on error
  */
 status_t db_identity_new(db_identity_t** obj);
 
@@ -80,7 +80,7 @@ void db_identity_free(db_identity_t** obj);
  * @param[in] in pointer to CassUuid to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
+ * - SC_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_uuid(db_identity_t* obj, CassUuid* in);
 
@@ -114,7 +114,7 @@ cass_int64_t db_ret_identity_time_elapsed(db_identity_t* obj);
  * @param[in] status status to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
+ * - SC_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_status(db_identity_t* obj, cass_int8_t status);
 
@@ -137,7 +137,7 @@ cass_int8_t db_ret_identity_status(const db_identity_t* obj);
  * @param[in] length size of hash
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
+ * - SC_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_hash(db_identity_t* obj, const cass_byte_t* hash, size_t length);
 
@@ -200,7 +200,7 @@ status_t db_get_identity_objs_by_status(db_client_service_t* service, cass_int8_
  * @param[in] ts timestamp to be set into db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
+ * - SC_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_set_identity_timestamp(db_identity_t* obj, cass_int64_t ts);
 
@@ -261,7 +261,7 @@ status_t db_insert_identity_table(db_client_service_t* service, db_identity_t* o
  * @param[in] obj pointer to db_identity_t
  * @return
  * - SC_OK on success
- * - SC_TA_NULL/SC_STORAGE_INVALID_INPUT on error
+ * - SC_NULL/SC_STORAGE_INVALID_INPUT on error
  */
 status_t db_show_identity_info(db_identity_t* obj);
 

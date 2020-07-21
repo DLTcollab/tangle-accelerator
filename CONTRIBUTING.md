@@ -1,22 +1,21 @@
 # Contributing to Tangle-accelerator
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. 
+email, or any other method with the owners of this repository before making a change.
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
 ## Pull Request Process
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a 
-   build.
+1. Ensure any install or build dependencies are removed before the end of the layer when doing a build.
 2. Create a new branch for fixing or developing the changes.
 3. Run test with `bazel test //tests/...`, after finishing the changes.
-4. Update the README.md with details of changes to the interface, which includes new environment 
-   variables, exposed ports, useful file locations and container parameters.
+4. Update the README.md with details of changes to the interface, which includes new environment variables, exposed ports, useful file locations and container parameters.
 5. Run `hooks/formatter` before committing the changes.
 6. Rebase to the latest `develop` branch.
 
 ## Git Commit Message Guidelines
+
 Read this [blog article](https://chris.beams.io/posts/git-commit/) and [this article](https://www.conventionalcommits.org/en/v1.0.0-beta.2/) and follow the instructions in these articles.
 The subject line of git commit message should follow this pattern
 `<type>[optional scope]: <description>`
@@ -27,6 +26,21 @@ The `type` includes the following 5 words depending on the content of the commit
 * refactor
 * test
 * doc
+
+## Doxygen-friendly Representation
+
+Function parameters should be in the following style or [doxygen official example](https://www.doxygen.nl/manual/commands.html#cmdparam) which allows the generating doxygen documentation.
+
+```c
+/**
+ * Copies bytes from a source memory area to a destination memory area,
+ * where both areas may not overlap.
+ * @param[out] dest The memory area to copy to.
+ * @param[in]  src  The memory area to copy from.
+ * @param[in]  n    The number of bytes to copy
+ */
+void memcpy(void *dest, const void *src, size_t n);
+```
 
 ## Code of Conduct
 

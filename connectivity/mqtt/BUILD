@@ -15,7 +15,7 @@ cc_library(
         "//common",
         "//common:ta_errors",
         "//connectivity:common",
-        "@entangled//common/model:transaction",
+        "@org_iota_common//common/model:transaction",
     ],
 )
 
