@@ -258,7 +258,7 @@ static status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const ico
 
   if (seed) {
     if (mam_api_init(api, seed) != RC_OK) {
-      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
+      ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_INIT));
       return SC_MAM_FAILED_INIT;
     }
   } else {
@@ -266,11 +266,11 @@ static status_t ta_mam_init(mam_api_t *const api, const iota_config_t *const ico
     retcode_t rc = mam_api_load(iconf->mam_file_path, api, NULL, 0);
     if (rc == RC_UTILS_FAILED_TO_OPEN_FILE) {
       if (mam_api_init(api, (tryte_t *)iconf->seed) != RC_OK) {
-        ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
+        ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_INIT));
         return SC_MAM_FAILED_INIT;
       }
     } else if (rc != RC_OK) {
-      ta_log_error("%s\n", "SC_MAM_FAILED_INIT");
+      ta_log_error("%s\n", ta_error_to_string(SC_MAM_FAILED_INIT));
       return SC_MAM_FAILED_INIT;
     }
   }
@@ -295,7 +295,7 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   if (!first_iter) {
     if (mam_api_channel_create(api, channel_depth, chid) != RC_OK) {
       ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
-      ta_log_error("%s\n", "SC_MAM_FAILED_CREATE_OR_GET_ID");
+      ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;
     }
   }
@@ -306,8 +306,8 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   // TODO use `ta_find_transaction_objects(service, obj_req, obj_res)` instead of the original 'iota.c' function
   retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, obj_res);
   if (ret_rc && ret_rc != RC_NULL_PARAM) {
-    ret = SC_MAM_FAILED_DESTROYED;
-    ta_log_error("%s\n", "SC_MAM_FAILED_DESTROYED");
+    ret = SC_MAM_FAILED_RESPONSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -482,7 +482,7 @@ static status_t ta_mam_written_msg_to_bundle(const iota_client_service_t *const 
   // Writing packet to bundle
   if (ta_mam_write_packet(api, payload, msg_id_trits, *bundle)) {
     ret = SC_MAM_FAILED_WRITE;
-    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -516,13 +516,13 @@ static status_t ta_mam_write_announce_to_bundle(mam_api_t *const api, const size
   trit_t msg_id[MAM_MSG_ID_SIZE];
   if (mam_api_channel_create(api, channel_depth, chid1) != RC_OK) {
     ret = SC_MAM_FAILED_CREATE_OR_GET_ID;
-    ta_log_error("%s\n", "SC_MAM_FAILED_CREATE_OR_GET_ID");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
   if (mam_api_bundle_announce_channel(api, chid, chid1, mam_key.psks, mam_key.ntru_pks, *bundle, msg_id) != RC_OK) {
     ret = SC_MAM_FAILED_WRITE_HEADER;
-    ta_log_error("%s\n", "SC_MAM_FAILED_WRITE_HEADER");
+    ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
@@ -680,6 +680,7 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
   bundle_array_t *bundle_array = NULL;
   bundle_array_new(&bundle_array);
   mam_pk_t_set_t init_trusted_ch = NULL;
+  mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
   recv_mam_data_id_mam_v1_t *data_id = (recv_mam_data_id_mam_v1_t *)req->data_id;
   recv_mam_key_mam_v1_t *key = (recv_mam_key_mam_v1_t *)req->key;
   if (mam_api_init(&mam, (tryte_t *)iconf->seed) != RC_OK) {
@@ -716,7 +717,6 @@ status_t ta_recv_mam_message(const iota_config_t *const iconf, const iota_client
   }
 
   // Add decryption keys
-  mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
   ret = ta_set_mam_key(&mam_key, key->psk_array, NULL, key->ntru_array);
   if (ret != SC_OK) {
     ta_log_error("%s\n", ta_error_to_string(ret));
