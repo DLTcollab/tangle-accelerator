@@ -15,7 +15,7 @@ There are three lists used.
 
 ### 2. done list
 
-    This list stores all the sent failed requests. The key (name) of the list is stored in the `done_list_name` field of `ta_cache_t`object.
+    This list stores all the sent failed requests. The key (name) of the list is stored in the `complete_list_name` field of `ta_cache_t`object.
     Each element in this list is the UUID of the corresponding request.
 
 ### 3. bundle list

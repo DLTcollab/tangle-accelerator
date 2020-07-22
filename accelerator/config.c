@@ -346,6 +346,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
   cache->state = false;
+  cache->buffer_list_name = BUFFER_LIST_NAME;
   cache->complete_list_name = COMPLETE_LIST_NAME;
   cache->mam_buffer_list_name = MAM_BUFFER_LIST_NAME;
   cache->mam_complete_list_name = MAM_COMPLETE_LIST_NAME;

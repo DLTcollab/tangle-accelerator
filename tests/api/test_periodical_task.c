@@ -149,7 +149,7 @@ void test_broadcast_buffered_txn(void) {
   hash_array_free(raw_txn_array);
 }
 
-void test_fetch_txn_with_uuid(void) {
+void test_fetch_buffered_request_status(void) {
   // Generate transaction trytes, and don't send them
   const char* json_template =
       "{\"value\":100,"
@@ -170,8 +170,8 @@ void test_fetch_txn_with_uuid(void) {
     TEST_ASSERT_EQUAL_INT32(SC_OK, ta_send_transfer_req_deserialize(json[i], req[i]));
   }
   char uuid[UUID_STR_LEN];
-  ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
-  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, TEST_UUID, res));
+  ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
+  TEST_ASSERT_EQUAL_INT32(SC_OK, ta_fetch_txn_with_uuid(&ta_core.cache, uuid, res));
   TEST_ASSERT_EQUAL_INT32(NOT_EXIST, res->status);
 
   TEST_ASSERT_EQUAL_INT32(
@@ -211,7 +211,7 @@ void test_fetch_txn_with_uuid(void) {
   }
 
   hash_array_free(raw_txn_array);
-  ta_fetch_txn_with_uuid_res_free(&res);
+  ta_fetch_buffered_request_status_res_free(&res);
 }
 
 void test_broadcast_buffered_mam(void) {
@@ -247,6 +247,18 @@ void test_broadcast_buffered_mam(void) {
   TEST_ASSERT_EQUAL_INT32(init_list_len, list_len);
 }
 
+void test_mam_fetch_with_uuid(void) {
+  for (int i = 0; i < MAM_REQ_NUM; i++) {
+    char* json_result = NULL;
+    char uuid[UUID_STR_LEN] = {};
+    ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
+    TEST_ASSERT_EQUAL_INT32(SC_OK, fetch_buffered_request_status_req_deserialize(response_uuid[i], uuid));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_fetch_buffered_request_status(&ta_core.cache, uuid, &json_result));
+    free(json_result);
+    ta_fetch_buffered_request_status_res_free(&res);
+  }
+}
+
 int main(int argc, char* argv[]) {
   rand_trytes_init();
 
@@ -270,8 +282,9 @@ int main(int argc, char* argv[]) {
 
   UNITY_BEGIN();
   RUN_TEST(test_broadcast_buffered_txn);
-  RUN_TEST(test_fetch_txn_with_uuid);
+  RUN_TEST(test_fetch_buffered_request_status);
   RUN_TEST(test_broadcast_buffered_mam);
+  RUN_TEST(test_mam_fetch_with_uuid);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }

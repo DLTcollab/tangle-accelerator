@@ -58,6 +58,7 @@ static status_t redis_get(redisContext* c, const char* const key, char** res) {
     ta_log_error("%s\n", ta_error_to_string(SC_NULL));
     return SC_NULL;
   }
+  *res = NULL;
 
   redisReply* reply = redisCommand(c, "GET %s", key);
   if (reply->type == REDIS_REPLY_STRING) {

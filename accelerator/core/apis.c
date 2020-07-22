@@ -385,10 +385,10 @@ status_t api_get_node_status(const iota_client_service_t* const service, char** 
   return ret;
 }
 
-status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid, char** json_result) {
+status_t api_fetch_buffered_request_status(const ta_cache_t* const cache, const char* const uuid, char** json_result) {
   status_t ret = SC_OK;
 
-  ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
+  ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
   if (res == NULL) {
     ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -401,13 +401,22 @@ status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* cons
     goto done;
   }
 
-  ret = fetch_txn_with_uuid_res_serialize(res, json_result);
+  // Check if the UUID exists in MAM buffered list when tangle-accelerator can't find it in transaction buffered list.
+  if (res->status == NOT_EXIST) {
+    ret = ta_fetch_mam_with_uuid(cache, uuid, res);
+    if (ret) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
+  }
+
+  ret = fetch_buffered_request_status_res_serialize(res, json_result);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:
-  ta_fetch_txn_with_uuid_res_free(&res);
+  ta_fetch_buffered_request_status_res_free(&res);
   return ret;
 }
 

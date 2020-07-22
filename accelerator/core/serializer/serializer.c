@@ -584,7 +584,33 @@ done:
   return ret;
 }
 
-status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj) {
+status_t fetch_buffered_request_status_req_deserialize(char* obj, char* uuid) {
+  if (obj == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_value = NULL;
+  status_t ret = SC_OK;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  json_value = cJSON_GetObjectItemCaseSensitive(json_obj, "uuid");
+  if (json_value != NULL) {
+    strncpy(uuid, json_value->valuestring, UUID_STR_LEN - 1);
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t fetch_buffered_request_status_res_serialize(const ta_fetch_buffered_request_status_res_t* const res,
+                                                     char** obj) {
   status_t ret = SC_OK;
   if (res == NULL) {
     ret = SC_NULL;
@@ -600,10 +626,16 @@ status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* c
   }
 
   if (res->status == SENT) {
-    ret = ta_bundle_transaction_to_json_array(res->bundle, "bundle", json_root);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
+    if (res->mam_result) {
+      *obj = strdup(res->mam_result);
+      // Goto the end of this function, since the buffered result of MAM request has been serialized.
       goto done;
+    } else {
+      ret = ta_bundle_transaction_to_json_array(res->bundle, "bundle", json_root);
+      if (ret) {
+        ta_log_error("%s\n", ta_error_to_string(ret));
+        goto done;
+      }
     }
   } else if (res->status == UNSENT) {
     cJSON_AddStringToObject(json_root, "status", "unsent");
