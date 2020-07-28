@@ -43,9 +43,9 @@ void test_cache_timeout(void) {
 }
 
 void test_generate_uuid(void) {
-  uuid_t binuuid;
-  uuid_generate_random(binuuid);
-  uuid_unparse(binuuid, test_uuid);
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, test_uuid);
 
   TEST_ASSERT_TRUE(test_uuid[0]);
 }

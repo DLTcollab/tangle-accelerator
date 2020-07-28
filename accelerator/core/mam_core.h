@@ -79,6 +79,20 @@ status_t ta_send_mam_message(const ta_config_t* const info, const iota_config_t*
 status_t ta_recv_mam_message(const iota_config_t* const iconf, const iota_client_service_t* const service,
                              ta_recv_mam_req_t* const req, ta_recv_mam_res_t* const res);
 
+/**
+ * @brief Register user identity with MAM channel seed.
+ *
+ * @param[in] cache redis configuration variables
+ * @param[in] req Request in 'ta_register_mam_channel_req_t' datatype
+ * @param[out] uuid Returned UUID
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_register_mam_channel(const ta_cache_t* const cache, const ta_register_mam_channel_req_t* const req,
+                                 char* uuid);
+
 #ifdef __cplusplus
 }
 #endif

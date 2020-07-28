@@ -775,3 +775,29 @@ done:
   mam_encrypt_key_free(&mam_key);
   return ret;
 }
+
+status_t ta_register_mam_channel(const ta_cache_t *const cache, const ta_register_mam_channel_req_t *const req,
+                                 char *uuid) {
+  if (!cache || !req || !uuid) {
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
+  }
+  status_t ret = SC_OK;
+
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, uuid);
+  if (!uuid[0]) {
+    ta_log_error("%s\n", "Failed to generate UUID");
+    goto done;
+  }
+
+  ret = cache_set(uuid, UUID_STR_LEN - 1, req->seed, NUM_TRYTES_ADDRESS, cache->timeout);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+done:
+  return ret;
+}

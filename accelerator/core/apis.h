@@ -213,6 +213,19 @@ status_t api_get_node_status(const iota_client_service_t* const service, char** 
  */
 status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid, char** json_result);
 
+/**
+ * @brief Register user identity with MAM channel seed
+ *
+ * @param[in] cache Redis configuration variables
+ * @param[in] obj Request in JSON format
+ * @param[out] json_result Result contains the user id.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_register_mam_channel(const ta_cache_t* const cache, const char* const obj, char** json_result);
+
 #ifdef DB_ENABLE
 /**
  * @brief Return transaction object with given single identity number.

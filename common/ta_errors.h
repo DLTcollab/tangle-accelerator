@@ -114,6 +114,12 @@ typedef enum {
   /**< Invald request value in JSON */
   SC_SERIALIZER_MESSAGE_OVERRUN = 0x06 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Message length is out of valid size */
+  SC_SERIALIZER_KEY_NOT_EXISTS = 0x07 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< Expected key doesn't exist */
+  SC_SERIALIZER_VALUE_EMPTY = 0x08 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< The value of the given key is empty */
+  SC_SERIALIZER_VALUE_INVLID = 0x08 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< The value or length of the value is invalid */
 
   // Cache module
   SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
