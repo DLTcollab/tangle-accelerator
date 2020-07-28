@@ -565,9 +565,9 @@ status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_
     goto done;
   }
 
-  uuid_t binuuid;
-  uuid_generate_random(binuuid);
-  uuid_unparse(binuuid, uuid);
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, uuid);
   if (!uuid[0]) {
     ta_log_error("%s\n", "Failed to generate UUID");
     goto done;

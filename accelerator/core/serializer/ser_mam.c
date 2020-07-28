@@ -482,3 +482,94 @@ done:
   cJSON_Delete(json_root);
   return ret;
 }
+
+status_t register_mam_channel_req_deserialize(const char* const obj, ta_register_mam_channel_req_t* req) {
+  if (obj == NULL || req == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_item = NULL;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "seed");
+  if (json_item != NULL) {
+    ret = SC_SERIALIZER_KEY_NOT_EXISTS;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (json_item->valuestring != NULL) {
+    ret = SC_SERIALIZER_VALUE_EMPTY;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (strlen(json_item->valuestring) != NUM_TRYTES_ADDRESS) {
+    ret = SC_SERIALIZER_VALUE_INVLID;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else {
+    strncpy(req->seed, json_item->valuestring, NUM_TRYTES_ADDRESS);
+    req->seed[NUM_TRYTES_ADDRESS] = 0;
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t register_mam_channel_res_serialize(const char* const uuid, char** obj) {
+  if (uuid == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+
+  cJSON_AddStringToObject(json_root, "user-id", uuid);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_PARSE));
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+
+  cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t register_mam_channel_res_deserialize(const char* const obj, char* user_id) {
+  if (obj == NULL || user_id == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_item = NULL;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "user-id");
+  if (json_item != NULL) {
+    ret = SC_SERIALIZER_KEY_NOT_EXISTS;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (json_item->valuestring != NULL) {
+    ret = SC_SERIALIZER_VALUE_EMPTY;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (strlen(json_item->valuestring) != UUID_STR_LEN) {
+    ret = SC_SERIALIZER_VALUE_INVLID;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else {
+    strncpy(user_id, json_item->valuestring, UUID_STR_LEN - 1);
+    user_id[UUID_STR_LEN - 1] = 0;
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
