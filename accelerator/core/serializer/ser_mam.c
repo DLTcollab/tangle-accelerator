@@ -60,7 +60,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "seed");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t seed_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
 
     if (seed_size != NUM_TRYTES_HASH) {
@@ -73,7 +73,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "chid");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t chid_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
 
     if (chid_size != NUM_TRYTES_HASH) {
@@ -86,7 +86,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "message");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t payload_size = strlen(json_value->valuestring);
     data->message = (char*)malloc((payload_size + 1) * sizeof(char));
 
