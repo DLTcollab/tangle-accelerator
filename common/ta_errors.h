@@ -57,6 +57,7 @@ extern "C" {
 #define SC_MODULE_STORAGE (0x0A << SC_MODULE_SHIFT)
 #define SC_MODULE_CORE (0x0B << SC_MODULE_SHIFT)
 #define SC_MODULE_ENDPOINT (0x0C << SC_MODULE_SHIFT)
+#define SC_MODULE_CRYPTO (0x0D << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -268,6 +269,14 @@ typedef enum {
   /**< Failed to read message from CAN BUS socket */
   SC_ENDPOINT_CAN_CLOSE_ERROR = 0x0F | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Failed to close CAN BUS socket */
+
+  // Crypto module
+  SC_CRYPTO_RAND_INIT = 0x01 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to generate random number generator */
+  SC_CRYPTO_GEN_PKEY = 0x02 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to generate ECDH public key */
+  SC_CRYPTO_COMPUTE_SECRET = 0x03 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to compute ECDH shared secret */
 
 } status_t;
 
