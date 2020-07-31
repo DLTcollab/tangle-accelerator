@@ -74,11 +74,12 @@ cc_test(
     ],
 )
 
-cc_binary(
-    name = "test_ecdh",
-    srcs = ["test_ecdh.c"],
+cc_test(
+    name = "test_ec_crypto",
+    srcs = ["test_ec_crypto.c"],
     deps = [
         "//crypto:ecdh",
+        "//crypto:ecdsa",
         "//tests:test_define",
         "@mbedtls",
     ],

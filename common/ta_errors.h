@@ -273,10 +273,14 @@ typedef enum {
   // Crypto module
   SC_CRYPTO_RAND_INIT = 0x01 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
   /**< Failed to generate random number generator */
-  SC_CRYPTO_GEN_PKEY = 0x02 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
-  /**< Failed to generate ECDH public key */
+  SC_CRYPTO_GEN_KEY = 0x02 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to generate ECDH public key, or ECDSA key pair */
   SC_CRYPTO_COMPUTE_SECRET = 0x03 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
   /**< Failed to compute ECDH shared secret */
+  SC_CRYPTO_HASH = 0x04 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to hash */
+  SC_CRYPTO_ECDSA_SIGN = 0x05 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to sign with ECDSA */
 
 } status_t;
 

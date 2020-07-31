@@ -6,8 +6,8 @@
  * "LICENSE" at the root of this distribution.
  */
 
-#ifndef ECDH_COMMON_H
-#define ECDH_COMMON_H
+#ifndef ECDH_ECDH_H
+#define ECDH_ECDH_H
 
 #include "common/logger.h"
 #include "common/ta_errors.h"
@@ -16,46 +16,13 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/platform.h"
+#include "randomness.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define SHARE_DATA_LEN 32
-
-typedef struct rand_gen_s {
-  mbedtls_entropy_context entropy;
-  mbedtls_ctr_drbg_context ctr_drbg;
-} rand_gen_t;
-
-/**
- * Initialize logger for ECDH
- */
-void ecdh_logger_init();
-
-/**
- * Release logger
- *
- * @return
- * - zero on success
- * - EXIT_FAILURE on error
- */
-int ecdh_logger_release();
-
-/**
- * @brief Initialize mbedtls random number generator
- *
- * @param[in] entropy Entropy contrext for randomess
- * @param[in] ctr_drbg Counter-mode block-cipher-based Deterministic Random Bit Generator object
- * @param[in] rand_seed Random seed for random number generator
- * @param[in] seed_len The length of random seed
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t rand_num_gen_init(mbedtls_entropy_context *entropy, mbedtls_ctr_drbg_context *ctr_drbg, char *rand_seed,
-                           uint16_t seed_len);
 
 /**
  * @brief Initialize ECDH context and generate ECDH keypair
@@ -84,20 +51,8 @@ status_t ecdh_gen_public_key(mbedtls_ecdh_context *ctx, mbedtls_ctr_drbg_context
 status_t ecdh_compute_shared_secret(mbedtls_ecdh_context *ctx, mbedtls_ctr_drbg_context *ctr_drbg,
                                     unsigned char *input_shared_data);
 
-/**
- * @brief Release random number generator
- *
- * @param[in] entropy Entropy contrext for randomess
- * @param[in] ctr_drbg Counter-mode block-cipher-based Deterministic Random Bit Generator object
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-void rand_num_gen_release(mbedtls_entropy_context *entropy, mbedtls_ctr_drbg_context *ctr_drbg);
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // ECDH_COMMON_H
+#endif  // ECDH_ECDH_H
