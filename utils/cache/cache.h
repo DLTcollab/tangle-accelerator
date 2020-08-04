@@ -75,7 +75,7 @@ status_t cache_del(const char* const key);
  * - SC_OK on success
  * - non-zero on error
  */
-status_t cache_get(const char* const key, char* res);
+status_t cache_get(const char* const key, char** res);
 
 /**
  * @brief Set key-value storage in in-memory cache

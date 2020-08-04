@@ -55,7 +55,7 @@ status_t send_mam_message_res_deserialize(const char* const obj, ta_send_mam_res
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char** obj);
+status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char const* const uuid, char** obj);
 
 /**
  * @brief Deserialize request of recv_mam_message

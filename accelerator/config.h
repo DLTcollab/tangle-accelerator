@@ -71,7 +71,9 @@ extern "C" {
 #define DB_HOST "localhost"
 #define MAM_FILE_PREFIX "/tmp/mam_bin_XXXXXX"
 #define BUFFER_LIST_NAME "txn_buff_list"
-#define DONE_LIST_NAME "done_txn_buff_list"
+#define COMPLETE_LIST_NAME "complete_txn_buff_list"
+#define MAM_BUFFER_LIST_NAME "mam_buff_list"
+#define MAM_COMPLETE_LIST_NAME "complete_mam_buff_list"
 #define CACHE_MAX_CAPACITY \
   170 * 1024 * 1024              /**< Default cache server maximum capacity. It is set to 170MB by default. */
 #define HEALTH_TRACK_PERIOD 1800 /**< Check every half hour in default */
@@ -113,14 +115,16 @@ typedef struct iota_config_s {
 
 /** struct type of accelerator cache */
 typedef struct ta_cache_s {
-  char* host;               /**< Binding address of redis server */
-  uint64_t timeout;         /**< Timeout for keys in cache server */
-  char* buffer_list_name;   /**< Name of the list to buffer transactions */
-  char* done_list_name;     /**< Name of the list to store successfully broadcast transactions from buffer */
-  uint16_t port;            /**< Binding port of redis server */
-  bool state;               /**< Set it true to turn on cache server */
-  long int capacity;        /**< The maximum capacity of cache server */
-  pthread_rwlock_t* rwlock; /**< Read/Write lock to avoid data racing in buffering */
+  char* host;                   /**< Binding address of redis server */
+  uint64_t timeout;             /**< Timeout for keys in cache server */
+  char* buffer_list_name;       /**< Name of the list to buffer transactions */
+  char* complete_list_name;     /**< Name of the list to store successfully broadcast transactions from buffer */
+  char* mam_buffer_list_name;   /**< Name of the list to buffer MAM requests UUID */
+  char* mam_complete_list_name; /**< Name of the list to successfullay published MAM requests */
+  uint16_t port;                /**< Binding port of redis server */
+  bool state;                   /**< Set it true to turn on cache server */
+  long int capacity;            /**< The maximum capacity of cache server */
+  pthread_rwlock_t* rwlock;     /**< Read/Write lock to avoid data racing in buffering */
 } ta_cache_t;
 
 /** struct type of accelerator core */

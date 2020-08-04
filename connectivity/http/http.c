@@ -169,10 +169,9 @@ static inline int process_find_transaction_by_id_request(ta_http_t *const http,
 }
 #endif
 
-static inline int process_send_mam_msg_request(ta_http_t *const http, iota_client_service_t *const iota_service,
-                                               char const *const payload, char **const out) {
+static inline int process_send_mam_msg_request(ta_http_t *const http, char const *const payload, char **const out) {
   status_t ret;
-  ret = api_send_mam_message(&http->core->ta_conf, &http->core->iota_conf, iota_service, payload, out);
+  ret = api_send_mam_message(&http->core->cache, payload, out);
   return set_response_content(ret, out);
 }
 
@@ -234,7 +233,7 @@ static int ta_http_process_request(ta_http_t *const http, iota_client_service_t 
     if (api_path_matcher(url, ".*/recv.*") == SC_OK) {
       return process_recv_mam_msg_request(http, iota_service, payload, out);
     } else {
-      return process_send_mam_msg_request(http, iota_service, payload, out);
+      return process_send_mam_msg_request(http, payload, out);
     }
   } else if (api_path_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
     return process_find_txn_obj_single_request(iota_service, url, out);
