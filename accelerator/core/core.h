@@ -204,21 +204,6 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 status_t ta_get_node_status(const iota_client_service_t* const service);
 
 /**
- * @brief Update the binding IOTA full node to another valid host on priority list
- *
- * ta_update_node_connection would check the connection status of all the IOTA full node on priority list iteratively.
- * Once it connects to one of the IOTA full node on the priority list, it would return SC_OK.
- *
- * @param[in] info Tangle-accelerator configuration variables
- * @param[in] service service IOTA full node end point service
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_t* const service);
-
-/**
  * @brief Push failed transactions in raw trytes into transaction buffer
  *
  * Given raw trytes array would be pushed into buffer. An UUID will be returned for client to fetch the information of
@@ -234,20 +219,6 @@ status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_
  * - non-zero on error
  */
 status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_txn_flex_trit_array, char* uuid);
-
-/**
- * @brief Broadcast transactions in transaction buffer
- *
- * Failed transactions would be stored in transaction buffer. Once tangle-accelerator retrieve the connetion with
- * Tangle, then tangle-accelerator will start to broadcast these failed transaction trytes.
- *
- * @param[in] core Pointer to Tangle-accelerator core configuration structure
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t broadcast_buffered_txn(const ta_core_t* const core);
 
 /**
  * @brief Return the transaction object status according to the given UUID

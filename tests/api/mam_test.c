@@ -36,15 +36,19 @@ void test_send_mam_message(void) {
   char* json = (char*)malloc(sizeof(char) * len);
   snprintf(json, len, json_template, seed);
   double sum = 0;
+  test_time_start(&start_time);
   for (size_t count = 0; count < TEST_COUNT; count++) {
-    test_time_start(&start_time);
+    ta_send_mam_req_t* req = send_mam_req_new();
+    TEST_ASSERT_EQUAL_INT32(SC_OK, send_mam_message_req_deserialize(json, req));
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
+        SC_OK, ta_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, &res));
     send_mam_message_res_deserialize(json_result, &res);
-    test_time_end(&start_time, &end_time, &sum);
+
     free(json_result);
+    send_mam_req_free(&req);
   }
   free(json);
+  test_time_end(&start_time, &end_time, &sum);
   printf("Average time of receive_mam_message: %lf\n", sum / TEST_COUNT);
 }
 
@@ -79,15 +83,16 @@ void test_write_until_next_channel(void) {
   double sum = 0;
   test_time_start(&start_time);
   for (int i = 0; i < msg_num; i++) {
-    char* json_result;
     mam_res_array[i] = send_mam_res_new();
     char* json = (char*)malloc(sizeof(char) * len);
     snprintf(json, len, json_template_send, seed, payload, i);
+
+    ta_send_mam_req_t* req = send_mam_req_new();
+    TEST_ASSERT_EQUAL_INT32(SC_OK, send_mam_message_req_deserialize(json, req));
     TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
-    send_mam_message_res_deserialize(json_result, mam_res_array[i]);
+        SC_OK, ta_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, mam_res_array[i]));
+    send_mam_req_free(&req);
     free(json);
-    free(json_result);
   }
 
   // The current chid1 should be equal to the chid of next channel. Element with index `channel_leaf_msg_num` is the
@@ -146,6 +151,7 @@ void test_write_with_chid(void) {
   const int len = strlen(json_template_send) + NUM_TRYTES_ADDRESS + strlen(payload) + 2;
   gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
   double sum = 0;
+  ta_send_mam_req_t* req;
   ta_send_mam_res_t* res;
   test_time_start(&start_time);
   char* json_result = NULL;
@@ -153,13 +159,16 @@ void test_write_with_chid(void) {
     res = send_mam_res_new();
     char* json = (char*)malloc(sizeof(char) * len);
     snprintf(json, len, json_template_send, seed, payload, i);
-    TEST_ASSERT_EQUAL_INT32(
-        SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
+    req = send_mam_req_new();
+    TEST_ASSERT_EQUAL_INT32(SC_OK, send_mam_message_req_deserialize(json, req));
+    TEST_ASSERT_EQUAL_INT32(SC_OK,
+                            ta_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, res));
     free(json);
     if (i != beginning_msg_num - 1) {
       free(json_result);
       send_mam_res_free(&res);
     }
+    send_mam_req_free(&req);
   }
   send_mam_message_res_deserialize(json_result, res);
   free(json_result);
@@ -171,9 +180,15 @@ void test_write_with_chid(void) {
   const int len_send_chid = strlen(json_template_send_chid) + NUM_TRYTES_ADDRESS * 2 + strlen(payload);
   char* json_send_chid = (char*)malloc(sizeof(char) * (len_send_chid + 1));
   snprintf(json_send_chid, len_send_chid, json_template_send_chid, seed, res->chid1, payload);
-  TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service,
-                                                      json_send_chid, &json_result));
+  TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_mam_message(&ta_core.cache, json_send_chid, &json_result));
+
+  req = send_mam_req_new();
+  TEST_ASSERT_EQUAL_INT32(SC_OK, send_mam_message_req_deserialize(json_send_chid, req));
+  TEST_ASSERT_EQUAL_INT32(SC_OK,
+                          ta_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, res));
+
   test_time_end(&start_time, &end_time, &sum);
+  send_mam_req_free(&req);
   send_mam_res_free(&res);
   free(json_send_chid);
   free(json_result);
@@ -193,9 +208,11 @@ void test_encrypt_decrypt_psk(void) {
   char* json = (char*)malloc(sizeof(char) * len_send);
   snprintf(json, len_send, json_template_send, seed);
   ta_send_mam_res_t* send_res = send_mam_res_new();
+  ta_send_mam_req_t* req = send_mam_req_new();
+  TEST_ASSERT_EQUAL_INT32(SC_OK, send_mam_message_req_deserialize(json, req));
   TEST_ASSERT_EQUAL_INT32(
-      SC_OK, api_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, json, &json_result));
-  send_mam_message_res_deserialize(json_result, send_res);
+      SC_OK, ta_send_mam_message(&ta_core.ta_conf, &ta_core.iota_conf, &ta_core.iota_service, req, send_res));
+  send_mam_req_free(&req);
   free(json_result);
   free(json);
 

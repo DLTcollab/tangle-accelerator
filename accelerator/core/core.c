@@ -267,9 +267,8 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
     goto done;
   }
   char txn_hash[NUM_TRYTES_HASH + 1] = {0};
-  char cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION + 1] = {0};
+  char* cache_value = NULL;
   txn_hash[NUM_TRYTES_HASH] = '\0';
-  cache_value[NUM_TRYTES_SERIALIZED_TRANSACTION] = '\0';
 
   // append transaction object which is already cached to transaction_array_t
   // if not, append uncached to request object of `iota_client_find_transaction_objects`
@@ -277,7 +276,7 @@ status_t ta_find_transaction_objects(const iota_client_service_t* const service,
   CDL_FOREACH(req->hashes, q_iter) {
     flex_trits_to_trytes((tryte_t*)txn_hash, NUM_TRYTES_HASH, q_iter->hash, NUM_TRITS_HASH, NUM_TRITS_HASH);
 
-    ret = cache_get(txn_hash, cache_value);
+    ret = cache_get(txn_hash, &cache_value);
     if (ret == SC_OK) {
       flex_trits_from_trytes(tx_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)cache_value,
                              NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
@@ -335,6 +334,7 @@ done:
   get_trytes_req_free(&req_get_trytes);
   transaction_array_free(uncached_txn_array);
   free(temp_txn_trits);
+  free(cache_value);
   return ret;
 }
 
@@ -534,29 +534,6 @@ done:
   return ret;
 }
 
-status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_t* const service) {
-  status_t ret = SC_OK;
-  for (int i = 0; i < MAX_NODE_LIST_ELEMENTS && info->iota_host_list[i]; i++) {
-    // update new IOTA full node
-    strncpy(service->http.host, info->iota_host_list[i], HOST_MAX_LEN - 1);
-    service->http.host[HOST_MAX_LEN - 1] = '\0';
-    service->http.port = info->iota_port_list[i];
-    ta_log_info("Try to connect to %s:%d\n", service->http.host, service->http.port);
-
-    // Run from the first one until found a good one.
-    if (ta_get_node_status(service) == SC_OK) {
-      ta_log_info("Connect to %s:%d\n", service->http.host, service->http.port);
-      goto done;
-    }
-  }
-  if (ret) {
-    ta_log_error("All IOTA full node on priority list failed.\n");
-  }
-
-done:
-  return ret;
-}
-
 status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_txn_flex_trit_array, char* uuid) {
   status_t ret = SC_OK;
   if (!uuid) {
@@ -595,158 +572,6 @@ done:
   return ret;
 }
 
-status_t broadcast_buffered_txn(const ta_core_t* const core) {
-  status_t ret = SC_OK;
-  int uuid_list_len = 0;
-  hash8019_array_p txn_trytes_array = hash8019_array_new();
-
-  /*
-   *There are 4 data structures used here.
-   * 1. List: A list of unsent uuid which can be used to identify an unsent transaction object
-   * 2. Key-value: UUID to unsent transaction object in `flex_trit_t`
-   * 3. List: Store all the UUID of sent transaction objects. (We could use set after investigation in the future)
-   * 4. Key-value: UUID to sent transaction object in `flex_trit_t`
-   *
-   * 'push_txn_to_buffer()':
-   *    Push UUID to the unsent UUID list.
-   *    Store UUID as key and unsent transaction `flex_trit_t` as value.
-   *
-   * 'broadcast_buffered_txn()':
-   *    Pop an unsent UUID in the unsent UUID list.
-   *    Delete UUID-unsent_transaction pair from key value storage
-   *    Store UUID as key and sent transaction object in `flex_trit_t` as value.
-   *    Push UUID of sent transaction into sent transaction list.
-   *
-   * 'ta_fetch_txn_with_uuid()':
-   *    Fetch transaction object with UUID in key-value storage.
-   *    Delete UUID from sent transaction list
-   *    Delete UUID-sent_transaction pair from key-value storage
-   */
-
-  get_trytes_req_t* req = NULL;
-  get_trytes_res_t* res = NULL;
-  do {
-    char uuid[UUID_STR_LEN];
-
-    ret = cache_list_size(core->cache.buffer_list_name, &uuid_list_len);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    if (uuid_list_len == 0) {
-      ta_log_debug("No buffered requests\n");
-      goto done;
-    }
-
-    ret = cache_list_peek(core->cache.buffer_list_name, UUID_STR_LEN, uuid);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    // TODO Now we assume every time we call `cache_get()`, we would get a transaction object. However, in the future,
-    // the returned result may be a bundle.
-    int trytes_array_len = 0;
-    ret = cache_list_size(uuid, &trytes_array_len);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    for (int i = 0; i < trytes_array_len; ++i) {
-      flex_trit_t req_txn_flex_trits[NUM_FLEX_TRITS_SERIALIZED_TRANSACTION + 1] = {};
-      ret = cache_list_at(uuid, i, NUM_FLEX_TRITS_SERIALIZED_TRANSACTION, (char*)req_txn_flex_trits);
-      if (ret) {
-        ta_log_error("%s\n", ta_error_to_string(ret));
-        goto done;
-      }
-      hash_array_push(txn_trytes_array, req_txn_flex_trits);
-    }
-
-    ret = ta_send_trytes(&core->ta_conf, &core->iota_conf, &core->iota_service, txn_trytes_array);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    // TODO Update the transaction object saved in redis, which allows `ta_fetch_txn_with_uuid()` to return the
-    // transaction object much faster.
-    req = get_trytes_req_new();
-    res = get_trytes_res_new();
-    iota_transaction_t txn;
-    for (int i = 0; i < trytes_array_len; ++i) {
-      transaction_deserialize_from_trits(&txn, hash_array_at(txn_trytes_array, i), true);
-      flex_trit_t* hash = transaction_hash(&txn);
-
-      ret = hash243_queue_push(&req->hashes, hash);
-      if (ret) {
-        ret = SC_CCLIENT_HASH;
-        ta_log_error("%s\n", ta_error_to_string(ret));
-        goto done;
-      }
-    }
-    utarray_done(txn_trytes_array);
-
-    ret = iota_client_get_trytes(&core->iota_service, req, res);
-    if (ret) {
-      ret = SC_CCLIENT_FAILED_RESPONSE;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    // Delete the old transaction object
-    ret = cache_del(uuid);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    trytes_array_len = hash8019_queue_count(res->trytes);
-    for (int i = 0; i < trytes_array_len; ++i) {
-      ret = cache_list_push(uuid, UUID_STR_LEN - 1, hash8019_queue_at(res->trytes, i),
-                            NUM_FLEX_TRITS_SERIALIZED_TRANSACTION);
-      if (ret) {
-        ta_log_error("%s\n", ta_error_to_string(ret));
-        goto done;
-      }
-    }
-
-    if (pthread_rwlock_trywrlock(core->cache.rwlock)) {
-      ret = SC_CACHE_LOCK_FAILURE;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-    // Pop transaction from buffered list
-    ret = cache_list_pop(core->cache.buffer_list_name, (char*)uuid);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    // Transfer the transaction to another list in where we store all the successfully broadcasted transactions.
-    ret = cache_list_push(core->cache.done_list_name, strlen(core->cache.done_list_name), uuid, UUID_STR_LEN - 1);
-    if (ret) {
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-    if (pthread_rwlock_unlock(core->cache.rwlock)) {
-      ret = SC_CACHE_LOCK_FAILURE;
-      ta_log_error("%s\n", ta_error_to_string(ret));
-      goto done;
-    }
-
-    get_trytes_req_free(&req);
-    get_trytes_res_free(&res);
-  } while (!uuid_list_len);
-
-done:
-  hash_array_free(txn_trytes_array);
-  get_trytes_req_free(&req);
-  get_trytes_res_free(&res);
-  return ret;
-}
-
 status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
                                 ta_fetch_txn_with_uuid_res_t* res) {
   status_t ret = SC_OK;
@@ -773,7 +598,7 @@ status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const
     goto done;
   }
 
-  ret = cache_list_exist(cache->done_list_name, uuid, UUID_STR_LEN - 1, &exist);
+  ret = cache_list_exist(cache->complete_list_name, uuid, UUID_STR_LEN - 1, &exist);
   if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
@@ -816,7 +641,7 @@ status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const
     }
 
     char pop_uuid[UUID_STR_LEN];
-    ret = cache_list_pop(cache->done_list_name, pop_uuid);
+    ret = cache_list_pop(cache->complete_list_name, pop_uuid);
     if (ret) {
       ta_log_error("%s\n", ta_error_to_string(ret));
       goto done;

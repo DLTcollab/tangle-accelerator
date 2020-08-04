@@ -6,12 +6,19 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include "accelerator/core/apis.h"
 #include "accelerator/core/core.h"
+#include "accelerator/core/periodical_task.h"
 #include "tests/common.h"
 #include "tests/test_define.h"
 
-static ta_core_t ta_core;
 #define TXN_NUM_IN_BUNDLE 2
+#define MAM_REQ_NUM 2
+#define ORDERED_PAYLOAD "test payload number"
+
+static ta_core_t ta_core;
+static char* response_uuid[MAM_REQ_NUM];
+
 status_t prepare_transfer(const iota_config_t* const iconf, const iota_client_service_t* const service,
                           ta_send_transfer_req_t** req, const int req_txn_num, hash8019_array_p raw_txn_array) {
   status_t ret = SC_OK;
@@ -207,6 +214,39 @@ void test_fetch_txn_with_uuid(void) {
   ta_fetch_txn_with_uuid_res_free(&res);
 }
 
+void test_broadcast_buffered_mam(void) {
+  const char* json_template = "{\"x-api-key\":\"" TEST_TOKEN "\",\"data\":{\"seed\":\"%s\",\"ch_mss_depth\":" STR(
+      TEST_CH_DEPTH) ",\"message\":\"" ORDERED_PAYLOAD ":%d\"}, \"protocol\":\"MAM_V1\"}";
+  char seed[NUM_TRYTES_ADDRESS + 1] = {};
+  gen_rand_trytes(NUM_TRYTES_ADDRESS, (tryte_t*)seed);
+  const int len = strlen(json_template) + NUM_TRYTES_ADDRESS;
+  int list_len = -1;
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.mam_buffer_list_name, &list_len));
+  const int init_list_len = list_len;
+
+  for (int i = 0; i < MAM_REQ_NUM; i++) {
+    char* json_result = NULL;
+    char* json = (char*)malloc(sizeof(char) * len);
+    snprintf(json, len, json_template, seed, i);
+    ta_send_mam_req_t* req = send_mam_req_new();
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_send_mam_message(&ta_core.cache, json, &json_result));
+    response_uuid[i] = json_result;
+    free(json);
+    send_mam_req_free(&req);
+  }
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.mam_buffer_list_name, &list_len));
+  TEST_ASSERT_EQUAL_INT32(init_list_len + MAM_REQ_NUM, list_len);
+
+  // Take action to broadcast transactions in buffer
+  TEST_ASSERT_EQUAL_INT32(SC_OK, broadcast_buffered_send_mam_request(&ta_core));
+
+  // The length of the buffer list should be zero, since all the transaction objects have been popped out.
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_list_size(ta_core.cache.mam_buffer_list_name, &list_len));
+  TEST_ASSERT_EQUAL_INT32(init_list_len, list_len);
+}
+
 int main(int argc, char* argv[]) {
   rand_trytes_init();
 
@@ -220,9 +260,18 @@ int main(int argc, char* argv[]) {
   ta_core_set(&ta_core);
   ta_logger_switch(false, true, &ta_core.ta_conf);
 
+  const int list_name_len = 15;
+  ta_core.cache.mam_buffer_list_name = (char*)malloc(list_name_len);
+  gen_rand_trytes(list_name_len - 1, (tryte_t*)ta_core.cache.mam_buffer_list_name);
+  ta_core.cache.mam_buffer_list_name[list_name_len - 1] = 0;
+  ta_core.cache.mam_complete_list_name = (char*)malloc(list_name_len);
+  gen_rand_trytes(list_name_len - 1, (tryte_t*)ta_core.cache.mam_complete_list_name);
+  ta_core.cache.mam_complete_list_name[list_name_len - 1] = 0;
+
   UNITY_BEGIN();
   RUN_TEST(test_broadcast_buffered_txn);
   RUN_TEST(test_fetch_txn_with_uuid);
+  RUN_TEST(test_broadcast_buffered_mam);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }
