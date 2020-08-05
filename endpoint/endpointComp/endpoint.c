@@ -12,15 +12,15 @@
 #include "build/obd_generated.h"
 
 #include "endpoint.h"
-#include "hal/device.h"
 
 #include "cipher.h"
 #include "common/ta_errors.h"
 #include "endpoint_core.h"
-#include "le_test.h"
 #include "legato.h"
+#include "platform/impl.h"
 
 #include "le_log.h"
+#include "le_test.h"
 
 static void print_help(void) {
   puts(
@@ -85,14 +85,8 @@ COMPONENT_INIT {
 
   srand(time(NULL));
 
-  device_t *device = ta_device(STRINGIZE(EP_TARGET));
-  if (device == NULL) {
-    LE_ERROR("Can not get specific device");
-    exit(EXIT_FAILURE);
-  }
-
-  device->op->get_key(private_key);
-  device->op->get_device_id(device_id);
+  get_device_key(private_key);
+  get_device_id(device_id);
 
   status_t ret = SC_OK;
   LE_INFO("=== ENDPOINT TEST BEGIN ===");

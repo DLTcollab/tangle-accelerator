@@ -2,8 +2,11 @@ sources:
 {
     monitor.c
     ../can-bus/can-utils.c
-    ${CURDIR}/../../platform/${EP_TARGET}/impl.c
-    ${CURDIR}/../../hal/device.c
+    #if ${LEGATO_TARGET} = localhost
+        ${CURDIR}/../../platform/simulator/impl.c
+    #else
+        ${CURDIR}/../../platform/legato-target/impl.c
+    #endif
 }
 
 cflags:
@@ -11,6 +14,7 @@ cflags:
     -g -O0
 
     -I${CURDIR}/../../../
+    -I${CURDIR}/../../platform/
     -I${CURDIR}/../can-bus/
 }
 

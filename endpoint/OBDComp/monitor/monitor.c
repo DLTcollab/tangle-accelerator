@@ -15,7 +15,7 @@
 #include "cipher.h"
 #include "endpoint/OBDComp/can-bus/can-utils.h"
 #include "endpoint/OBDComp/obd_pid.h"
-#include "hal/device.h"
+#include "impl.h"
 
 #include "legato.h"
 
@@ -112,9 +112,8 @@ int create_obd2_flatbuffer(uint8_t **flat_msg, size_t *flat_buf_len, le_hashmap_
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
 
-  device_t *device = ta_device(STRINGIZE(EP_TARGET));
   char device_id[16] = {0};
-  device->op->get_device_id(device_id);
+  get_device_id(device_id);
 
   flatbuffers_string_ref_t deviceID = flatbuffers_string_create_str(&builder, device_id);
   ns(OBD2Meta_ref_t) obd2_meta = ns(OBD2Meta_create(&builder, deviceID, t.tv_sec, obd2_flatbuffer));
@@ -333,12 +332,7 @@ COMPONENT_INIT {
   le_arg_SetStringVar(&private_key, NULL, "private-key");
   le_arg_Scan();
 
-  device_t *device = ta_device(STRINGIZE(EP_TARGET));
-  if (device == NULL) {
-    LE_ERROR("Can not get specific device");
-    exit(EXIT_FAILURE);
-  }
-  device->op->get_device_id(device_id);
+  get_device_id(device_id);
 
   if (interface == NULL) {
     print_help();
