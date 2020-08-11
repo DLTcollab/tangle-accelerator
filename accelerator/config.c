@@ -640,4 +640,5 @@ void notification_trigger() {
 
 done:
   close(connect_fd);
+  unlink(DOMAIN_SOCKET);
 }
