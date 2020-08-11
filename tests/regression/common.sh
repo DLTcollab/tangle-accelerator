@@ -7,9 +7,7 @@ setup_build_opts() {
 		"|--node_host ${NODE_HOST}"
 		"|--node_port ${NODE_PORT}"
 		"|--ta_host ${TA_HOST}"
-		"|--db_host ${DB_HOST}"
 		"|--quiet"
-		"--define db=enable|"
 		"--define build_type=debug|"
 		"--define build_type=profile|"
 	)
