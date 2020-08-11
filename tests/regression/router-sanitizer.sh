@@ -33,7 +33,7 @@ for ((i = 0; i < ${#SAN_OPTIONS[@]}; i++)); do
 	done <<<$(nc -U -l $socket | tr '\0' '\n')
 	echo "==============TA has successfully started=============="
 
-	python3 tests/regression/runner.py ${remaining_args} --url localhost:${TA_PORT}
+	python3 tests/regression/runner.py ${remaining_args} --url ${TA_HOST}:${TA_PORT}
 	rc=$?
 
 	if [ $rc -ne 0 ]; then
