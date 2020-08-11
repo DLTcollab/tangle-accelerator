@@ -269,6 +269,10 @@ typedef enum {
   /**< Failed to read message from CAN BUS socket */
   SC_ENDPOINT_CAN_CLOSE_ERROR = 0x0F | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Failed to close CAN BUS socket */
+  SC_ENDPOINT_UART_WRITE_ERROR = 0x10 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when writing message to UART */
+  SC_ENDPOINT_UART_READ_ERROR = 0x11 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when reading message from UART */
 
   // Crypto module
   SC_CRYPTO_RAND_ERR = 0x01 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,

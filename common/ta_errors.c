@@ -204,6 +204,10 @@ const char* ta_error_to_string(status_t err) {
       return "Error occurred when reading message from CAN BUS socket";
     case SC_ENDPOINT_CAN_CLOSE_ERROR:
       return "Error occurred when closing CAN BUS socket";
+    case SC_ENDPOINT_UART_WRITE_ERROR:
+      return "Error occurred when writing message to UART";
+    case SC_ENDPOINT_UART_READ_ERROR:
+      return "Error occurred when reading message from UART";
 
     // Crypto
     case SC_CRYPTO_RAND_ERR:
