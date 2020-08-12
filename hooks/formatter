@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 for file in $(find $(git rev-parse --show-toplevel) | egrep "\.(c|cc|cpp|h|hh|hpp|m|mm)\$" | egrep -v -f hooks/format-exclude-list); do
 	clang-format -style=file -fallback-style=none -i $file
