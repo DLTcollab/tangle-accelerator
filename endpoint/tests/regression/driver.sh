@@ -32,7 +32,7 @@ function failed() {
 }
 
 function run_test_suite() {
-	bazel test -c dbg --config "$1" //endpoint/unit-test/... --test_arg=localhost --test_arg="$TEST_TA_PORT"
+	bazel test -c dbg --config "$1" //endpoint/tests/regression/... --test_arg=localhost --test_arg="$TEST_TA_PORT"
 	ret=$?
 	if [[ ret -ne 0 ]]; then
 		TEST_CASE="$1"
