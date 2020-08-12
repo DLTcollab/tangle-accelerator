@@ -80,6 +80,7 @@ extern "C" {
 #define RESULT_SET_LIMIT \
   100 /**< The maximun returned transaction object number when querying transaction object by tag */
 #define FILE_PATH_SIZE 128
+#define DOMAIN_SOCKET "/tmp/tangle-accelerator-socket"
 
 /** struct type of accelerator configuration */
 typedef struct ta_config_s {
@@ -95,6 +96,7 @@ typedef struct ta_config_s {
 #endif
   uint8_t http_tpool_size; /**< Thread count of tangle-accelerator instance */
   uint32_t cli_options;    /**< Command line options */
+  char* socket;            /**< UNIX domain socket for notify initialization */
 } ta_config_t;
 
 /** Command line options */
@@ -246,8 +248,10 @@ status_t ta_set_iota_client_service(iota_client_service_t* service, char const* 
 
 /**
  * @brief Notify other process with unix domain socket
+ *
+ * @param[in] ta_conf Tangle-accelerator configuration variables
  */
-void notification_trigger();
+void notification_trigger(ta_config_t* const ta_conf);
 
 /**
  * @brief Check whether a command line option is enabled or not

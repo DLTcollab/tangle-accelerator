@@ -56,9 +56,6 @@ check_env() {
 
 # Parse command line arguments
 get_cli_args() {
-	socket=$1
 	shift
 	remaining_args=$@ # Get the remaining arguments
 }
-
-start_notification="TA-START"

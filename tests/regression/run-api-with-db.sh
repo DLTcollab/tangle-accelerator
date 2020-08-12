@@ -21,19 +21,24 @@ for ((i = 0; i < ${#OPTIONS[@]}; i++)); do
 	option=${OPTIONS[${i}]}
 	cli_arg=$(echo ${option} | cut -d '|' -f 2)
 	build_arg=$(echo ${option} | cut -d '|' -f 1)
+	socket=$(mktemp)
 
-	bazel run accelerator --define db=enable ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} --db_host=${DB_HOST}  --proxy_passthrough &
+	bazel run accelerator --define db=enable ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} --db_host=${DB_HOST} --socket=${socket} --proxy_passthrough &
 	TA=$!
 	trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
-	# Wait until tangle-accelerator has been initialized
-	echo "==============Wait for TA starting=============="
-	while read -r line; do
-		if [[ "$line" == "$start_notification" ]]; then
-			echo "$line"
-		fi
-	done <<<$(nc -U -l $socket | tr '\0' '\n')
-	echo "==============TA has successfully started=============="
+	# if tangle-accelerator takes more than 30 secs to initialize, then exit and return failure.
+	timeout 30 tests/regression/ta_waiting.sh
+	ret_code=$?
+	if [[ $ret_code -eq 124 ]]; then
+		echo "Timeout in initializing tangle-accelerator."
+		kill -9 ${TA}
+		exit 1
+	elif [[ $ret_code -eq 1 ]]; then
+		echo "Failed to connect to UNIX domain socket."
+		kill -9 ${TA}
+		exit 1
+	fi
 
 	python3 tests/regression/runner.py ${remaining_args} --url ${TA_HOST}:${TA_PORT}
 	rc=$?
