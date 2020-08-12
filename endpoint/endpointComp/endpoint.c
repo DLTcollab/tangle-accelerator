@@ -128,23 +128,16 @@ COMPONENT_INIT {
   device_t* device = ta_device(STRINGIZE(EP_TARGET));
   if (device == NULL) {
     LE_ERROR("Can not get specific device");
-  } else {
-    device->op->get_key(private_key);
-    device->op->get_device_id(device_id);
-#ifdef ENABLE_ENDPOINT_TEST
-    LE_TEST_INIT;
-    LE_TEST_INFO("=== ENDPOINT TEST BEGIN ===");
-    LE_TEST(SC_OK == send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address,
-                                                  next_address, private_key, device_id_ptr, iv));
-    LE_TEST_EXIT;
-#else
-    while (true) {
-      // TODO: listen input from UART here
-      status_t ret = send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address,
-                                                  next_address, private_key, device_id_ptr, iv);
-      LE_INFO("Send transaction information return: %d", ret);
-      sleep(10);
-    }
-#endif
+    exit(EXIT_FAILURE);
   }
+
+  device->op->get_key(private_key);
+  device->op->get_device_id(device_id);
+
+  status_t ret = SC_OK;
+  LE_INFO("=== ENDPOINT TEST BEGIN ===");
+  ret = send_transaction_information(host, port, ssl_seed, value, message, message_fmt, tag, address, next_address,
+                                     private_key, device_id_ptr, iv);
+  LE_INFO("Send transaction information return: %d", ret);
+  exit(ret == SC_OK ? EXIT_SUCCESS : EXIT_FAILURE);
 }
