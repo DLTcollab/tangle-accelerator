@@ -192,7 +192,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       ta_log_info("Initializing cache state\n");
       cache->state = !cache->state;
       if (cache->state) {
-        if (cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
+        if (!cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
           ta_log_error("%s\n", "Failed to initialize lock to caching service.");
         }
       }
