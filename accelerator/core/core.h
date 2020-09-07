@@ -115,6 +115,21 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
                                          const find_transactions_req_t* const req, transaction_array_t* res);
 
 /**
+ * @brief Get transaction object with transaction hash. When there are multiple transaction hashes are waiting for
+ * fetching. This function will fetch a transcation object with a transaction hash each time.
+ *
+ * @param[in] service IOTA full node end point service
+ * @param[in] tx_queries Given find_transactions_req_t with transaction hashes
+ * @param[out] tx_objs Return transaction objects
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_txn_objects_with_txn_hash(const iota_client_service_t* const service,
+                                          find_transactions_req_t* tx_queries, transaction_array_t* tx_objs);
+
+/**
  * @brief Return transaction object with given transaction hashes.
  *
  * Explore transaction hash information with given transaction hashes. This would
