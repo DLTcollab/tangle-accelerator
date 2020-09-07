@@ -115,6 +115,21 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
                                          const find_transactions_req_t* const req, transaction_array_t* res);
 
 /**
+ * @brief Get transaction objects with transaction hashes when there are multiple transaction hashes are waiting for
+ * fetching. This function will fetch a transaction object with a transaction hash each time.
+ *
+ * @param[in] service IOTA full node end point service
+ * @param[in] tx_queries Given find_transactions_req_t with transaction hashes
+ * @param[out] tx_objs Return transaction objects
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_txn_objects_with_txn_hash(const iota_client_service_t* const service,
+                                          find_transactions_req_t* tx_queries, transaction_array_t* tx_objs);
+
+/**
  * @brief Return transaction object with given transaction hashes.
  *
  * Explore transaction hash information with given transaction hashes. This would
@@ -226,7 +241,7 @@ status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_
  * be popped from the buffer.
  *
  * @param[in] cache Redis configuration variables
- * @param[in] raw_txn_flex_trit_array Raw transcation trytes array in flex_trit_t type
+ * @param[in] raw_txn_flex_trit_array Raw transaction trytes array in flex_trit_t type
  * @param[out] uuid Returned UUID for fetching transaction status and information
  *
  * @return
