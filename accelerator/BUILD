@@ -97,7 +97,7 @@ cc_image(
 container_image(
     name = "docker_image",
     base = ":docker_base_image",
-    repository = "dltcollab",
+    repository = "biilabs",
     stamp = True,
 )
 
