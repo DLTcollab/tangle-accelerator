@@ -411,6 +411,33 @@ done:
   return ret;
 }
 
+status_t api_register_mam_channel(const ta_cache_t* const cache, const char* const obj, char** json_result) {
+  status_t ret = SC_OK;
+  ta_register_mam_channel_req_t* req = ta_register_mam_channel_req_new();
+  char uuid[UUID_STR_LEN];
+
+  ret = register_mam_channel_req_deserialize(obj, req);
+  if (ret) {
+    ta_log_error("Failed to deserialize request.\n");
+    goto done;
+  }
+
+  ret = ta_register_mam_channel(cache, req, uuid);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  ret = register_mam_channel_res_serialize(uuid, json_result);
+  if (ret) {
+    ta_log_error("Failed to deserialize request.\n");
+  }
+
+done:
+  ta_register_mam_channel_req_free(&req);
+  return ret;
+}
+
 #ifdef DB_ENABLE
 status_t api_find_transactions_by_id(const iota_client_service_t* const iota_service,
                                      const db_client_service_t* const db_service, const char* const obj,

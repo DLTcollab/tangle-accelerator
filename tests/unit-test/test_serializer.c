@@ -357,7 +357,6 @@ void test_send_mam_message_request_deserialize(void) {
       "\",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
           TEST_EP_DEPTH) "},\"key\":{\"ntru\":[\"" TEST_NTRU_PK "\"],\"psk\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3
                          "\"]}, \"protocol\":\"MAM_V1\"}";
-  printf("json = %s\n", json);
   ta_send_mam_req_t* req = send_mam_req_new();
   send_mam_message_req_deserialize(json, req);
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
@@ -622,6 +621,23 @@ void test_fetch_txn_with_uuid_res_not_exist_serialize(void) {
   free(json_result);
 }
 
+void test_register_mam_channel_req_deserialize(void) {
+  const char* json = "{\"seed\":\"" TRYTES_81_1 "\"}";
+  ta_register_mam_channel_req_t* req = ta_register_mam_channel_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, register_mam_channel_req_deserialize(json, req));
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, req->seed);
+  ta_register_mam_channel_req_free(&req);
+}
+
+void test_register_mam_channel_res_serialize(void) {
+  const char* json = "{\"user-id\":\"" TEST_UUID "\"}";
+  char* json_result = NULL;
+  TEST_ASSERT_EQUAL_INT32(SC_OK, register_mam_channel_res_serialize(TEST_UUID, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  free(json_result);
+}
+
 int main(void) {
   UNITY_BEGIN();
 
@@ -657,6 +673,8 @@ int main(void) {
   RUN_TEST(test_get_node_status_res_serialize);
   RUN_TEST(test_fetch_txn_with_uuid_res_sent_serialize);
   RUN_TEST(test_fetch_txn_with_uuid_res_not_exist_serialize);
+  RUN_TEST(test_register_mam_channel_req_deserialize);
+  RUN_TEST(test_register_mam_channel_res_serialize);
   serializer_logger_release();
   return UNITY_END();
 }
