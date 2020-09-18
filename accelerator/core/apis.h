@@ -75,8 +75,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
-                              const iota_client_service_t* const service, char const* const obj, char** json_result);
+status_t api_send_mam_message(const ta_cache_t* const cache, char const* const obj, char** json_result);
 
 /**
  * @brief Send transfer to tangle.

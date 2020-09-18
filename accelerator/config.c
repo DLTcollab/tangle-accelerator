@@ -221,7 +221,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
         ta_log_error("Malformed input character\n");
       }
       break;
-    case CACHE_MAX_CAPACITY:
+    case CACHE_CAPACITY:
       strtol_temp = strtol(value, NULL, 10);
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         if (strtol_temp <= 0) {
@@ -265,8 +265,8 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case BUFFER_LIST:
       cache->buffer_list_name = value;
       break;
-    case DONE_LIST:
-      cache->done_list_name = value;
+    case COMPLETE_LIST:
+      cache->complete_list_name = value;
       break;
 
     // Command line options configuration
@@ -342,8 +342,9 @@ status_t ta_core_default_init(ta_core_t* const core) {
   cache->host = REDIS_HOST;
   cache->port = REDIS_PORT;
   cache->state = false;
-  cache->buffer_list_name = BUFFER_LIST_NAME;
-  cache->done_list_name = DONE_LIST_NAME;
+  cache->complete_list_name = COMPLETE_LIST_NAME;
+  cache->mam_buffer_list_name = MAM_BUFFER_LIST_NAME;
+  cache->mam_complete_list_name = MAM_COMPLETE_LIST_NAME;
   cache->capacity = CACHE_MAX_CAPACITY;
 
   ta_log_info("Initializing IOTA full node configuration\n");

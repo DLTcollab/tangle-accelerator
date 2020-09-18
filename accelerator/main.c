@@ -1,5 +1,6 @@
 #include <errno.h>
 
+#include "accelerator/core/periodical_task.h"
 #include "common/logger.h"
 #include "common/ta_errors.h"
 #include "connectivity/common.h"
@@ -19,54 +20,6 @@ static void ta_stop(int signal) {
   if (signal == SIGINT || signal == SIGTERM) {
     ta_http_stop(&ta_http);
   }
-}
-
-static void* health_track(void* arg) {
-  ta_core_t* core = (ta_core_t*)arg;
-  while (core->cache.state) {
-    status_t ret = ta_get_node_status(&core->iota_service);
-    if (ret == SC_CORE_NODE_UNSYNC || ret == SC_CCLIENT_FAILED_RESPONSE) {
-      ta_log_error("IOTA full node status error %d. Try to connect to another IOTA full node host on priority list\n",
-                   ret);
-      ret = ta_update_node_connection(&core->ta_conf, &core->iota_service);
-      if (ret) {
-        ta_log_error("Update IOTA full node host failed: %d\n", ret);
-      }
-    }
-
-    // Broadcast buffered transactions
-    if (ret == SC_OK) {
-      ret = broadcast_buffered_txn(core);
-      if (ret) {
-        ta_log_error("Broadcast buffered transactions failed. %s\n", ta_error_to_string(ret));
-      }
-    }
-
-    char uuid[UUID_STR_LEN] = {};
-    // The usage exceeds the maximum redis capacity
-    while (core->cache.capacity < cache_occupied_space()) {
-      if (pthread_rwlock_trywrlock(core->cache.rwlock)) {
-        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
-        break;
-      }
-
-      ret = cache_list_pop(core->cache.done_list_name, uuid);
-      if (ret) {
-        ta_log_error("%s\n", ta_error_to_string(ret));
-      }
-      ret = cache_del(uuid);
-      if (ret) {
-        ta_log_error("%s\n", ta_error_to_string(ret));
-      }
-
-      if (pthread_rwlock_unlock(core->cache.rwlock)) {
-        ta_log_error("%s\n", ta_error_to_string(SC_CACHE_LOCK_FAILURE));
-      }
-    }
-
-    sleep(core->ta_conf.health_track_period);
-  }
-  return ((void*)NULL);
 }
 
 int main(int argc, char* argv[]) {

@@ -53,7 +53,7 @@ typedef enum ta_cli_arg_value_e {
   HEALTH_TRACK_PERIOD,
   NO_GTTA,
   BUFFER_LIST,
-  DONE_LIST,
+  COMPLETE_LIST,
   HTTP_THREADS_CLI,
   CACHE_CAPACITY,
 
@@ -95,7 +95,7 @@ static struct ta_cli_argument_s {
      "The period for checking IOTA full node host connection status"},
     {"no-gtta", no_argument, NULL, NO_GTTA, "Disable getTransactionToConfirm (gTTA) when sending transaction"},
     {"buffer_list", required_argument, NULL, BUFFER_LIST, "Set the value of `buffer_list_name`"},
-    {"done_list", required_argument, NULL, DONE_LIST, "Set the value of `done_list_name`"},
+    {"complete_list", required_argument, NULL, COMPLETE_LIST, "Specify the name of complete list`"},
     {"cache_capacity", required_argument, NULL, CACHE_CAPACITY, "Set the maximum capacity of caching server"},
     {"quiet", no_argument, NULL, QUIET, "Disable logger"},
     {"runtime_cli", no_argument, NULL, RUNTIME_CLI, "Enable runtime command line"},

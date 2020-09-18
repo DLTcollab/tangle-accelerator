@@ -33,12 +33,14 @@ cc_binary(
 )
 
 cc_test(
-    name = "driver_core",
+    name = "test_periodical_task",
     srcs = [
-        "driver_core.c",
+        "test_periodical_task.c",
     ],
     deps = [
         "//accelerator/core",
+        "//accelerator/core:apis",
+        "//accelerator/core:periodical_task",
         "//tests:common",
         "//tests:logger_lib",
         "//tests:test_define",

@@ -321,9 +321,9 @@ done:
   return ret;
 }
 
-status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char** obj) {
+status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char const* const uuid, char** obj) {
   status_t ret = SC_OK;
-  if (!res || !obj) {
+  if ((!res && !uuid) || !obj) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
@@ -336,20 +336,23 @@ status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char
     goto done;
   }
 
-  cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
+  if (uuid) {
+    cJSON_AddStringToObject(json_root, "uuid", uuid);
+  } else {
+    cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
 
-  cJSON_AddStringToObject(json_root, "chid", res->chid);
+    cJSON_AddStringToObject(json_root, "chid", res->chid);
 
-  cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
+    cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
 
-  if (res->announcement_bundle_hash[0]) {
-    cJSON_AddStringToObject(json_root, "announcement_bundle_hash", res->announcement_bundle_hash);
+    if (res->announcement_bundle_hash[0]) {
+      cJSON_AddStringToObject(json_root, "announcement_bundle_hash", res->announcement_bundle_hash);
+    }
+
+    if (res->chid1[0]) {
+      cJSON_AddStringToObject(json_root, "chid1", res->chid1);
+    }
   }
-
-  if (res->chid1[0]) {
-    cJSON_AddStringToObject(json_root, "chid1", res->chid1);
-  }
-
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
