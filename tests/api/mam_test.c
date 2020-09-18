@@ -250,12 +250,13 @@ void test_encrypt_decrypt_psk(void) {
 void test_api_register_mam_channel(void) {
   char* json_result;
   const char* json = "{\"seed\":\"" TRYTES_81_1 "\"}";
-  char user_id[UUID_STR_LEN], seed[NUM_TRYTES_ADDRESS + 1];
+  char user_id[UUID_STR_LEN], *seed;
   TEST_ASSERT_EQUAL_INT32(SC_OK, api_register_mam_channel(&ta_core.cache, json, &json_result));
 
   TEST_ASSERT_EQUAL_INT32(SC_OK, register_mam_channel_res_deserialize(json_result, user_id));
-  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_get(user_id, seed));
+  TEST_ASSERT_EQUAL_INT32(SC_OK, cache_get(user_id, &seed));
   TEST_ASSERT_EQUAL_INT32(SC_OK, cache_del(user_id));
+  free(seed);
   free(json_result);
 }
 

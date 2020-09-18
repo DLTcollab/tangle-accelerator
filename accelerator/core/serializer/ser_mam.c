@@ -502,10 +502,10 @@ status_t register_mam_channel_req_deserialize(const char* const obj, ta_register
   }
 
   json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "seed");
-  if (json_item != NULL) {
+  if (json_item == NULL) {
     ret = SC_SERIALIZER_KEY_NOT_EXISTS;
     ta_log_error("%s\n", ta_error_to_string(ret));
-  } else if (json_item->valuestring != NULL) {
+  } else if (json_item->valuestring == NULL) {
     ret = SC_SERIALIZER_VALUE_EMPTY;
     ta_log_error("%s\n", ta_error_to_string(ret));
   } else if (strlen(json_item->valuestring) != NUM_TRYTES_ADDRESS) {
@@ -558,13 +558,13 @@ status_t register_mam_channel_res_deserialize(const char* const obj, char* user_
   }
 
   json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "user-id");
-  if (json_item != NULL) {
+  if (json_item == NULL) {
     ret = SC_SERIALIZER_KEY_NOT_EXISTS;
     ta_log_error("%s\n", ta_error_to_string(ret));
-  } else if (json_item->valuestring != NULL) {
+  } else if (json_item->valuestring == NULL) {
     ret = SC_SERIALIZER_VALUE_EMPTY;
     ta_log_error("%s\n", ta_error_to_string(ret));
-  } else if (strlen(json_item->valuestring) != UUID_STR_LEN) {
+  } else if (strlen(json_item->valuestring) != UUID_STR_LEN - 1) {
     ret = SC_SERIALIZER_VALUE_INVLID;
     ta_log_error("%s\n", ta_error_to_string(ret));
   } else {
