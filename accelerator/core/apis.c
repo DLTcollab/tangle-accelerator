@@ -98,7 +98,7 @@ status_t api_find_transactions_by_tag(const iota_client_service_t* const service
   flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
   find_transactions_req_t* req = find_transactions_req_new();
   find_transactions_res_t* res = find_transactions_res_new();
-  if (req == NULL || res == NULL) {
+  if (obj == NULL || req == NULL || res == NULL) {
     ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
@@ -142,7 +142,7 @@ status_t api_find_transactions_obj_by_tag(const iota_client_service_t* const ser
   flex_trit_t tag_trits[NUM_FLEX_TRITS_TAG];
   find_transactions_req_t* req = find_transactions_req_new();
   transaction_array_t* res = transaction_array_new();
-  if (req == NULL || res == NULL) {
+  if (req == NULL || res == NULL || obj == NULL) {
     ret = SC_OOM;
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
