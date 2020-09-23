@@ -266,6 +266,7 @@ void redis_get_capacity(redisContext* c) {
 bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, int port) {
   state = input_state;
   if (!state) {
+    ta_log_error("Caching service is not enabled.\n");
     return false;
   }
 
