@@ -22,6 +22,7 @@ cc_binary(
         ":ta_config",
         ":ta_cli",
         "//connectivity/http",
+        "//accelerator/core:periodical_task",
         "@org_iota_common//utils/handles:signal",
     ] + select({
         ":mqtt_enable": [

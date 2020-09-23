@@ -214,32 +214,49 @@ done:
   return ret;
 }
 
-status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
-                              const iota_client_service_t* const service, char const* const obj, char** json_result) {
+status_t api_send_mam_message(const ta_cache_t* const cache, char const* const obj, char** json_result) {
   status_t ret = SC_OK;
   ta_send_mam_req_t* req = send_mam_req_new();
-  ta_send_mam_res_t* res = send_mam_res_new();
 
-  if (send_mam_message_req_deserialize(obj, req)) {
-    ret = SC_MAM_FAILED_INIT;
+  ret = send_mam_message_req_deserialize(obj, req);
+  if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
-  ret = ta_send_mam_message(info, iconf, service, req, res);
+  // Generate UUID. Each UUID would map to a processing request.
+  char uuid[UUID_STR_LEN];
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, uuid);
+  if (!uuid[0]) {
+    ta_log_error("%s\n", "Failed to generate UUID");
+    goto done;
+  }
+
+  // TODO Generate the address that TA can quickly generate from the SEED with given parameters.
+
+  // Buffer send_mam_req_t object for publishing it later
+  ret = cache_set(uuid, UUID_STR_LEN - 1, obj, strlen(obj), cache->timeout);
   if (ret != SC_OK) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
 
-  ret = send_mam_message_res_serialize(res, json_result);
+  // Buffer the UUID to the list
+  ret = cache_list_push(cache->mam_buffer_list_name, strlen(cache->mam_buffer_list_name), uuid, UUID_STR_LEN - 1);
+  if (ret != SC_OK) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  ret = send_mam_message_res_serialize(NULL, uuid, json_result);
   if (ret != SC_OK) {
     ta_log_error("%s\n", ta_error_to_string(ret));
   }
 
 done:
   send_mam_req_free(&req);
-  send_mam_res_free(&res);
   return ret;
 }
 

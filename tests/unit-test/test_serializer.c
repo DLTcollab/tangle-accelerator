@@ -392,7 +392,7 @@ void test_send_mam_message_response_serialize(void) {
   send_mam_res_set_announce_bundle_hash(res, (tryte_t*)ADDRESS_1);
   send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
-  send_mam_message_res_serialize(res, &json_result);
+  send_mam_message_res_serialize(res, NULL, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
