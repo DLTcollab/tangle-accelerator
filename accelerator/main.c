@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   ta_logger_switch(is_option_enabled(&ta_core.ta_conf, CLI_QUIET_MODE), true, &(ta_core.ta_conf));
 
   // Once tangle-accelerator finished initializing, notify regression test script with unix domain socket
-  notification_trigger();
+  notification_trigger(&ta_core.ta_conf);
 
   /* pause() cause TA to sleep until it catch a signal,
    * also the return value and errno should be -1 and EINTR on success.

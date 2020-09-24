@@ -56,6 +56,7 @@ typedef enum ta_cli_arg_value_e {
   COMPLETE_LIST,
   HTTP_THREADS_CLI,
   CACHE_CAPACITY,
+  IPC,
 
   /** LOGGER */
   QUIET,
@@ -89,6 +90,7 @@ static struct ta_cli_argument_s {
     {"mwm", optional_argument, NULL, MWM_CLI, "minimum weight magnitude"},
     {"seed", optional_argument, NULL, SEED_CLI, "IOTA seed"},
     {"cache", required_argument, NULL, CACHE, "Enable/Disable cache server. It defaults to off"},
+    {"ipc", required_argument, NULL, IPC, "Set the socket name of initializing notification"},
     {"config", required_argument, NULL, CONF_CLI, "Read configuration file"},
     {"proxy_passthrough", no_argument, NULL, PROXY_API, "Pass proxy API directly to IOTA full node without processing"},
     {"health_track_period", no_argument, NULL, HEALTH_TRACK_PERIOD,

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 source tests/regression/common.sh
 
@@ -23,7 +23,7 @@ for ((i = 0; i < ${#OPTIONS[@]}; i++)); do
 	build_arg=$(echo ${option} | cut -d '|' -f 1)
 	socket=$(mktemp)
 
-	bazel run accelerator ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} --proxy_passthrough --socket=${socket} &
+	bazel run accelerator --define db=enable ${build_arg} -- --ta_port=${TA_PORT} ${cli_arg} --db_host=${DB_HOST} --socket=${socket} --proxy_passthrough &
 	TA=$!
 	trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
