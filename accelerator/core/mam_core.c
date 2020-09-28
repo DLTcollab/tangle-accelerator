@@ -14,6 +14,12 @@
 
 #define MAM_LOGGER "mam_core"
 
+/**
+ * @brief The maximum length of timestamp
+ *
+ */
+#define TIMESTAMP_LEN 20
+
 typedef struct channel_info_s {
   int32_t ch_mss_depth;
   tryte_t *chid;
@@ -584,7 +590,7 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
   send_mam_key_mam_v1_t *key = (send_mam_key_mam_v1_t *)req->key;
   mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
   bool msg_sent = false;
-
+  char *message = NULL;
   // Creating MAM API
   ret = ta_mam_init(&mam, iconf, data->seed);
   if (ret) {
@@ -598,13 +604,18 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
     goto done;
   }
 
+  struct timespec t;
   mam_send_operation_t mam_operation;
   while (!msg_sent) {
     bundle_transactions_renew(&bundle);
     struct channel_info_s channel_info = {.ch_mss_depth = data->ch_mss_depth, .chid = data->chid};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+
+    message = (char *)malloc(sizeof(char) * (strlen(data->message) + TIMESTAMP_LEN + 1));
+    snprintf(message, TIMESTAMP_LEN + strlen(data->message) + 1, "%020ld%s", t.tv_sec, data->message);
 
     // Write both Header and Packet into one single bundle.
-    ret = ta_mam_written_msg_to_bundle(service, &mam, &channel_info, mam_key, data->message, &bundle, chid, msg_id,
+    ret = ta_mam_written_msg_to_bundle(service, &mam, &channel_info, mam_key, message, &bundle, chid, msg_id,
                                        &mam_operation);
     if (ret == SC_OK) {
       msg_sent = true;
@@ -669,6 +680,7 @@ done:
   }
   bundle_transactions_free(&bundle);
   mam_encrypt_key_free(&mam_key);
+  free(message);
   return ret;
 }
 

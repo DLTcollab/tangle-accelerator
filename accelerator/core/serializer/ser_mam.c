@@ -13,6 +13,83 @@
 
 #define logger_id ser_logger_id
 
+/**
+ * @brief Convert the payload array (which is in utarray) in `ta_mam_recv_res_t` to cJSON array element
+ *
+ * @param[in] ut String array in utarray datatype
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] json_root Output cJSON object
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+static inline status_t ta_mam_recv_payload_utarray_to_json_array(UT_array const* const ut, char const* const obj_name,
+                                                                 cJSON* const json_root) {
+  char** p = NULL;
+  if (!ut) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* array_obj = cJSON_CreateArray();
+  if (array_obj == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_CREATE));
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+
+  cJSON_AddItemToObject(json_root, obj_name, array_obj);
+  char timestamp[21] = {0};
+  while ((p = (char**)utarray_next(ut, p))) {
+    if (!(*p)) {
+      continue;
+    }
+    cJSON* array_elt = cJSON_CreateArray();
+    strncpy(timestamp, *p, 20);
+    cJSON_AddItemToArray(array_elt, cJSON_CreateString(timestamp));
+    cJSON_AddItemToArray(array_elt, cJSON_CreateString((*p + 20)));
+    cJSON_AddItemToArray(array_obj, array_elt);
+  }
+  return SC_OK;
+}
+
+/**
+ * @brief Convert cJSON payload array to the string array in `ta_mam_res_t` style
+ *
+ * @param[in] obj Input cJSON string array
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] ut Output string array in utarray datatype
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+static inline status_t ta_json_recv_payload_to_string_utarray(cJSON const* const obj, char const* const obj_name,
+                                                              UT_array* const ut) {
+  char* str = NULL;
+
+  cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
+  if (cJSON_IsArray(json_item)) {
+    cJSON *json_subarray = NULL, *array_elt = NULL;
+
+    cJSON_ArrayForEach(json_subarray, json_item) {
+      cJSON_ArrayForEach(array_elt, json_subarray) {
+        str = cJSON_GetStringValue(array_elt);
+        if (!str) {
+          ta_log_error("%s\n", "Encountered non-string array member");
+          return SC_SERIALIZER_JSON_PARSE;
+        }
+
+        utarray_push_back(ut, &str);
+      }
+    }
+  } else {
+    ta_log_error("%s\n", "Not an array");
+    return SC_SERIALIZER_JSON_PARSE;
+  }
+
+  return SC_OK;
+}
+
 static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_obj, ta_send_mam_req_t* const req) {
   cJSON *json_key = NULL, *json_value = NULL;
   status_t ret = SC_OK;
@@ -430,7 +507,7 @@ status_t recv_mam_message_res_deserialize(const char* const obj, ta_recv_mam_res
     goto done;
   }
 
-  ret = ta_json_string_array_to_string_utarray(json_obj, "payload", res->payload_array);
+  ret = ta_json_recv_payload_to_string_utarray(json_obj, "payload", res->payload_array);
   if (ret) {
     ret = SC_CCLIENT_JSON_KEY;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -465,7 +542,7 @@ status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj
     goto done;
   }
 
-  ret = ta_string_utarray_to_json_array(res->payload_array, "payload", json_root);
+  ret = ta_mam_recv_payload_utarray_to_json_array(res->payload_array, "payload", json_root);
   if (ret) {
     ret = SC_SERIALIZER_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
