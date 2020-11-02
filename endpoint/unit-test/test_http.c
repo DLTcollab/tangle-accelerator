@@ -6,8 +6,9 @@
 #include "http_parser.h"
 #include "tests/test_define.h"
 
-#define TEST_PORT "8000"
-#define TEST_HOST "localhost"
+static char* TEST_TA_HOST;
+static char* TEST_TA_PORT;
+
 #define TEST_GET_REQUEST "GET /address HTTP/1.1\r\nHOST: %s\r\n\r\n"
 #define TEST_API "transaction/"
 
@@ -19,10 +20,9 @@
   \"address\": \"POWEREDBYTANGLEACCELERATOR9999999999999999999999999999999999999999999999999999999\"\
 }"
 
-#define POST_REQUEST            \
+#define POST_REQUEST \
   "POST /transaction/ HTTP/1.1\r\n\
-Host: " TEST_HOST ":" TEST_PORT \
-  "\r\n\
+Host: %s:%d\r\n\
 Connection: Keep-Alive\r\n\
 Content-Type: application/json\r\n\
 Content-Length: 224\r\n\
@@ -45,16 +45,18 @@ void tearDown(void) {
 void test_http(void) {
   connect_info_t info = {.https = false};
   char post_message[BUF_SIZE] = {0}, response[BUF_SIZE] = {0};
+  char post_request[BUF_SIZE] = {0};
   http_parser parser;
   http_parser_settings settings = {};
   parser.data = &my_data;
 
   snprintf(post_message, BUF_SIZE, "%s", TEST_POST_MESSAGE);
 
-  set_post_request(TEST_API, TEST_HOST, atoi(TEST_PORT), post_message, &req);
-  TEST_ASSERT_EQUAL_INT8_ARRAY(POST_REQUEST, req, sizeof(POST_REQUEST));
+  set_post_request(TEST_API, TEST_TA_HOST, atoi(TEST_TA_PORT), post_message, &req);
+  snprintf(post_request, BUF_SIZE, POST_REQUEST, TEST_TA_HOST, atoi(TEST_TA_PORT));
+  TEST_ASSERT_EQUAL_INT8_ARRAY(post_request, req, sizeof(POST_REQUEST));
 
-  TEST_ASSERT_EQUAL_INT(SC_OK, http_open(&info, "nonce", TEST_HOST, TEST_PORT));
+  TEST_ASSERT_EQUAL_INT(SC_OK, http_open(&info, "nonce", TEST_TA_HOST, TEST_TA_PORT));
   TEST_ASSERT_EQUAL_INT(SC_OK, http_send_request(&info, req));
   TEST_ASSERT_EQUAL_INT(SC_OK, http_read_response(&info, response, sizeof(response) / sizeof(char)));
   TEST_ASSERT_EQUAL_INT(SC_OK, http_close(&info));
@@ -65,8 +67,16 @@ void test_http(void) {
   TEST_ASSERT_EQUAL_INT(SC_HTTP_OK, parser.status_code);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
   UNITY_BEGIN();
+  if (argc != 3) {
+    printf("usage: ./test_endpoint_core [TA_HOST] [TA_PORT]");
+    return UNITY_END();
+  }
+
+  TEST_TA_HOST = argv[1];
+  TEST_TA_PORT = argv[2];
+
   if (ta_logger_init() != SC_OK) {
     return EXIT_FAILURE;
   }

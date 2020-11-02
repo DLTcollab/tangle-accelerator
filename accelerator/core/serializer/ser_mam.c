@@ -19,10 +19,12 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
   send_mam_key_mam_v1_t* key = (send_mam_key_mam_v1_t*)req->key;
 
-  ret = ta_json_get_string(json_obj, "x-api-key", req->service_token, SERVICE_TOKEN_LEN);
-  if (ret != SC_OK) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  if (cJSON_HasObjectItem(json_obj, "x-api-key")) {
+    ret = ta_json_get_string(json_obj, "x-api-key", req->service_token, SERVICE_TOKEN_LEN);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
   }
 
   if (cJSON_HasObjectItem(json_obj, "key")) {

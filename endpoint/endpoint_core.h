@@ -49,10 +49,8 @@ void endpoint_destroy(void);
  *
  * @return #status_t
  */
-status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, const int value,
-                                      const char* message, const char* message_fmt, const char* tag,
-                                      const char* address, const char* next_address, const uint8_t* private_key,
-                                      const char* device_id, uint8_t* iv);
+status_t send_mam_message(const char* host, const char* port, const char* ssl_seed, const char* mam_seed,
+                          const char* message, const uint8_t* private_key, const char* device_id, uint8_t* iv);
 /**
  * @brief Resolve the server address name
  *
