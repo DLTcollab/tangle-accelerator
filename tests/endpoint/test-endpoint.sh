@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Usage: ./test-endpoint.sh [HOST or IP] [PORT]
 
-if [ "$#" -ne 2 ]; then
-	echo "Usage: ./test-endpoint.sh [HOST or IP] [PORT]" >&2
+if [ "$#" -ne 4 ]; then
+	echo "Usage: ./test-endpoint.sh [HOST or IP] [PORT] [mam seed] [test message]" >&2
 	exit 1
 fi
 
@@ -18,6 +18,8 @@ source $COMMON_FILE
 
 TA_HOST="$1"
 TA_PORT="$2"
+MAM_SEED="$3"
+MESSAGE="$4"
 # Check ip is validity or not
 validate_host "$1"
 validate_port "$2"
@@ -32,7 +34,7 @@ trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
 sleep 10
 
-endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint --host="$TA_HOST" --port="$TA_PORT"
+endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint --host="$TA_HOST" --port="$TA_PORT" --mam-seed="$MAM_SEED" --msg="$MESSAGE"
 ret_code=$?
 
 kill -9 ${TA}

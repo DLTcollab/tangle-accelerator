@@ -12,6 +12,7 @@
 #define ADDR_LEN 81
 #define MAX_MSG_LEN 1024
 
+#include <stddef.h>
 #include <stdint.h>
 #include "common/ta_errors.h"
 
@@ -39,12 +40,12 @@ void endpoint_destroy(void);
  * @param[in] message Message payload of the MAM packet in ASCII
  * @param[in] private_key Private key from device
  * @param[in] device_id Device id from device
- * @param[in,out] iv Initialization vector, must be read/write. The length of iv must be AES_IV_SIZE @see #ta_cipher_ctx
  *
  * @return #status_t
  */
 status_t send_mam_message(const char* host, const char* port, const char* ssl_seed, const char* mam_seed,
-                          const char* message, const uint8_t* private_key, const char* device_id, uint8_t* iv);
+                          const uint8_t* message, const size_t msg_len, const uint8_t* private_key,
+                          const char* device_id);
 /**
  * @brief Resolve the server address name
  *

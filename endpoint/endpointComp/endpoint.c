@@ -6,23 +6,21 @@
  * "LICENSE" at the root of this distribution.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "build/obd_generated.h"
+
 #include "endpoint.h"
 #include "hal/device.h"
 
+#include "cipher.h"
 #include "common/ta_errors.h"
-#include "endpoint/cipher.h"
-#include "endpoint/endpoint_core.h"
+#include "endpoint_core.h"
 #include "le_test.h"
 #include "legato.h"
 
 #include "le_log.h"
-
-#define TEST_MESSAGE "THISISMSG9THISISMSG9THISISMSG"
-#define TEST_MAM_SEED                                                          \
-  "POWEREDBYTANGLEACCELERATOR999999999999999999999999999999999999999999999999" \
-  "999999A"
-
-const uint8_t test_iv[AES_IV_SIZE] = {164, 3, 98, 193, 52, 162, 107, 252, 184, 42, 74, 225, 157, 26, 88, 72};
 
 static void print_help(void) {
   puts(
@@ -66,20 +64,16 @@ static void print_help(void) {
 }
 
 COMPONENT_INIT {
-  // FIXME:
-  // The current code is a prototype for passing the CI.
-  // The initialization of hardware and the input from hardware are not implemented yet.
-  const char* host = NULL;
-  const char* port = NULL;
-  const char* ssl_seed = NULL;
-  const char* message = TEST_MESSAGE;
-  const char* mam_seed = TEST_MAM_SEED;
+  const char *host = NULL;
+  const char *port = NULL;
+  const char *ssl_seed = NULL;
+  const char *message = NULL;
+  const char *mam_seed = NULL;
 
   char device_id[16] = {0};
-  const char* device_id_ptr = device_id;
+  const char *device_id_ptr = device_id;
 
   uint8_t private_key[AES_CBC_KEY_SIZE] = {0};
-  uint8_t iv[AES_IV_SIZE] = {0};
 
   le_arg_SetStringVar(&host, NULL, "host");
   le_arg_SetStringVar(&port, NULL, "port");
@@ -89,10 +83,9 @@ COMPONENT_INIT {
   le_arg_SetFlagCallback(print_help, "h", "help");
   le_arg_Scan();
 
-  memcpy(iv, test_iv, AES_IV_SIZE);
   srand(time(NULL));
 
-  device_t* device = ta_device(STRINGIZE(EP_TARGET));
+  device_t *device = ta_device(STRINGIZE(EP_TARGET));
   if (device == NULL) {
     LE_ERROR("Can not get specific device");
     exit(EXIT_FAILURE);
@@ -103,7 +96,14 @@ COMPONENT_INIT {
 
   status_t ret = SC_OK;
   LE_INFO("=== ENDPOINT TEST BEGIN ===");
-  ret = send_mam_message(host, port, ssl_seed, mam_seed, message, private_key, device_id_ptr, iv);
+
+  if (host == NULL || port == NULL || message == NULL || mam_seed == NULL) {
+    LE_ERROR("The host, port, mam seed and message should not be NULL");
+    exit(EXIT_FAILURE);
+  }
+
+  const size_t msg_len = strlen(message);
+  ret = send_mam_message(host, port, ssl_seed, mam_seed, (uint8_t *)message, msg_len, private_key, device_id_ptr);
   LE_INFO("Send transaction information return: %d", ret);
   exit(ret == SC_OK ? EXIT_SUCCESS : EXIT_FAILURE);
 }
