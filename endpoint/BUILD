@@ -89,5 +89,6 @@ cc_library(
     deps = [
         ":cipher",
         "//common:ta_errors",
+        "//common:ta_logger",
     ],
 )

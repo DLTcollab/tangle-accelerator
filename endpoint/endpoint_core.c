@@ -23,10 +23,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-// FIXME: Same as STR() inside tests/test_defined.h
-#define STR_HELPER(num) #num
-#define STR(num) STR_HELPER(num)
-
 #ifndef EP_TA_HOST
 #define EP_TA_HOST localhost
 #endif
@@ -74,10 +70,10 @@ status_t send_mam_message(const char* host, const char* port, const char* ssl_se
   uint8_t ciphertext[MAX_MSG_LEN] = {0};
   uint8_t raw_msg[MAX_MSG_LEN] = {0};
 
-  const char* ta_host = host ? host : STR(EP_TA_HOST);
-  const char* ta_port = port ? port : STR(EP_TA_PORT);
+  const char* ta_host = host;
+  const char* ta_port = port;
 
-  const char* seed = ssl_seed ? ssl_seed : STR(EP_SSL_SEED);
+  const char* seed = ssl_seed;
 
   size_t msg_len = 0;
   struct timespec t;

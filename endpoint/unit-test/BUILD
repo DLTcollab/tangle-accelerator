@@ -17,8 +17,7 @@ cc_test(
         "test_endpoint_core.c",
     ],
     deps = [
-        "//common:ta_errors",
-        "//common:ta_logger",
+        "//common",
         "//endpoint:endpoint_core",
         "//tests:logger_lib",
         "//tests:test_define",

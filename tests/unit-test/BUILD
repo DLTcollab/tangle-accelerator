@@ -68,6 +68,7 @@ cc_test(
         "test_text_serializer.c",
     ],
     deps = [
+        "//common",
         "//endpoint:cipher",
         "//endpoint:text_serializer",
         "//tests:logger_lib",

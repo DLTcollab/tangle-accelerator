@@ -32,7 +32,7 @@ trap "kill -9 ${TA};" INT # Trap SIGINT from Ctrl-C to stop TA
 
 sleep 10
 
-endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint
+endpoint/_build_endpoint/localhost/app/endpoint/staging/read-only/bin/endpoint --host="$TA_HOST" --port="$TA_PORT"
 ret_code=$?
 
 kill -9 ${TA}
