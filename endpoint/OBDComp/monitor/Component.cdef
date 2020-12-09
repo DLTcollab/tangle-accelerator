@@ -14,8 +14,6 @@ cflags:
     -I${CURDIR}/../can-bus/
 }
 
-#if ${LEGATO_TARGET} = localhost
-#else
 requires:
 {
     device:
@@ -29,6 +27,6 @@ requires:
         modemServices/le_sim.api
         modemServices/le_mdc.api
         le_data.api    [manual-start]
+        endpoint.api
     }
 }
-#endif
