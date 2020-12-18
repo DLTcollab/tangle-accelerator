@@ -261,17 +261,20 @@ status_t get_node_status_milestone_deserialize(char const* const obj, int* const
  */
 status_t get_node_status_res_serialize(const status_t status, char** obj);
 
+status_t fetch_buffered_request_status_req_deserialize(char* obj, char* uuid);
+
 /**
- * @brief Serialize the response of `fetch_txn_with_uuid()`.
+ * @brief Serialize the response of `fetch_buffered_request_status()`.
  *
- * @param[in] res ta_fetch_txn_with_uuid_res_t object
+ * @param[in] res ta_fetch_buffered_request_status_res_t object
  * @param[out] obj Serialized API response
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
-status_t fetch_txn_with_uuid_res_serialize(const ta_fetch_txn_with_uuid_res_t* const res, char** obj);
+status_t fetch_buffered_request_status_res_serialize(const ta_fetch_buffered_request_status_res_t* const res,
+                                                     char** obj);
 
 #ifdef __cplusplus
 }

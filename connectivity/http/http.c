@@ -90,6 +90,18 @@ static inline int process_find_txns_by_tag_request(iota_client_service_t *const 
   return set_response_content(ret, out);
 }
 
+static inline int process_fetch_buffered_request_status(ta_http_t *const http, char const *const url,
+                                                        char **const out) {
+  status_t ret;
+  char *uuid = NULL;
+  ret = ta_get_url_parameter(url, 1, &uuid);
+  if (ret == SC_OK) {
+    ret = api_fetch_buffered_request_status(&http->core->cache, uuid, out);
+  }
+  free(uuid);
+  return set_response_content(ret, out);
+}
+
 static inline int process_find_txn_obj_single_request(iota_client_service_t *const iota_service, char const *const url,
                                                       char **const out) {
   status_t ret;
@@ -235,6 +247,10 @@ static int ta_http_process_request(ta_http_t *const http, iota_client_service_t 
     } else {
       return process_send_mam_msg_request(http, payload, out);
     }
+  } else if (api_path_matcher(
+                 url, "/fetch/[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}[/]?") ==
+             SC_OK) {
+    return process_fetch_buffered_request_status(http, url, out);
   } else if (api_path_matcher(url, "/transaction/[A-Z9]{81}[/]?") == SC_OK) {
     return process_find_txn_obj_single_request(iota_service, url, out);
   } else if (api_path_matcher(url, "/transaction/object[/]?") == SC_OK) {
