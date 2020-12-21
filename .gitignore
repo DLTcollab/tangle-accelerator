@@ -103,3 +103,4 @@ _build_endpoint/
 endpoint.*.update
 .repo
 legato/
+build/

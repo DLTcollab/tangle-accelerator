@@ -48,9 +48,8 @@ LEGATO_FLAGS += -DEP_TARGET=$(EP_TARGET)
 # Prepend the "-C" flag at the beginging for passing cflags into mkapp
 LEGATO_FLAGS := $(foreach flags, $(LEGATO_FLAGS), -C $(flags))
 
-# Include the build command from the specific target
-include endpoint/platform/$(EP_TARGET)/build.mk
 export EP_TARGET
+export LEGATO_FLAGS
 
 all: $(DEPS) cert
 
@@ -71,13 +70,12 @@ $(MOSQUITTO_LIB): $(MOSQUITTO_DIR)
 
 # Build endpoint Legato app
 legato: cert
-	# Fetch the required external source code
-	# FIXME: Use 'fetch' instead of 'build' to avoid extra building actions.
-	#        The 'build' option is for getting the header file like 'mam/mam/mam_endpoint_t_set.h',
-	#        which can not be downloaded when the 'fetch' option is used.
-	bazel --output_base=$(OUTPUT_BASE_DIR) build //endpoint:libendpoint.so
-	# Generate endpoint Legato app
-	$(call platform-build-command)
+	# FIXME: Build the accelerator to get ta default logger from IOTA default
+	# repository. Remove this after all of the ta logger has been replaced by 
+	# legato logger inside endpoint.
+	bazel --output_base=$(OUTPUT_BASE_DIR) build //accelerator
+	endpoint/build-legato.sh
+	$(MAKE) -C endpoint $(EP_TARGET)
 
 cert: check_pem
 	@xxd -i $(PEM) > $(PEM_DIR)/ca_crt.inc
@@ -96,6 +94,7 @@ endif
 clean:
 	$(MAKE) -C $(DCURL_DIR) clean
 	$(MAKE) -C $(MOSQUITTO_DIR) clean
+	$(MAKE) -C endpoint clean
 
 distclean: clean
 	$(RM) -r $(DCURL_DIR)

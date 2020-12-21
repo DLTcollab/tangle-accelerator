@@ -3,7 +3,13 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "endpoint_core",
     srcs = ["endpoint_core.c"],
-    hdrs = ["endpoint_core.h"],
+    hdrs = [
+        "build/endpoint_generated.h",
+        "endpoint_core.h",
+    ],
+    copts = [
+        "-Ibuild",
+    ],
     defines = [
         "EP_TA_HOST=localhost",
         "EP_TA_PORT=8000",
@@ -17,6 +23,7 @@ cc_library(
         "//endpoint:https",
         "//endpoint:text_serializer",
         "//utils:tryte_byte_conv",
+        "@flatcc_0_6_0",
     ],
 )
 
