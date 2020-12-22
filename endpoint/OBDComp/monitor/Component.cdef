@@ -1,0 +1,34 @@
+sources:
+{
+    monitor.c
+    ../can-bus/can-utils.c
+    ${CURDIR}/../../platform/${EP_TARGET}/impl.c
+    ${CURDIR}/../../hal/device.c
+}
+
+cflags:
+{
+    -g -O0
+
+    -I${CURDIR}/../../../
+    -I${CURDIR}/../can-bus/
+}
+
+#if ${LEGATO_TARGET} = localhost
+#else
+requires:
+{
+    device:
+    {
+        [rw] /dev/ttyHS0 /dev/ttyHS0
+    }
+    
+    api:
+    {
+        le_secStore.api
+        modemServices/le_sim.api
+        modemServices/le_mdc.api
+        le_data.api    [manual-start]
+    }
+}
+#endif

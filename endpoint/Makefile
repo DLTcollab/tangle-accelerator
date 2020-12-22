@@ -5,6 +5,7 @@ TARGETS := wp77xx
 # Third party library
 FLATCC_DIR=$(ROOT_DIR)/third_party/flatcc
 MBEDTLS_DIR=$(ROOT_DIR)/third_party/mbedtls
+BROTLI_DIR=$(ROOT_DIR)/third_party/brotli
 
 OBD_SCHEMA=$(ROOT_DIR)/third_party/vehicle-scheme/vehicle_obd.fbs
 ENDPOINT_SCHEMA=$(ROOT_DIR)/third_party/vehicle-scheme/endpoint.fbs
@@ -18,8 +19,10 @@ FLATCC_CMAKE_DIR=$(OUT)/flatcc
 MBEDTLS_INCLUDE=$(MBEDTLS_DIR)/include
 MBEDTLS_LIB=$(MBEDTLS_DIR)/library
 
-INCLUDE_FLAGS=-I../ -I$(FLATCC_INCLUDE) -I$(MBEDTLS_INCLUDE)
-LDFLAGS=-L$(FLATCC_LIB) -L$(MBEDTLS_LIB) -lmbedcrypto -lmbedx509 -lmbedtls -lflatccrt -lm
+BROTLI_INCLUDE=$(BROTLI_DIR)/c/include
+
+INCLUDE_FLAGS=-I../ -I$(FLATCC_INCLUDE) -I$(MBEDTLS_INCLUDE) -I$(BROTLI_INCLUDE) 
+LDFLAGS=-L$(FLATCC_LIB) -L$(MBEDTLS_LIB) -L$(BROTLI_DIR) -lbrotli -lmbedcrypto -lmbedx509 -lmbedtls -lflatccrt -lm
 
 THIRD_PARTY_CFLAGS= -fPIC
 
@@ -50,6 +53,9 @@ obd_header:
 mbedtls_lib:
 	$(MAKE) -C $(MBEDTLS_DIR) CC=$(CC) CFLAGS=$(THIRD_PARTY_CFLAGS) lib
 
+brotli_lib:
+	$(MAKE) -C $(BROTLI_DIR) CC=$(CC) CFLAGS=$(THIRD_PARTY_CFLAGS) lib
+
 flatcc_lib:
 	mkdir -p $(FLATCC_CMAKE_DIR)
 	cd $(FLATCC_CMAKE_DIR); \
@@ -64,11 +70,12 @@ flatcc_lib:
 
 clean:
 	$(MAKE) -C $(MBEDTLS_DIR) clean
-	rm -rf build
+	$(MAKE) -C $(BROTLI_DIR) clean
+	rm -rf $(OUT) 
 	rm -rf _build_* *.*.update
 
 simulator: export LEGATO_ROOT=$(PWD)/legato
-simulator: obd_header mbedtls_lib flatcc_lib
+simulator: obd_header mbedtls_lib flatcc_lib brotli_lib
 	export PATH=$(LEGATO_ROOT)/bin:$(LEGATO_ROOT)build/localhost/framework/bin:$(PATH) ; \
 	export LEGATO_TARGET=localhost ; \
 	mkapp -v -t localhost \
@@ -79,13 +86,28 @@ simulator: obd_header mbedtls_lib flatcc_lib
 		  -C -fPIC \
 		  -C -DEP_TARGET=simulator \
           --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
-          endpoint.adef
+          endpoint.adef  && \
+	mkapp -t localhost \
+		  $(LEGATO_INCLUDE_FLAGS) \
+		  $(LEGATO_LDFLAGS) \
+		  $(LEGATO_FLAGS) \
+		  -C -DENABLE_ENDPOINT_TEST \
+		  -C -fPIC \
+		  -C -DEP_TARGET=simulator \
+          --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
+          OBDMonitor.adef
 
 $(TARGETS): export TARGET=$@
-$(TARGETS): obd_header mbedtls_lib flatcc_lib
+$(TARGETS): obd_header mbedtls_lib flatcc_lib brotli_lib
 	mkapp -v -t $@ \
 		  $(LEGATO_INCLUDE_FLAGS) \
 		  $(LEGATO_LDFLAGS) \
 		  $(LEGATO_FLAGS) \
           --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
           endpoint.adef
+	mkapp -t $@ \
+		  $(LEGATO_INCLUDE_FLAGS) \
+		  $(LEGATO_LDFLAGS) \
+		  $(LEGATO_FLAGS) \
+          --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
+          OBDMonitor.adef

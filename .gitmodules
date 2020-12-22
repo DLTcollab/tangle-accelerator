@@ -7,6 +7,9 @@
 [submodule "third_party/mosquitto"]
 	path = third_party/mosquitto
 	url = https://github.com/eclipse/mosquitto.git
+[submodule "third_party/brotli"]
+	path = third_party/brotli
+	url = https://github.com/google/brotli.git
 [submodule "third_party/flatcc"]
 	path = third_party/flatcc
 	url = https://github.com/dvidelabs/flatcc.git

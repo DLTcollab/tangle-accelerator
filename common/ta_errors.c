@@ -196,7 +196,14 @@ const char* ta_error_to_string(status_t err) {
       return "Error occurred when get device id from endpoint device";
     case SC_ENDPOINT_DNS_RESOLVE_ERROR:
       return "Error occurred when resolving the domain name";
-
+    case SC_ENDPOINT_CAN_OPEN_ERROR:
+      return "Error occurred when opening CAN BUS socket";
+    case SC_ENDPOINT_CAN_SEND_ERROR:
+      return "Error occurred when writing message into CAN BUS socket";
+    case SC_ENDPOINT_CAN_RECV_ERROR:
+      return "Error occurred when reading message from CAN BUS socket";
+    case SC_ENDPOINT_CAN_CLOSE_ERROR:
+      return "Error occurred when closing CAN BUS socket";
     default:
       return "Unknown error.";
   }

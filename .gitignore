@@ -99,8 +99,9 @@ pem/*.inc
 # Legato app related files
 resolv.conf
 output_base/
-_build_endpoint/
-endpoint.*.update
+endpoint/_build_*/
+_build_*/
+*.*.update
 .repo
 legato/
 build/
