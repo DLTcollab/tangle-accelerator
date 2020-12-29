@@ -12,12 +12,14 @@
 #include "brotli/decode.h"
 #include "brotli/encode.h"
 #include "build/obd_generated.h"
+#include "cipher.h"
 #include "endpoint/OBDComp/can-bus/can-utils.h"
 #include "endpoint/OBDComp/obd_pid.h"
 #include "hal/device.h"
 
 #include "legato.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -230,7 +232,8 @@ static void free_obd_hashmap_datasets(le_hashmap_Ref_t OBD_datasets) {
   le_hashmap_RemoveAll(OBD_datasets);
 }
 
-static void get_obd_datasets(int fd) {
+static void get_obd_datasets(int fd, const char *host, const char *port, const char *ssl_seed, const char *mam_seed,
+                             const char *private_key, const char *device_id) {
   PID *tmp_pid = PIDS;
   struct can_frame frame_recv;
 
@@ -254,8 +257,11 @@ static void get_obd_datasets(int fd) {
   free_obd_hashmap_datasets(obd2_data_table);
   LE_INFO("Success to create flatbuffer for obd2 datasets");
   LE_INFO("Flatbuffer length: %zu", flatbuffer_msg_len);
-  // TODO: Send flatbuffer message via endpoint
 
+  // Send flatbuffer message via endpointService
+  int ret = endpoint_Send_mam_message(host, port, ssl_seed, mam_seed, flatbuffer_msg, flatbuffer_msg_len,
+                                      (uint8_t *)private_key, AES_CBC_KEY_SIZE, device_id);
+  LE_INFO("endpoint service return: %d", ret);
   free(flatbuffer_msg);
 }
 
@@ -267,14 +273,41 @@ static void print_help(void) {
       "SYNOPSIS\n"
       "  OBDService [-h]\n"
       "  OBDService [--help]\n"
+      "             [--host=\"host\"]\n"
+      "             [--port=\"port\"]\n"
+      "             [--ssl-seed=\"ssl-seed\"]\n"
+      "             [--mam-seed=\"seed\"]\n"
+      "             [--private-key=\"private-key\"]\n"
       "\n"
       "OPTIONS\n"
       "  -h\n"
       "  --help\n"
       "    Print the information for helping the users. Ignore other arguments.\n"
+      "\n"
       "  -i\n"
       "  --can-interface\n"
       "    Set the can interface.\n"
+      "\n"
+      "  --mam-seed=\"seed\"\n"
+      "    Channel root seed. It is an 81-trytes string.\n"
+      "\n"
+      "  --msg=\"message\"\n"
+      "    Assign the message value with string for send_transaction_information.\n"
+      "\n"
+      "  --host=\"host\"\n"
+      "    Assign the host of the tangle-accelerator for send_transaction_information.\n"
+      "    The default value is NULL.\n"
+      "\n"
+      "  --port=\"port\"\n"
+      "    Assign the port of the tangle-accelerator for send_transaction_information.\n"
+      "    The default value is NULL.\n"
+      "\n"
+      "  --ssl-seed=\"ssl-seed\"\n"
+      "    Assign the random seed of the SSL configuration for send_transaction_information.\n"
+      "    The default value is NULL.\n"
+      "\n"
+      "  --private-key=\"private-key\"\n"
+      "    The private key for encrypting message.\n"
       "\n");
 
   exit(EXIT_SUCCESS);
@@ -282,17 +315,44 @@ static void print_help(void) {
 
 COMPONENT_INIT {
   const char *interface = NULL;
+  const char *host = NULL;
+  const char *port = NULL;
+  const char *ssl_seed = "";
+  const char *mam_seed = NULL;
+  const char *private_key = NULL;
+
+  char device_id[16] = {0};
+  const char *device_id_ptr = device_id;
+
   le_arg_SetStringVar(&interface, "i", "can-interface");
   le_arg_SetFlagCallback(print_help, "h", "help");
+  le_arg_SetStringVar(&host, NULL, "host");
+  le_arg_SetStringVar(&port, NULL, "port");
+  le_arg_SetStringVar(&ssl_seed, NULL, "ssl-seed");
+  le_arg_SetStringVar(&mam_seed, NULL, "mam-seed");
+  le_arg_SetStringVar(&private_key, NULL, "private-key");
   le_arg_Scan();
+
+  device_t *device = ta_device(STRINGIZE(EP_TARGET));
+  if (device == NULL) {
+    LE_ERROR("Can not get specific device");
+    exit(EXIT_FAILURE);
+  }
+  device->op->get_device_id(device_id);
 
   if (interface == NULL) {
     print_help();
   }
 
+  if (host == NULL || port == NULL || mam_seed == NULL || private_key == NULL) {
+    LE_ERROR("The host, port, mam seed and the private key should not be NULL");
+    exit(EXIT_FAILURE);
+  }
+
   int fd;
   can_open((char *)interface, &fd);
-  get_obd_datasets(fd);
+  get_obd_datasets(fd, host, port, ssl_seed, mam_seed, private_key, device_id);
+
   can_close(fd);
   exit(EXIT_SUCCESS);
 }
