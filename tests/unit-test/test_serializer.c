@@ -316,13 +316,15 @@ void test_recv_mam_message_request_psk_deserialize(void) {
 }
 
 void test_recv_mam_message_response_serialize(void) {
-  const char* json = "{\"payload\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"],\"chid1\":\"" TEST_ADDRESS "\"}";
+  const char* json = "{\"payload\":[[\"" STR(TIMESTAMP_LEN20_1) "\",\"" TRYTES_81_1 "\"],[\"" STR(
+      TIMESTAMP_LEN20_2) "\",\"" TRYTES_81_2 "\"]],\"chid1\":\"" TEST_ADDRESS "\"}";
   ta_recv_mam_res_t* res = recv_mam_res_new();
   char* json_result = NULL;
   char* str;
-  str = TRYTES_81_1;
+  str = STR(TIMESTAMP_LEN20_1) TRYTES_81_1;
   utarray_push_back(res->payload_array, &str);
-  str = TRYTES_81_2;
+  str = STR(TIMESTAMP_LEN20_2) TRYTES_81_2;
+
   utarray_push_back(res->payload_array, &str);
   strncpy(res->chid1, TEST_ADDRESS, NUM_TRYTES_ADDRESS);
 

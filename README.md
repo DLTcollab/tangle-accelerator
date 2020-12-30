@@ -91,6 +91,12 @@ Tangle-accelerator is built and launched through Bazel, it also requires Redis t
 * openssl-dev (required by mosquitto)
 * uuid-dev
 
+In addition, the user should ensure clock synchronization on the machine on which tangle-accelerator is running. This command can help the user to adjust the time server.
+
+```bash
+sudo ntpdate -u <NTP Server>
+```
+
 ## Build from Source
 
 Before running tangle-accelerator, please edit binding address/port of accelerator instance, IOTA full node, and redis server in `accelerator/config.h` unless they are all localhost and/or you don't want to provide external connection. With dependency of [iota.c](https://github.com/iotaledger/iota.c), IOTA full node address doesn't support https at the moment. Here are some configurations and command you might need to change and use:

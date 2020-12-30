@@ -61,3 +61,48 @@ cc_test(
         "//tests:test_define",
     ],
 )
+
+cc_test(
+    name = "test_mam_psk",
+    srcs = [
+        "test_mam_psk.c",
+    ],
+    deps = [
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
+        "//common",
+        "//tests:common",
+        "//tests:logger_lib",
+        "//tests:test_define",
+    ],
+)
+
+cc_test(
+    name = "test_write_until_next_channel",
+    srcs = [
+        "test_write_until_next_channel.c",
+    ],
+    deps = [
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
+        "//common",
+        "//tests:common",
+        "//tests:logger_lib",
+        "//tests:test_define",
+    ],
+)
+
+cc_test(
+    name = "test_write_with_chid",
+    srcs = [
+        "test_write_with_chid.c",
+    ],
+    deps = [
+        "//accelerator/core:apis",
+        "//accelerator/core:proxy_apis",
+        "//common",
+        "//tests:common",
+        "//tests:logger_lib",
+        "//tests:test_define",
+    ],
+)
