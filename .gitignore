@@ -105,3 +105,5 @@ _build_*/
 .repo
 legato/
 build/
+leaf-data
+leaf-workspace.json
