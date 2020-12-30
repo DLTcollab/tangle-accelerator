@@ -73,3 +73,14 @@ cc_test(
         "//utils:tryte_byte_conv",
     ],
 )
+
+cc_test(
+    name = "test_crypto",
+    srcs = ["test_crypto.c"],
+    deps = [
+        "//crypto:ecdh",
+        "//tests:logger_lib",
+        "//tests:test_define",
+        "@mbedtls",
+    ],
+)
