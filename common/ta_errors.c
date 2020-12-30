@@ -204,6 +204,19 @@ const char* ta_error_to_string(status_t err) {
       return "Error occurred when reading message from CAN BUS socket";
     case SC_ENDPOINT_CAN_CLOSE_ERROR:
       return "Error occurred when closing CAN BUS socket";
+
+    // Crypto
+    case SC_CRYPTO_RAND_INIT:
+      return "Failed to generate random number generator";
+    case SC_CRYPTO_GEN_KEY:
+      return "Failed to generate ECDH public key";
+    case SC_CRYPTO_COMPUTE_SECRET:
+      return "Failed to compute ECDH shared secret";
+    case SC_CRYPTO_HASH:
+      return "Failed to hash";
+    case SC_CRYPTO_ECDSA_SIGN:
+      return "Failed to sign with ECDSA";
+
     default:
       return "Unknown error.";
   }
