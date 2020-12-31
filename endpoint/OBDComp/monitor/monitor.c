@@ -15,6 +15,7 @@
 #include "cipher.h"
 #include "endpoint/OBDComp/can-bus/can-utils.h"
 #include "endpoint/OBDComp/obd_pid.h"
+#include "endpoint/cipher.h"
 #include "impl.h"
 
 #include "legato.h"
@@ -232,7 +233,7 @@ static void free_obd_hashmap_datasets(le_hashmap_Ref_t OBD_datasets) {
 }
 
 static void get_obd_datasets(int fd, const char *host, const char *port, const char *ssl_seed, const char *mam_seed,
-                             const char *private_key, const char *device_id) {
+                             const uint8_t *private_key, const char *device_id) {
   PID *tmp_pid = PIDS;
   struct can_frame frame_recv;
 
@@ -276,7 +277,6 @@ static void print_help(void) {
       "             [--port=\"port\"]\n"
       "             [--ssl-seed=\"ssl-seed\"]\n"
       "             [--mam-seed=\"seed\"]\n"
-      "             [--private-key=\"private-key\"]\n"
       "\n"
       "OPTIONS\n"
       "  -h\n"
@@ -304,9 +304,6 @@ static void print_help(void) {
       "  --ssl-seed=\"ssl-seed\"\n"
       "    Assign the random seed of the SSL configuration for send_transaction_information.\n"
       "    The default value is NULL.\n"
-      "\n"
-      "  --private-key=\"private-key\"\n"
-      "    The private key for encrypting message.\n"
       "\n");
 
   exit(EXIT_SUCCESS);
@@ -318,10 +315,11 @@ COMPONENT_INIT {
   const char *port = NULL;
   const char *ssl_seed = "";
   const char *mam_seed = NULL;
-  const char *private_key = NULL;
 
   char device_id[16] = {0};
   const char *device_id_ptr = device_id;
+
+  uint8_t private_key[AES_CBC_KEY_SIZE] = {0};
 
   le_arg_SetStringVar(&interface, "i", "can-interface");
   le_arg_SetFlagCallback(print_help, "h", "help");
@@ -329,8 +327,13 @@ COMPONENT_INIT {
   le_arg_SetStringVar(&port, NULL, "port");
   le_arg_SetStringVar(&ssl_seed, NULL, "ssl-seed");
   le_arg_SetStringVar(&mam_seed, NULL, "mam-seed");
-  le_arg_SetStringVar(&private_key, NULL, "private-key");
   le_arg_Scan();
+
+  // Use device key as AES private key
+  if (get_device_key(private_key) != SC_OK) {
+    LE_ERROR("Failed to get device key. Please set the device key first");
+    exit(EXIT_FAILURE);
+  }
 
   get_device_id(device_id);
 

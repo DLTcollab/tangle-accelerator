@@ -27,7 +27,7 @@ requires:
     
     api:
     {
-        le_secStore.api
+        secStoreGlobal = le_secStore.api
         modemServices/le_sim.api
         modemServices/le_mdc.api
         le_data.api    [manual-start]

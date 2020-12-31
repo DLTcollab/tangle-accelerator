@@ -37,7 +37,7 @@ requires:
 #else
 bindings:
 {
-    endpoint.endpointComp.le_secStore -> secStore.le_secStore
+    endpoint.endpointComp.secStoreGlobal -> secStore.secStoreGlobal
     endpoint.endpointComp.le_sim -> modemService.le_sim
     endpoint.endpointComp.le_mdc -> modemService.le_mdc
     endpoint.endpointComp.le_data -> dataConnectionService.le_data

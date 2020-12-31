@@ -17,31 +17,55 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+#include "endpoint/cipher.h"
 
 #include "legato.h"
 
 #include "interfaces.h"
 
-#define MAXLINE 1024
-
-#define CBC_IV_SIZE 16
-#define IMSI_LEN 15
-#define READ_BUFFER_SIZE 32
-#define DEFAULT_PORT "/dev/ttyHS0"
-
 static le_sim_Id_t SimId;
 
+status_t set_device_key(const char *key) {
+  if (key == NULL) {
+    LE_ERROR("Failed to get key");
+    return SC_ENDPOINT_SET_KEY_ERROR;
+  }
+
+  uint8_t private_key[AES_CBC_KEY_SIZE] = {};
+  memcpy(private_key, key, AES_CBC_KEY_SIZE);
+
+  le_result_t result = secStoreGlobal_Write(ENDPOINT_DEVICE_KEY_NAME, private_key, AES_CBC_KEY_SIZE);
+
+  if (result != LE_OK) {
+    LE_ERROR("Failed to set private key");
+    return SC_ENDPOINT_SET_KEY_ERROR;
+  }
+  return SC_OK;
+}
+
 status_t get_device_key(uint8_t *key) {
-  // FIXME:Need to implement the private key generate algorithm
   if (key == NULL) {
     LE_ERROR("Failed to get key");
     return SC_ENDPOINT_GET_KEY_ERROR;
   }
 
-  char *private_key = "AAAAAAAAAAAAAAAA";
-  memcpy(key, private_key, CBC_IV_SIZE);
+  size_t key_size = AES_CBC_KEY_SIZE;
+  uint8_t private_key[AES_CBC_KEY_SIZE] = {};
 
-  return SC_OK;
+  le_result_t result = secStoreGlobal_Read(ENDPOINT_DEVICE_KEY_NAME, private_key, &key_size);
+
+  switch (result) {
+    case LE_OK:
+      LE_DEBUG("Success to get device key");
+      return SC_OK;
+    case LE_OVERFLOW:
+    case LE_NOT_FOUND:
+    case LE_UNAVAILABLE:
+    case LE_FAULT:
+    default:
+      LE_ERROR("Failed to get device key");
+      return SC_ENDPOINT_GET_KEY_ERROR;
+  }
 }
 
 static status_t cm_sim_GetSimImsi(char *sim_id) {

@@ -208,6 +208,8 @@ const char* ta_error_to_string(status_t err) {
       return "Error occurred when writing message to UART";
     case SC_ENDPOINT_UART_READ_ERROR:
       return "Error occurred when reading message from UART";
+    case SC_ENDPOINT_SET_KEY_ERROR:
+      return "Fail to set a new AES key";
 
     // Crypto
     case SC_CRYPTO_RAND_ERR:
