@@ -1,0 +1,26 @@
+requires:
+{
+    component:
+    {
+        ${LEGATO_ROOT}/components/3rdParty/curl
+    }
+
+    lib:
+    {
+        curl
+    }
+
+}
+
+sources:
+{
+   shell.c 
+}
+
+cflags:
+{
+    -g -O0
+    -lcurl
+    
+    -I${CURDIR}/../..
+}
