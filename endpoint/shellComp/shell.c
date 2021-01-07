@@ -7,6 +7,8 @@
  */
 
 #include "shell.h"
+#include "cipher.h"
+#include "endpoint/platform/impl.h"
 
 // Legato headers
 #include "interfaces.h"
@@ -36,6 +38,7 @@ static int sh_route(char **argv);
 static int sh_at(char **argv);
 static int sh_transaction(char **argv);
 static int sh_connect(char **argv);
+static int sh_setup_private_key(char **argv);
 
 static int sh_launch(char **args);
 static int open_serialport(char *dev, speed_t baudrate);
@@ -52,6 +55,7 @@ static command builtin_cmd[] = {
     {"AT", "Change to AT shell [Command]", sh_at},
     {"trans", "Send the test transaction [host] [port]", sh_transaction},
     {"connect", "Connect modem to network", sh_connect},
+    {"set-private-key", "Setup private key into secure storage [private-key]", sh_setup_private_key},
 };
 
 static char *test_post_data =
@@ -305,6 +309,32 @@ static int sh_connect(char **argv) {
 }
 
 /**
+   @brief Builtin command: Setup or update private key of endpoint device
+   @param[in] argv List of args
+   @return Always returns 1, to continue executing
+ */
+static int sh_setup_private_key(char **argv) {
+  char *private_key = argv[1];
+  if (private_key == NULL) {
+    fprintf(stderr, "The private key should be entered\n");
+    return 1;
+  }
+
+  if (strlen(private_key) != AES_CBC_KEY_SIZE) {
+    fprintf(stderr, "The private key length should be %d bytes of string\n", AES_CBC_KEY_SIZE);
+    return 1;
+  }
+
+  if (set_device_key(private_key) != SC_OK) {
+    fprintf(stderr, "Failed to set private key\n");
+    return 1;
+  }
+
+  fprintf(stdout, "Finish to update new device key\n");
+  return 1;
+}
+
+/**
    @brief Launch program
    @param[in] args Null terminated list of arguments
    @return 1 if the shell should continue running, 0 if it should terminate
@@ -469,7 +499,7 @@ static status_t set_interface_attribs(int fd, speed_t speed) {
 static int open_serialport(char *dev, speed_t baudrate) {
   int fd;
 
-  fd = open(dev, O_RDWR | O_NOCTTY | O_SYNC);
+  fd = open(dev, O_RDWR | O_NOCTTY | O_NDELAY);
   if (fd < 0) {
     perror("Open serial port");
   }

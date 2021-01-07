@@ -111,3 +111,9 @@ $(TARGETS): obd_header mbedtls_lib flatcc_lib brotli_lib
 		  $(LEGATO_FLAGS) \
           --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
           OBDMonitor.adef
+	mkapp -t $@ \
+		  $(LEGATO_INCLUDE_FLAGS) \
+		  $(LEGATO_LDFLAGS) \
+		  $(LEGATO_FLAGS) \
+          --interface-search=$(LEGATO_ROOT)/interfaces/modemServices \
+          shell.adef

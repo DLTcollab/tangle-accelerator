@@ -49,5 +49,13 @@ requires:
     }
 }
 
+bindings:
+{
+    shell.shellComp.secStoreGlobal -> secStore.secStoreGlobal
+    shell.shellComp.le_sim -> modemService.le_sim
+    shell.shellComp.le_mdc -> modemService.le_mdc
+    shell.shellComp.le_data -> dataConnectionService.le_data
+}
+
 start: auto 
 sandboxed: false
