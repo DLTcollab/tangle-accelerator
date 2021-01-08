@@ -69,10 +69,10 @@ flatcc_lib:
 	$(MAKE) -C $(FLATCC_CMAKE_DIR)
 
 clean:
-	$(MAKE) -C $(MBEDTLS_DIR) clean
-	$(MAKE) -C $(BROTLI_DIR) clean
+	-$(MAKE) -C $(MBEDTLS_DIR) clean
+	-$(MAKE) -C $(BROTLI_DIR) clean
 	rm -rf $(OUT) 
-	rm -rf _build_* *.*.update
+	-rm -rf _build_* *.*.update
 
 simulator: export LEGATO_ROOT=$(PWD)/legato
 simulator: obd_header mbedtls_lib flatcc_lib brotli_lib
