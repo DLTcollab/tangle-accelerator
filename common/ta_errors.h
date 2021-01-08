@@ -273,6 +273,8 @@ typedef enum {
   /**< Error occurred when writing message to UART */
   SC_ENDPOINT_UART_READ_ERROR = 0x11 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Error occurred when reading message from UART */
+  SC_ENDPOINT_SET_KEY_ERROR = 0x12 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to set aes key */
 
   // Crypto module
   SC_CRYPTO_RAND_ERR = 0x01 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,

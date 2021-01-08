@@ -59,7 +59,6 @@ static void print_help(void) {
       "    Assign the random seed of the SSL configuration for send_transaction_information.\n"
       "    The default value is NULL.\n"
       "\n");
-
   exit(EXIT_SUCCESS);
 }
 
@@ -85,7 +84,12 @@ COMPONENT_INIT {
 
   srand(time(NULL));
 
-  get_device_key(private_key);
+  // Use device key as AES private key
+  if (get_device_key(private_key) != SC_OK) {
+    LE_ERROR("Failed to get device key. Please set the device key first");
+    exit(EXIT_FAILURE);
+  }
+
   get_device_id(device_id);
 
   status_t ret = SC_OK;
