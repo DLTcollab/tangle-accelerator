@@ -37,7 +37,7 @@ extern "C" {
 
 /** @name tangle-accelerator configures */
 /** @{ */
-#define TA_VERSION "tangle-accelerator/0.9.6"
+#define TA_VERSION "tangle-accelerator/0.9.7"
 #define TA_HOST "localhost"
 #define TA_PORT 8000
 #define SEED                                                                   \
