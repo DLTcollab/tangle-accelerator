@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "common/logger.h"
+#include "endpoint/cipher.h"
 
 #define IV_LEN 16
 #define UINT32_LEN 10
@@ -18,21 +20,29 @@
 #define STR_HELPER(num) #num
 #define STR(num) STR_HELPER(num)
 
+#define SERIALIZE_MSG_LOGGER "serialize_msg"
+
+static logger_id_t logger_id;
+
+void text_serializer_logger_init() { logger_id = logger_helper_enable(SERIALIZE_MSG_LOGGER, LOGGER_DEBUG, true); }
+
+int text_serialize_logger_release() {
+  logger_helper_release(logger_id);
+  return SC_OK;
+}
+
 status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_len) {
-  /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {0};
   char buf[UINT64_LEN + 1] = {0};
   char *ptr = out_msg;
 
   if (out_msg == NULL || out_msg_len == NULL) {
-    // FIXME: Use default logger
-    fprintf(stderr, "The output message and output message length cannot be NULL\n");
+    ta_log_error("The output message and output message length cannot be NULL\n");
     return SC_UTILS_TEXT_SERIALIZE;
   }
 
   if (ctx->ciphertext == NULL) {
-    // FIXME: Use default logger
-    fprintf(stderr, "The ciphertext cannot be NULL\n");
+    ta_log_error("The ciphertext cannot be NULL\n");
     return SC_UTILS_TEXT_SERIALIZE;
   }
 
@@ -58,19 +68,16 @@ status_t serialize_msg(const ta_cipher_ctx *ctx, char *out_msg, size_t *out_msg_
 }
 
 status_t deserialize_msg(const char *msg, ta_cipher_ctx *ctx) {
-  /* FIXME: Provide some checks here */
   char str_ciphertext_len[UINT32_LEN + 1] = {};
   char buf[UINT64_LEN + 1] = {0};
   const char *ptr = msg;
   if (ptr == NULL) {
-    // FIXME: Use default logger
-    fprintf(stderr, "The message cannot be NULL\n");
+    ta_log_error("The message cannot be NULL\n");
     return SC_UTILS_TEXT_DESERIALIZE;
   }
 
   if (ctx->ciphertext == NULL) {
-    // FIXME: Use default logger
-    fprintf(stderr, "The ciphertext cannot be NULL\n");
+    ta_log_error("The ciphertext cannot be NULL\n");
     return SC_UTILS_TEXT_DESERIALIZE;
   }
   uint32_t ciphertext_len_tmp;

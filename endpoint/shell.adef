@@ -1,0 +1,61 @@
+executables:
+{
+    shell = ( shellComp )
+}
+
+processes:
+{
+    run:
+    {
+        (shell)
+    }
+}
+
+bundles:
+{
+    file:
+    {
+        
+        #if file_exists($LEGATO_SYSROOT/usr/bin/ping)
+                [rx] $LEGATO_SYSROOT/usr/bin/ping          /bin/
+        #endif
+        #if file_exists($LEGATO_SYSROOT/sbin/route)
+                [rx] $LEGATO_SYSROOT/sbin/route         /sbin/
+        #endif
+    }
+}
+requires:
+{
+    file:
+    {
+        // needed for curl:
+        /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+        /usr/bin/curl /usr/bin/curl
+
+        // needed for networking:
+        /lib/libnss_compat.so.2 /lib/
+        /lib/libnss_files.so.2 /lib/
+        /lib/libnss_dns.so.2 /lib/
+        /lib/libresolv.so.2 /lib/
+        /etc/nsswitch.conf /etc/
+        /etc/hosts /etc/
+        /etc/resolv.conf /etc/
+    }
+
+    device:
+    {
+        /dev/ttyHS0  /dev/ttyHS0
+        /dev/ttyAT  /dev/ttyAT   
+    }
+}
+
+bindings:
+{
+    shell.shellComp.secStoreGlobal -> secStore.secStoreGlobal
+    shell.shellComp.le_sim -> modemService.le_sim
+    shell.shellComp.le_mdc -> modemService.le_mdc
+    shell.shellComp.le_data -> dataConnectionService.le_data
+}
+
+start: auto 
+sandboxed: false

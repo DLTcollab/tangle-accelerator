@@ -19,26 +19,6 @@ bool valid_tryte(char* trytes, int len) {
   return true;
 }
 
-status_t ta_string_utarray_to_json_array(UT_array const* const ut, char const* const obj_name, cJSON* const json_root) {
-  char** p = NULL;
-  if (!ut) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
-    return SC_SERIALIZER_NULL;
-  }
-  cJSON* array_obj = cJSON_CreateArray();
-  if (array_obj == NULL) {
-    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_CREATE));
-    return SC_SERIALIZER_JSON_CREATE;
-  }
-
-  cJSON_AddItemToObject(json_root, obj_name, array_obj);
-
-  while ((p = (char**)utarray_next(ut, p))) {
-    cJSON_AddItemToArray(array_obj, cJSON_CreateString(*p));
-  }
-  return SC_OK;
-}
-
 status_t ta_json_string_array_to_string_utarray(cJSON const* const obj, char const* const obj_name,
                                                 UT_array* const ut) {
   char* str = NULL;
@@ -46,6 +26,7 @@ status_t ta_json_string_array_to_string_utarray(cJSON const* const obj, char con
   cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
   if (cJSON_IsArray(json_item)) {
     cJSON* array_elt = NULL;
+
     cJSON_ArrayForEach(array_elt, json_item) {
       str = cJSON_GetStringValue(array_elt);
       if (!str) {

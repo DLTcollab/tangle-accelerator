@@ -198,18 +198,18 @@ void test_find_transactions_obj_by_tag(void) {
   printf("Average time of find_tx_obj_by_tag: %lf\n", sum / TEST_COUNT);
 }
 
-void test_fetch_txn_with_uuid(void) {
+void test_fetch_buffered_request_status(void) {
   char* json_result;
   double sum = 0;
 
   for (size_t count = 0; count < TEST_COUNT; count++) {
     test_time_start(&start_time);
 
-    TEST_ASSERT_EQUAL_INT32(SC_OK, api_fetch_txn_with_uuid(&ta_core.cache, TEST_UUID, &json_result));
+    TEST_ASSERT_EQUAL_INT32(SC_OK, api_fetch_buffered_request_status(&ta_core.cache, TEST_UUID, &json_result));
     test_time_end(&start_time, &end_time, &sum);
     free(json_result);
   }
-  printf("Average time of fetch_txn_with_uuid: %lf\n", sum / TEST_COUNT);
+  printf("Average time of fetch_buffered_request_status: %lf\n", sum / TEST_COUNT);
 }
 
 void test_get_node_status(void) {
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
   // TODO recover proxy tests
   // RUN_TEST(test_proxy_apis);
   RUN_TEST(test_get_node_status);
-  RUN_TEST(test_fetch_txn_with_uuid);
+  RUN_TEST(test_fetch_buffered_request_status);
   ta_core_destroy(&ta_core);
   return UNITY_END();
 }

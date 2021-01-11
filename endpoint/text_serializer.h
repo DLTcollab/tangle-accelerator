@@ -23,6 +23,20 @@ extern "C" {
  */
 
 /**
+ * @brief Initialize logger of text serializer
+ */
+void text_serializer_logger_init();
+
+/**
+ * @brief Release logger of text serializer
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int text_serialize_logger_release();
+
+/**
  * @brief Serialize ciphertext and initialize vector together, the out put message
  * format show as below:
  * - initialize vector(16 bytes)

@@ -52,17 +52,17 @@ static status_t redis_del(redisContext* c, const char* const key) {
   return ret;
 }
 
-static status_t redis_get(redisContext* c, const char* const key, char* res) {
+static status_t redis_get(redisContext* c, const char* const key, char** res) {
   status_t ret = SC_OK;
   if (key == NULL) {
     ta_log_error("%s\n", ta_error_to_string(SC_NULL));
     return SC_NULL;
   }
+  *res = NULL;
 
   redisReply* reply = redisCommand(c, "GET %s", key);
   if (reply->type == REDIS_REPLY_STRING) {
-    strncpy(res, reply->str, reply->len);
-    res[reply->len] = 0;
+    *res = strdup(reply->str);
   } else {
     ret = SC_CACHE_FAILED_RESPONSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -267,6 +267,7 @@ void redis_get_capacity(redisContext* c) {
 bool cache_init(pthread_rwlock_t** rwlock, bool input_state, const char* host, int port) {
   state = input_state;
   if (!state) {
+    ta_log_error("Caching service is not enabled.\n");
     return false;
   }
 
@@ -309,7 +310,7 @@ status_t cache_del(const char* const key) {
   return redis_del(CONN(cache)->rc, key);
 }
 
-status_t cache_get(const char* const key, char* res) {
+status_t cache_get(const char* const key, char** res) {
   if (!state) {
     ta_log_debug("%s\n", ta_error_to_string(SC_CACHE_OFF));
     return SC_CACHE_OFF;

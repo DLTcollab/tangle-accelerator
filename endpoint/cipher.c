@@ -29,12 +29,41 @@ int cipher_logger_release() {
   return SC_OK;
 }
 
+static status_t check_cipher_ctx(ta_cipher_ctx* cipher_ctx) {
+  char* err = NULL;
+  if (cipher_ctx->plaintext == NULL || cipher_ctx->ciphertext == NULL) {
+    err = "The plaintext or cipher text inside cipher context cannot be NULL";
+    goto exit;
+  }
+
+  if (cipher_ctx->device_id == NULL) {
+    err = "The device id cannot be NULL";
+    goto exit;
+  }
+
+  if (cipher_ctx->key == NULL) {
+    err = "The device key cannot be NULL";
+    goto exit;
+  }
+
+  return SC_OK;
+exit:
+  ta_log_error("%s\n", err);
+  return SC_UTILS_CIPHER_ERROR;
+}
+
 status_t aes_decrypt(ta_cipher_ctx* cipher_ctx) {
-  // FIXME: Add some checks here
   mbedtls_aes_context ctx;
   mbedtls_md_context_t sha_ctx;
-  int status;
+  status_t status;
   char* err = NULL;
+
+  if (check_cipher_ctx(cipher_ctx) != SC_OK) {
+    err = "Some attributes inside cipher context cannot be NULL";
+    status = SC_UTILS_CIPHER_ERROR;
+    goto exit;
+  }
+
   uint8_t buf[AES_BLOCK_SIZE];
   uint8_t digest[AES_BLOCK_SIZE * 2];
   uint8_t nonce[IMSI_LEN + MAX_TIMESTAMP_LEN + 1] = {0};
@@ -102,13 +131,18 @@ exit:
 }
 
 status_t aes_encrypt(ta_cipher_ctx* cipher_ctx) {
-  // FIXME: Add some checks here
   char* err = NULL;
   int status = 0;
   uint8_t* plaintext = cipher_ctx->plaintext;
   uint8_t* ciphertext = cipher_ctx->ciphertext;
   size_t plaintext_len = cipher_ctx->plaintext_len;
   size_t ciphertext_len = cipher_ctx->ciphertext_len;
+
+  if (check_cipher_ctx(cipher_ctx) != SC_OK) {
+    err = "Some attributes inside cipher context cannot be NULL";
+    status = SC_UTILS_CIPHER_ERROR;
+    goto exit;
+  }
 
   uint8_t tmp[AES_BLOCK_SIZE];
   uint8_t nonce[IMSI_LEN + MAX_TIMESTAMP_LEN + 1] = {0};

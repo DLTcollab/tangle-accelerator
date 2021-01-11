@@ -39,19 +39,6 @@ logger_id_t ser_logger_id;
 bool valid_tryte(char* trytes, int len);
 
 /**
- * @brief Convert string array in utarray to cJSON array element
- *
- * @param[in] ut String array in utarray datatype
- * @param[in] obj_name The name of this element in JSON
- * @param[out] json_root Output cJSON object
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_string_utarray_to_json_array(UT_array const* const ut, char const* const obj_name, cJSON* const json_root);
-
-/**
  * @brief Convert cJSON array object to string array in utarray
  *
  * @param[in] obj Input cJSON string array

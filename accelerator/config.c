@@ -192,11 +192,14 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
       ta_log_info("Initializing cache state\n");
       cache->state = !cache->state;
       if (cache->state) {
-        if (cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
+        if (!cache_init(&cache->rwlock, cache->state, cache->host, cache->port)) {
           ta_log_error("%s\n", "Failed to initialize lock to caching service.");
         }
       }
 
+      break;
+    case IPC:
+      ta_conf->socket = strdup(value);
       break;
 
 #ifdef MQTT_ENABLE
@@ -221,7 +224,7 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
         ta_log_error("Malformed input character\n");
       }
       break;
-    case CACHE_MAX_CAPACITY:
+    case CACHE_CAPACITY:
       strtol_temp = strtol(value, NULL, 10);
       if (strtol_p != value && errno != ERANGE && strtol_temp >= INT_MIN && strtol_temp <= INT_MAX) {
         if (strtol_temp <= 0) {
@@ -265,8 +268,8 @@ status_t cli_core_set(ta_core_t* const core, int key, char* const value) {
     case BUFFER_LIST:
       cache->buffer_list_name = value;
       break;
-    case DONE_LIST:
-      cache->done_list_name = value;
+    case COMPLETE_LIST:
+      cache->complete_list_name = value;
       break;
 
     // Command line options configuration
@@ -334,6 +337,7 @@ status_t ta_core_default_init(ta_core_t* const core) {
   }
   ta_conf->http_tpool_size = DEFAULT_HTTP_TPOOL_SIZE;
   ta_conf->health_track_period = HEALTH_TRACK_PERIOD;
+  ta_conf->socket = DOMAIN_SOCKET;
 #ifdef MQTT_ENABLE
   ta_conf->mqtt_host = MQTT_HOST;
   ta_conf->mqtt_topic_root = TOPIC_ROOT;
@@ -343,7 +347,9 @@ status_t ta_core_default_init(ta_core_t* const core) {
   cache->port = REDIS_PORT;
   cache->state = false;
   cache->buffer_list_name = BUFFER_LIST_NAME;
-  cache->done_list_name = DONE_LIST_NAME;
+  cache->complete_list_name = COMPLETE_LIST_NAME;
+  cache->mam_buffer_list_name = MAM_BUFFER_LIST_NAME;
+  cache->mam_complete_list_name = MAM_COMPLETE_LIST_NAME;
   cache->capacity = CACHE_MAX_CAPACITY;
 
   ta_log_info("Initializing IOTA full node configuration\n");
@@ -610,9 +616,8 @@ void ta_logger_switch(bool quiet, bool init, ta_config_t* ta_conf) {
   }
 }
 
-#define DOMAIN_SOCKET "/tmp/tangle-accelerator-socket"
 #define START_NOTIFICATION "TA-START"
-void notification_trigger() {
+void notification_trigger(ta_config_t* const ta_conf) {
   int connect_fd;
   static struct sockaddr_un srv_addr;
 
@@ -624,7 +629,7 @@ void notification_trigger() {
   }
 
   srv_addr.sun_family = AF_UNIX;
-  strncpy(srv_addr.sun_path, DOMAIN_SOCKET, strlen(DOMAIN_SOCKET));
+  strncpy(srv_addr.sun_path, ta_conf->socket, strlen(ta_conf->socket));
 
   // Connect to UNIX domain socket server
   if (connect(connect_fd, (struct sockaddr*)&srv_addr, sizeof(srv_addr)) == -1) {
@@ -639,4 +644,5 @@ void notification_trigger() {
 
 done:
   close(connect_fd);
+  unlink(ta_conf->socket);
 }

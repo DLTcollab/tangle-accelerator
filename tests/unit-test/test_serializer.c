@@ -316,31 +316,15 @@ void test_recv_mam_message_request_psk_deserialize(void) {
 }
 
 void test_recv_mam_message_response_serialize(void) {
-  const char* json = "{\"payload\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"],\"chid1\":\"" TEST_ADDRESS "\"}";
+  const char* json = "{\"payload\":[[\"" STR(TIMESTAMP_LEN20_1) "\",\"" TRYTES_81_1 "\"],[\"" STR(
+      TIMESTAMP_LEN20_2) "\",\"" TRYTES_81_2 "\"]],\"chid1\":\"" TEST_ADDRESS "\"}";
   ta_recv_mam_res_t* res = recv_mam_res_new();
   char* json_result = NULL;
   char* str;
-  str = TRYTES_81_1;
+  str = STR(TIMESTAMP_LEN20_1) TRYTES_81_1;
   utarray_push_back(res->payload_array, &str);
-  str = TRYTES_81_2;
-  utarray_push_back(res->payload_array, &str);
-  strncpy(res->chid1, TEST_ADDRESS, NUM_TRYTES_ADDRESS);
+  str = STR(TIMESTAMP_LEN20_2) TRYTES_81_2;
 
-  TEST_ASSERT_EQUAL_INT32(SC_OK, recv_mam_message_res_serialize(res, &json_result));
-  TEST_ASSERT_EQUAL_STRING(json, json_result);
-
-  recv_mam_res_free(&res);
-  free(json_result);
-}
-
-void test_recv_mam_message_response_deserialize(void) {
-  const char* json = "{\"payload\":[\"" TRYTES_81_1 "\",\"" TRYTES_81_2 "\"],\"chid1\":\"" TEST_ADDRESS "\"}";
-  ta_recv_mam_res_t* res = recv_mam_res_new();
-  char* json_result = NULL;
-  char* str;
-  str = TRYTES_81_1;
-  utarray_push_back(res->payload_array, &str);
-  str = TRYTES_81_2;
   utarray_push_back(res->payload_array, &str);
   strncpy(res->chid1, TEST_ADDRESS, NUM_TRYTES_ADDRESS);
 
@@ -357,7 +341,6 @@ void test_send_mam_message_request_deserialize(void) {
       "\",\"message\":\"" TEST_PAYLOAD "\",\"ch_mss_depth\":" STR(TEST_CH_DEPTH) ",\"ep_mss_depth\":" STR(
           TEST_EP_DEPTH) "},\"key\":{\"ntru\":[\"" TEST_NTRU_PK "\"],\"psk\":[\"" TRYTES_81_2 "\",\"" TRYTES_81_3
                          "\"]}, \"protocol\":\"MAM_V1\"}";
-  printf("json = %s\n", json);
   ta_send_mam_req_t* req = send_mam_req_new();
   send_mam_message_req_deserialize(json, req);
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
@@ -393,7 +376,7 @@ void test_send_mam_message_response_serialize(void) {
   send_mam_res_set_announce_bundle_hash(res, (tryte_t*)ADDRESS_1);
   send_mam_res_set_chid1(res, (tryte_t*)ADDRESS_2);
 
-  send_mam_message_res_serialize(res, &json_result);
+  send_mam_message_res_serialize(res, NULL, &json_result);
   TEST_ASSERT_EQUAL_STRING(json, json_result);
 
   free(json_result);
@@ -528,7 +511,7 @@ void test_get_node_status_res_serialize(void) {
   free(json_result);
 }
 
-void test_fetch_txn_with_uuid_res_sent_serialize(void) {
+void test_fetch_buffered_request_status_res_sent_txn_serialize(void) {
   const char* json =
       "{\"bundle\":[{\"hash\":\"QNPHSOPESISPNHQSESOP9IHMAPZBNJHTXDFDGFIVSHFF9OEJIZHHZCGABEJ9MAX9QMIKZGAYTXN999999\","
       "\"signature_and_message_fragment\":"
@@ -591,8 +574,8 @@ void test_fetch_txn_with_uuid_res_sent_serialize(void) {
       "\"IOTAJAMMER99999999999999999\",\"attachment_timestamp\":1588164486541,\"attachment_timestamp_lower_bound\":0,"
       "\"attachment_timestamp_upper_bound\":11,\"nonce\":\"SMA9999999UUD99999999999999\"}]}";
   char* json_result = NULL;
-  ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
-  res->status = SENT;
+  ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
+  res->status = MAM_BUFREQ_SENT;
   flex_trit_t txn_trits[NUM_TRITS_SERIALIZED_TRANSACTION];
   flex_trits_from_trytes(txn_trits, NUM_TRITS_SERIALIZED_TRANSACTION, (const tryte_t*)TRYTES_2673_1,
                          NUM_TRYTES_SERIALIZED_TRANSACTION, NUM_TRYTES_SERIALIZED_TRANSACTION);
@@ -606,19 +589,53 @@ void test_fetch_txn_with_uuid_res_sent_serialize(void) {
   bundle_transactions_add(res->bundle, txn);
   free(txn);
 
-  TEST_ASSERT_EQUAL_STRING(SC_OK, fetch_txn_with_uuid_res_serialize(res, &json_result));
+  TEST_ASSERT_EQUAL_STRING(SC_OK, fetch_buffered_request_status_res_serialize(res, &json_result));
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_fetch_txn_with_uuid_res_free(&res);
+  ta_fetch_buffered_request_status_res_free(&res);
   free(json_result);
 }
 
-void test_fetch_txn_with_uuid_res_not_exist_serialize(void) {
+void test_fetch_buffered_request_status_res_sent_mam_serialize(void) {
+  const char* json =
+      "{\"bundle_hash\": "
+      "\"DZUJLFILAFTSZVXWZGVBNSLWTULUHEH9ETGXIWLAEJVAOPGT9C9OKKRVUBRIITCVSUQLGAJFGYBWJGLAA\",\"chid\": "
+      "\"JVYTMGBIWU9NMUKUOVBAVBVW9QMSOOGUK9SB9OMILKMEVHWMPFALZBGPEBRAXESZZKEUGK9QEHAABTOIJ\",\"msg_id\": "
+      "\"IONONZOXVGTNGVEOCXPUI\"}";
+  char* json_result = NULL;
+  ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
+  res->status = MAM_BUFREQ_SENT;
+  res->mam_result = strdup(json);
+
+  TEST_ASSERT_EQUAL_STRING(SC_OK, fetch_buffered_request_status_res_serialize(res, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
+  ta_fetch_buffered_request_status_res_free(&res);
+  free(json_result);
+}
+
+void test_fetch_buffered_request_status_res_not_exist_serialize(void) {
   const char* json = "{\"status\":\"not_exist\"}";
   char* json_result = NULL;
-  ta_fetch_txn_with_uuid_res_t* res = ta_fetch_txn_with_uuid_res_new();
-  TEST_ASSERT_EQUAL_STRING(SC_OK, fetch_txn_with_uuid_res_serialize(res, &json_result));
+  ta_fetch_buffered_request_status_res_t* res = ta_fetch_buffered_request_status_res_new();
+  TEST_ASSERT_EQUAL_STRING(SC_OK, fetch_buffered_request_status_res_serialize(res, &json_result));
   TEST_ASSERT_EQUAL_STRING(json, json_result);
-  ta_fetch_txn_with_uuid_res_free(&res);
+  ta_fetch_buffered_request_status_res_free(&res);
+  free(json_result);
+}
+
+void test_register_mam_channel_req_deserialize(void) {
+  const char* json = "{\"seed\":\"" TRYTES_81_1 "\"}";
+  ta_register_mam_channel_req_t* req = ta_register_mam_channel_req_new();
+
+  TEST_ASSERT_EQUAL_INT32(SC_OK, register_mam_channel_req_deserialize(json, req));
+  TEST_ASSERT_EQUAL_STRING(TRYTES_81_1, req->seed);
+  ta_register_mam_channel_req_free(&req);
+}
+
+void test_register_mam_channel_res_serialize(void) {
+  const char* json = "{\"user-id\":\"" TEST_UUID "\"}";
+  char* json_result = NULL;
+  TEST_ASSERT_EQUAL_INT32(SC_OK, register_mam_channel_res_serialize(TEST_UUID, &json_result));
+  TEST_ASSERT_EQUAL_STRING(json, json_result);
   free(json_result);
 }
 
@@ -655,8 +672,11 @@ int main(void) {
   RUN_TEST(test_proxy_apis_command_req_deserialize);
   RUN_TEST(test_get_node_status_milestone_deserialize);
   RUN_TEST(test_get_node_status_res_serialize);
-  RUN_TEST(test_fetch_txn_with_uuid_res_sent_serialize);
-  RUN_TEST(test_fetch_txn_with_uuid_res_not_exist_serialize);
+  RUN_TEST(test_register_mam_channel_req_deserialize);
+  RUN_TEST(test_register_mam_channel_res_serialize);
+  RUN_TEST(test_fetch_buffered_request_status_res_sent_txn_serialize);
+  RUN_TEST(test_fetch_buffered_request_status_res_sent_mam_serialize);
+  RUN_TEST(test_fetch_buffered_request_status_res_not_exist_serialize);
   serializer_logger_release();
   return UNITY_END();
 }

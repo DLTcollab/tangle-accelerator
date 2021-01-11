@@ -11,21 +11,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "build/endpoint_generated.h"
 #include "common/logger.h"
 #include "endpoint/cipher.h"
 #include "endpoint/connectivity/conn_http.h"
 #include "endpoint/https.h"
 #include "endpoint/text_serializer.h"
 #include "http_parser.h"
+#include "legato.h"
 #include "utils/tryte_byte_conv.h"
 
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
-// FIXME: Same as STR() inside tests/test_defined.h
-#define STR_HELPER(num) #num
-#define STR(num) STR_HELPER(num)
 
 #ifndef EP_TA_HOST
 #define EP_TA_HOST localhost
@@ -37,10 +35,9 @@
 #define EP_SSL_SEED nonce
 #endif
 
-#define REQ_BODY \
-  "{\"value\": %d, \"message\": \"%s\", \"message_format\": \"%s\", \"tag\": \"%s\", \"address\": \"%s\"}\r\n\r\n"
+#define REQ_BODY "{\"data\":{\"seed\":\"%s\",\"message\":\"%s\"},\"protocol\":\"MAM_V1\"}\r\n\r\n"
 
-#define SEND_TRANSACTION_API "transaction/"
+#define SEND_MAM_API "mam/send/"
 
 #define ENDPOINT_LOGGER "endpoint"
 
@@ -66,33 +63,24 @@ void endpoint_destroy() {
   logger_helper_destroy();
 }
 
-status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, int value,
-                                      const char* message, const char* message_fmt, const char* tag,
-                                      const char* address, const char* next_address, const uint8_t* private_key,
-                                      const char* device_id, uint8_t* iv) {
-  char tryte_msg[MAX_MSG_LEN] = {0};
-  char msg[MAX_MSG_LEN] = {0};
+status_t send_mam_message(const char* host, const char* port, const char* ssl_seed, const char* mam_seed,
+                          const uint8_t* message, const size_t msg_len, const uint8_t* private_key,
+                          const char* device_id) {
+  int ret = 0;
+  uint8_t* raw_msg = (uint8_t*)message;
   char req_body[MAX_MSG_LEN] = {0};
   uint8_t ciphertext[MAX_MSG_LEN] = {0};
-  uint8_t raw_msg[MAX_MSG_LEN] = {0};
 
-  const char* ta_host = host ? host : STR(EP_TA_HOST);
-  const char* ta_port = port ? port : STR(EP_TA_PORT);
+  const char* ta_host = host;
+  const char* ta_port = port;
 
-  const char* seed = ssl_seed ? ssl_seed : STR(EP_SSL_SEED);
+  const char* seed = ssl_seed;
 
-  int ret = snprintf((char*)raw_msg, MAX_MSG_LEN, "%s:%s", next_address, message);
-  if (ret < 0) {
-    ta_log_error("The message is too long.\n");
-    return SC_ENDPOINT_SEND_TRANSFER;
-  }
-
-  size_t msg_len = 0;
   struct timespec t;
   clock_gettime(CLOCK_MONOTONIC, &t);
 
   ta_cipher_ctx encrypt_ctx = {.plaintext = raw_msg,
-                               .plaintext_len = ret,
+                               .plaintext_len = msg_len,
                                .ciphertext = ciphertext,
                                .ciphertext_len = MAX_MSG_LEN,
                                .device_id = device_id,
@@ -101,20 +89,43 @@ status_t send_transaction_information(const char* host, const char* port, const 
                                .key = private_key,
                                .keybits = TA_AES_KEY_BITS,
                                .timestamp = t.tv_sec};
-  memcpy(encrypt_ctx.iv, iv, AES_IV_SIZE);
   ret = aes_encrypt(&encrypt_ctx);
-  memcpy(iv, encrypt_ctx.iv, AES_IV_SIZE);
 
   if (ret != SC_OK) {
     ta_log_error("Encrypt message error.\n");
     return ret;
   }
-  serialize_msg(&encrypt_ctx, msg, &msg_len);
-  bytes_to_trytes((const unsigned char*)msg, msg_len, tryte_msg);
+
+  flatcc_builder_t builder;
+  flatcc_builder_init(&builder);
+
+  flatbuffers_uint8_vec_ref_t hmac_vec;
+  hmac_vec = flatbuffers_uint8_vec_create(&builder, encrypt_ctx.hmac, TA_AES_HMAC_SIZE);
+
+  flatbuffers_uint8_vec_ref_t iv_vec;
+  iv_vec = flatbuffers_uint8_vec_create(&builder, encrypt_ctx.iv, AES_IV_SIZE);
+
+  flatbuffers_uint8_vec_ref_t msg_vec;
+  msg_vec = flatbuffers_uint8_vec_create(&builder, encrypt_ctx.ciphertext, encrypt_ctx.ciphertext_len);
+
+  FLATBUFFERS_WRAP_NAMESPACE(endpoint, Msg_create_as_root(&builder, hmac_vec, iv_vec, msg_vec));
+  size_t buf_size = 0;
+  uint8_t* buf = flatcc_builder_finalize_aligned_buffer(&builder, &buf_size);
+
+  size_t encodedBuf_len = LE_BASE64_ENCODED_SIZE(buf_size) + 1;
+  char* encodedBuf = malloc(encodedBuf_len);
+
+  le_result_t result = le_base64_Encode(buf, buf_size, encodedBuf, &encodedBuf_len);
+  if (LE_OK != result) {
+    LE_ERROR("Error %d encoding data!", result);
+    goto exit;
+  }
 
   memset(req_body, 0, sizeof(char) * MAX_MSG_LEN);
 
-  ret = snprintf(req_body, MAX_MSG_LEN, REQ_BODY, value, tryte_msg, message_fmt, tag, address);
+  ret = snprintf(req_body, MAX_MSG_LEN, REQ_BODY, mam_seed, encodedBuf);
+  free(encodedBuf);
+
   if (ret < 0) {
     ta_log_error("The message is too long.\n");
     return SC_ENDPOINT_SEND_TRANSFER;
@@ -129,7 +140,7 @@ status_t send_transaction_information(const char* host, const char* port, const 
   https_ctx_t https_ctx = {
       .host = ta_host,
       .port = atoi(ta_port),
-      .api = SEND_TRANSACTION_API,
+      .api = SEND_MAM_API,
       .ssl_seed = seed,
       .s_req = &req,
       .s_res = &res,
@@ -145,5 +156,8 @@ status_t send_transaction_information(const char* host, const char* port, const 
     free(https_ctx.s_res->buffer);
   }
 
+exit:
+  flatcc_builder_aligned_free(buf);
+  flatcc_builder_clear(&builder);
   return SC_OK;
 }

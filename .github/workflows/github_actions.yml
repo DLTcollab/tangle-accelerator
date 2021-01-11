@@ -1,0 +1,18 @@
+name: Github CI
+
+on: [push, pull_request]
+
+jobs:
+  coverity-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: install dependencies
+        run: |
+          bash .ci/setup.sh
+      - name: coverity scan
+        run: |
+          bash .ci/coverity_scan.sh
+        env:
+          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}

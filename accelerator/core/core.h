@@ -20,6 +20,7 @@
 #include "utils/containers/hash/hash243_set.h"
 #include "utils/time.h"
 #include "utils/timer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -115,6 +116,21 @@ status_t ta_find_transactions_obj_by_tag(const iota_client_service_t* const serv
                                          const find_transactions_req_t* const req, transaction_array_t* res);
 
 /**
+ * @brief Get transaction objects with transaction hashes when there are multiple transaction hashes are waiting for
+ * fetching. This function will fetch a transaction object with a transaction hash each time.
+ *
+ * @param[in] service IOTA full node end point service
+ * @param[in] tx_queries Given find_transactions_req_t with transaction hashes
+ * @param[out] tx_objs Return transaction objects
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_get_txn_objects_with_txn_hash(const iota_client_service_t* const service,
+                                          find_transactions_req_t* tx_queries, transaction_array_t* tx_objs);
+
+/**
  * @brief Return transaction object with given transaction hashes.
  *
  * Explore transaction hash information with given transaction hashes. This would
@@ -204,21 +220,6 @@ status_t ta_get_bundles_by_addr(const iota_client_service_t* const service, tryt
 status_t ta_get_node_status(const iota_client_service_t* const service);
 
 /**
- * @brief Update the binding IOTA full node to another valid host on priority list
- *
- * ta_update_node_connection would check the connection status of all the IOTA full node on priority list iteratively.
- * Once it connects to one of the IOTA full node on the priority list, it would return SC_OK.
- *
- * @param[in] info Tangle-accelerator configuration variables
- * @param[in] service service IOTA full node end point service
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_t* const service);
-
-/**
  * @brief Push failed transactions in raw trytes into transaction buffer
  *
  * Given raw trytes array would be pushed into buffer. An UUID will be returned for client to fetch the information of
@@ -226,7 +227,7 @@ status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_
  * be popped from the buffer.
  *
  * @param[in] cache Redis configuration variables
- * @param[in] raw_txn_flex_trit_array Raw transcation trytes array in flex_trit_t type
+ * @param[in] raw_txn_flex_trit_array Raw transaction trytes array in flex_trit_t type
  * @param[out] uuid Returned UUID for fetching transaction status and information
  *
  * @return
@@ -236,37 +237,37 @@ status_t ta_update_node_connection(ta_config_t* const info, iota_client_service_
 status_t push_txn_to_buffer(const ta_cache_t* const cache, hash8019_array_p raw_txn_flex_trit_array, char* uuid);
 
 /**
- * @brief Broadcast transactions in transaction buffer
- *
- * Failed transactions would be stored in transaction buffer. Once tangle-accelerator retrieve the connetion with
- * Tangle, then tangle-accelerator will start to broadcast these failed transaction trytes.
- *
- * @param[in] core Pointer to Tangle-accelerator core configuration structure
- *
- * @return
- * - SC_OK on success
- * - non-zero on error
- */
-status_t broadcast_buffered_txn(const ta_core_t* const core);
-
-/**
  * @brief Return the transaction object status according to the given UUID
  *
- * If the given UUID points to a sent transaction, then `ta_fetch_txn_with_uuid` will return the content of the
- * transaction object. If the transaction have been sent yet, then return unsent. If tangle-accelerator can't find the
- * UUID in redis then it will return no_exist. In the current implementation, we used Redis to buffer all the
+ * If the given UUID points to a sent transaction, then `ta_fetch_buffered_request_status` will return the
+ * content of the transaction object. If the transaction have been sent yet, then return unsent. If tangle-accelerator
+ * can't find the UUID in redis then it will return no_exist. In the current implementation, we used Redis to buffer all
  * transactions.
  *
  * @param[in] cache redis configuration variables
  * @param[in] uuid Given UUID
- * @param[out] res ta_fetch_txn_with_uuid_res_t contains the transaction object and status
+ * @param[out] res ta_fetch_buffered_request_status_res_t contains the transaction object and status
  *
  * @return
  * - SC_OK on success
  * - non-zero on error
  */
 status_t ta_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid,
-                                ta_fetch_txn_with_uuid_res_t* res);
+                                ta_fetch_buffered_request_status_res_t* res);
+
+/**
+ * @brief Return the MAM request status according to the given UUID
+ *
+ * @param[in] cache redis configuration variables
+ * @param[in] uuid Given UUID
+ * @param[out] res ta_recv_mam_res_t object contains the transaction object and status
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t ta_fetch_mam_with_uuid(const ta_cache_t* const cache, const char* const uuid,
+                                ta_fetch_buffered_request_status_res_t* res);
 
 #ifdef __cplusplus
 }

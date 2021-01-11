@@ -1,0 +1,36 @@
+sources:
+{
+    monitor.c
+    ../can-bus/can-utils.c
+    #if ${LEGATO_TARGET} = localhost
+        ${CURDIR}/../../platform/simulator/impl.c
+    #else
+        ${CURDIR}/../../platform/legato-target/impl.c
+    #endif
+}
+
+cflags:
+{
+    -g -O0
+
+    -I${CURDIR}/../../../
+    -I${CURDIR}/../../platform/
+    -I${CURDIR}/../can-bus/
+}
+
+requires:
+{
+    device:
+    {
+        [rw] /dev/ttyHS0 /dev/ttyHS0
+    }
+    
+    api:
+    {
+        secStoreGlobal = le_secStore.api
+        modemServices/le_sim.api
+        modemServices/le_mdc.api
+        le_data.api    [manual-start]
+        endpoint.api
+    }
+}

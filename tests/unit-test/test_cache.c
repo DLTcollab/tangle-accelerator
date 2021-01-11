@@ -20,10 +20,11 @@ void test_cache_del(void) {
 
 void test_cache_get(void) {
   char* key = test_uuid;
-  char res[strlen(CACHE_VALUE) + 1];
+  char* res = NULL;
 
-  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, res));
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, &res));
   TEST_ASSERT_EQUAL_STRING(CACHE_VALUE, res);
+  free(res);
 }
 
 void test_cache_set(void) {
@@ -34,18 +35,21 @@ void test_cache_set(void) {
 
 void test_cache_timeout(void) {
   char* key = test_uuid;
-  char res[strlen(CACHE_VALUE) + 1];
+  char* res = NULL;
   const int timeout = 2;
   TEST_ASSERT_EQUAL_INT(SC_OK, cache_set(key, strlen(key), CACHE_VALUE, strlen(CACHE_VALUE), timeout));
-  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, res));
+  TEST_ASSERT_EQUAL_INT(SC_OK, cache_get(key, &res));
+  free(res);
+  res = NULL;
   sleep(timeout + 1);
-  TEST_ASSERT_EQUAL_INT(SC_CACHE_FAILED_RESPONSE, cache_get(key, res));
+  TEST_ASSERT_EQUAL_INT(SC_CACHE_FAILED_RESPONSE, cache_get(key, &res));
+  free(res);
 }
 
 void test_generate_uuid(void) {
-  uuid_t binuuid;
-  uuid_generate_random(binuuid);
-  uuid_unparse(binuuid, test_uuid);
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, test_uuid);
 
   TEST_ASSERT_TRUE(test_uuid[0]);
 }

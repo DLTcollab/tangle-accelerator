@@ -196,6 +196,28 @@ const char* ta_error_to_string(status_t err) {
       return "Error occurred when get device id from endpoint device";
     case SC_ENDPOINT_DNS_RESOLVE_ERROR:
       return "Error occurred when resolving the domain name";
+    case SC_ENDPOINT_CAN_OPEN_ERROR:
+      return "Error occurred when opening CAN BUS socket";
+    case SC_ENDPOINT_CAN_SEND_ERROR:
+      return "Error occurred when writing message into CAN BUS socket";
+    case SC_ENDPOINT_CAN_RECV_ERROR:
+      return "Error occurred when reading message from CAN BUS socket";
+    case SC_ENDPOINT_CAN_CLOSE_ERROR:
+      return "Error occurred when closing CAN BUS socket";
+    case SC_ENDPOINT_UART_WRITE_ERROR:
+      return "Error occurred when writing message to UART";
+    case SC_ENDPOINT_UART_READ_ERROR:
+      return "Error occurred when reading message from UART";
+    case SC_ENDPOINT_SET_KEY_ERROR:
+      return "Fail to set a new AES key";
+
+    // Crypto
+    case SC_CRYPTO_RAND_ERR:
+      return "Failed to generate random number generator";
+    case SC_CRYPTO_GENKEY_ERR:
+      return "Failed to generate ECDH public key";
+    case SC_CRYPTO_SECRET_ERR:
+      return "Failed to compute ECDH shared secret";
 
     default:
       return "Unknown error.";

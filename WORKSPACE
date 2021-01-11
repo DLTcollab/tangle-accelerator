@@ -44,6 +44,13 @@ new_git_repository(
     tag = "mbedtls-2.16.6",
 )
 
+new_git_repository(
+    name = "flatcc_0_6_0",
+    build_file = "//third_party:flatcc.BUILD",
+    remote = "https://github.com/dvidelabs/flatcc.git",
+    tag = "v0.6.0",
+)
+
 load("@rules_iota//:defs.bzl", "iota_deps")
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 
