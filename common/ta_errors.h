@@ -57,6 +57,7 @@ extern "C" {
 #define SC_MODULE_STORAGE (0x0A << SC_MODULE_SHIFT)
 #define SC_MODULE_CORE (0x0B << SC_MODULE_SHIFT)
 #define SC_MODULE_ENDPOINT (0x0C << SC_MODULE_SHIFT)
+#define SC_MODULE_CRYPTO (0x0D << SC_MODULE_SHIFT)
 /** @} */
 
 /** @name serverity code */
@@ -114,6 +115,12 @@ typedef enum {
   /**< Invald request value in JSON */
   SC_SERIALIZER_MESSAGE_OVERRUN = 0x06 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
   /**< Message length is out of valid size */
+  SC_SERIALIZER_KEY_NOT_EXISTS = 0x07 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< Expected key doesn't exist */
+  SC_SERIALIZER_VALUE_EMPTY = 0x08 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< The value of the given key is empty */
+  SC_SERIALIZER_VALUE_INVLID = 0x08 | SC_MODULE_SERIALIZER | SC_SEVERITY_FATAL,
+  /**< The value or length of the value is invalid */
 
   // Cache module
   SC_CACHE_FAILED_RESPONSE = 0x02 | SC_MODULE_CACHE | SC_SEVERITY_FATAL,
@@ -254,6 +261,28 @@ typedef enum {
   /**< Failed to get the device id */
   SC_ENDPOINT_DNS_RESOLVE_ERROR = 0x0B | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
   /**< Failed to resolve the domain name address */
+  SC_ENDPOINT_CAN_OPEN_ERROR = 0x0C | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to open CAN BUS socket */
+  SC_ENDPOINT_CAN_SEND_ERROR = 0x0D | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to write message to CAN BUS socket */
+  SC_ENDPOINT_CAN_RECV_ERROR = 0x0E | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to read message from CAN BUS socket */
+  SC_ENDPOINT_CAN_CLOSE_ERROR = 0x0F | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to close CAN BUS socket */
+  SC_ENDPOINT_UART_WRITE_ERROR = 0x10 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when writing message to UART */
+  SC_ENDPOINT_UART_READ_ERROR = 0x11 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Error occurred when reading message from UART */
+  SC_ENDPOINT_SET_KEY_ERROR = 0x12 | SC_MODULE_ENDPOINT | SC_SEVERITY_FATAL,
+  /**< Failed to set aes key */
+
+  // Crypto module
+  SC_CRYPTO_RAND_ERR = 0x01 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to generate random number generator */
+  SC_CRYPTO_GENKEY_ERR = 0x02 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to generate ECDH public key */
+  SC_CRYPTO_SECRET_ERR = 0x03 | SC_MODULE_CRYPTO | SC_SEVERITY_FATAL,
+  /**< Failed to compute ECDH shared secret */
 
 } status_t;
 

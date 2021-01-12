@@ -87,3 +87,19 @@ cc_library(
         "@org_iota_common//utils:time",
     ],
 )
+
+cc_library(
+    name = "periodical_task",
+    srcs = ["periodical_task.c"],
+    hdrs = ["periodical_task.h"],
+    linkopts = [
+        "-lpthread",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":core",
+        ":mam_core",
+        "//common:ta_errors",
+        "//common:ta_logger",
+    ],
+)

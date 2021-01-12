@@ -29,3 +29,22 @@ function setup_leaf() {
 	fi
 	leaf --non-interactive setup legato-latest -p "$1"
 }
+
+function validate_host() {
+	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		return 0
+	fi
+	if host "$1" >/dev/null 2>&1; then
+		return 0
+	fi
+	echo "Please enter a valid host or ip address"
+	exit 1
+}
+
+function validate_port() {
+	re='^[0-9]+$'
+	if ! [[ $1 =~ $re ]]; then
+		echo "Please enter a valid port number"
+		exit 1
+	fi
+}

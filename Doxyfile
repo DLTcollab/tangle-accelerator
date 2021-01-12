@@ -1,6 +1,6 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "tangle-accelerator"
-PROJECT_NUMBER         = 0.9.6
+PROJECT_NUMBER         = 0.9.7
 OUTPUT_DIRECTORY       = docs/
 OPTIMIZE_OUTPUT_FOR_C  = YES
 INPUT                  = . \

@@ -55,7 +55,7 @@ status_t send_mam_message_res_deserialize(const char* const obj, ta_send_mam_res
  * - SC_OK on success
  * - non-zero on error
  */
-status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char** obj);
+status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char const* const uuid, char** obj);
 
 /**
  * @brief Deserialize request of recv_mam_message
@@ -92,6 +92,54 @@ status_t recv_mam_message_res_deserialize(const char* const obj, ta_recv_mam_res
  * - non-zero on error
  */
 status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj);
+
+/**
+ * @brief Deserialize JSON string to type of ta_send_mam_req_t
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] req Request data in type of ta_send_mam_req_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t send_mam_message_req_deserialize(const char* const obj, ta_send_mam_req_t* req);
+
+/**
+ * @brief Deserialize JSON string to type of ta_register_mam_channel_req_t
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] req Request data in type of ta_register_mam_channel_req_t
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t register_mam_channel_req_deserialize(const char* const obj, ta_register_mam_channel_req_t* req);
+
+/**
+ * @brief Serialize response of register_mam_channel
+ *
+ * @param[in] uuid Returned UUID from tangle-accelerator
+ * @param[out] obj Response formed in JSON
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t register_mam_channel_res_serialize(const char* const uuid, char** obj);
+
+/**
+ * @brief Deserialize JSON string to user-id
+ *
+ * @param[in] obj Input values in JSON
+ * @param[out] user_id User ID in string
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t register_mam_channel_res_deserialize(const char* const obj, char* user_id);
 
 #ifdef __cplusplus
 }

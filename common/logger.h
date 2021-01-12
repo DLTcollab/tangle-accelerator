@@ -294,6 +294,20 @@ void br_logger_init();
  */
 int br_logger_release();
 
+/**
+ * Initialize logger for ECDH
+ */
+void ecdh_logger_init();
+
+/**
+ * Release logger
+ *
+ * @return
+ * - zero on success
+ * - EXIT_FAILURE on error
+ */
+int ecdh_logger_release();
+
 #ifdef __cplusplus
 }
 #endif

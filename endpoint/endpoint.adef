@@ -11,13 +11,37 @@ processes:
     }
 }
 
+requires:
+{
+    file:
+    {
+        // needed for curl itself:
+        /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+        /usr/bin/curl /usr/bin/curl
+
+        // needed for networking:
+        /lib/libnss_compat.so.2 /lib/
+        /lib/libnss_files.so.2 /lib/
+        /lib/libnss_dns.so.2 /lib/
+        /lib/libresolv.so.2 /lib/
+        /etc/nsswitch.conf /etc/
+        /etc/hosts /etc/
+        /etc/resolv.conf /etc/
+
+        /bin/sh /bin/sh
+        /bin/date /bin/date
+    }
+}
+
 #if ${LEGATO_TARGET} = localhost
 #else
 bindings:
 {
-    endpoint.endpointComp.le_secStore -> secStore.le_secStore
+    endpoint.endpointComp.secStoreGlobal -> secStore.secStoreGlobal
     endpoint.endpointComp.le_sim -> modemService.le_sim
+    endpoint.endpointComp.le_mdc -> modemService.le_mdc
+    endpoint.endpointComp.le_data -> dataConnectionService.le_data
 }
 #endif
-
+sandboxed: false
 start: manual

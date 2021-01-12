@@ -1,0 +1,57 @@
+executables:
+{
+    OBDService = ( OBDComp/monitor )
+    endpointService = ( OBDComp/endpointService )
+}
+
+processes:
+{
+    run:
+    {
+        (endpointService)
+    }
+}
+
+sandboxed: true 
+start: auto 
+
+requires:
+{
+    file:
+    {
+        // needed for curl itself:
+        /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+        /usr/bin/curl /usr/bin/curl
+
+        // needed for networking:
+        /lib/libnss_compat.so.2 /lib/
+        /lib/libnss_files.so.2 /lib/
+        /lib/libnss_dns.so.2 /lib/
+        /lib/libresolv.so.2 /lib/
+        /etc/nsswitch.conf /etc/
+        /etc/hosts /etc/
+        /etc/resolv.conf /etc/
+
+        /bin/sh /bin/sh
+        /bin/date /bin/date
+    }
+}
+
+bindings:
+{
+    OBDService.monitor.endpoint -> endpointService.endpointService.endpoint
+    OBDService.monitor.secStoreGlobal -> secStore.secStoreGlobal
+    OBDService.monitor.le_sim -> modemService.le_sim
+    OBDService.monitor.le_mdc -> modemService.le_mdc
+    OBDService.monitor.le_data -> dataConnectionService.le_data
+
+    endpointService.endpointService.secStoreGlobal -> secStore.secStoreGlobal
+    endpointService.endpointService.le_sim -> modemService.le_sim
+    endpointService.endpointService.le_mdc -> modemService.le_mdc
+    endpointService.endpointService.le_data -> dataConnectionService.le_data
+}
+
+extern:
+{
+    endpointService.endpointService.endpoint
+}

@@ -75,8 +75,7 @@ status_t api_recv_mam_message(const iota_config_t* const iconf, const iota_clien
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_send_mam_message(const ta_config_t* const info, const iota_config_t* const iconf,
-                              const iota_client_service_t* const service, char const* const obj, char** json_result);
+status_t api_send_mam_message(const ta_cache_t* const cache, char const* const obj, char** json_result);
 
 /**
  * @brief Send transfer to tangle.
@@ -201,7 +200,7 @@ status_t api_send_trytes(const ta_config_t* const info, const iota_config_t* con
 status_t api_get_node_status(const iota_client_service_t* const service, char** json_result);
 
 /**
- * @brief Fetch transaction information with UUID.
+ * @brief Fetch buffered request information with UUID.
  *
  * @param[in] cache Redis configuration variables
  * @param[in] uuid Requesting UUID
@@ -211,7 +210,20 @@ status_t api_get_node_status(const iota_client_service_t* const service, char** 
  * - SC_OK on success
  * - non-zero on error
  */
-status_t api_fetch_txn_with_uuid(const ta_cache_t* const cache, const char* const uuid, char** json_result);
+status_t api_fetch_buffered_request_status(const ta_cache_t* const cache, const char* const uuid, char** json_result);
+
+/**
+ * @brief Register user identity with MAM channel seed
+ *
+ * @param[in] cache Redis configuration variables
+ * @param[in] obj Request in JSON format
+ * @param[out] json_result Result contains the user id.
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+status_t api_register_mam_channel(const ta_cache_t* const cache, const char* const obj, char** json_result);
 
 #ifdef DB_ENABLE
 /**

@@ -13,16 +13,95 @@
 
 #define logger_id ser_logger_id
 
+/**
+ * @brief Convert the payload array (which is in utarray) in `ta_mam_recv_res_t` to cJSON array element
+ *
+ * @param[in] ut String array in utarray datatype
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] json_root Output cJSON object
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+static inline status_t ta_mam_recv_payload_utarray_to_json_array(UT_array const* const ut, char const* const obj_name,
+                                                                 cJSON* const json_root) {
+  char** p = NULL;
+  if (!ut) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  cJSON* array_obj = cJSON_CreateArray();
+  if (array_obj == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_CREATE));
+    return SC_SERIALIZER_JSON_CREATE;
+  }
+
+  cJSON_AddItemToObject(json_root, obj_name, array_obj);
+  char timestamp[21] = {0};
+  while ((p = (char**)utarray_next(ut, p))) {
+    if (!(*p)) {
+      continue;
+    }
+    cJSON* array_elt = cJSON_CreateArray();
+    strncpy(timestamp, *p, 20);
+    cJSON_AddItemToArray(array_elt, cJSON_CreateString(timestamp));
+    cJSON_AddItemToArray(array_elt, cJSON_CreateString((*p + 20)));
+    cJSON_AddItemToArray(array_obj, array_elt);
+  }
+  return SC_OK;
+}
+
+/**
+ * @brief Convert cJSON payload array to the string array in `ta_mam_res_t` style
+ *
+ * @param[in] obj Input cJSON string array
+ * @param[in] obj_name The name of this element in JSON
+ * @param[out] ut Output string array in utarray datatype
+ *
+ * @return
+ * - SC_OK on success
+ * - non-zero on error
+ */
+static inline status_t ta_json_recv_payload_to_string_utarray(cJSON const* const obj, char const* const obj_name,
+                                                              UT_array* const ut) {
+  char* str = NULL;
+
+  cJSON* json_item = cJSON_GetObjectItemCaseSensitive(obj, obj_name);
+  if (cJSON_IsArray(json_item)) {
+    cJSON *json_subarray = NULL, *array_elt = NULL;
+
+    cJSON_ArrayForEach(json_subarray, json_item) {
+      cJSON_ArrayForEach(array_elt, json_subarray) {
+        str = cJSON_GetStringValue(array_elt);
+        if (!str) {
+          ta_log_error("%s\n", "Encountered non-string array member");
+          return SC_SERIALIZER_JSON_PARSE;
+        }
+
+        utarray_push_back(ut, &str);
+      }
+    }
+  } else {
+    ta_log_error("%s\n", "Not an array");
+    return SC_SERIALIZER_JSON_PARSE;
+  }
+
+  return SC_OK;
+}
+
 static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_obj, ta_send_mam_req_t* const req) {
   cJSON *json_key = NULL, *json_value = NULL;
   status_t ret = SC_OK;
   send_mam_data_mam_v1_t* data = (send_mam_data_mam_v1_t*)req->data;
   send_mam_key_mam_v1_t* key = (send_mam_key_mam_v1_t*)req->key;
 
-  ret = ta_json_get_string(json_obj, "x-api-key", req->service_token, SERVICE_TOKEN_LEN);
-  if (ret != SC_OK) {
-    ta_log_error("%s\n", ta_error_to_string(ret));
-    goto done;
+  if (cJSON_HasObjectItem(json_obj, "x-api-key")) {
+    ret = ta_json_get_string(json_obj, "x-api-key", req->service_token, SERVICE_TOKEN_LEN);
+    if (ret != SC_OK) {
+      ta_log_error("%s\n", ta_error_to_string(ret));
+      goto done;
+    }
   }
 
   if (cJSON_HasObjectItem(json_obj, "key")) {
@@ -60,7 +139,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "seed");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t seed_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
 
     if (seed_size != NUM_TRYTES_HASH) {
@@ -73,7 +152,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "chid");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t chid_size = strnlen(json_value->valuestring, NUM_TRYTES_ADDRESS);
 
     if (chid_size != NUM_TRYTES_HASH) {
@@ -86,7 +165,7 @@ static status_t send_mam_message_mam_v1_req_deserialize(cJSON const* const json_
   }
 
   json_value = cJSON_GetObjectItemCaseSensitive(json_key, "message");
-  if (json_value != NULL) {
+  if (json_value && json_value->valuestring) {
     size_t payload_size = strlen(json_value->valuestring);
     data->message = (char*)malloc((payload_size + 1) * sizeof(char));
 
@@ -321,9 +400,9 @@ done:
   return ret;
 }
 
-status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char** obj) {
+status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char const* const uuid, char** obj) {
   status_t ret = SC_OK;
-  if (!res || !obj) {
+  if ((!res && !uuid) || !obj) {
     ret = SC_SERIALIZER_NULL;
     ta_log_error("%s\n", ta_error_to_string(ret));
     return ret;
@@ -336,20 +415,23 @@ status_t send_mam_message_res_serialize(const ta_send_mam_res_t* const res, char
     goto done;
   }
 
-  cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
+  if (uuid) {
+    cJSON_AddStringToObject(json_root, "uuid", uuid);
+  } else {
+    cJSON_AddStringToObject(json_root, "bundle_hash", res->bundle_hash);
 
-  cJSON_AddStringToObject(json_root, "chid", res->chid);
+    cJSON_AddStringToObject(json_root, "chid", res->chid);
 
-  cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
+    cJSON_AddStringToObject(json_root, "msg_id", res->msg_id);
 
-  if (res->announcement_bundle_hash[0]) {
-    cJSON_AddStringToObject(json_root, "announcement_bundle_hash", res->announcement_bundle_hash);
+    if (res->announcement_bundle_hash[0]) {
+      cJSON_AddStringToObject(json_root, "announcement_bundle_hash", res->announcement_bundle_hash);
+    }
+
+    if (res->chid1[0]) {
+      cJSON_AddStringToObject(json_root, "chid1", res->chid1);
+    }
   }
-
-  if (res->chid1[0]) {
-    cJSON_AddStringToObject(json_root, "chid1", res->chid1);
-  }
-
   *obj = cJSON_PrintUnformatted(json_root);
   if (*obj == NULL) {
     ret = SC_SERIALIZER_JSON_PARSE;
@@ -425,7 +507,7 @@ status_t recv_mam_message_res_deserialize(const char* const obj, ta_recv_mam_res
     goto done;
   }
 
-  ret = ta_json_string_array_to_string_utarray(json_obj, "payload", res->payload_array);
+  ret = ta_json_recv_payload_to_string_utarray(json_obj, "payload", res->payload_array);
   if (ret) {
     ret = SC_CCLIENT_JSON_KEY;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -460,7 +542,7 @@ status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj
     goto done;
   }
 
-  ret = ta_string_utarray_to_json_array(res->payload_array, "payload", json_root);
+  ret = ta_mam_recv_payload_utarray_to_json_array(res->payload_array, "payload", json_root);
   if (ret) {
     ret = SC_SERIALIZER_JSON_PARSE;
     ta_log_error("%s\n", ta_error_to_string(ret));
@@ -480,5 +562,96 @@ status_t recv_mam_message_res_serialize(ta_recv_mam_res_t* const res, char** obj
 
 done:
   cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t register_mam_channel_req_deserialize(const char* const obj, ta_register_mam_channel_req_t* req) {
+  if (obj == NULL || req == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_item = NULL;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "seed");
+  if (json_item == NULL) {
+    ret = SC_SERIALIZER_KEY_NOT_EXISTS;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (json_item->valuestring == NULL) {
+    ret = SC_SERIALIZER_VALUE_EMPTY;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (strlen(json_item->valuestring) != NUM_TRYTES_ADDRESS) {
+    ret = SC_SERIALIZER_VALUE_INVLID;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else {
+    strncpy(req->seed, json_item->valuestring, NUM_TRYTES_ADDRESS);
+    req->seed[NUM_TRYTES_ADDRESS] = 0;
+  }
+
+done:
+  cJSON_Delete(json_obj);
+  return ret;
+}
+
+status_t register_mam_channel_res_serialize(const char* const uuid, char** obj) {
+  if (uuid == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+
+  status_t ret = SC_OK;
+  cJSON* json_root = cJSON_CreateObject();
+
+  cJSON_AddStringToObject(json_root, "user-id", uuid);
+
+  *obj = cJSON_PrintUnformatted(json_root);
+  if (*obj == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_JSON_PARSE));
+    ret = SC_SERIALIZER_JSON_PARSE;
+  }
+
+  cJSON_Delete(json_root);
+  return ret;
+}
+
+status_t register_mam_channel_res_deserialize(const char* const obj, char* user_id) {
+  if (obj == NULL || user_id == NULL) {
+    ta_log_error("%s\n", ta_error_to_string(SC_SERIALIZER_NULL));
+    return SC_SERIALIZER_NULL;
+  }
+  status_t ret = SC_OK;
+  cJSON* json_obj = cJSON_Parse(obj);
+  cJSON* json_item = NULL;
+
+  if (json_obj == NULL) {
+    ret = SC_SERIALIZER_JSON_PARSE;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+  json_item = cJSON_GetObjectItemCaseSensitive(json_obj, "user-id");
+  if (json_item == NULL) {
+    ret = SC_SERIALIZER_KEY_NOT_EXISTS;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (json_item->valuestring == NULL) {
+    ret = SC_SERIALIZER_VALUE_EMPTY;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else if (strlen(json_item->valuestring) != UUID_STR_LEN - 1) {
+    ret = SC_SERIALIZER_VALUE_INVLID;
+    ta_log_error("%s\n", ta_error_to_string(ret));
+  } else {
+    strncpy(user_id, json_item->valuestring, UUID_STR_LEN - 1);
+    user_id[UUID_STR_LEN - 1] = 0;
+  }
+
+done:
+  cJSON_Delete(json_obj);
   return ret;
 }

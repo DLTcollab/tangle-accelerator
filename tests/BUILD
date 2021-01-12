@@ -22,7 +22,8 @@ cc_library(
 cc_library(
     name = "logger_lib",
     visibility = [
-        "//endpoint/unit-test:__pkg__",
+        "//endpoint/tests/regression:__pkg__",
+        "//endpoint/tests/unit-test:__pkg__",
         "//tests:__subpackages__",
     ],
     deps = select({

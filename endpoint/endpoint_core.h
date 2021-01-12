@@ -12,6 +12,7 @@
 #define ADDR_LEN 81
 #define MAX_MSG_LEN 1024
 
+#include <stddef.h>
 #include <stdint.h>
 #include "common/ta_errors.h"
 
@@ -35,24 +36,16 @@ void endpoint_destroy(void);
  * @param[in] host The host of the tangle-accelerator
  * @param[in] port The port of the tangle-accelerator
  * @param[in] ssl_seed The random seed of the SSL configuration
- * @param[in] value Amount of the IOTA currency will be sent
- * @param[in] message Message of the transaction in Trytes format
- * @param[in] message_fmt Treating message field as specified format. Can be one of `ascii` or `trytes`. Default:
- * `ascii`
- * @param[in] tag Tag of transactions into several classifications. Tag is 27-trytes characters, e.g.
- * POWEREDBYTANGLEACCELERATOR9
- * @param[in] address Address of the receiver where IOTA currency will be sent to
- * @param[in] next_address Next address to be sent inside message
+ * @param[in] mam_seed Channel root seed. It is an 81-trytes string
+ * @param[in] message Message payload of the MAM packet in ASCII
  * @param[in] private_key Private key from device
  * @param[in] device_id Device id from device
- * @param[in,out] iv Initialization vector, must be read/write. The length of iv must be AES_IV_SIZE @see #ta_cipher_ctx
  *
  * @return #status_t
  */
-status_t send_transaction_information(const char* host, const char* port, const char* ssl_seed, const int value,
-                                      const char* message, const char* message_fmt, const char* tag,
-                                      const char* address, const char* next_address, const uint8_t* private_key,
-                                      const char* device_id, uint8_t* iv);
+status_t send_mam_message(const char* host, const char* port, const char* ssl_seed, const char* mam_seed,
+                          const uint8_t* message, const size_t msg_len, const uint8_t* private_key,
+                          const char* device_id);
 /**
  * @brief Resolve the server address name
  *

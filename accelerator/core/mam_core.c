@@ -14,6 +14,12 @@
 
 #define MAM_LOGGER "mam_core"
 
+/**
+ * @brief The maximum length of timestamp
+ *
+ */
+#define TIMESTAMP_LEN 20
+
 typedef struct channel_info_s {
   int32_t ch_mss_depth;
   tryte_t *chid;
@@ -304,9 +310,8 @@ static status_t create_channel_fetch_all_transactions(const iota_client_service_
   flex_trits_from_trytes(chid_flex_trit, NUM_TRITS_ADDRESS, chid, NUM_TRYTES_ADDRESS, NUM_TRYTES_ADDRESS);
   hash243_queue_push(&txn_req->addresses, chid_flex_trit);
   // TODO use `ta_find_transaction_objects(service, obj_req, obj_res)` instead of the original 'iota.c' function
-  retcode_t ret_rc = iota_client_find_transaction_objects(service, txn_req, obj_res);
-  if (ret_rc && ret_rc != RC_NULL_PARAM) {
-    ret = SC_MAM_FAILED_RESPONSE;
+  ret = ta_get_txn_objects_with_txn_hash(service, txn_req, obj_res);
+  if (ret) {
     ta_log_error("%s\n", ta_error_to_string(ret));
     goto done;
   }
@@ -585,7 +590,7 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
   send_mam_key_mam_v1_t *key = (send_mam_key_mam_v1_t *)req->key;
   mam_encrypt_key_t mam_key = {.psks = NULL, .ntru_pks = NULL, .ntru_sks = NULL};
   bool msg_sent = false;
-
+  char *message = NULL;
   // Creating MAM API
   ret = ta_mam_init(&mam, iconf, data->seed);
   if (ret) {
@@ -599,13 +604,18 @@ status_t ta_send_mam_message(const ta_config_t *const info, const iota_config_t 
     goto done;
   }
 
+  struct timespec t;
   mam_send_operation_t mam_operation;
   while (!msg_sent) {
     bundle_transactions_renew(&bundle);
     struct channel_info_s channel_info = {.ch_mss_depth = data->ch_mss_depth, .chid = data->chid};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+
+    message = (char *)malloc(sizeof(char) * (strlen(data->message) + TIMESTAMP_LEN + 1));
+    snprintf(message, TIMESTAMP_LEN + strlen(data->message) + 1, "%020ld%s", t.tv_sec, data->message);
 
     // Write both Header and Packet into one single bundle.
-    ret = ta_mam_written_msg_to_bundle(service, &mam, &channel_info, mam_key, data->message, &bundle, chid, msg_id,
+    ret = ta_mam_written_msg_to_bundle(service, &mam, &channel_info, mam_key, message, &bundle, chid, msg_id,
                                        &mam_operation);
     if (ret == SC_OK) {
       msg_sent = true;
@@ -670,6 +680,7 @@ done:
   }
   bundle_transactions_free(&bundle);
   mam_encrypt_key_free(&mam_key);
+  free(message);
   return ret;
 }
 
@@ -774,5 +785,31 @@ done:
   bundle_array_free(&bundle_array);
   mam_pk_t_set_free(&init_trusted_ch);
   mam_encrypt_key_free(&mam_key);
+  return ret;
+}
+
+status_t ta_register_mam_channel(const ta_cache_t *const cache, const ta_register_mam_channel_req_t *const req,
+                                 char *uuid) {
+  if (!cache || !req || !uuid) {
+    ta_log_error("%s\n", ta_error_to_string(SC_NULL));
+    return SC_NULL;
+  }
+  status_t ret = SC_OK;
+
+  uuid_t bin_uuid;
+  uuid_generate_random(bin_uuid);
+  uuid_unparse(bin_uuid, uuid);
+  if (!uuid[0]) {
+    ta_log_error("%s\n", "Failed to generate UUID");
+    goto done;
+  }
+
+  ret = cache_set(uuid, UUID_STR_LEN - 1, req->seed, NUM_TRYTES_ADDRESS, cache->timeout);
+  if (ret) {
+    ta_log_error("%s\n", ta_error_to_string(ret));
+    goto done;
+  }
+
+done:
   return ret;
 }
