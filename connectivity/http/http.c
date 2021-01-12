@@ -304,7 +304,7 @@ static int ta_http_header_iter(void *cls, enum MHD_ValueKind kind, const char *k
   ta_http_request_t *header = cls;
 
   if (0 == strncasecmp(MHD_HTTP_HEADER_CONTENT_TYPE, key, strlen(MHD_HTTP_HEADER_CONTENT_TYPE))) {
-    if (api_path_matcher(value, "application/json(;?\\s*charset=(UTF|utf)-8)?") == SC_OK) {
+    if (api_path_matcher(value, "application/json\\s*(;?\\s*charset\\s*=\\s*(UTF|utf)-8)?") == SC_OK) {
       header->valid_content_type = true;
     } else {
       header->valid_content_type = false;
