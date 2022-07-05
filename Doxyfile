@@ -27,3 +27,4 @@ EXAMPLE_PATTERNS       = test_*
 USE_MDFILE_AS_MAINPAGE = README.md
 GENERATE_LATEX         = NO
 QUIET                  = YES
+AAAA
